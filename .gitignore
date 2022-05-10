@@ -1,0 +1,5 @@
+.idea
+
+# Makefile outputs
+sca-report/sca-report.xml
+tests/results/go-test-results.out
