@@ -1,0 +1,96 @@
+/*
+* Copyright 2022-present Open Networking Foundation
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+ */
+
+package ofagent
+
+import (
+	"context"
+	"io"
+
+	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"google.golang.org/grpc"
+)
+
+func (ofa *OFAgent) receivePacketsIn(ctx context.Context) {
+	logger.Debug(ctx, "receive-packets-in-started")
+	// If we exit, assume disconnected
+	defer func() {
+		ofa.events <- ofaEventVolthaDisconnected
+		logger.Debug(ctx, "receive-packets-in-finished")
+	}()
+	if ofa.volthaClient == nil {
+		logger.Error(ctx, "no-voltha-connection")
+		return
+	}
+	opt := grpc.EmptyCallOption{}
+	streamCtx, streamDone := context.WithCancel(context.Background())
+	defer streamDone()
+	stream, err := ofa.volthaClient.Get().ReceivePacketsIn(streamCtx, &empty.Empty{}, opt)
+	if err != nil {
+		logger.Errorw(ctx, "Unable to establish Receive PacketIn Stream",
+			log.Fields{"error": err})
+		return
+	}
+
+top:
+
+	for {
+		select {
+		case <-ctx.Done():
+			logger.Errorw(ctx, "Context Done", log.Fields{"Context": ctx})
+			break top
+		default:
+			pkt, err := stream.Recv()
+			if err == io.EOF {
+				logger.Infow(ctx, "EOF for receivePacketsIn stream, reconnecting", log.Fields{"err": err})
+				stream, err = ofa.volthaClient.Get().ReceivePacketsIn(streamCtx, &empty.Empty{}, opt)
+				if err != nil {
+					logger.Errorw(ctx, "Unable to establish Receive PacketIn Stream",
+						log.Fields{"error": err})
+					return
+				}
+				continue
+			}
+
+			if isConnCanceled(err) {
+				logger.Errorw(ctx, "error receiving packet",
+					log.Fields{"error": err})
+				break top
+			} else if err != nil {
+				logger.Infow(ctx, "Ignoring unhandled error", log.Fields{"err": err})
+				continue
+			}
+			ofa.packetInChannel <- pkt
+		}
+	}
+}
+
+func (ofa *OFAgent) handlePacketsIn(ctx context.Context) {
+	logger.Debug(ctx, "handle-packets-in-started")
+top:
+	for {
+		select {
+		case <-ctx.Done():
+			logger.Errorw(ctx, "Context Done", log.Fields{"Context": ctx})
+			break top
+		case packet := <-ofa.packetInChannel:
+			if ofc := ofa.getOFClient(packet.Id); ofc != nil {
+				ofc.PacketIn(packet)
+			}
+		}
+	}
+	logger.Debug(ctx, "handle-packets-in-finished")
+}

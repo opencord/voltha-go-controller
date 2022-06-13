@@ -1,0 +1,12 @@
+#!/bin/bash
+onts="0001 0002"
+for ont in $(seq 1 1000)
+do
+	servname=TWSH8080$(printf "%04d" $ont)
+	# echo $servname
+	curl --request POST http://127.0.0.1:8181/service/ -d "{\"Name\":\"${servname}\",\"Cvlan\":1015,\"Svlan\":2,\"Uvlan\":1015,\"Uni\":1,\"CircuitId\":\"\",\"RemoteId\":\"\",\"TechProfileId\":10,\"UsMeterId\":0,\"DsMeterId\":0,\"MulticastEnabled\":false,\"DhcpPbitMarking\":0,\"IgmpPbitMarking\":0,\"Pbits\":[0],\"MacAddr\":\"00:00:00:00:00:00\",\"IgmpEnabled\":true,\"UpstreamBandwidthProfile\":\"UsBandwidthProf1\",\"DownstreamBandwidthProfile\":\"DsBandwidthProf1\"}"
+	curl --request POST http://127.0.0.1:8181/service/ -d "{\"Name\":\"${servname}\",\"Cvlan\":1015,\"Svlan\":2,\"Uvlan\":1015,\"Uni\":1,\"CircuitId\":\"\",\"RemoteId\":\"\",\"TechProfileId\":20,\"UsMeterId\":0,\"DsMeterId\":0,\"MulticastEnabled\":false,\"DhcpPbitMarking\":0,\"IgmpPbitMarking\":0,\"Pbits\":[4],\"MacAddr\":\"00:00:00:00:00:00\",\"IgmpEnabled\":true,\"UpstreamBandwidthProfile\":\"UsBandwidthProf2\",\"DownstreamBandwidthProfile\":\"DsBandwidthProf2\"}"
+	curl --request POST http://127.0.0.1:8181/service/ -d "{\"Name\":\"${servname}\",\"Cvlan\":1015,\"Svlan\":2,\"Uvlan\":1015,\"Uni\":1,\"CircuitId\":\"\",\"RemoteId\":\"\",\"TechProfileId\":50,\"UsMeterId\":0,\"DsMeterId\":0,\"MulticastEnabled\":false,\"DhcpPbitMarking\":0,\"IgmpPbitMarking\":0,\"Pbits\":[5],\"MacAddr\":\"00:00:00:00:00:00\",\"IgmpEnabled\":true,\"UpstreamBandwidthProfile\":\"UsBandwidthProf3\",\"DownstreamBandwidthProfile\":\"DsBandwidthProf3\"}"
+	curl --request POST http://127.0.0.1:8181/service/ -d "{\"Name\":\"${servname}\",\"Cvlan\":1015,\"Svlan\":2,\"Uvlan\":1015,\"Uni\":1,\"CircuitId\":\"\",\"RemoteId\":\"\",\"TechProfileId\":60,\"UsMeterId\":0,\"DsMeterId\":0,\"MulticastEnabled\":false,\"DhcpPbitMarking\":0,\"IgmpPbitMarking\":0,\"Pbits\":[6],\"MacAddr\":\"00:00:00:00:00:00\",\"IgmpEnabled\":true,\"UpstreamBandwidthProfile\":\"UsBandwidthProf4\",\"DownstreamBandwidthProfile\":\"DsBandwidthProf4\"}"
+	curl --request POST http://127.0.0.1:8181/service/ -d "{\"Name\":\"${servname}\",\"Cvlan\":1015,\"Svlan\":2,\"Uvlan\":1015,\"Uni\":1,\"CircuitId\":\"\",\"RemoteId\":\"\",\"TechProfileId\":70,\"UsMeterId\":0,\"DsMeterId\":0,\"MulticastEnabled\":false,\"DhcpPbitMarking\":0,\"IgmpPbitMarking\":0,\"Pbits\":[7],\"MacAddr\":\"00:00:00:00:00:00\",\"IgmpEnabled\":true,\"UpstreamBandwidthProfile\":\"UsBandwidthProf5\",\"DownstreamBandwidthProfile\":\"DsBandwidthProf5\"}"
+done
