@@ -1,0 +1,62 @@
+/*
+* Copyright 2022-present Open Networking Foundation
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
+package nbi
+
+import (
+	//"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
+	cntlr "voltha-go-controller/internal/pkg/controller"
+	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+)
+
+// FlowHashHandle Handle flowhash Requests
+type FlowHashHandle struct {
+}
+
+// ServeHTTP to serve HTTP requests
+func (fh *FlowHashHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
+	switch r.Method {
+	case "PUT":
+		fh.PutFlowHash(w, r)
+	default:
+		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+	}
+}
+
+// PutFlowHash to put flowhash
+func (fh *FlowHashHandle) PutFlowHash(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	flowhash, _ := strconv.ParseUint(string(reqBody), 10, 32)
+	if len(id) > 0 {
+		device, err := cntlr.GetController().GetDevice(id)
+		if err != nil {
+			logger.Errorw(ctx, "Failed to get device", log.Fields{"device": id})
+			return
+		}
+		device.SetFlowHash(uint32(flowhash))
+	}
+
+	logger.Debugw(ctx, "flowhash data is ", log.Fields{"vars": vars, "value": string(reqBody)})
+
+}
