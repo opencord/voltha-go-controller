@@ -1,0 +1,53 @@
+FROM --platform=linux/amd64 golang:1.16.3-alpine3.13 AS dev
+
+RUN adduser -h /home/voltha-go-controller -s /bin/bash -D voltha-go-controller
+# Install required packages
+RUN apk add --no-cache build-base=0.5-r2
+
+#adding git
+RUN apk add --no-cache git
+RUN apk add --no-cache bash
+
+#chnaging the working dir to tmp
+WORKDIR /tmp
+ENV LD_LIBRARY_PATH=/usr/local/lib
+
+# Set the working directory
+WORKDIR /home/voltha-go-controller
+# Copy required files
+COPY . /home/voltha-go-controller/
+
+
+WORKDIR /home/voltha-go-controller/voltha-go-controller
+#RUN go build
+#Set CGO_ENABLED flag to 0 to avoid DNS issue in alpine release
+RUN CGO_ENABLED=0 go build -a -v
+
+WORKDIR /home/voltha-go-controller/voltha-go-controller/cli/
+RUN CGO_ENABLED=0 go build -a -v -o vgcctl
+
+FROM --platform=linux/amd64 golang:1.16.3-alpine3.13 AS prod
+
+RUN adduser -h /home/voltha-go-controller -s /bin/bash -D voltha-go-controller
+
+RUN apk add --no-cache bash
+# Set the working directory
+WORKDIR /home/voltha-go-controller
+
+# Copy required files
+COPY --from=dev /home/voltha-go-controller/voltha-go-controller/voltha-go-controller /home/voltha-go-controller/
+COPY --from=dev /home/voltha-go-controller/voltha-go-controller/cli/vgcctl /home/voltha-go-controller/
+COPY entryscript.sh /home/voltha-go-controller/
+
+RUN chown -R voltha-go-controller.voltha-go-controller /home/voltha-go-controller/ /usr/local/bin/
+RUN chmod +x /home/voltha-go-controller/entryscript.sh
+RUN apk add --update --no-cache openssh 
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/init.d/sshd
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+
+EXPOSE 22
+
+CMD ["/home/voltha-go-controller/entryscript.sh"]
