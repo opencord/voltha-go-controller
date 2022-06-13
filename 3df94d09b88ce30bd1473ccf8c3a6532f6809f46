@@ -1,0 +1,232 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0d7f355b_9e79f27a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-13T20:57:07Z",
+      "side": 1,
+      "message": "Thanks a lot for the submission!\n\nHaven\u0027t checked the code in details, just pointed out the issues that cause the tests to fail.\n",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "547ec717_ad9296ad",
+        "filename": "Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-13T20:57:07Z",
+      "side": 1,
+      "message": "There is already a VERSION file in the repository: https://github.com/opencord/voltha-go-controller/blob/master/VERSION\n\ncan we consolidate to use that? In the ONF infrastructure that file is used when building/tagging/publishing artifacts.",
+      "range": {
+        "startLine": 22,
+        "startChar": 36,
+        "endLine": 22,
+        "endChar": 59
+      },
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9e3c6ae4_241e1310",
+        "filename": "Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-13T20:57:07Z",
+      "side": 1,
+      "message": "you could use this syntax for the \"help\" target: https://github.com/opencord/bbsim/blob/master/Makefile#L168-L180\n\nand that allows to \"annotate\" the targets we want to documents as per https://github.com/opencord/bbsim/blob/master/Makefile#L99",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 4
+      },
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "82f8855c_398dfa22",
+        "filename": "Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-13T20:57:07Z",
+      "side": 1,
+      "message": "would it be possible to use the same linter as the other VOLTHA projects?\nhttps://github.com/opencord/bbsim/blob/master/Makefile#L70-L76",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 82,
+        "endChar": 3
+      },
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "348c83ff_c475332a",
+        "filename": "docker/Dockerfile.voltha-go-controller",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-13T20:57:07Z",
+      "side": 1,
+      "message": "it is requried to pin a VERSION (otherwise CI will fail):\n03:07:20 ./docker/Dockerfile.voltha-go-controller:8 DL3018 Pin versions in apk add. Instead of `apk add \u003cpackage\u003e` use `apk add \u003cpackage\u003e\u003d\u003cversion\u003e`\n03:07:20 ./docker/Dockerfile.voltha-go-controller:9 DL3018 Pin versions in apk add. Instead of `apk add \u003cpackage\u003e` use `apk add \u003cpackage\u003e\u003d\u003cversion\u003e`\n03:07:20 ./docker/Dockerfile.voltha-go-controller:33 DL3018 Pin versions in apk add. Instead of `apk add \u003cpackage\u003e` use `apk add \u003cpackage\u003e\u003d\u003cversion\u003e`\n03:07:20 ./docker/Dockerfile.voltha-go-controller:44 DL3018 Pin versions in apk add. Instead of `apk add \u003cpackage\u003e` use `apk add \u003cpackage\u003e\u003d\u003cversion\u003e`\n\nWe had issues in the past with shifting dependencies versions, so now ONF requires that all versions are pinned.",
+      "range": {
+        "startLine": 8,
+        "startChar": 23,
+        "endLine": 8,
+        "endChar": 26
+      },
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "56db8a76_409b7c46",
+        "filename": "entryscript.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-13T20:57:07Z",
+      "side": 1,
+      "message": "is this file required? If it is an example can we move it under a \"examples\" directory with some kind of explanation on how to use it?\n\nAlso missing copyright header",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c140619b_f8d9ed23",
+        "filename": "gofmt.log",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-13T20:57:07Z",
+      "side": 1,
+      "message": "is this file required?",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a4d10104_19fec5b1",
+        "filename": "goimports.log",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-13T20:57:07Z",
+      "side": 1,
+      "message": "is this file required?",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3c6554d7_2640ae47",
+        "filename": "voltha-go-controller/add1000svc.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-13T20:57:07Z",
+      "side": 1,
+      "message": "Missing copyright header",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ab8f0546_9744b848",
+        "filename": "voltha-go-controller/addmeter.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-13T20:57:07Z",
+      "side": 1,
+      "message": "Missing copyright header",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2b91ad83_f76f9889",
+        "filename": "voltha-go-controller/addsvc.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-13T20:57:07Z",
+      "side": 1,
+      "message": "Missing copyright header",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "40e94167_62e08006",
+        "filename": "voltha-go-controller/addvnet.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-13T20:57:07Z",
+      "side": 1,
+      "message": "Missing copyright header",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
