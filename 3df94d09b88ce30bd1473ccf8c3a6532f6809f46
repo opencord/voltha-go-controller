@@ -41,6 +41,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3797a65c_db3e8f08",
+        "filename": "Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-17T06:13:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "547ec717_ad9296ad",
+      "range": {
+        "startLine": 22,
+        "startChar": 36,
+        "endLine": 22,
+        "endChar": 59
+      },
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9e3c6ae4_241e1310",
@@ -54,6 +78,30 @@
       "writtenOn": "2022-06-13T20:57:07Z",
       "side": 1,
       "message": "you could use this syntax for the \"help\" target: https://github.com/opencord/bbsim/blob/master/Makefile#L168-L180\n\nand that allows to \"annotate\" the targets we want to documents as per https://github.com/opencord/bbsim/blob/master/Makefile#L99",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 4
+      },
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e8b65678_da085e8e",
+        "filename": "Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-17T06:13:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9e3c6ae4_241e1310",
       "range": {
         "startLine": 52,
         "startChar": 0,
@@ -89,6 +137,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ac6522bd_b546275a",
+        "filename": "Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-17T06:13:42Z",
+      "side": 1,
+      "message": "Currently, a different tool is used for sca check. Will adopt to the community tool in subsequent patches",
+      "parentUuid": "82f8855c_398dfa22",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 82,
+        "endChar": 3
+      },
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "348c83ff_c475332a",
         "filename": "docker/Dockerfile.voltha-go-controller",
         "patchSetId": 5
@@ -100,6 +172,30 @@
       "writtenOn": "2022-06-13T20:57:07Z",
       "side": 1,
       "message": "it is requried to pin a VERSION (otherwise CI will fail):\n03:07:20 ./docker/Dockerfile.voltha-go-controller:8 DL3018 Pin versions in apk add. Instead of `apk add \u003cpackage\u003e` use `apk add \u003cpackage\u003e\u003d\u003cversion\u003e`\n03:07:20 ./docker/Dockerfile.voltha-go-controller:9 DL3018 Pin versions in apk add. Instead of `apk add \u003cpackage\u003e` use `apk add \u003cpackage\u003e\u003d\u003cversion\u003e`\n03:07:20 ./docker/Dockerfile.voltha-go-controller:33 DL3018 Pin versions in apk add. Instead of `apk add \u003cpackage\u003e` use `apk add \u003cpackage\u003e\u003d\u003cversion\u003e`\n03:07:20 ./docker/Dockerfile.voltha-go-controller:44 DL3018 Pin versions in apk add. Instead of `apk add \u003cpackage\u003e` use `apk add \u003cpackage\u003e\u003d\u003cversion\u003e`\n\nWe had issues in the past with shifting dependencies versions, so now ONF requires that all versions are pinned.",
+      "range": {
+        "startLine": 8,
+        "startChar": 23,
+        "endLine": 8,
+        "endChar": 26
+      },
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8b098e14_2cca55bc",
+        "filename": "docker/Dockerfile.voltha-go-controller",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-17T06:13:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "348c83ff_c475332a",
       "range": {
         "startLine": 8,
         "startChar": 23,
@@ -129,6 +225,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "dd3e48b8_31636fa3",
+        "filename": "entryscript.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-17T06:13:42Z",
+      "side": 1,
+      "message": "Yes, this file will be used in the docker env. Voltha-go-controller has CLI support which can be accessed when we logged into the pod, the script is used to setup the same",
+      "parentUuid": "56db8a76_409b7c46",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "c140619b_f8d9ed23",
         "filename": "gofmt.log",
         "patchSetId": 5
@@ -140,6 +254,24 @@
       "writtenOn": "2022-06-13T20:57:07Z",
       "side": 1,
       "message": "is this file required?",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6b87c325_e74f8557",
+        "filename": "gofmt.log",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-17T06:13:42Z",
+      "side": 1,
+      "message": "File removed",
+      "parentUuid": "c140619b_f8d9ed23",
       "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -163,6 +295,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "1afc73cf_baad3710",
+        "filename": "goimports.log",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-17T06:13:42Z",
+      "side": 1,
+      "message": "File removed",
+      "parentUuid": "a4d10104_19fec5b1",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "3c6554d7_2640ae47",
         "filename": "voltha-go-controller/add1000svc.sh",
         "patchSetId": 5
@@ -174,6 +324,24 @@
       "writtenOn": "2022-06-13T20:57:07Z",
       "side": 1,
       "message": "Missing copyright header",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "862735a1_c0bfae27",
+        "filename": "voltha-go-controller/add1000svc.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-17T06:13:42Z",
+      "side": 1,
+      "message": "Removed the test script file",
+      "parentUuid": "3c6554d7_2640ae47",
       "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -197,6 +365,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a07fce1d_d4f64d3d",
+        "filename": "voltha-go-controller/addmeter.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-17T06:13:42Z",
+      "side": 1,
+      "message": "Removed the test script file",
+      "parentUuid": "ab8f0546_9744b848",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "2b91ad83_f76f9889",
         "filename": "voltha-go-controller/addsvc.sh",
         "patchSetId": 5
@@ -214,6 +400,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ee7876e1_edc19f91",
+        "filename": "voltha-go-controller/addsvc.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-17T06:13:42Z",
+      "side": 1,
+      "message": "Removed the test script file",
+      "parentUuid": "2b91ad83_f76f9889",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "40e94167_62e08006",
         "filename": "voltha-go-controller/addvnet.sh",
         "patchSetId": 5
@@ -225,6 +429,24 @@
       "writtenOn": "2022-06-13T20:57:07Z",
       "side": 1,
       "message": "Missing copyright header",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "63ab9b30_5b5dd4e0",
+        "filename": "voltha-go-controller/addvnet.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-17T06:13:42Z",
+      "side": 1,
+      "message": "Removed the test script file",
+      "parentUuid": "40e94167_62e08006",
       "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
