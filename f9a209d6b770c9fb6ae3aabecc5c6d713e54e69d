@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "53da7f93_e58a1182",
+        "filename": "Makefile",
+        "patchSetId": 11
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-22T19:29:02Z",
+      "side": 1,
+      "message": "This should be GOCMD",
+      "range": {
+        "startLine": 142,
+        "startChar": 3,
+        "endLine": 142,
+        "endChar": 5
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1ef75a0a_2d601092",
+        "filename": "database/database.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-22T19:29:02Z",
+      "side": 1,
+      "message": "This is confusing to me, in the success case we are return \"nil\" instead of a pointer to the DB, shouldn\u0027t we differentiate?",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 17
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c7d7a35d_d6ebfb13",
+        "filename": "database/dbintf.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-22T19:29:02Z",
+      "side": 1,
+      "message": "Looking at the Database implementation it looks like this is never used, so why pointer methods? It looks like the database is treated as a static class.\n\nThe approach I had seen in Go is to instantiate a Struct that holds the database connection and pass it around to all the structs that need access to the DB, for example:\n\n- db.Initialize returns an instance of the DB struct\n- newVoltApplication takes a pointer to DB as parameter and stores so it does not have to access a global variable when it needs it\n\nThis implementation will also simplify evolutions in which you might want to use different databases for different items in the store.\n\nNot arguing it\u0027s something that needs to be addressed now, but I found it a little confusing while looking into the code",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 25,
+        "endChar": 9
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4184d007_5b10af7a",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-22T19:29:02Z",
+      "side": 1,
+      "message": "this seems to be an infinite loop, you might want to have a channel to shut it down when the app is terminated.\n\nWe have seen issues with uncontrolled threads delaying shutdowns when running rolling upgrades (eg: the POD is not removed until it terminates, and if go-routines are running it won\u0027t terminate until it reaches the end of the grace period, 30s by default. This causes 2 PODs to be running at the same time ad requests being sent to either of them)",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e42cfdce_b988df08",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 575,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-22T19:29:02Z",
+      "side": 1,
+      "message": "It\u0027s common practice to return `(*util.ConcurrentMap, error)` instead that logging an error and return an empty map.\n\nI\u0027ve gone down this routed multiple times just to find out that eventually the caller needs to handle the error",
+      "range": {
+        "startLine": 564,
+        "startChar": 0,
+        "endLine": 575,
+        "endChar": 1
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d9592d0b_94f14464",
+        "filename": "voltha-go-controller/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-22T19:29:02Z",
+      "side": 1,
+      "message": "appears to be unused",
+      "range": {
+        "startLine": 61,
+        "startChar": 5,
+        "endLine": 61,
+        "endChar": 17
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf9603ac_00080435",
+        "filename": "voltha-go-controller/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-22T19:29:02Z",
+      "side": 1,
+      "message": "to simplify debugging it would be good to print the KV Store type and address",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 43
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6f1335e4_af9b7c44",
+        "filename": "voltha-go-controller/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-22T19:29:02Z",
+      "side": 1,
+      "message": "Any reason not to read cli parameters? \nIf they\u0027re not read the related code should be removed",
+      "range": {
+        "startLine": 115,
+        "startChar": 13,
+        "endLine": 119,
+        "endChar": 87
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "002ce72c_d918ec8e",
+        "filename": "voltha-go-controller/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-22T19:29:02Z",
+      "side": 1,
+      "message": "dbHandler is always nil, what is the reason to store it in db.SetDatabase?",
+      "range": {
+        "startLine": 152,
+        "startChar": 4,
+        "endLine": 152,
+        "endChar": 13
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d94fe914_5e4e90cb",
+        "filename": "voltha-go-controller/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-22T19:29:02Z",
+      "side": 1,
+      "message": "to simplify debugging it would be good to print the KV Store type and address",
+      "range": {
+        "startLine": 168,
+        "startChar": 21,
+        "endLine": 168,
+        "endChar": 50
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}

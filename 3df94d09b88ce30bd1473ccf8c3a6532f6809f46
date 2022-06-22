@@ -161,6 +161,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "89cbecb3_bc95e31a",
+        "filename": "Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-06-22T19:29:02Z",
+      "side": 1,
+      "message": "While it would be good to migrate away from \"golint\" as it\u0027s deprecated, we can use a containerized version for now so that Jenkins validation can proceed, eg:\n\n```\nGOLINT :\u003d docker run --rm --user $$(id -u):$$(id -g) -v $(CURDIR):/go/src ciena/go-lint\n```",
+      "parentUuid": "ac6522bd_b546275a",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 82,
+        "endChar": 3
+      },
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "348c83ff_c475332a",
         "filename": "docker/Dockerfile.voltha-go-controller",
         "patchSetId": 5
