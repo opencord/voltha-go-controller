@@ -3,6 +3,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "edada082_2969239a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T08:30:17Z",
+      "side": 1,
+      "message": "I\u0027ve tried to review the IGMP code but the igmp.go class consists of around 5K lines of code. I could not able to load the whole class in the browser. I\u0027ve seen a couple of possible problems but not able to push my comments. I suggest that the igmp.go should be broken into logical classes in a different directory which certainly leads to better code readability. \n\nThe olttopology app (LLDP) application seems missing? Is there a plan to implement it?",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "53da7f93_e58a1182",
         "filename": "Makefile",
         "patchSetId": 11
