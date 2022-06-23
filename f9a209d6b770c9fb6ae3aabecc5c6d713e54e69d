@@ -129,6 +129,216 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "9d2a0c02_1e3de0ea",
+        "filename": "internal/pkg/controller/controllertasks.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T09:26:46Z",
+      "side": 1,
+      "message": "should be Info",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2ce7a4c1_e577b719",
+        "filename": "internal/pkg/controller/controllertasks.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T09:26:46Z",
+      "side": 1,
+      "message": "should be Info",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3b40400f_953a7715",
+        "filename": "internal/pkg/controller/controllertasks.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T09:26:46Z",
+      "side": 1,
+      "message": "Please remove the commented out parts.",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dee9fa7c_a743e226",
+        "filename": "internal/pkg/controller/device.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T09:26:46Z",
+      "side": 1,
+      "message": "using RWMutex would be better. There are IO operations which may hold the lock for a long time.",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0ec44373_8bb4dbf4",
+        "filename": "internal/pkg/controller/device.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T09:26:46Z",
+      "side": 1,
+      "message": "using RWMutex would be better. There are IO operations which may hold the lock for a long time.",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "91a339f4_dbe0e42c",
+        "filename": "internal/pkg/controller/device.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T09:26:46Z",
+      "side": 1,
+      "message": "using RWMutex would be better. There are IO operations which may hold the lock for a long time.",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a8c0834f_0af7582f",
+        "filename": "internal/pkg/controller/device.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 931,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T09:26:46Z",
+      "side": 1,
+      "message": "Name of the function should be altered like getAndAdd",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "61de5011_efa735bd",
+        "filename": "internal/pkg/controller/device.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 932,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T09:26:46Z",
+      "side": 1,
+      "message": "I believe a better implementation would be: \nusing RLock here. \nAnd if there is no value in the queue then call addFlowQueueForUNIID function which locks the queue for write operations.",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0c2033a8_3771b990",
+        "filename": "internal/pkg/ofagent/connection.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T09:26:46Z",
+      "side": 1,
+      "message": "Could you please define the value here?",
+      "range": {
+        "startLine": 43,
+        "startChar": 89,
+        "endLine": 43,
+        "endChar": 97
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b4f865ab_84df2e61",
+        "filename": "internal/pkg/ofagent/ofagent.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T09:26:46Z",
+      "side": 1,
+      "message": "how do you health check the connection between voltha and controller?",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8b533b10_632bd36b",
+        "filename": "internal/pkg/ofagent/ofagent.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T09:26:46Z",
+      "side": 1,
+      "message": "is the panic leads to controller to die? If so, it seems dangerous to me.",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9b86c100_cae23f26",
+        "filename": "internal/pkg/ofagent/ofagent.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-06-23T09:26:46Z",
+      "side": 1,
+      "message": "same as above",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d9592d0b_94f14464",
         "filename": "voltha-go-controller/main.go",
         "patchSetId": 11
