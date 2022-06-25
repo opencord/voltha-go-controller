@@ -1,0 +1,147 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5ab30709_e73f0c97",
+        "filename": "Makefile",
+        "patchSetId": 12
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-25T06:29:18Z",
+      "side": 1,
+      "message": "Use next line instead of space.",
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f6512a51_e2a1db4c",
+        "filename": "Makefile",
+        "patchSetId": 12
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-25T06:29:18Z",
+      "side": 1,
+      "message": "remove redudant space",
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ffd236b2_743bd54c",
+        "filename": "README.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-25T06:29:18Z",
+      "side": 1,
+      "message": "I think the read me could definitely have more write up than what is available here. Some of the points that need to be included (but not limited to) are\n1. High level architecture\n2. What features are supported\n3. What deployment model is supported and suggested - cluster of controllers? one-to-one mapping with voltha-stack? \n4. Supported/verified scale numbers?\n5. How to deploy?\n6. Exposed ports?\n7. How to use CLI - some basic commands?\n8. Rest API documentation? Same as ONOS? Or Different? Different how?\n9. HA/Resiliency spport?\n10. What features are missing? What are in pipeline?\n\nThis is just a quick thought on what I would find useful, but I am sure I missed more.",
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "39607082_b6a7f09d",
+        "filename": "README.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-25T06:29:18Z",
+      "side": 1,
+      "message": "go.mod uses 1.16",
+      "range": {
+        "startLine": 10,
+        "startChar": 31,
+        "endLine": 10,
+        "endChar": 36
+      },
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5079e773_8d85c5ad",
+        "filename": "database/database.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-25T06:29:18Z",
+      "side": 1,
+      "message": "Global context and a TODO context? It seems context here is used to make some of the libraries work that need a context to be passed but not really making use of the real prupose of Golang Context library. I think this will need re-work. If this a big item i suggest creating jira to be addressed in subsequent patches.",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 24
+      },
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2082feba_e6c8e161",
+        "filename": "database/database.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-25T06:29:18Z",
+      "side": 1,
+      "message": "As mentioned earlier, it seems the global TODO context is used as a dummy argument here. \nContext with cancellation, timeouts etc. are really useful features that you might consider rather than using this. But then that context needs trickle down all the way from the root caller.",
+      "range": {
+        "startLine": 70,
+        "startChar": 25,
+        "endLine": 70,
+        "endChar": 45
+      },
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "001c5477_a3e31e8c",
+        "filename": "internal/pkg/application/vlanhandler.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-25T06:29:18Z",
+      "side": 1,
+      "message": "return true without any check? I see the same in other functions below?",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 1
+      },
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
