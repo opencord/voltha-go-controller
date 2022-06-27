@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7374970e_dc79de7a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 13
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Addressed comments from Matteo \u0026 Serkant",
+      "revId": "df66ac7bda70329fa5f7d9fb97be92cf54371377",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}

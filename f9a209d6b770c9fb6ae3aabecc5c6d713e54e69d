@@ -41,6 +41,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "eef8f1c6_fab4b3f9",
+        "filename": "Makefile",
+        "patchSetId": 11
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "53da7f93_e58a1182",
+      "range": {
+        "startLine": 142,
+        "startChar": 3,
+        "endLine": 142,
+        "endChar": 5
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1ef75a0a_2d601092",
@@ -54,6 +78,30 @@
       "writtenOn": "2022-06-22T19:29:02Z",
       "side": 1,
       "message": "This is confusing to me, in the success case we are return \"nil\" instead of a pointer to the DB, shouldn\u0027t we differentiate?",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 17
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3a02f783_73e1dc94",
+        "filename": "database/database.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Fixed to return the actual DB object",
+      "parentUuid": "1ef75a0a_2d601092",
       "range": {
         "startLine": 59,
         "startChar": 0,
@@ -106,6 +154,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "e54ff773_67484769",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Added channel to shut the timer threads during app termination",
+      "parentUuid": "4184d007_5b10af7a",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e42cfdce_b988df08",
         "filename": "internal/pkg/application/application.go",
         "patchSetId": 11
@@ -117,6 +183,30 @@
       "writtenOn": "2022-06-22T19:29:02Z",
       "side": 1,
       "message": "It\u0027s common practice to return `(*util.ConcurrentMap, error)` instead that logging an error and return an empty map.\n\nI\u0027ve gone down this routed multiple times just to find out that eventually the caller needs to handle the error",
+      "range": {
+        "startLine": 564,
+        "startChar": 0,
+        "endLine": 575,
+        "endChar": 1
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "753c362a_b78b4c61",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 575,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e42cfdce_b988df08",
       "range": {
         "startLine": 564,
         "startChar": 0,
@@ -144,6 +234,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a1ecdcdd_eb699c32",
+        "filename": "internal/pkg/controller/controllertasks.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9d2a0c02_1e3de0ea",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2ce7a4c1_e577b719",
@@ -157,6 +265,24 @@
       "writtenOn": "2022-06-23T09:26:46Z",
       "side": 1,
       "message": "should be Info",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6941832e_df7d1c18",
+        "filename": "internal/pkg/controller/controllertasks.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2ce7a4c1_e577b719",
       "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -178,6 +304,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8411df61_d7e791cc",
+        "filename": "internal/pkg/controller/controllertasks.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3b40400f_953a7715",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "dee9fa7c_a743e226",
@@ -191,6 +335,24 @@
       "writtenOn": "2022-06-23T09:26:46Z",
       "side": 1,
       "message": "using RWMutex would be better. There are IO operations which may hold the lock for a long time.",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "190530ed_c57ef7fe",
+        "filename": "internal/pkg/controller/device.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dee9fa7c_a743e226",
       "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -212,6 +374,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e6e636c9_25bfb5d4",
+        "filename": "internal/pkg/controller/device.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0ec44373_8bb4dbf4",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "91a339f4_dbe0e42c",
@@ -225,6 +405,24 @@
       "writtenOn": "2022-06-23T09:26:46Z",
       "side": 1,
       "message": "using RWMutex would be better. There are IO operations which may hold the lock for a long time.",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "18565cc8_f0dbf789",
+        "filename": "internal/pkg/controller/device.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "91a339f4_dbe0e42c",
       "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -246,6 +444,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2c06e2fe_ce8fa6f9",
+        "filename": "internal/pkg/controller/device.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 931,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a8c0834f_0af7582f",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "61de5011_efa735bd",
@@ -263,6 +479,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "37b39458_ef2d4fe1",
+        "filename": "internal/pkg/controller/device.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 932,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "61de5011_efa735bd",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0c2033a8_3771b990",
@@ -276,6 +510,30 @@
       "writtenOn": "2022-06-23T09:26:46Z",
       "side": 1,
       "message": "Could you please define the value here?",
+      "range": {
+        "startLine": 43,
+        "startChar": 89,
+        "endLine": 43,
+        "endChar": 97
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b792c46a_4e08f9c4",
+        "filename": "internal/pkg/ofagent/connection.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0c2033a8_3771b990",
       "range": {
         "startLine": 43,
         "startChar": 89,
@@ -305,6 +563,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "1228092d_3143f180",
+        "filename": "internal/pkg/ofagent/ofagent.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "There is no specific health check. However the device list is queried every 10s from the controller which serves as the health check",
+      "parentUuid": "b4f865ab_84df2e61",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "8b533b10_632bd36b",
         "filename": "internal/pkg/ofagent/ofagent.go",
         "patchSetId": 11
@@ -316,6 +592,24 @@
       "writtenOn": "2022-06-23T09:26:46Z",
       "side": 1,
       "message": "is the panic leads to controller to die? If so, it seems dangerous to me.",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "efb16d51_d60f228c",
+        "filename": "internal/pkg/ofagent/ofagent.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Corrected the same, Used fatal in case of connection failure after maxTimeout*maxRetry",
+      "parentUuid": "8b533b10_632bd36b",
       "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -337,6 +631,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8661a816_56c4e33f",
+        "filename": "internal/pkg/ofagent/ofagent.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9b86c100_cae23f26",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d9592d0b_94f14464",
@@ -350,6 +662,30 @@
       "writtenOn": "2022-06-22T19:29:02Z",
       "side": 1,
       "message": "appears to be unused",
+      "range": {
+        "startLine": 61,
+        "startChar": 5,
+        "endLine": 61,
+        "endChar": 17
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a41238f1_45e24127",
+        "filename": "voltha-go-controller/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Removed the func",
+      "parentUuid": "d9592d0b_94f14464",
       "range": {
         "startLine": 61,
         "startChar": 5,
@@ -383,6 +719,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4960205e_afdca239",
+        "filename": "voltha-go-controller/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cf9603ac_00080435",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 43
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6f1335e4_af9b7c44",
@@ -396,6 +756,30 @@
       "writtenOn": "2022-06-22T19:29:02Z",
       "side": 1,
       "message": "Any reason not to read cli parameters? \nIf they\u0027re not read the related code should be removed",
+      "range": {
+        "startLine": 115,
+        "startChar": 13,
+        "endLine": 119,
+        "endChar": 87
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7c34865e_d8c3cef3",
+        "filename": "voltha-go-controller/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6f1335e4_af9b7c44",
       "range": {
         "startLine": 115,
         "startChar": 13,
@@ -431,6 +815,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "27181479_9fcfcdff",
+        "filename": "voltha-go-controller/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Corrected it to return the correct DB object",
+      "parentUuid": "002ce72c_d918ec8e",
+      "range": {
+        "startLine": 152,
+        "startChar": 4,
+        "endLine": 152,
+        "endChar": 13
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d94fe914_5e4e90cb",
         "filename": "voltha-go-controller/main.go",
         "patchSetId": 11
@@ -442,6 +850,30 @@
       "writtenOn": "2022-06-22T19:29:02Z",
       "side": 1,
       "message": "to simplify debugging it would be good to print the KV Store type and address",
+      "range": {
+        "startLine": 168,
+        "startChar": 21,
+        "endLine": 168,
+        "endChar": 50
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1a7070cc_bf7f9f8c",
+        "filename": "voltha-go-controller/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-27T06:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d94fe914_5e4e90cb",
       "range": {
         "startLine": 168,
         "startChar": 21,
