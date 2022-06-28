@@ -18,6 +18,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b37eafb1_1f6e6d62",
+        "filename": "Makefile",
+        "patchSetId": 12
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-28T15:19:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ab30709_e73f0c97",
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f6512a51_e2a1db4c",
@@ -31,6 +49,24 @@
       "writtenOn": "2022-06-25T06:29:18Z",
       "side": 1,
       "message": "remove redudant space",
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e1b62c53_b0ba29b5",
+        "filename": "Makefile",
+        "patchSetId": 12
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-28T15:19:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f6512a51_e2a1db4c",
       "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -54,6 +90,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "b26a78ed_88201fed",
+        "filename": "README.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-28T15:19:55Z",
+      "side": 1,
+      "message": "Added the architecture, cli usage, feature list and build details",
+      "parentUuid": "ffd236b2_743bd54c",
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "39607082_b6a7f09d",
         "filename": "README.md",
         "patchSetId": 12
@@ -65,6 +119,30 @@
       "writtenOn": "2022-06-25T06:29:18Z",
       "side": 1,
       "message": "go.mod uses 1.16",
+      "range": {
+        "startLine": 10,
+        "startChar": 31,
+        "endLine": 10,
+        "endChar": 36
+      },
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f03225c0_94024a9b",
+        "filename": "README.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-06-28T15:19:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39607082_b6a7f09d",
       "range": {
         "startLine": 10,
         "startChar": 31,
