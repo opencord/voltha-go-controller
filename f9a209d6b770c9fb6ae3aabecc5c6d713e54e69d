@@ -137,6 +137,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "9caa0d2b_03619369",
+        "filename": "database/dbintf.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "agreed with Teo",
+      "parentUuid": "c7d7a35d_d6ebfb13",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 25,
+        "endChar": 9
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4184d007_5b10af7a",
         "filename": "internal/pkg/application/application.go",
         "patchSetId": 11

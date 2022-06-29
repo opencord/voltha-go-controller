@@ -108,6 +108,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "1ba5ab21_73251bd6",
+        "filename": "README.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "I would agree with Girish, can you please provide details example of how to provision subscriber (with all services) remove a subscriber, add a single service and remove a single service. Clean up stale state etc ? a kinda of \"hands on\" guide",
+      "parentUuid": "b26a78ed_88201fed",
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "39607082_b6a7f09d",
         "filename": "README.md",
         "patchSetId": 12
@@ -166,6 +184,30 @@
       "writtenOn": "2022-06-25T06:29:18Z",
       "side": 1,
       "message": "Global context and a TODO context? It seems context here is used to make some of the libraries work that need a context to be passed but not really making use of the real prupose of Golang Context library. I think this will need re-work. If this a big item i suggest creating jira to be addressed in subsequent patches.",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 24
+      },
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f0389918_a067bc07",
+        "filename": "database/database.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "agreed",
+      "parentUuid": "5079e773_8d85c5ad",
       "range": {
         "startLine": 36,
         "startChar": 0,

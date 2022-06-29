@@ -16,6 +16,251 @@
       "message": "Addressed the review comments",
       "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c48baf67_c97b5260",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 15
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "some comments, overall looks fairly good, could use some refinement and a more Golang oriented way of writing it, but good start. Thanks for the awesome work. ",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2c4ab7a0_04c96e84",
+        "filename": "database/database.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "error and return err ?",
+      "range": {
+        "startLine": 86,
+        "startChar": 2,
+        "endLine": 86,
+        "endChar": 14
+      },
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d41986f7_f6957998",
+        "filename": "database/database.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 93,
+        "startChar": 2,
+        "endLine": 93,
+        "endChar": 14
+      },
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a1b23eee_e3e82937",
+        "filename": "database/database.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 102,
+        "startChar": 2,
+        "endLine": 102,
+        "endChar": 14
+      },
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bd63efab_466d8e74",
+        "filename": "database/database.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "same, not going to comment anymore on this, please review all the logging",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "773b2d8a_34cf23e7",
+        "filename": "database/dbintf.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "some documentation would be a nice addition, can be done in a separate patch, but open jira",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3c7d5d72_101b6c33",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "bit of log strings cleanup is needed, see the ---- here",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9f4aad3b_141277f6",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1179,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "if unused please remove",
+      "range": {
+        "startLine": 1163,
+        "startChar": 0,
+        "endLine": 1179,
+        "endChar": 4
+      },
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1a1e3404_3f369623",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1428,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "general comment: might want to have some constant for `US`, `DS`, `NNI`, `UNI` etc",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "681fccd4_3ee568f0",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1639,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "are we just silently dropping a failure notification here ?",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "15ca2178_82ea2579",
+        "filename": "internal/pkg/application/dhcprelay.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 593,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "At ONF we actually use option 82 for scale, why is it removed here ?",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "34ac0ce5_08be4630",
+        "filename": "internal/pkg/application/major_upgrade.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "does this mean the key for something in the store has to be the same ? what if we change keys ?",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c90f56f1_423db1c3",
+        "filename": "internal/pkg/ofagent/ofagent.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-29T15:05:00Z",
+      "side": 1,
+      "message": "I know i\u0027m being a pain, but can we rename the package and name of the class to volthaprotoagent or volthanbagent ? open flow has nothing to do here except the structs.",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
