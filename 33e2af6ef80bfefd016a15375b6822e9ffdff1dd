@@ -140,6 +140,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "1ba6c517_75cdc38f",
+        "filename": "database/dbintf.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-04T14:23:17Z",
+      "side": 1,
+      "message": "Sure, will create a Jira for review comments to be addressed as part of next patch",
+      "parentUuid": "773b2d8a_34cf23e7",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "3c7d5d72_101b6c33",
         "filename": "internal/pkg/application/application.go",
         "patchSetId": 15
@@ -151,6 +169,24 @@
       "writtenOn": "2022-06-29T15:05:00Z",
       "side": 1,
       "message": "bit of log strings cleanup is needed, see the ---- here",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7a05d4e9_29aad472",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-04T14:23:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3c7d5d72_101b6c33",
       "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -178,6 +214,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "74666a7f_ab997191",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1179,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-04T14:23:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9f4aad3b_141277f6",
+      "range": {
+        "startLine": 1163,
+        "startChar": 0,
+        "endLine": 1179,
+        "endChar": 4
+      },
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1a1e3404_3f369623",
@@ -195,6 +255,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d84eb822_6a4ba3fb",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1428,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-04T14:23:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a1e3404_3f369623",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "681fccd4_3ee568f0",
@@ -208,6 +286,24 @@
       "writtenOn": "2022-06-29T15:05:00Z",
       "side": 1,
       "message": "are we just silently dropping a failure notification here ?",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5023b4a7_845205ea",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1639,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-04T14:23:17Z",
+      "side": 1,
+      "message": "As of now, we are just logging an error. In subsequent patch, we will add the support to sent the error msg via kafka",
+      "parentUuid": "681fccd4_3ee568f0",
       "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -248,6 +344,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "0b9aff97_13ec927c",
+        "filename": "internal/pkg/application/major_upgrade.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-04T14:23:17Z",
+      "side": 1,
+      "message": "The keypath change is handled as part of migration logic where the keypath, as well as, data can be updated.",
+      "parentUuid": "34ac0ce5_08be4630",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "c90f56f1_423db1c3",
         "filename": "internal/pkg/ofagent/ofagent.go",
         "patchSetId": 15
@@ -259,6 +373,24 @@
       "writtenOn": "2022-06-29T15:05:00Z",
       "side": 1,
       "message": "I know i\u0027m being a pain, but can we rename the package and name of the class to volthaprotoagent or volthanbagent ? open flow has nothing to do here except the structs.",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1d581a02_5c322d60",
+        "filename": "internal/pkg/ofagent/ofagent.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-04T14:23:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c90f56f1_423db1c3",
       "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }

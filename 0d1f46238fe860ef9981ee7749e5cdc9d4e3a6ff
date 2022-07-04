@@ -126,6 +126,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "79beadd0_760f005c",
+        "filename": "README.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-04T14:23:17Z",
+      "side": 1,
+      "message": "Updated the API details to add/remove meters and services",
+      "parentUuid": "1ba5ab21_73251bd6",
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "39607082_b6a7f09d",
         "filename": "README.md",
         "patchSetId": 12
@@ -207,6 +225,30 @@
       "writtenOn": "2022-06-29T15:05:00Z",
       "side": 1,
       "message": "agreed",
+      "parentUuid": "5079e773_8d85c5ad",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 24
+      },
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "464b423d_27edeed3",
+        "filename": "database/database.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-04T14:23:17Z",
+      "side": 1,
+      "message": "Yes, the context needs to be passed down from the root caller and hence many func signatures need to be updated, will update the same as part of a separate patch",
       "parentUuid": "5079e773_8d85c5ad",
       "range": {
         "startLine": 36,
