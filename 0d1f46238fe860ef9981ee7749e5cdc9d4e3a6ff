@@ -285,6 +285,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "42c70415_940f88f5",
+        "filename": "database/database.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-05T15:53:41Z",
+      "side": 1,
+      "message": "Will create a jira and update the changes in subsequent patches",
+      "parentUuid": "2082feba_e6c8e161",
+      "range": {
+        "startLine": 70,
+        "startChar": 25,
+        "endLine": 70,
+        "endChar": 45
+      },
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "001c5477_a3e31e8c",
         "filename": "internal/pkg/application/vlanhandler.go",
         "patchSetId": 12

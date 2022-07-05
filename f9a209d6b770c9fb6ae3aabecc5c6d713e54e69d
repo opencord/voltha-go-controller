@@ -38,6 +38,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "38a5fe15_6589ac3d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-05T15:53:41Z",
+      "side": 1,
+      "message": "Yes, the LLDP app implementation will be taken up in future",
+      "parentUuid": "724d46c0_1bb3be46",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "53da7f93_e58a1182",
         "filename": "Makefile",
         "patchSetId": 11

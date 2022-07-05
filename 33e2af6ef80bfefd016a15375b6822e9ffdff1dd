@@ -152,6 +152,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e12374b2_665c030f",
+        "filename": "database/database.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-05T15:53:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a1b23eee_e3e82937",
+      "range": {
+        "startLine": 102,
+        "startChar": 2,
+        "endLine": 102,
+        "endChar": 14
+      },
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bd63efab_466d8e74",
