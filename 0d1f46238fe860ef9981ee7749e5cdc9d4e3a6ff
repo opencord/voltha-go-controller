@@ -328,6 +328,30 @@
       },
       "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c4d170ee_0666aa00",
+        "filename": "internal/pkg/application/vlanhandler.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-05T15:48:42Z",
+      "side": 1,
+      "message": "Removed the vlanhandler file",
+      "parentUuid": "d7b695a0_7a1f3d16",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 1
+      },
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }

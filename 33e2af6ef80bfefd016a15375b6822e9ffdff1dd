@@ -58,6 +58,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "39fa936d_fd71f630",
+        "filename": "database/database.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-05T15:48:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2c4ab7a0_04c96e84",
+      "range": {
+        "startLine": 86,
+        "startChar": 2,
+        "endLine": 86,
+        "endChar": 14
+      },
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d41986f7_f6957998",
@@ -71,6 +95,30 @@
       "writtenOn": "2022-06-29T15:05:00Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 93,
+        "startChar": 2,
+        "endLine": 93,
+        "endChar": 14
+      },
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a01b5539_48640192",
+        "filename": "database/database.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-05T15:48:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d41986f7_f6957998",
       "range": {
         "startLine": 93,
         "startChar": 2,
@@ -117,6 +165,24 @@
       "writtenOn": "2022-06-29T15:05:00Z",
       "side": 1,
       "message": "same, not going to comment anymore on this, please review all the logging",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dc85101e_b690d6ad",
+        "filename": "database/database.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-05T15:48:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bd63efab_466d8e74",
       "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },

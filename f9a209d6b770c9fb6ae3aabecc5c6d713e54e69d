@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "724d46c0_1bb3be46",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-05T15:48:42Z",
+      "side": 1,
+      "message": "Will create a jira ot split the igmp.go file and address the same in subsequent patches",
+      "parentUuid": "edada082_2969239a",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "53da7f93_e58a1182",
         "filename": "Makefile",
         "patchSetId": 11
@@ -112,6 +130,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5be2e2b3_fe27bda7",
+        "filename": "database/database.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-05T15:48:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a02f783_73e1dc94",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 17
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c7d7a35d_d6ebfb13",
@@ -149,6 +191,30 @@
       "side": 1,
       "message": "agreed with Teo",
       "parentUuid": "c7d7a35d_d6ebfb13",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 25,
+        "endChar": 9
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3c2cd2a3_889220ad",
+        "filename": "database/dbintf.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1000939
+      },
+      "writtenOn": "2022-07-05T15:48:42Z",
+      "side": 1,
+      "message": "DB obj initialization and handling logic updated",
+      "parentUuid": "9caa0d2b_03619369",
       "range": {
         "startLine": 25,
         "startChar": 4,
