@@ -243,6 +243,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4f8d7f6b_69ec9afe",
+        "filename": "database/dbintf.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-07-06T14:47:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3c2cd2a3_889220ad",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 25,
+        "endChar": 9
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4184d007_5b10af7a",
@@ -274,6 +298,24 @@
       "side": 1,
       "message": "Added channel to shut the timer threads during app termination",
       "parentUuid": "4184d007_5b10af7a",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4ad596cb_aac151ee",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-07-06T14:47:19Z",
+      "side": 1,
+      "message": "Has this been done or is there a Jira for it?\nDon\u0027t see it in this PR",
+      "parentUuid": "e54ff773_67484769",
       "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },

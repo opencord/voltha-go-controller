@@ -300,6 +300,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "28f8755d_44293ba1",
+        "filename": "gofmt.log",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2022-07-06T14:47:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b87c325_e74f8557",
+      "revId": "3df94d09b88ce30bd1473ccf8c3a6532f6809f46",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a4d10104_19fec5b1",
