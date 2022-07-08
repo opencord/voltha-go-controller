@@ -246,6 +246,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c9f473cf_a8f2f37e",
+        "filename": "database/dbintf.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "Created a Jira to take care of further tracking https://jira.opencord.org/browse/VOL-4757",
+      "parentUuid": "1ba6c517_75cdc38f",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3c7d5d72_101b6c33",
@@ -398,6 +416,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f12de328_c9e4d8c6",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1639,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "https://jira.opencord.org/browse/VOL-4758",
+      "parentUuid": "5023b4a7_845205ea",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "15ca2178_82ea2579",
@@ -433,6 +469,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f2f5c387_af9bdd16",
+        "filename": "internal/pkg/application/dhcprelay.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 593,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "https://jira.opencord.org/browse/VOL-4752",
+      "parentUuid": "7d08a37f_91fd477f",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "34ac0ce5_08be4630",
@@ -464,6 +518,24 @@
       "side": 1,
       "message": "The keypath change is handled as part of migration logic where the keypath, as well as, data can be updated.",
       "parentUuid": "34ac0ce5_08be4630",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "acdb6a48_35ea5931",
+        "filename": "internal/pkg/application/major_upgrade.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b9aff97_13ec927c",
       "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },

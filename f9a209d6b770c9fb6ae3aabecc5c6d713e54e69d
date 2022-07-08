@@ -54,6 +54,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5f134e63_7ac7f1ca",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "Jira IDs:\n1. https://jira.opencord.org/browse/VOL-4754\n2. https://jira.opencord.org/browse/VOL-4753",
+      "parentUuid": "38a5fe15_6589ac3d",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "53da7f93_e58a1182",
@@ -316,6 +334,24 @@
       "side": 1,
       "message": "Has this been done or is there a Jira for it?\nDon\u0027t see it in this PR",
       "parentUuid": "e54ff773_67484769",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e88be42e_fae307cd",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "Added in Timer.go file",
+      "parentUuid": "4ad596cb_aac151ee",
       "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -729,6 +765,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e4b7f184_3eef796f",
+        "filename": "internal/pkg/ofagent/ofagent.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1228092d_3143f180",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8b533b10_632bd36b",
@@ -760,6 +814,24 @@
       "side": 1,
       "message": "Corrected the same, Used fatal in case of connection failure after maxTimeout*maxRetry",
       "parentUuid": "8b533b10_632bd36b",
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ad725769_0b65c1a3",
+        "filename": "internal/pkg/ofagent/ofagent.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "efb16d51_d60f228c",
       "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -836,6 +908,30 @@
       "side": 1,
       "message": "Removed the func",
       "parentUuid": "d9592d0b_94f14464",
+      "range": {
+        "startLine": 61,
+        "startChar": 5,
+        "endLine": 61,
+        "endChar": 17
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ff9eadb7_512fc4c5",
+        "filename": "voltha-go-controller/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a41238f1_45e24127",
       "range": {
         "startLine": 61,
         "startChar": 5,
@@ -977,6 +1073,30 @@
       "side": 1,
       "message": "Corrected it to return the correct DB object",
       "parentUuid": "002ce72c_d918ec8e",
+      "range": {
+        "startLine": 152,
+        "startChar": 4,
+        "endLine": 152,
+        "endChar": 13
+      },
+      "revId": "f9a209d6b770c9fb6ae3aabecc5c6d713e54e69d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8bab3fcc_dc40d9d7",
+        "filename": "voltha-go-controller/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "27181479_9fcfcdff",
       "range": {
         "startLine": 152,
         "startChar": 4,

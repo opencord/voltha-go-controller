@@ -160,6 +160,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d09647f8_36e7fb7a",
+        "filename": "README.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "https://jira.opencord.org/browse/VOL-4757",
+      "parentUuid": "0a4d4323_1e146537",
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "39607082_b6a7f09d",
@@ -302,6 +320,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "41cf1d14_b06b2758",
+        "filename": "database/database.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "Jira ID: https://jira.opencord.org/browse/VOL-4756",
+      "parentUuid": "967bf987_df5f0ee1",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 24
+      },
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2082feba_e6c8e161",
@@ -339,6 +381,30 @@
       "side": 1,
       "message": "Will create a jira and update the changes in subsequent patches",
       "parentUuid": "2082feba_e6c8e161",
+      "range": {
+        "startLine": 70,
+        "startChar": 25,
+        "endLine": 70,
+        "endChar": 45
+      },
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1a8418b8_b102752a",
+        "filename": "database/database.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "https://jira.opencord.org/browse/VOL-4756",
+      "parentUuid": "42c70415_940f88f5",
       "range": {
         "startLine": 70,
         "startChar": 25,
@@ -410,6 +476,30 @@
       "side": 1,
       "message": "Removed the vlanhandler file",
       "parentUuid": "d7b695a0_7a1f3d16",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 1
+      },
+      "revId": "0d1f46238fe860ef9981ee7749e5cdc9d4e3a6ff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "75c69815_b5e0208f",
+        "filename": "internal/pkg/application/vlanhandler.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c4d170ee_0666aa00",
       "range": {
         "startLine": 22,
         "startChar": 0,

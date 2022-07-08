@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7f59a674_fa5a6993",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 22
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000103
+      },
+      "writtenOn": "2022-07-08T08:21:56Z",
+      "side": 1,
+      "message": "Hello andrea/girish/matteo/serkant,\n\nWe have created the below jira ids for tracking comments that could not be addressed in this review:\nhttps://jira.opencord.org/browse/VOL-4752\nhttps://jira.opencord.org/browse/VOL-4753\nhttps://jira.opencord.org/browse/VOL-4754                                                                           https://jira.opencord.org/browse/VOL-4756\nhttps://jira.opencord.org/browse/VOL-4757\nhttps://jira.opencord.org/browse/VOL-4758",
+      "revId": "04696f76d90e0f6c9c4c88081a41c074bb262f56",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
