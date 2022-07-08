@@ -417,6 +417,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "7d08a37f_91fd477f",
+        "filename": "internal/pkg/application/dhcprelay.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 593,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-07-08T07:26:37Z",
+      "side": 1,
+      "message": "As far as I understand, both in ONOS and VGC, the option 82 is added in US direction with circuit id and remote ID and is removed in DS. And the option is used to identify the subscriber. Am I missing some other feature which ONOS supported with respect to option82?",
+      "parentUuid": "15ca2178_82ea2579",
+      "revId": "33e2af6ef80bfefd016a15375b6822e9ffdff1dd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "34ac0ce5_08be4630",
         "filename": "internal/pkg/application/major_upgrade.go",
         "patchSetId": 15
