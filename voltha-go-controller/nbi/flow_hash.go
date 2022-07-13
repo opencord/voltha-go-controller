@@ -23,7 +23,7 @@ import (
 
 	"github.com/gorilla/mux"
 	cntlr "voltha-go-controller/internal/pkg/controller"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 // FlowHashHandle Handle flowhash Requests

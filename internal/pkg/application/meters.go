@@ -23,7 +23,7 @@ import (
 	cntlr "voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/database"
 	"voltha-go-controller/internal/pkg/of"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 // VoltShaperConfig is shaper profile configuration structure
@@ -192,7 +192,7 @@ func (vm *VoltMeter) AddToDevice(port string, device string, aggVM *VoltMeter) {
 		meter.AddBand(vm.Air, 0)
 	}
 
-	logger.Debug(ctx, "Total Bands are", log.Fields{"meter": *meter})
+	logger.Debugw(ctx, "Total Bands are", log.Fields{"meter": *meter})
 	if err := cntlr.GetController().ModMeter(port, device, of.MeterCommandAdd, meter); err != nil {
 		logger.Warnw(ctx, "Add meter to device Failed", log.Fields{"Id": vm.ID, "meter": *meter, "Error": err})
 	}

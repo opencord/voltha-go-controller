@@ -25,7 +25,7 @@ import (
 	"github.com/google/gopacket/layers"
 
 	"voltha-go-controller/database"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 const (
@@ -123,7 +123,7 @@ func CheckIfMigrationRequired(ctx context.Context) bool {
 	Migrate := new(DataMigration)
 	var NoDataInDB bool
 	err := GetMigrationInfo(Migrate)
-	logger.Debug(ctx, "Migration data", log.Fields{"DataMigration": Migrate})
+	logger.Debugw(ctx, "Migration data", log.Fields{"DataMigration": Migrate})
 	// No DB entry represents N verison Bring Up for the First time
 	if err != nil {
 		NoDataInDB = true
@@ -136,10 +136,10 @@ func CheckIfMigrationRequired(ctx context.Context) bool {
 		Migrate.Status = MigrationComplete
 		Migrate.ModuleVer = database.PresentVersionMap
 		if err := Migrate.WriteToDb(); err != nil {
-			logger.Error(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
+			logger.Errorw(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
 		}
 		//MigrateProbestatus has to be Updated to Complete when No Migration is Required
-		logger.Debug(ctx, "Migration Probe Status", log.Fields{"Migration Probe": Migrate.Status})
+		logger.Debugw(ctx, "Migration Probe Status", log.Fields{"Migration Probe": Migrate.Status})
 		//probe.UpdateDBMigrationStatus(ctx, true)
 		return false
 		// Migration required when vgc moves to Higher Versions
@@ -173,7 +173,7 @@ func CheckIfMigrationRequired(ctx context.Context) bool {
 	}
 
 	// In case Service Reboots/Rolls Back then Probe Success to MSM
-	logger.Debug(ctx, "Migration Probe Status", log.Fields{"Migration Probe": Migrate.Status})
+	logger.Debugw(ctx, "Migration Probe Status", log.Fields{"Migration Probe": Migrate.Status})
 	//probe.UpdateDBMigrationStatus(ctx, true)
 	return false
 }
@@ -193,10 +193,10 @@ func InitiateDataMigration(ctx context.Context) {
 		logger.Debug(ctx, "Started Go Routine for data migration")
 		err = MigrateDBData()
 		if err != nil {
-			logger.Error(ctx, "Failed to Migrate the Data", log.Fields{"error": err})
+			logger.Errorw(ctx, "Failed to Migrate the Data", log.Fields{"error": err})
 			Migrate.Status = MigrationFailed
 			if err := Migrate.WriteToDb(); err != nil {
-				logger.Error(ctx, "DB Write failed to Migration Path", log.Fields{"error": err})
+				logger.Errorw(ctx, "DB Write failed to Migration Path", log.Fields{"error": err})
 			}
 		}
 		logger.Debug(ctx, "Completed Go Routine for data migration")
@@ -206,17 +206,17 @@ func InitiateDataMigration(ctx context.Context) {
 		Migrate.Status = MigrationInProgress
 		Migrate.ModuleVer = database.PresentVersionMap
 		if err = Migrate.WriteToDb(); err != nil {
-			logger.Error(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
+			logger.Errorw(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
 			return
 		}
 	}()
 	// Failure Senario can be Exceptions, incase of panic Update the status as failed
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Error(ctx, "Migration failure due to Exception happend", log.Fields{"reason": err})
+			logger.Errorw(ctx, "Migration failure due to Exception happend", log.Fields{"reason": err})
 			Migrate.Status = MigrationFailed
 			if err := Migrate.WriteToDb(); err != nil {
-				logger.Error(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
+				logger.Errorw(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
 			}
 			//probe.UpdateDBMigrationStatus(ctx, false)
 			return
@@ -227,9 +227,9 @@ func InitiateDataMigration(ctx context.Context) {
 	//probe.UpdateDBMigrationStatus(ctx, true)
 	Migrate.Status = MigrationComplete
 	if err := Migrate.WriteToDb(); err != nil {
-		logger.Error(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
+		logger.Errorw(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
 	}
-	logger.Info(ctx, "Migration completed successfully", log.Fields{"Status": Migrate.Status})
+	logger.Infow(ctx, "Migration completed successfully", log.Fields{"Status": Migrate.Status})
 }
 
 // MigrateDBData to migrate database data
@@ -277,18 +277,18 @@ func FetchAndMigrateDBData(module string) error {
 	previousPath := database.GetModuleKeypath(module, database.PreviousVersionMap[module])
 	dbPathKeysValueMap, err := db.List(previousPath)
 	if err != nil {
-		logger.Error(ctx, "failed to Fetch the Keys from Redis", log.Fields{"error": err})
+		logger.Errorw(ctx, "failed to Fetch the Keys from Redis", log.Fields{"error": err})
 		//No return required, Data might not be present in DB
 		return nil
 	}
 	if len(dbPathKeysValueMap) == 0 {
-		logger.Debug(ctx, "No data present in DB for the path", log.Fields{"dbPath": module})
+		logger.Debugw(ctx, "No data present in DB for the path", log.Fields{"dbPath": module})
 		return nil
 	}
 
 	// Fetch each Path from previous version and store to present version after data migration changes
 	for hash, value := range dbPathKeysValueMap {
-		logger.Debug(ctx, "DB path", log.Fields{"hash": hash})
+		logger.Debugw(ctx, "DB path", log.Fields{"hash": hash})
 		//convert the value to a specific type based on the dbPath
 		b, ok := value.Value.([]byte)
 		if !ok {
@@ -307,7 +307,7 @@ func FetchAndMigrateDBData(module string) error {
 		presentPath := database.GetKeyPath(module) + hash
 		logger.Infow(ctx, "Before writing to DB", log.Fields{"presentParams": presentParams})
 		if err := db.Put(presentPath, presentParams); err != nil {
-			logger.Error(ctx, "Update Params failed", log.Fields{"key": presentPath, "presentparams": presentParams})
+			logger.Errorw(ctx, "Update Params failed", log.Fields{"key": presentPath, "presentparams": presentParams})
 			return err
 		}
 	}
@@ -323,7 +323,7 @@ func MigrateServices(data []byte) string {
 
 	err := json.Unmarshal(data, &vsmap)
 	if err != nil {
-		logger.Warn(ctx, "Unmarshal of VPV failed", log.Fields{"error": err})
+		logger.Warnw(ctx, "Unmarshal of VPV failed", log.Fields{"error": err})
 		return ""
 	}
 	// changes to handle change in data type of MacLearning parameter
@@ -399,7 +399,7 @@ func MigrateVnets(data []byte) string {
 
 	err := json.Unmarshal(data, &vnet)
 	if err != nil {
-		logger.Warn(ctx, "Unmarshal of VNET failed", log.Fields{"error": err})
+		logger.Warnw(ctx, "Unmarshal of VNET failed", log.Fields{"error": err})
 		return ""
 	}
 
@@ -432,7 +432,7 @@ func MigrateVpvs(data []byte) string {
 
 	err := json.Unmarshal(data, &vpvmap)
 	if err != nil {
-		logger.Warn(ctx, "Unmarshal of VPV failed", log.Fields{"error": err})
+		logger.Warnw(ctx, "Unmarshal of VPV failed", log.Fields{"error": err})
 		return ""
 	}
 	// changes to handle change in data type of MacLearning parameter
@@ -606,12 +606,12 @@ func MigrateFlowHash(data []byte) string {
 
 //DeleteDbPathKeys Deleted the paths from DB
 func DeleteDbPathKeys(keyPath string) error {
-	logger.Debug(ctx, "Deleting paths for version", log.Fields{"Path": keyPath})
+	logger.Debugw(ctx, "Deleting paths for version", log.Fields{"Path": keyPath})
 
 	// Delete all the keys
 	err := db.DeleteAll(keyPath)
 	if err != nil && err.Error() != common.ErrEntryNotFound.Error() {
-		logger.Error(ctx, "Delete Key failed", log.Fields{"error": err})
+		logger.Errorw(ctx, "Delete Key failed", log.Fields{"error": err})
 		return err
 	}
 	return nil

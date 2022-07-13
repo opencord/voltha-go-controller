@@ -22,20 +22,20 @@ import (
 
 	// using for init
 	_ "net/http/pprof"
-    "github.com/opencord/voltha-lib-go/v7/pkg/log"
-    "context"
+	"voltha-go-controller/log"
+	"context"
 )
 
 var logger log.CLogger
 var ctx = context.TODO()
 
 func Init() {
-    // Setup this package so that it's log level can be modified at run time
-    var err error
-    logger, err = log.RegisterPackage(log.JSON, log.ErrorLevel, log.Fields{})
-    if err != nil {
-        panic(err)
-    }
+	// Setup this package so that it's log level can be modified at run time
+	var err error
+	logger, err = log.RegisterPackage(log.JSON, log.ErrorLevel, log.Fields{})
+	if err != nil {
+		panic(err)
+	}
 	logger.Error(ctx, "Profiling is ENABLED")
 	go func() {
 		err := http.ListenAndServe("0.0.0.0:6060", nil)

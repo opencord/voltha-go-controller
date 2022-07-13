@@ -29,7 +29,7 @@ import (
 
 	"voltha-go-controller/internal/pkg/of"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 var logger log.CLogger
@@ -83,7 +83,7 @@ func (db *Database) Get(key string) (string, error) {
 // Del to delete value from database
 func (db *Database) Del(fullPath string) error {
 	if err := db.kvc.Delete(context.Background(), fullPath); err != nil {
-		logger.Errorf(ctx, "The path doesn't exist", log.Fields{"key": fullPath, "Error": err})
+		logger.Errorw(ctx, "The path doesn't exist", log.Fields{"key": fullPath, "Error": err})
 		return err
 	}
 	return nil
@@ -92,7 +92,7 @@ func (db *Database) Del(fullPath string) error {
 // DeleteAll to delete all value from database
 func (db *Database) DeleteAll(fullPath string) error {
 	if err := db.kvc.DeleteWithPrefix(context.Background(), fullPath); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": fullPath, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": fullPath, "Error": err})
 		return err
 	}
 	return nil
@@ -101,7 +101,7 @@ func (db *Database) DeleteAll(fullPath string) error {
 // DeleteAllUnderHashKey to delete all values under hash key
 func (db *Database) DeleteAllUnderHashKey(hashKeyPrefix string) error {
 	if err := db.kvc.Delete(context.Background(), hashKeyPrefix); err != nil {
-		logger.Errorf(ctx, "The key path doesn't exist", log.Fields{"key": hashKeyPrefix, "Error": err})
+		logger.Errorw(ctx, "The key path doesn't exist", log.Fields{"key": hashKeyPrefix, "Error": err})
 		return err
 	}
 	return nil
@@ -137,7 +137,7 @@ func (db *Database) PutOlt(deviceID string, value string) error {
 func (db *Database) DelOlt(deviceID string) error {
 	key := fmt.Sprintf(GetKeyPath(DevicePath), deviceID)
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -167,7 +167,7 @@ func (db *Database) GetFlows(deviceID string) (map[string]*kvstore.KVPair, error
 func (db *Database) DelFlow(deviceID string, flowID uint64) error {
 	key := fmt.Sprintf(GetKeyPath(DeviceFlowPath), deviceID) + strconv.FormatUint(flowID, 10)
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -198,7 +198,7 @@ func (db *Database) GetGroups(deviceID string) (map[string]*kvstore.KVPair, erro
 func (db *Database) DelGroup(deviceID string, groupID uint32) error {
 	key := fmt.Sprintf(GetKeyPath(DeviceGroupPath), deviceID) + strconv.FormatUint(uint64(groupID), 10)
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -208,7 +208,7 @@ func (db *Database) DelGroup(deviceID string, groupID uint32) error {
 func (db *Database) DelAllGroup(deviceID string) error {
 	key := fmt.Sprintf(GetKeyPath(DeviceGroupPath), deviceID)
 	if err := db.DeleteAllUnderHashKey(key); err != nil {
-		logger.Warnf(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Warnw(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	logger.Infow(ctx, "Deleting all the groups for device", log.Fields{"device": deviceID})
@@ -219,7 +219,7 @@ func (db *Database) DelAllGroup(deviceID string) error {
 func (db *Database) DelAllPorts(device string) error {
 	key := fmt.Sprintf(GetKeyPath(DevicePortPath), device)
 	if err := db.DeleteAllUnderHashKey(key); err != nil {
-		logger.Warnf(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Warnw(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	logger.Infow(ctx, "Deleting all the ports for device", log.Fields{"device": device})
@@ -250,7 +250,7 @@ func (db *Database) GetPorts(deviceID string) (map[string]*kvstore.KVPair, error
 func (db *Database) DelPort(deviceID string, portID uint32) error {
 	key := fmt.Sprintf(GetKeyPath(DevicePortPath), deviceID) + strconv.FormatUint(uint64(portID), 10)
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -280,7 +280,7 @@ func (db *Database) GetDeviceMeters(deviceID string) (map[string]*kvstore.KVPair
 func (db *Database) DelDeviceMeter(deviceID string, meterID uint32) error {
 	key := fmt.Sprintf(GetKeyPath(DeviceMeterPath), deviceID) + strconv.FormatUint(uint64(meterID), 10)
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -310,7 +310,7 @@ func (db *Database) PutService(name string, value string) error {
 func (db *Database) DelService(name string) error {
 	key := GetKeyPath(ServicePath) + name
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -340,7 +340,7 @@ func (db *Database) PutVnet(name string, value string) error {
 func (db *Database) DelVnet(name string) error {
 	key := GetKeyPath(VnetPath) + name
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -373,7 +373,7 @@ func (db *Database) DelVpv(port string, SVlan uint16, CVlan uint16, UniVlan uint
 	name := port + fmt.Sprintf("-%v-%v-%v", SVlan, CVlan, UniVlan)
 	key := GetKeyPath(VpvPath) + name
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -406,7 +406,7 @@ func (db *Database) DelMvlan(mvlan uint16) error {
 	name := strconv.FormatInt(int64(mvlan), 10)
 	key := GetKeyPath(MvlanPath) + name
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -418,7 +418,7 @@ func (db *Database) DelMvlan(mvlan uint16) error {
 func (db *Database) DelIGMPCfg() error {
 	key := GetKeyPath(IgmpConfPath)
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -448,7 +448,7 @@ func (db *Database) PutIgmpProfile(name string, value string) error {
 func (db *Database) DelIgmpProfile(name string) error {
 	key := GetKeyPath(IgmpProfPath) + name
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -478,7 +478,7 @@ func (db *Database) PutMcastConfig(name string, value string) error {
 func (db *Database) DelMcastConfig(name string) error {
 	key := GetKeyPath(McastConfigPath) + name
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -502,7 +502,7 @@ func (db *Database) PutHealth(value string) error {
 func (db *Database) DelHealth() error {
 	key := GetKeyPath(HealthPath)
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -532,7 +532,7 @@ func (db *Database) PutMeter(name string, value string) error {
 func (db *Database) DelMeter(name string) error {
 	key := GetKeyPath(MeterPath) + name
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -542,7 +542,7 @@ func (db *Database) DelMeter(name string) error {
 func (db *Database) DelAllMeter(device string) error {
 	key := GetKeyPath(DevicePath) + device + "/" + MeterPath
 	if err := db.DeleteAllUnderHashKey(key); err != nil {
-		logger.Warnf(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Warnw(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	logger.Infow(ctx, "Deleting all the meters for device", log.Fields{"device": device})
@@ -573,7 +573,7 @@ func (db *Database) PutIgmpGroup(id string, value string) error {
 func (db *Database) DelIgmpGroup(id string) error {
 	key := GetKeyPath(IgmpGroupPath) + id
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Warnf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Warnw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -615,7 +615,7 @@ func (db *Database) PutIgmpDevice(mvlan of.VlanType, gid string, gip net.IP, dev
 func (db *Database) DelIgmpDevice(mvlan of.VlanType, gid string, gip net.IP, device string) error {
 	key := GetKeyPath(IgmpDevicePath) + mvlan.String() + "/" + gid + "/" + gip.String() + "/" + device
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Warnf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Warnw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -657,7 +657,7 @@ func (db *Database) PutIgmpChannel(mvlan of.VlanType, gName string, device strin
 func (db *Database) DelIgmpChannel(mvlan of.VlanType, gName string, device string, gip net.IP) error {
 	key := GetKeyPath(IgmpChannelPath) + mvlan.String() + "/" + gName + "/" + device + "/" + gip.String()
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Warnf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Warnw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -699,7 +699,7 @@ func (db *Database) PutIgmpRcvr(mvlan of.VlanType, gip net.IP, device string, rc
 func (db *Database) DelIgmpRcvr(mvlan of.VlanType, gip net.IP, device string, rcvr string) error {
 	key := GetKeyPath(IgmpPortPath) + mvlan.String() + "/" + gip.String() + "/" + device + "/" + rcvr
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Warnf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Warnw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -709,7 +709,7 @@ func (db *Database) DelIgmpRcvr(mvlan of.VlanType, gip net.IP, device string, rc
 func (db *Database) DelAllIgmpRcvr(mvlan of.VlanType, gip net.IP, device string) error {
 	key := GetKeyPath(IgmpPortPath) + mvlan.String() + "/" + gip.String() + "/" + device + "/"
 	if err := db.DeleteAll(key); err != nil {
-		logger.Warnf(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Warnw(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -721,7 +721,7 @@ func (db *Database) DelAllRoutesForDevice(device string) error {
 	logger.Infow(ctx, "Deleting all the flows for device", log.Fields{"device": device})
 	key := fmt.Sprintf(GetKeyPath(DeviceFlowPath), device)
 	if err := db.DeleteAllUnderHashKey(key); err != nil {
-		logger.Warnf(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Warnw(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -732,7 +732,7 @@ func (db *Database) PutNbDevicePort(device string, ponPortID uint32, value strin
 	key := GetKeyPath(NbDevicePath) + device + "/pon-port/" + fmt.Sprintf("%v", ponPortID)
 
 	if err := db.kvc.Put(context.Background(), key, value); err != nil {
-		logger.Warnf(ctx, "Put Device Port failed", key)
+		logger.Warnw(ctx, "Put Device Port failed", log.Fields{"key": key})
 	}
 }
 
@@ -741,7 +741,7 @@ func (db *Database) DelNbDevicePort(device string, ponPortID uint32) {
 	key := GetKeyPath(NbDevicePath) + device + "/pon-port/" + fmt.Sprintf("%v", ponPortID)
 
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Warnf(ctx, "Delete Device Port failed", key)
+		logger.Warnw(ctx, "Delete Device Port failed", log.Fields{"key": key})
 	}
 }
 
@@ -769,7 +769,7 @@ func (db *Database) PutMigrationInfo(value string) error {
 func (db *Database) DelMigrationInfo() error {
 	key := GetKeyPath(MigrationInfoPath)
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -799,7 +799,7 @@ func (db *Database) PutPonCounter(device, ponID, value string) error {
 func (db *Database) DelPonCounter(device, ponID string) error {
 	key := GetKeyPath(PonCounterPath) + device + "/" + ponID
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -829,7 +829,7 @@ func (db *Database) PutPonChannelCounter(device, ponID, channel, value string) e
 func (db *Database) DelPonChannelCounter(device, ponID, channel string) error {
 	key := GetKeyPath(PonCounterPath) + device + "/" + ponID + "/" + ChannelCounterPath + channel
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -845,7 +845,7 @@ func (db *Database) DelAllPONCounters(device string) error {
 func (db *Database) DelPONCounters(device string, ponID string) {
 	key := GetKeyPath(PonCounterPath) + device + "/" + ponID + "/"
 	if err := db.DeleteAll(key); err != nil {
-		logger.Warnf(ctx, "Delete Pon counters failed", key)
+		logger.Warnw(ctx, "Delete Pon counters failed", log.Fields{"key": key})
 	}
 	//DeletePonCounter(device, ponID)
 }
@@ -886,7 +886,7 @@ func (db *Database) PutServiceChannelCounter(serviceName, channel, value string)
 func (db *Database) DelServiceChannelCounter(serviceName, channel string) error {
 	key := GetKeyPath(ServiceCounterPath) + serviceName + "/" + ChannelCounterPath + channel
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -923,7 +923,7 @@ func (db *Database) GetFlowHash(deviceID string) (string, error) {
 func (db *Database) PutPortAlarmProfile(portAlarmProfileID string, value string) {
 	key := GetKeyPath(PortAlarmProfilePath) + fmt.Sprintf("%v", portAlarmProfileID)
 	if err := db.kvc.Put(context.Background(), key, value); err != nil {
-		logger.Warnf(ctx, "Put PortAlarmProfile failed", key)
+		logger.Warnw(ctx, "Put PortAlarmProfile failed", log.Fields{"key": key})
 	}
 }
 
@@ -931,7 +931,7 @@ func (db *Database) PutPortAlarmProfile(portAlarmProfileID string, value string)
 func (db *Database) DelPortAlarmProfile(portAlarmProfileID string) {
 	key := GetKeyPath(PortAlarmProfilePath) + fmt.Sprintf("%v", portAlarmProfileID)
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Warnf(ctx, "Delete PortAlarmProfile failed", key)
+		logger.Warnw(ctx, "Delete PortAlarmProfile failed", log.Fields{"key": key})
 	}
 }
 
@@ -945,7 +945,7 @@ func (db *Database) GetPortAlarmProfile(portAlarmProfileID string) (map[string]*
 func (db *Database) PutPortAlarmData(deviceID string, portID uint32, value string) {
 	key := fmt.Sprintf(GetKeyPath(PortAlarmDataPath), deviceID) + fmt.Sprintf("%v", portID)
 	if err := db.kvc.Put(context.Background(), key, value); err != nil {
-		logger.Warnf(ctx, "Put PortAlarmData failed", key)
+		logger.Warnw(ctx, "Put PortAlarmData failed", log.Fields{"key": key})
 	}
 }
 
@@ -953,7 +953,7 @@ func (db *Database) PutPortAlarmData(deviceID string, portID uint32, value strin
 func (db *Database) DelPortAlarmData(deviceID string, portID uint32) {
 	key := fmt.Sprintf(GetKeyPath(PortAlarmDataPath), deviceID) + fmt.Sprintf("%v", portID)
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Warnf(ctx, "Delete PortAlarmData failed", key)
+		logger.Warnw(ctx, "Delete PortAlarmData failed", log.Fields{"key": key})
 	}
 }
 
@@ -973,7 +973,7 @@ func (db *Database) GetAllPortAlarmData(deviceID string) (map[string]*kvstore.KV
 func (db *Database) PutSubAlarmData(deviceID string, portName string, value string) {
 	key := fmt.Sprintf(GetKeyPath(SubAlarmDataPath), deviceID) + fmt.Sprintf("%v", portName)
 	if err := db.kvc.Put(context.Background(), key, value); err != nil {
-		logger.Warnf(ctx, "Put Subscriber AlarmData failed", key)
+		logger.Warnw(ctx, "Put Subscriber AlarmData failed", log.Fields{"key": key})
 	}
 }
 
@@ -981,7 +981,7 @@ func (db *Database) PutSubAlarmData(deviceID string, portName string, value stri
 func (db *Database) DelSubAlarmData(deviceID string, portName string) {
 	key := fmt.Sprintf(GetKeyPath(SubAlarmDataPath), deviceID) + fmt.Sprintf("%v", portName)
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Warnf(ctx, "Delete Subscriber AlarmData failed", key)
+		logger.Warnw(ctx, "Delete Subscriber AlarmData failed", log.Fields{"key": key})
 	}
 }
 
@@ -1021,7 +1021,7 @@ func (db *Database) GetAllMigrateServicesReq(deviceID string) (map[string]*kvsto
 func (db *Database) DelMigrateServicesReq(deviceID string, vnet string) error {
 	key := fmt.Sprintf(GetKeyPath(ServicesMigrateReqPath), deviceID) + vnet
 	if err := db.kvc.Delete(context.Background(), key); err != nil {
-		logger.Errorf(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Errorw(ctx, "The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	return nil
@@ -1031,7 +1031,7 @@ func (db *Database) DelMigrateServicesReq(deviceID string, vnet string) error {
 func (db *Database) DelAllMigrateServicesReq(deviceID string) error {
 	key := fmt.Sprintf(GetKeyPath(ServicesMigrateReqPath), deviceID)
 	if err := db.DeleteAllUnderHashKey(key); err != nil {
-		logger.Warnf(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
+		logger.Warnw(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err
 	}
 	logger.Infow(ctx, "Deleting all the Update Vnet Requests for device", log.Fields{"device": deviceID})
@@ -1039,10 +1039,10 @@ func (db *Database) DelAllMigrateServicesReq(deviceID string) error {
 }
 
 func init() {
-	// Setup this package so that it's log level can be modified at run time
-	var err error
-	logger, err = log.RegisterPackage(log.JSON, log.ErrorLevel, log.Fields{})
-	if err != nil {
-		panic(err)
-	}
+        // Setup this package so that it's log level can be modified at run time
+        var err error
+        logger, err = log.AddPackageWithDefaultParam()
+        if err != nil {
+                panic(err)
+        }
 }

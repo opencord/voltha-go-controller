@@ -34,7 +34,7 @@ import (
 	"voltha-go-controller/voltha-go-controller/nbi"
 
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 	"github.com/opencord/voltha-lib-go/v7/pkg/probe"
 )
 
@@ -126,14 +126,15 @@ func main() {
 	if logLevel, err = log.StringToLogLevel(config.LogLevel); err != nil {
 		logLevel = log.DebugLevel
 	}
-	if _, err = log.SetDefaultLogger(log.JSON, logLevel, log.Fields{"instanceId": config.InstanceID}); err != nil {
-		logger.With(log.Fields{"error": err}).Fatal(ctx, "Cannot setup logging")
-	}
+        if err := log.SetDefaultLogger(ctx, int(logLevel), log.Fields{"instanceId": config.InstanceID}); err != nil {
+                logger.With(ctx, log.Fields{"error": err}, "Cannot setup logging")
+        }
+
 	// Update all loggers (provisionned via init) with a common field
 	if err := log.UpdateAllLoggers(log.Fields{"instanceId": config.InstanceID}); err != nil {
-		logger.With(log.Fields{"error": err}).Fatal(ctx, "Cannot setup logging")
+		logger.With(ctx, log.Fields{"error": err}, "Cannot setup logging")
 	}
-	log.SetAllLogLevel(logLevel)
+	log.SetAllLogLevel(int(logLevel))
 
 	if vgcInfo.kvClient, err = newKVClient(config.KVStoreType, config.KVStoreEndPoint, config.KVStoreTimeout); err != nil {
 		logger.Errorw(ctx, "KVClient Establishment Failure", log.Fields{"Reason": err})
@@ -161,10 +162,10 @@ func main() {
 	logger.Info(ctx, "KV-store-reachable")
 	//Read if log-level is stored in DB
 	if logLevel, err := dbHandler.Get(db.GetKeyPath(db.LogLevelPath)); err == nil {
-		logger.Info(ctx, "Read log-level from db", log.Fields{"logLevel": logLevel})
+		logger.Infow(ctx, "Read log-level from db", log.Fields{"logLevel": logLevel})
 		storedLogLevel, _ := log.StringToLogLevel(logLevel)
-		log.SetAllLogLevel(storedLogLevel)
-		log.SetDefaultLogLevel(storedLogLevel)
+		log.SetAllLogLevel(int(storedLogLevel))
+		log.SetDefaultLogLevel(int(storedLogLevel))
 	}
 
 	// Check if Data Migration is required

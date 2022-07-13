@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"voltha-go-controller/internal/pkg/of"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 // ModMeterTask structure
@@ -82,7 +82,7 @@ func (mmt *ModMeterTask) Start(ctx context.Context, taskID uint8) error {
 	// 			log.Fields{"meterId": mmt.meter.ID, "meterOp": mmt.command, "Status": statusCode, "errorReason": statusMsg})
 	// 		go mmt.device.AddMeterToDb(mmt.meter)
 	// 	} else {
-	// 		log.Infow("Meter Mod Result", log.Fields{"meterID": mmt.meter.ID, "Error Code": statusCode})
+	// 		logger.Infow("Meter Mod Result", log.Fields{"meterID": mmt.meter.ID, "Error Code": statusCode})
 	// 	}
 	// }
 

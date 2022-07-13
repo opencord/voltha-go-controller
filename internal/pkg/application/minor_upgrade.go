@@ -24,7 +24,7 @@ import (
 
 	"github.com/google/gopacket/layers"
 	"voltha-go-controller/database"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 type paramsUpdationFunc func(hash string, value interface{}) error

@@ -24,7 +24,7 @@ import (
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/tasks"
 	"voltha-go-controller/internal/pkg/util"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 	"github.com/opencord/voltha-protos/v5/go/common"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
@@ -306,7 +306,7 @@ func (att *AuditTablesTask) AddMissingFlows(mflow *of.VoltFlow) {
 		var present bool
 		if flow.FlowMod != nil {
 			if dbFlow, present = att.device.GetFlow(flow.FlowMod.Cookie); !present {
-				logger.Warn(ctx, "Flow Removed from DB. Ignoring Add Missing Flow", log.Fields{"Device": att.device.ID, "Cookie": flow.FlowMod.Cookie})
+				logger.Warnw(ctx, "Flow Removed from DB. Ignoring Add Missing Flow", log.Fields{"Device": att.device.ID, "Cookie": flow.FlowMod.Cookie})
 				continue
 			}
 		}
@@ -332,7 +332,7 @@ func (att *AuditTablesTask) DelExcessFlows(flows map[uint64]*ofp.OfpFlowStats) {
 	for _, flow := range flows {
 
 		if _, present := att.device.GetFlow(flow.Cookie); present {
-			logger.Warn(ctx, "Flow Present in DB. Ignoring Delete Excess Flow", log.Fields{"Device": att.device.ID, "Cookie": flow.Cookie})
+			logger.Warnw(ctx, "Flow Present in DB. Ignoring Delete Excess Flow", log.Fields{"Device": att.device.ID, "Cookie": flow.Cookie})
 			continue
 		}
 

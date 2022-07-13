@@ -22,7 +22,7 @@ import (
 	"voltha-go-controller/internal/pkg/intf"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
 

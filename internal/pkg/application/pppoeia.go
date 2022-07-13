@@ -27,7 +27,7 @@ import (
 	cntlr "voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/util"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 // PppoeIaState type

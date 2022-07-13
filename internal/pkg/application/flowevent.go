@@ -19,7 +19,7 @@ import (
 	infraerrorcode "voltha-go-controller/internal/pkg/errorcodes/service"
 
 	"voltha-go-controller/internal/pkg/intf"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 //Generic Framework to enabling all flow based event trigger and handling.

@@ -38,7 +38,7 @@ import (
 	"voltha-go-controller/internal/pkg/tasks"
 	"voltha-go-controller/internal/pkg/util"
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 var logger log.CLogger
@@ -47,7 +47,7 @@ var ctx = context.TODO()
 func init() {
 	// Setup this package so that it's log level can be modified at run time
 	var err error
-	logger, err = log.RegisterPackage(log.JSON, log.ErrorLevel, log.Fields{})
+	logger, err = log.AddPackageWithDefaultParam()
 	if err != nil {
 		panic(err)
 	}
@@ -64,9 +64,9 @@ const (
 
 // List of Mac Learning Type
 const (
-        MacLearningNone MacLearningType = iota
-        Learn
-        ReLearn
+	MacLearningNone MacLearningType = iota
+	Learn
+	ReLearn
 )
 
 // MacLearningType represents Mac Learning Type
@@ -2050,7 +2050,7 @@ func (va *VoltApplication) TriggerPendingVnetDeleteReq(device string) {
 				va.DeleteDevFlowForVlanFromDevice(vnet, vnet.PendingDeviceToDelete)
 				va.deleteVnetConfig(vnet)
 			} else {
-				logger.Warn(ctx, "Vnet Delete Failed : Device Not Found", log.Fields{"Vnet": vnet.Name, "Device": vnet.PendingDeviceToDelete})
+				logger.Warnw(ctx, "Vnet Delete Failed : Device Not Found", log.Fields{"Vnet": vnet.Name, "Device": vnet.PendingDeviceToDelete})
 			}
 		}
 	}

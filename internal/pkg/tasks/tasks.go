@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 var logger log.CLogger
@@ -79,7 +79,7 @@ func (ts *TaskSet) AddTask(task Task) {
 
 // Start to start the task
 func (ts *TaskSet) Start(ctx context.Context, taskID uint8) error {
-	logger.Debug(ctx, "Starting Execution TaskSet", log.Fields{"SetName": ts.name})
+	logger.Debugw(ctx, "Starting Execution TaskSet", log.Fields{"SetName": ts.name})
 	ts.taskID = taskID
 	for len(ts.queued) != 0 {
 		task := ts.queued[0]
@@ -302,7 +302,7 @@ func (ts *Tasks) executeTasks() {
 func init() {
 	// Setup this package so that it's log level can be modified at run time
 	var err error
-	logger, err = log.RegisterPackage(log.JSON, log.ErrorLevel, log.Fields{})
+	logger, err = log.AddPackageWithDefaultParam()
 	if err != nil {
 		panic(err)
 	}

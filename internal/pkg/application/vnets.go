@@ -34,7 +34,7 @@ import (
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/util"
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 const (
@@ -292,7 +292,7 @@ func (va *VoltApplication) AddVnet(cfg VnetConfig, oper *VnetOper) error {
 			devicesToHandle = append(devicesToHandle, serialNum)
 		}
 		if len(devicesToHandle) == 0 {
-			logger.Debug(ctx, "Ignoring Duplicate VNET by name ", log.Fields{"Vnet": cfg.Name})
+			logger.Debugw(ctx, "Ignoring Duplicate VNET by name ", log.Fields{"Vnet": cfg.Name})
 			AppMutex.VnetMutex.Unlock()
 			return nil
 		}
@@ -687,7 +687,7 @@ func (vpv *VoltPortVnet) ProcessDhcpv6Result(ipv6Addr net.IP, leaseTime uint32) 
 // AddSvcUsMeterToDevice to add service upstream meter info to device
 func AddSvcUsMeterToDevice(key, value interface{}) bool {
 	svc := value.(*VoltService)
-	logger.Info(ctx, "Adding upstream meter profile to device", log.Fields{"ServiceName": svc.Name})
+	logger.Infow(ctx, "Adding upstream meter profile to device", log.Fields{"ServiceName": svc.Name})
 	if device, _ := GetApplication().GetDeviceFromPort(svc.Port); device != nil {
 		GetApplication().AddMeterToDevice(svc.Port, device.Name, svc.UsMeterID, 0)
 		return true
@@ -1076,7 +1076,7 @@ func PostAccessConfigSuccessInd(key, value interface{}) bool {
 // updateIPv4AndProvisionFlows to update ipv4 and provisional flows
 func (vpv *VoltPortVnet) updateIPv4AndProvisionFlows(key, value interface{}) bool {
 	svc := value.(*VoltService)
-	logger.Info(ctx, "Updating Ipv4 address for service", log.Fields{"ServiceName": svc.Name})
+	logger.Infow(ctx, "Updating Ipv4 address for service", log.Fields{"ServiceName": svc.Name})
 	svc.SetIpv4Addr(vpv.Ipv4Addr)
 	svc.WriteToDb()
 
@@ -2459,7 +2459,7 @@ func (va *VoltApplication) PushDevFlowForVlan(vnet *VoltVnet) {
 	pushflow := func(key interface{}, value interface{}) bool {
 		device := value.(*VoltDevice)
 		if !isDeviceInList(device.SerialNum, vnet.DevicesList) {
-			logger.Info(ctx, "Device not present in vnet device list", log.Fields{"Device": device.SerialNum})
+			logger.Infow(ctx, "Device not present in vnet device list", log.Fields{"Device": device.SerialNum})
 			return true
 		}
 		if device.State != controller.DeviceStateUP {
@@ -2721,7 +2721,7 @@ func (va *VoltApplication) DeleteDevFlowForVlanFromDevice(vnet *VoltVnet, device
 
 // BuildICMPv6Flow to Build DS flow for ICMPv6
 func BuildICMPv6Flow(inport uint32, vnet *VoltVnet) *of.VoltFlow {
-	logger.Info(ctx, "Building ICMPv6 MC Flow", log.Fields{"SVlan": vnet.SVlan, "CVlan": vnet.CVlan})
+	logger.Infow(ctx, "Building ICMPv6 MC Flow", log.Fields{"SVlan": vnet.SVlan, "CVlan": vnet.CVlan})
 	flow := &of.VoltFlow{}
 	flow.SubFlows = make(map[uint64]*of.VoltSubFlow)
 	subFlow := of.NewVoltSubFlow()
@@ -2750,7 +2750,7 @@ func BuildICMPv6Flow(inport uint32, vnet *VoltVnet) *of.VoltFlow {
 
 //BuildDSArpFlow Builds DS flow for ARP
 func BuildDSArpFlow(inport uint32, vnet *VoltVnet) *of.VoltFlow {
-	logger.Info(ctx, "Building ARP MC Flow", log.Fields{"SVlan": vnet.SVlan, "CVlan": vnet.CVlan})
+	logger.Infow(ctx, "Building ARP MC Flow", log.Fields{"SVlan": vnet.SVlan, "CVlan": vnet.CVlan})
 
 	flow := &of.VoltFlow{}
 	flow.SubFlows = make(map[uint64]*of.VoltSubFlow)
