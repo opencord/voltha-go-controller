@@ -16,7 +16,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/guumaster/tablewriter v0.0.10
 	github.com/jessevdk/go-flags v1.5.0
-	github.com/opencord/voltha-lib-go/v7 v7.2.0
+	github.com/opencord/voltha-lib-go/v7 v7.2.1
 	github.com/opencord/voltha-protos/v5 v5.2.4
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/stretchr/testify v1.7.1 // indirect

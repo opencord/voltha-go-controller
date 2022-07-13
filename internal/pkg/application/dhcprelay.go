@@ -27,7 +27,7 @@ import (
 	cntlr "voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/util"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 // DhcpRelayState type
@@ -509,7 +509,7 @@ func GetIANAAddress(dhcp6 *layers.DHCPv6) (net.IP, uint32) {
 					logger.Debugw(ctx, "IPv6 Allocated", log.Fields{"IANA IPv6": ipv6Addr})
 					return ipv6Addr, leaseTime
 				}
-				logger.Warn(ctx, "Decode of IANA Failed", log.Fields{"Reason": err.Error()})
+				logger.Warnw(ctx, "Decode of IANA Failed", log.Fields{"Reason": err.Error()})
 				break
 			}
 		}
@@ -532,7 +532,7 @@ func GetIAPDAddress(dhcp6 *layers.DHCPv6) (net.IP, uint32) {
 					logger.Debugw(ctx, "IPv6 Allocated", log.Fields{"IAPD IPv6": ipv6Addr})
 					break
 				} else {
-					logger.Warn(ctx, "Decode of IAPD Failed", log.Fields{"Reason": err.Error()})
+					logger.Warnw(ctx, "Decode of IAPD Failed", log.Fields{"Reason": err.Error()})
 					break
 				}
 			}

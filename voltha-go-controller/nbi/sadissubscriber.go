@@ -27,7 +27,7 @@ import (
 	"voltha-go-controller/internal/pkg/application"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/internal/pkg/of"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 //SubscriberDeviceInfo - Subcriber Device Info

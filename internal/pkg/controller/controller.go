@@ -31,7 +31,7 @@ import (
 	"voltha-go-controller/internal/pkg/util"
 	"voltha-go-controller/internal/pkg/vpagent"
 
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 var logger log.CLogger
@@ -40,7 +40,7 @@ var ctx = context.TODO()
 func init() {
 	// Setup this package so that it's log level can be modified at run time
 	var err error
-	logger, err = log.RegisterPackage(log.JSON, log.ErrorLevel, log.Fields{})
+	logger, err = log.AddPackageWithDefaultParam()
 	if err != nil {
 		panic(err)
 	}

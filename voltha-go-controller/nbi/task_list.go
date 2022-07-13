@@ -21,7 +21,7 @@ import (
 
 	"github.com/gorilla/mux"
 	app "voltha-go-controller/internal/pkg/application"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 // TaskListHandle handle TaskList Requests

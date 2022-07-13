@@ -24,7 +24,7 @@ import (
         app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/internal/pkg/types"
         "voltha-go-controller/internal/pkg/of"
-        "github.com/opencord/voltha-lib-go/v7/pkg/log"
+        "voltha-go-controller/log"
 )
 // McastConfig structure
 type McastConfig struct {
@@ -126,7 +126,7 @@ func (iph *MulticastHandle) addMvlan(w http.ResponseWriter, req *Mvlan) {
 	if err := app.GetApplication().AddMvlanProfile(config.Name, config.Mvlan, config.PonVlan, config.Groups,
 							config.IsChannelBasedGroup, config.OLTSerialNum,
 							255, config.Proxy); err != nil {
-                logger.Error(ctx, "northbound-add-mvlan-failed", log.Fields{"mvlan": config.Name, "Reason": err.Error()})
+                logger.Errorw(ctx, "northbound-add-mvlan-failed", log.Fields{"mvlan": config.Name, "Reason": err.Error()})
                 http.Error(w, err.Error(), http.StatusConflict)
                 return
         }

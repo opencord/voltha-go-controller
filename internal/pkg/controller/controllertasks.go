@@ -22,7 +22,7 @@ import (
 	"voltha-go-controller/internal/pkg/intf"
 	"voltha-go-controller/internal/pkg/vpagent"
 
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 // AddDeviceTask structure

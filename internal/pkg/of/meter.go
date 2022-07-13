@@ -16,7 +16,7 @@
 package of
 
 import (
-	// "github.com/opencord/voltha-lib-go/v7/pkg/log"
+	// "voltha-go-controller/log"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	// "github.com/opencord/voltha-protos/v5/go/voltha"
 )

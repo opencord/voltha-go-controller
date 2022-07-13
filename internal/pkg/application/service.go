@@ -35,7 +35,7 @@ import (
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/util"
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 const (
@@ -569,7 +569,7 @@ func (vs *VoltService) BuildDsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		if err := vs.setDSMatchActionVlanT0(subflow1); err != nil {
 			return nil, err
 		}
-		logger.Info(ctx, "HSIA DS flows MAC Learning & MAC", log.Fields{"ML": vs.MacLearning, "Mac": vs.MacAddr})
+		logger.Infow(ctx, "HSIA DS flows MAC Learning & MAC", log.Fields{"ML": vs.MacLearning, "Mac": vs.MacAddr})
 		if NonZeroMacAddress(vs.MacAddr) {
 			subflow1.SetMatchDstMac(vs.MacAddr)
 		}
@@ -1065,7 +1065,7 @@ func (va *VoltApplication) AddService(cfg VoltServiceCfg, oper *VoltServiceOper)
 			va.AddVnetToPort(vs.Port, vnet, vs)
 		}
 	} else {
-		logger.Error(ctx, "VNET-does-not-exist-for-service", log.Fields{"ServiceName": cfg.Name})
+		logger.Errorw(ctx, "VNET-does-not-exist-for-service", log.Fields{"ServiceName": cfg.Name})
 		return errors.New("VNET doesn't exist")
 	}
 
@@ -1089,7 +1089,7 @@ func (va *VoltApplication) AddService(cfg VoltServiceCfg, oper *VoltServiceOper)
 		}
 		//mmAg.AssociatedServices++
 		//va.UpdateMeterProf(*mmAg)
-		logger.Debug(ctx, "northbound-service-add-sucessful", log.Fields{"ServiceName": vs.Name})
+		logger.Debugw(ctx, "northbound-service-add-sucessful", log.Fields{"ServiceName": vs.Name})
 	}
 
 	logger.Warnw(ctx, "Added Service to DB", log.Fields{"Name": vs.Name, "Port": (vs.Port), "ML": vs.MacLearning})
@@ -1208,7 +1208,7 @@ func (va *VoltApplication) DelService(name string, forceDelete bool, newSvc *Vol
 		if meter.AssociatedServices > 0 {
 			meter.AssociatedServices--
 			if meter.AssociatedServices == 0 && !skipMeterDeletion {
-				logger.Info(ctx, "Meter should be deleted now\n", log.Fields{"MeterID": meter})
+				logger.Infow(ctx, "Meter should be deleted now\n", log.Fields{"MeterID": meter})
 				va.UpdateMeterProf(*meter)
 			}
 		}
@@ -1271,7 +1271,7 @@ func (vs *VoltService) FlowInstallSuccess(cookie string, bwAvailInfo of.BwAvailD
 		prevBwAvail = bwAvailInfo.PrevBw
 		presentBwAvail = bwAvailInfo.PresentBw
 		vs.BwAvailInfo = prevBwAvail + "," + presentBwAvail
-		logger.Debug(ctx, "Bandwidth-value-formed", log.Fields{"BwAvailInfo": vs.BwAvailInfo})
+		logger.Debugw(ctx, "Bandwidth-value-formed", log.Fields{"BwAvailInfo": vs.BwAvailInfo})
 	}
 	vs.WriteToDb()
 
@@ -1495,7 +1495,7 @@ func (va *VoltApplication) GetServiceNameFromCookie(cookie uint64, portName stri
 	vlans = append(vlans, of.VlanType(vlan))
 	service := GetApplication().GetServiceFromCvlan(device, portName, vlans, uint8(pbit))
 	if nil != service {
-		logger.Info(ctx, "Service Found for", log.Fields{"serviceName": service.Name, "portName": portName, "ctag": vlan})
+		logger.Infow(ctx, "Service Found for", log.Fields{"serviceName": service.Name, "portName": portName, "ctag": vlan})
 	} else {
 		logger.Errorw(ctx, "No Service for", log.Fields{"portName": portName, "ctag": vlan, "Pbit": pbit, "device": device, "VlanControl": vlanControl})
 	}
@@ -1630,7 +1630,7 @@ func (msr *MigrateServicesRequest) ProcessMigrateServicesProfRequest() {
 			if vs.UsHSIAFlowsApplied {
 				vpv.DelTrapFlows()
 				vs.DelHsiaFlows()
-				logger.Info(ctx, "Remove Service Flows Triggered", log.Fields{"Service": srv, "US": vs.UsHSIAFlowsApplied, "DS": vs.DsHSIAFlowsApplied})
+				logger.Infow(ctx, "Remove Service Flows Triggered", log.Fields{"Service": srv, "US": vs.UsHSIAFlowsApplied, "DS": vs.DsHSIAFlowsApplied})
 			} else {
 				vs.updateVnetProfile(msr.DeviceID)
 			}
@@ -1690,7 +1690,7 @@ func (va *VoltApplication) updateMigrateServicesRequest(deviceID string, oldVnet
 // Removes old service and creates new VPV & service with udpated vnet profile
 func (vs *VoltService) updateVnetProfile(deviceID string) {
 
-	logger.Info(ctx, "Update Vnet Profile Triggering", log.Fields{"Service": vs.Name, "US": vs.UsHSIAFlowsApplied, "DS": vs.DsHSIAFlowsApplied})
+	logger.Infow(ctx, "Update Vnet Profile Triggering", log.Fields{"Service": vs.Name, "US": vs.UsHSIAFlowsApplied, "DS": vs.DsHSIAFlowsApplied})
 
 	nvs := VoltService{}
 	nvs.VoltServiceCfg = vs.VoltServiceCfg

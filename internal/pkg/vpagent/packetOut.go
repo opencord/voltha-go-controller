@@ -18,7 +18,7 @@ package vpagent
 import (
 	"context"
 
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 	"google.golang.org/grpc"
 )
 
@@ -47,9 +47,7 @@ top:
 		case <-ctx.Done():
 			break top
 		case ofPacketOut := <-vpa.packetOutChannel:
-			if logger.V(log.DebugLevel) {
-				logger.Debug(ctx, "streamPacketOut Receive PacketOut from Channel")
-			}
+			logger.Debug(ctx, "streamPacketOut Receive PacketOut from Channel")
 			if err := outClient.Send(ofPacketOut); err != nil {
 				logger.Errorw(ctx, "packet-out-send-error",
 					log.Fields{"error": err.Error()})

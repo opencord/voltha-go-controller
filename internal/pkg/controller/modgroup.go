@@ -23,7 +23,7 @@ import (
 	infraerrorcode "voltha-go-controller/internal/pkg/errorcodes/service"
 
 	"voltha-go-controller/internal/pkg/of"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 	"google.golang.org/grpc/codes"
 )
 

@@ -20,19 +20,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-func init() {
-	// Setup this package so that it's log level can be modified at run time
-	var err error
-	logger, err = log.RegisterPackage(log.JSON, log.ErrorLevel, log.Fields{})
-	if err != nil {
-		panic(err)
-	}
-}
 
 // IsConnCanceled returns true, if error is from a closed gRPC connection.
 // ref. https://github.com/grpc/grpc-go/pull/1854

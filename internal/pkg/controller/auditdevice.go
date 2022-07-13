@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"voltha-go-controller/internal/pkg/tasks"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 	"github.com/opencord/voltha-protos/v5/go/common"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 )

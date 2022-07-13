@@ -33,7 +33,7 @@ import (
 	"voltha-go-controller/database"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/util"
-	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	"voltha-go-controller/log"
 )
 
 const (
@@ -2771,7 +2771,7 @@ func (va *VoltApplication) AddIgmpGroup(mvpName string, gip net.IP, device strin
 		}
 		return ig
 	}
-	logger.Error(ctx, "GetMvlan Pro failed", log.Fields{"Group": gip})
+	logger.Errorw(ctx, "GetMvlan Pro failed", log.Fields{"Group": gip})
 	return nil
 }
 
