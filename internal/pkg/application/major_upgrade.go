@@ -347,7 +347,7 @@ func MigrateServices(data []byte) string {
 	vs.AssociatedFlows = make(map[string]bool)
 	vs.DeleteInProgress = false
 	vs.PonPort = 0xFF
-	if updatedData, err = json.Marshal(vs); err != nil {
+	if updatedData, err = vs.JsonMarshal(); err != nil {
 		logger.Warnw(ctx, "Marshal of Service failed", log.Fields{"Error": err.Error()})
 		return ""
 	}
@@ -414,7 +414,7 @@ func MigrateVnets(data []byte) string {
 	}
 	vnet.PendingDeleteFlow = make(map[string]map[string]bool)
 	vnet.DeleteInProgress = false
-	if updatedData, err = json.Marshal(vnet); err != nil {
+	if updatedData, err = vnet.JsonMarshal(); err != nil {
 		logger.Warnw(ctx, "Marshal of Vnet failed", log.Fields{"Error": err.Error()})
 		return ""
 	}
@@ -469,7 +469,7 @@ func MigrateVpvs(data []byte) string {
 	vpv.PendingDeleteFlow = make(map[string]bool)
 	vpv.PonPort = 0xFF
 
-	if updatedData, err = json.Marshal(vpv); err != nil {
+	if updatedData, err = vpv.JsonMarshal(); err != nil {
 		logger.Warnw(ctx, "Marshal of VPV failed", log.Fields{"Error": err.Error()})
 		return ""
 	}
@@ -495,7 +495,7 @@ func MigrateMvlans(data []byte) string {
 		mvp.IgmpServVersion[srNo] = &servVersion
 	}
 
-	if updatedData, err = json.Marshal(mvp); err != nil {
+	if updatedData, err = mvp.JsonMarshal(); err != nil {
 		logger.Warnw(ctx, "Marshal of Mvlan Profile failed", log.Fields{"Error": err.Error()})
 		return ""
 	}

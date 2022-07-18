@@ -5273,3 +5273,22 @@ func (mvp *MvlanProfile) TriggerAssociatedFlowDelete(device string) bool {
 	}
 	return true
 }
+
+// JsonMarshal wrapper function for json Marshal MvlanProfile
+func (mvp *MvlanProfile) JsonMarshal() ([]byte, error) {
+	return json.Marshal(MvlanProfile{
+		Name:                mvp.Name,
+		Mvlan:               mvp.Mvlan,
+		PonVlan:             mvp.PonVlan,
+		Groups:              mvp.Groups,
+		Proxy:               mvp.Proxy,
+		Version:             mvp.Version,
+		IsPonVlanPresent:    mvp.IsPonVlanPresent,
+		IsChannelBasedGroup: mvp.IsChannelBasedGroup,
+		DevicesList:         mvp.DevicesList,
+		MaxActiveChannels:   mvp.MaxActiveChannels,
+		PendingDeleteFlow:   mvp.PendingDeleteFlow,
+		DeleteInProgress:    mvp.DeleteInProgress,
+		IgmpServVersion:     mvp.IgmpServVersion,
+	})
+}

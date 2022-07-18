@@ -3136,3 +3136,65 @@ func (vv *VoltVnet) TriggerAssociatedFlowDelete(device string) bool {
 	}
 	return true
 }
+
+// JsonMarshal wrapper function for json Marshal VoltVnet
+func (vv *VoltVnet) JsonMarshal() ([]byte, error) {
+	return json.Marshal(VoltVnet{
+		VnetConfig: vv.VnetConfig,
+		Version: vv.Version,
+		VnetOper: VnetOper{
+			PendingDeleteFlow:     vv.VnetOper.PendingDeleteFlow,
+			DeleteInProgress:      vv.VnetOper.DeleteInProgress,
+			PendingDeviceToDelete: vv.VnetOper.PendingDeviceToDelete,
+		},
+	})
+}
+
+// JsonMarshal wrapper function for json Marshal VoltPortVnet
+func (vpv *VoltPortVnet) JsonMarshal() ([]byte, error) {
+	return json.Marshal(VoltPortVnet{
+		Device:                     vpv.Device,
+		Port:                       vpv.Port,
+		PonPort:                    vpv.PonPort,
+		VnetName:                   vpv.VnetName,
+		SVlan:                      vpv.SVlan,
+		CVlan:                      vpv.CVlan,
+		UniVlan:                    vpv.UniVlan,
+		SVlanTpid:                  vpv.SVlanTpid,
+		DhcpRelay:                  vpv.DhcpRelay,
+		ArpRelay:                   vpv.ArpRelay,
+		PppoeIa:                    vpv.PppoeIa,
+		MacLearning:                vpv.MacLearning,
+		DhcpStatus:                 vpv.DhcpStatus,
+		DhcpExpiryTime:             vpv.DhcpExpiryTime,
+		Dhcp6ExpiryTime:            vpv.Dhcp6ExpiryTime,
+		FlowsApplied:               vpv.FlowsApplied,
+		Ipv4Addr:                   vpv.Ipv4Addr,
+		Ipv6Addr:                   vpv.Ipv6Addr,
+		MacAddr:                    vpv.MacAddr,
+		LearntMacAddr:              vpv.LearntMacAddr,
+		CircuitID:                  vpv.CircuitID,
+		RemoteID:                   vpv.RemoteID,
+		IsOption82Disabled:         vpv.IsOption82Disabled,
+		RelayState:                 vpv.RelayState,
+		PPPoeState:                 vpv.PPPoeState,
+		RelayStatev6:               vpv.RelayStatev6,
+		IgmpEnabled:                vpv.IgmpEnabled,
+		IgmpFlowsApplied:           vpv.IgmpFlowsApplied,
+		McastService:               vpv.McastService,
+		ONTEtherTypeClassification: vpv.ONTEtherTypeClassification,
+		VlanControl:                vpv.VlanControl,
+		MvlanProfileName:           vpv.MvlanProfileName,
+		Version:                    vpv.Version,
+		McastTechProfileID:         vpv.McastTechProfileID,
+		McastPbit:                  vpv.McastPbit,
+		McastUsMeterID:             vpv.McastUsMeterID,
+		AllowTransparent:           vpv.AllowTransparent,
+		SchedID:                    vpv.SchedID,
+		DHCPv6DUID:                 vpv.DHCPv6DUID,
+		PendingDeleteFlow:          vpv.PendingDeleteFlow,
+		DeleteInProgress:           vpv.DeleteInProgress,
+		Blocked:                    vpv.Blocked,
+		DhcpPbit:                   vpv.DhcpPbit,
+	})
+}

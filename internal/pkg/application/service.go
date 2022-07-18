@@ -1976,3 +1976,31 @@ func (vs *VoltService) TriggerAssociatedFlowDelete() bool {
 //triggerServiceInProgressInd - Indication is generated when Service is not provisioned after add serviec req from NB
 func (vs *VoltService) triggerServiceInProgressInd() {
 }
+
+// JsonMarshal wrapper function for json Marshal VoltService
+func (vs *VoltService) JsonMarshal() ([]byte, error) {
+	return json.Marshal(VoltService{
+		VoltServiceCfg: vs.VoltServiceCfg,
+		VoltServiceOper: VoltServiceOper{
+			Device:             vs.VoltServiceOper.Device,
+			Ipv4Addr:           vs.VoltServiceOper.Ipv4Addr,
+			Ipv6Addr:           vs.VoltServiceOper.Ipv6Addr,
+			UsMeterID:          vs.VoltServiceOper.UsMeterID,
+			DsMeterID:          vs.VoltServiceOper.DsMeterID,
+			AggDsMeterID:       vs.VoltServiceOper.AggDsMeterID,
+			UsHSIAFlowsApplied: vs.VoltServiceOper.UsHSIAFlowsApplied,
+			DsHSIAFlowsApplied: vs.VoltServiceOper.DsHSIAFlowsApplied,
+			UsDhcpFlowsApplied: vs.VoltServiceOper.UsDhcpFlowsApplied,
+			DsDhcpFlowsApplied: vs.VoltServiceOper.DsDhcpFlowsApplied,
+			IgmpFlowsApplied:   vs.VoltServiceOper.IgmpFlowsApplied,
+			Icmpv6FlowsApplied: vs.VoltServiceOper.Icmpv6FlowsApplied,
+			PendingFlows:       vs.VoltServiceOper.PendingFlows,
+			AssociatedFlows:    vs.VoltServiceOper.AssociatedFlows,
+			DeleteInProgress:   vs.VoltServiceOper.DeleteInProgress,
+			ForceDelete:        vs.VoltServiceOper.ForceDelete,
+			BwAvailInfo:        vs.VoltServiceOper.BwAvailInfo,
+			UpdateInProgress:   vs.VoltServiceOper.UpdateInProgress,
+			Metadata:           vs.VoltServiceOper.Metadata,
+		},
+	})
+}
