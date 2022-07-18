@@ -33,7 +33,7 @@ func (vpa *VPAgent) synchronizeDeviceList(ctx context.Context) {
 	}
 
 	// Refresh once to get everything started
-	vpa.refreshDeviceList()
+	vpa.refreshDeviceList(ctx)
 
 	tick := time.NewTicker(vpa.DeviceListRefreshInterval)
 loop:
@@ -43,13 +43,13 @@ loop:
 			logger.Errorw(ctx, "Context Done", log.Fields{"Context": ctx})
 			break loop
 		case <-tick.C:
-			vpa.refreshDeviceList()
+			vpa.refreshDeviceList(ctx)
 		}
 	}
 	tick.Stop()
 }
 
-func (vpa *VPAgent) refreshDeviceList() {
+func (vpa *VPAgent) refreshDeviceList(cntx context.Context) {
 	// If we exit, assume disconnected
 	if vpa.volthaClient == nil {
 		logger.Error(ctx, "no-voltha-connection")
@@ -93,7 +93,7 @@ func (vpa *VPAgent) refreshDeviceList() {
 	}
 
 	for i := 0; i < len(toDel); i++ {
-		vpa.VPClientAgent.DelDevice(toDel[i])
+		vpa.VPClientAgent.DelDevice(cntx, toDel[i])
 		vpa.mapLock.Lock()
 		delete(vpa.clientMap, toDel[i])
 		vpa.mapLock.Unlock()

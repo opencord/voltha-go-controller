@@ -16,6 +16,7 @@
 package application
 
 import (
+	"context"
 	"time"
 )
 
@@ -40,7 +41,7 @@ type TimerCfg struct {
 }
 
 // Start to start timer
-func (va *VoltApplication) Start(cfg TimerCfg, timerType TimerType) {
+func (va *VoltApplication) Start(cntx context.Context, cfg TimerCfg, timerType TimerType) {
 	if timerMap[timerType] {
 		logger.Warn(ctx, "Duplicate Timer!!! Timer already running")
 		return
@@ -54,7 +55,7 @@ func (va *VoltApplication) Start(cfg TimerCfg, timerType TimerType) {
 			case tickTimer:
 				va.Tick()
 			case pendingPoolTimer:
-				va.removeExpiredGroups()
+				va.removeExpiredGroups(cntx)
 			}
 		case <- timerChannels[timerType]:
 			return

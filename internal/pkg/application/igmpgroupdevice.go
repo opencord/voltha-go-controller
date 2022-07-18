@@ -16,6 +16,7 @@
 package application
 
 import (
+	"context"
 	"encoding/json"
 	"net"
 	"sync"
@@ -103,12 +104,12 @@ func NewIgmpGroupDevice(name string, ig *IgmpGroup, id uint32, version uint8) *I
 
 // IgmpGroupDeviceReInit is re-initializer for a device. The default IGMP version is set to 3
 // as the protocol defines the way to manage backward compatibility
-func (igd *IgmpGroupDevice) IgmpGroupDeviceReInit(ig *IgmpGroup) {
+func (igd *IgmpGroupDevice) IgmpGroupDeviceReInit(cntx context.Context, ig *IgmpGroup) {
 
         logger.Infow(ctx, "Reinitialize Igmp Group Device", log.Fields{"Device": igd.Device, "GroupID": ig.GroupID, "OldName": igd.GroupName, "Name": ig.GroupName, "OldAddr": igd.GroupAddr.String(), "GroupAddr": ig.GroupAddr.String()})
 
         if (igd.GroupName != ig.GroupName) || !igd.GroupAddr.Equal(ig.GroupAddr) {
-                _ = db.DelIgmpDevice(igd.Mvlan, igd.GroupName, igd.GroupAddr, igd.Device)
+                _ = db.DelIgmpDevice(cntx, igd.Mvlan, igd.GroupName, igd.GroupAddr, igd.Device)
                 igd.GroupName = ig.GroupName
                 igd.GroupAddr = ig.GroupAddr
         }
@@ -126,7 +127,7 @@ func (igd *IgmpGroupDevice) IgmpGroupDeviceReInit(ig *IgmpGroup) {
                 mcastCfg.IgmpGroupDevices.Store(ig.GroupID, igd)
                 logger.Debugw(ctx, "Igd added to mcast config", log.Fields{"mvlan": mcastCfg.MvlanProfileID, "groupId": ig.GroupID})
         }
-        if err := igd.WriteToDb(); err != nil {
+        if err := igd.WriteToDb(cntx); err != nil {
                 logger.Errorw(ctx, "Igmp group device Write to DB failed", log.Fields{"Device": igd.Device, "GroupName": igd.GroupName, "GroupAddr": igd.GroupAddr.String()})
         }
 }
@@ -144,24 +145,24 @@ func getIgmpProxyCfgAndIP(mvlan of.VlanType, serialNo string) (*IgmpProfile, *ne
 }
 
 // updateGroupName to update the group name
-func (igd *IgmpGroupDevice) updateGroupName(newGroupName string) {
+func (igd *IgmpGroupDevice) updateGroupName(cntx context.Context, newGroupName string) {
 
         oldName := igd.GroupName
         igd.GroupName = newGroupName
         updateGroupName := func(key, value interface{}) bool {
                 igc := value.(*IgmpGroupChannel)
                 igc.GroupName = newGroupName
-                if err := igc.WriteToDb(); err != nil {
+                if err := igc.WriteToDb(cntx); err != nil {
                         logger.Errorw(ctx, "Igmp group channel Write to DB failed", log.Fields{"mvlan": igc.Mvlan, "GroupAddr": igc.GroupAddr})
                 }
-                _ = db.DelIgmpChannel(igc.Mvlan, oldName, igc.Device, igc.GroupAddr)
+                _ = db.DelIgmpChannel(cntx, igc.Mvlan, oldName, igc.Device, igc.GroupAddr)
                 return true
         }
         igd.GroupChannels.Range(updateGroupName)
-        if err := igd.WriteToDb(); err != nil {
+        if err := igd.WriteToDb(cntx); err != nil {
                 logger.Errorw(ctx, "Igmp group device Write to DB failed", log.Fields{"Device": igd.Device, "GroupName": igd.GroupName, "GroupAddr": igd.GroupAddr.String()})
         }
-        _ = db.DelIgmpDevice(igd.Mvlan, oldName, igd.GroupAddr, igd.Device)
+        _ = db.DelIgmpDevice(cntx, igd.Mvlan, oldName, igd.GroupAddr, igd.Device)
 }
 
 // NewIgmpGroupDeviceFromBytes is to create the IGMP group port from a byte slice
@@ -184,14 +185,14 @@ func (igd *IgmpGroupDevice) GetKey() string {
 }
 
 // RestoreChannel to restore channel
-func (igd *IgmpGroupDevice) RestoreChannel(igmpGroupChannel []byte) {
+func (igd *IgmpGroupDevice) RestoreChannel(cntx context.Context, igmpGroupChannel []byte) {
 
         if igc, err := NewIgmpGroupChannelFromBytes(igmpGroupChannel); err == nil {
                 igc.ServVersion = igd.ServVersion
                 igc.IgmpProxyIP = &igd.IgmpProxyIP
                 igc.proxyCfg = &igd.proxyCfg
                 igd.GroupChannels.Store(igc.GroupAddr.String(), igc)
-                igc.RestorePorts()
+                igc.RestorePorts(cntx)
 
                 for port, igp := range igc.NewReceivers {
                         ipsList := []net.IP{}
@@ -215,10 +216,10 @@ func (igd *IgmpGroupDevice) RestoreChannel(igmpGroupChannel []byte) {
 }
 
 // RestoreChannels to restore channels
-func (igd *IgmpGroupDevice) RestoreChannels() {
+func (igd *IgmpGroupDevice) RestoreChannels(cntx context.Context) {
 
-        igd.migrateIgmpChannels()
-        channels, _ := db.GetIgmpChannels(igd.Mvlan, igd.GroupName, igd.Device)
+        igd.migrateIgmpChannels(cntx)
+        channels, _ := db.GetIgmpChannels(cntx, igd.Mvlan, igd.GroupName, igd.Device)
         for _, channel := range channels {
 
                 b, ok := channel.Value.([]byte)
@@ -226,19 +227,19 @@ func (igd *IgmpGroupDevice) RestoreChannels() {
                         logger.Warn(ctx, "The value type is not []byte")
                         continue
                 }
-                igd.RestoreChannel(b)
+                igd.RestoreChannel(cntx, b)
         }
 
 }
 
 
 // WriteToDb is utility to write IGMP Group Device Info to the database
-func (igd *IgmpGroupDevice) WriteToDb() error {
+func (igd *IgmpGroupDevice) WriteToDb(cntx context.Context) error {
         b, err := json.Marshal(igd)
         if err != nil {
                 return err
         }
-        if err1 := db.PutIgmpDevice(igd.Mvlan, igd.GroupName, igd.GroupAddr, igd.Device, string(b)); err1 != nil {
+        if err1 := db.PutIgmpDevice(cntx, igd.Mvlan, igd.GroupName, igd.GroupAddr, igd.Device, string(b)); err1 != nil {
                 return err1
         }
         logger.Info(ctx, "IGD Updated")
@@ -332,7 +333,7 @@ func printPortChannel(key interface{}, value interface{}) bool {
 // AddReceiver add the receiver to the device and perform other actions such as adding the group
 // to the physical device, add members, add flows to point the MC packets to the
 // group. Also, send a IGMP report upstream if there is a change in the group
-func (igd *IgmpGroupDevice) AddReceiver(port string, groupAddr net.IP,
+func (igd *IgmpGroupDevice) AddReceiver(cntx context.Context, port string, groupAddr net.IP,
         group *layers.IGMPv3GroupRecord, version uint8, cvlan uint16, pbit uint8, ponPortID uint32) {
 
         var igc *IgmpGroupChannel
@@ -347,11 +348,11 @@ func (igd *IgmpGroupDevice) AddReceiver(port string, groupAddr net.IP,
         }
 
         if !igd.GroupInstalled {
-                igd.AddNewReceiver(port, groupAddr, group, cvlan, pbit, ponPortID)
+                igd.AddNewReceiver(cntx, port, groupAddr, group, cvlan, pbit, ponPortID)
                 return
         }
 
-        isNewReceiver := igc.AddReceiver(port, group, cvlan, pbit)
+        isNewReceiver := igc.AddReceiver(cntx, port, group, cvlan, pbit)
         if isNewReceiver {
                 ipsList := []net.IP{}
                 ipsIntf, _ := igd.PortChannelMap.Load(port)
@@ -368,13 +369,13 @@ func (igd *IgmpGroupDevice) AddReceiver(port string, groupAddr net.IP,
                         igd.ModMcGroup()
                 }
         }
-        if err := igd.WriteToDb(); err != nil {
+        if err := igd.WriteToDb(cntx); err != nil {
                 logger.Errorw(ctx, "Igmp group device Write to DB failed", log.Fields{"Device": igd.Device, "GroupName": igd.GroupName, "GroupAddr": igd.GroupAddr.String()})
         }
 }
 
 // AddNewReceiver to add new receiver
-func (igd *IgmpGroupDevice) AddNewReceiver(port string, groupAddr net.IP, group *layers.IGMPv3GroupRecord, cvlan uint16, pbit uint8, ponPortID uint32) {
+func (igd *IgmpGroupDevice) AddNewReceiver(cntx context.Context, port string, groupAddr net.IP, group *layers.IGMPv3GroupRecord, cvlan uint16, pbit uint8, ponPortID uint32) {
 
         logger.Debugw(ctx, "Adding New Device Receiver", log.Fields{"Channel": groupAddr, "Port": port, "Device": igd.Device})
         igcIntf, _ := igd.GroupChannels.Load(groupAddr.String())
@@ -395,8 +396,8 @@ func (igd *IgmpGroupDevice) AddNewReceiver(port string, groupAddr net.IP, group 
         logger.Debugw(ctx, "Port Channel Updated", log.Fields{"Port": port, "NewChannelList": ipsList, "Addr": groupAddr})
 
         igd.AddMcGroup()
-        igc.AddReceiver(port, group, cvlan, pbit)
-        if err := igd.WriteToDb(); err != nil {
+        igc.AddReceiver(cntx, port, group, cvlan, pbit)
+        if err := igd.WriteToDb(cntx); err != nil {
                 logger.Errorw(ctx, "Igmp group device Write to DB failed", log.Fields{"Device": igd.Device, "GroupName": igd.GroupName, "GroupAddr": igd.GroupAddr.String()})
         }
 }
@@ -415,7 +416,7 @@ func (igd *IgmpGroupDevice) NumReceivers() int {
 
 // DelReceiver is called when Query expiry happened for a receiver. This removes the receiver from the
 // the group
-func (igd *IgmpGroupDevice) DelReceiver(groupAddr net.IP, port string, group *layers.IGMPv3GroupRecord, ponPortID uint32) {
+func (igd *IgmpGroupDevice) DelReceiver(cntx context.Context, groupAddr net.IP, port string, group *layers.IGMPv3GroupRecord, ponPortID uint32) {
 
         logger.Debugw(ctx, "Deleting Receiver for Device", log.Fields{"port": port, "GroupIP": groupAddr.String()})
         var igc *IgmpGroupChannel
@@ -437,12 +438,12 @@ func (igd *IgmpGroupDevice) DelReceiver(groupAddr net.IP, port string, group *la
                 return
         }
         igc = igcIntf.(*IgmpGroupChannel)
-        if ok := igc.DelReceiver(port, incl, srcList); !ok {
+        if ok := igc.DelReceiver(cntx, port, incl, srcList); !ok {
                 return
         }
 
         if igc.NumReceivers() == 0 {
-                igd.DelIgmpGroupChannel(igc)
+                igd.DelIgmpGroupChannel(cntx, igc)
         }
         igd.DelPortFromChannel(port, groupAddr)
         isGroupModified := igd.RemoveChannelFromChannelsPerPon(port, groupAddr, ponPortID)
@@ -451,14 +452,14 @@ func (igd *IgmpGroupDevice) DelReceiver(groupAddr net.IP, port string, group *la
         if isGroupModified {
                 igd.ModMcGroup()
         }
-        if err := igd.WriteToDb(); err != nil {
+        if err := igd.WriteToDb(cntx); err != nil {
                 logger.Errorw(ctx, "Igmp group device Write to DB failed", log.Fields{"Device": igd.Device, "GroupName": igd.GroupName, "GroupAddr": igd.GroupAddr.String()})
         }
 }
 
 // DelChannelReceiver is called when Query expiry happened for a receiver. This removes the receiver from the
 // the group
-func (igd *IgmpGroupDevice) DelChannelReceiver(groupAddr net.IP) map[string]*IgmpGroupPort {
+func (igd *IgmpGroupDevice) DelChannelReceiver(cntx context.Context, groupAddr net.IP) map[string]*IgmpGroupPort {
 
         portsRemoved := make(map[string]*IgmpGroupPort)
         groupModified := false
@@ -471,7 +472,7 @@ func (igd *IgmpGroupDevice) DelChannelReceiver(groupAddr net.IP) map[string]*Igm
         igc := igcIntf.(*IgmpGroupChannel)
 
         for port, igp := range igc.NewReceivers {
-                _ = db.DelIgmpRcvr(igc.Mvlan, igc.GroupAddr, igc.Device, port) //TODO: Y not here
+                _ = db.DelIgmpRcvr(cntx, igc.Mvlan, igc.GroupAddr, igc.Device, port) //TODO: Y not here
                 igd.DelPortFromChannel(port, igc.GroupAddr)
                 ponPortID := GetApplication().GetPonPortID(igd.Device, port)
                 groupModified = igd.RemoveChannelFromChannelsPerPon(port, igc.GroupAddr, ponPortID)
@@ -479,7 +480,7 @@ func (igd *IgmpGroupDevice) DelChannelReceiver(groupAddr net.IP) map[string]*Igm
                 portsRemoved[port] = igp
         }
         for port, igp := range igc.CurReceivers {
-                _ = db.DelIgmpRcvr(igc.Mvlan, igc.GroupAddr, igc.Device, port)
+                _ = db.DelIgmpRcvr(cntx, igc.Mvlan, igc.GroupAddr, igc.Device, port)
                 igd.DelPortFromChannel(port, igc.GroupAddr)
                 ponPortID := GetApplication().GetPonPortID(igd.Device, port)
                 groupModified = igd.RemoveChannelFromChannelsPerPon(port, igc.GroupAddr, ponPortID)
@@ -487,15 +488,15 @@ func (igd *IgmpGroupDevice) DelChannelReceiver(groupAddr net.IP) map[string]*Igm
                 portsRemoved[port] = igp
         }
 
-        igc.DelMcFlow()
-        igd.DelIgmpGroupChannel(igc)
+        igc.DelMcFlow(cntx)
+        igd.DelIgmpGroupChannel(cntx, igc)
         igc.Exclude = 0
         igc.SendLeaveToServer()
 
         if groupModified {
                 igd.ModMcGroup()
         }
-        if err := igd.WriteToDb(); err != nil {
+        if err := igd.WriteToDb(cntx); err != nil {
                 logger.Errorw(ctx, "Igmp group device Write to DB failed", log.Fields{"Device": igd.Device, "GroupName": igd.GroupName, "GroupAddr": igd.GroupAddr.String()})
         }
         logger.Debugw(ctx, "Deleted the receiver Flow", log.Fields{"Num Receivers": igc.NumReceivers()})
@@ -503,12 +504,12 @@ func (igd *IgmpGroupDevice) DelChannelReceiver(groupAddr net.IP) map[string]*Igm
 }
 
 // DelIgmpGroupChannel to delete igmp group channel
-func (igd *IgmpGroupDevice) DelIgmpGroupChannel(igc *IgmpGroupChannel) {
+func (igd *IgmpGroupDevice) DelIgmpGroupChannel(cntx context.Context, igc *IgmpGroupChannel) {
 
         if igc.NumReceivers() != 0 {
-                igc.DelAllReceivers()
+                igc.DelAllReceivers(cntx)
         }
-        _ = db.DelIgmpChannel(igc.Mvlan, igc.GroupName, igc.Device, igc.GroupAddr)
+        _ = db.DelIgmpChannel(cntx, igc.Mvlan, igc.GroupName, igc.Device, igc.GroupAddr)
         igd.GroupChannels.Delete(igc.GroupAddr.String())
         logger.Infow(ctx, "Deleted the Channel from Device", log.Fields{"Channel": igc.GroupAddr.String()})
         isLenZero := true
@@ -554,24 +555,24 @@ func (igd *IgmpGroupDevice) DelPortFromChannel(port string, groupAddr net.IP) bo
 }
 
 // DelAllChannels deletes all receiver for the provided igmp device
-func (igd *IgmpGroupDevice) DelAllChannels() {
+func (igd *IgmpGroupDevice) DelAllChannels(cntx context.Context) {
         logger.Infow(ctx, "Deleting All Channel for Device", log.Fields{"Device": igd.Device, "Group": igd.GroupName})
         delGroupChannels := func(key interface{}, value interface{}) bool {
                 igc := value.(*IgmpGroupChannel)
-                igd.DelIgmpGroupChannel(igc)
+                igd.DelIgmpGroupChannel(cntx, igc)
                 return true
         }
         igd.GroupChannels.Range(delGroupChannels)
 }
 
 // ProcessQuery process query received from the upstream IGMP server
-func (igd *IgmpGroupDevice) ProcessQuery(groupAddr net.IP, ver uint8) {
+func (igd *IgmpGroupDevice) ProcessQuery(cntx context.Context, groupAddr net.IP, ver uint8) {
         logger.Debugw(ctx, "Received Query From Server", log.Fields{"Version": ver})
         if ver != *igd.ServVersion {
                 igd.ServVersionExpiry = time.Now().Add(time.Duration(2*igd.proxyCfg.KeepAliveInterval) * time.Second)
                 *igd.ServVersion = ver
                 mvp := GetApplication().GetMvlanProfileByTag(igd.Mvlan)
-                if err := mvp.WriteToDb(); err != nil {
+                if err := mvp.WriteToDb(cntx); err != nil {
                         logger.Errorw(ctx, "Mvlan profile write to DB failed", log.Fields{"ProfileName": mvp.Name})
                 }
         }
@@ -676,7 +677,7 @@ func (igd *IgmpGroupDevice) DelMcGroup(forceDelete bool) {
 
 // QueryExpiry processes query expiry. Upon expiry, take stock of the situation
 // add either retain/release the group based on number of receivers left
-func (igd *IgmpGroupDevice) QueryExpiry() {
+func (igd *IgmpGroupDevice) QueryExpiry(cntx context.Context) {
         logger.Debugw(ctx, "Query Expiry", log.Fields{"Device": igd.Device})
 
 
@@ -695,7 +696,7 @@ func (igd *IgmpGroupDevice) QueryExpiry() {
                         logger.Debugw(ctx, "Expired Member Port State", log.Fields{"state": state})
                         ponPortID := GetApplication().GetPonPortID(igd.Device, portKey)
                         if err == nil && state == cntlr.PortStateDown {
-                                igd.DelReceiver(igc.GroupAddr, portKey, nil, ponPortID)
+                                igd.DelReceiver(cntx, igc.GroupAddr, portKey, nil, ponPortID)
                         }
 
                         port.QueryTimeoutCount++
@@ -703,10 +704,10 @@ func (igd *IgmpGroupDevice) QueryExpiry() {
                         if port.QueryTimeoutCount >= (*igc.proxyCfg).KeepAliveCount {
                                 logger.Errorw(ctx, "Expiry Timeout count exceeded. Trigger delete receiver", log.Fields{"PortKey": portKey,
                                         "GroupAddr": igc.GroupAddr, "Count": port.QueryTimeoutCount})
-                                igd.DelReceiver(igc.GroupAddr, portKey, nil, ponPortID)
+                                igd.DelReceiver(cntx, igc.GroupAddr, portKey, nil, ponPortID)
                                 SendQueryExpiredEventGroupSpecific(portKey, igd, igc)
                         } else {
-                                _ = port.WriteToDb(igc.Mvlan, igc.GroupAddr, igc.Device)
+                                _ = port.WriteToDb(cntx, igc.Mvlan, igc.GroupAddr, igc.Device)
                         }
                 }
                 return true

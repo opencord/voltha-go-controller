@@ -16,6 +16,7 @@
 package application
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net"
@@ -157,7 +158,7 @@ func (mvp *MvlanProfile) GetUsMatchVlan() of.VlanType {
 }
 
 // WriteToDb is utility to write Mvlan Profile Info to database
-func (mvp *MvlanProfile) WriteToDb() error {
+func (mvp *MvlanProfile) WriteToDb(cntx context.Context) error {
 
         if mvp.DeleteInProgress {
                 logger.Warnw(ctx, "Skipping Redis Update for MvlanProfile, MvlanProfile delete in progress", log.Fields{"Mvlan": mvp.Mvlan})
@@ -169,7 +170,7 @@ func (mvp *MvlanProfile) WriteToDb() error {
         if err != nil {
                 return err
         }
-        if err1 := db.PutMvlan(uint16(mvp.Mvlan), string(b)); err1 != nil {
+        if err1 := db.PutMvlan(cntx, uint16(mvp.Mvlan), string(b)); err1 != nil {
                 return err1
         }
         return nil
@@ -288,12 +289,12 @@ func (mvp *MvlanProfile) IsUpdateInProgressForDevice(device string) bool {
 }
 
 // DelFromDb to delere mvlan from database
-func (mvp *MvlanProfile) DelFromDb() {
-        _ = db.DelMvlan(uint16(mvp.Mvlan))
+func (mvp *MvlanProfile) DelFromDb(cntx context.Context) {
+        _ = db.DelMvlan(cntx, uint16(mvp.Mvlan))
 }
 
 //DelFlows - Triggers flow deletion after registering for flow indication event
-func (mvp *MvlanProfile) DelFlows(device *VoltDevice, flow *of.VoltFlow) error {
+func (mvp *MvlanProfile) DelFlows(cntx context.Context, device *VoltDevice, flow *of.VoltFlow) error {
         mvp.mvpFlowLock.Lock()
         defer mvp.mvpFlowLock.Unlock()
 
@@ -316,14 +317,14 @@ func (mvp *MvlanProfile) DelFlows(device *VoltDevice, flow *of.VoltFlow) error {
                 flowMap[cookie] = true
                 mvp.PendingDeleteFlow[device.Name] = flowMap
         }
-        if err := mvp.WriteToDb(); err != nil {
+        if err := mvp.WriteToDb(cntx); err != nil {
                 logger.Errorw(ctx, "Mvlan profile write to DB failed", log.Fields{"ProfileName": mvp.Name})
         }
-        return cntlr.GetController().DelFlows(device.NniPort, device.Name, flow)
+        return cntlr.GetController().DelFlows(cntx, device.NniPort, device.Name, flow)
 }
 
 //FlowRemoveSuccess - Process flow success indication
-func (mvp *MvlanProfile) FlowRemoveSuccess(cookie string, device string) {
+func (mvp *MvlanProfile) FlowRemoveSuccess(cntx context.Context, cookie string, device string) {
         mvp.mvpFlowLock.Lock()
         defer mvp.mvpFlowLock.Unlock()
 
@@ -333,7 +334,7 @@ func (mvp *MvlanProfile) FlowRemoveSuccess(cookie string, device string) {
                 delete(mvp.PendingDeleteFlow[device], cookie)
         }
 
-        if err := mvp.WriteToDb(); err != nil {
+        if err := mvp.WriteToDb(cntx); err != nil {
                 logger.Errorw(ctx, "Mvlan profile write to DB failed", log.Fields{"ProfileName": mvp.Name})
         }
 }
@@ -394,7 +395,7 @@ func (mvp *MvlanProfile) GetStaticIgmpGroup(gip net.IP) *IgmpGroup {
 }
 
 //pushIgmpMcastFlows - Adds all IGMP related flows (generic DS flow & static group flows)
-func (mvp *MvlanProfile) pushIgmpMcastFlows(OLTSerialNum string) {
+func (mvp *MvlanProfile) pushIgmpMcastFlows(cntx context.Context, OLTSerialNum string) {
 
         mvp.mvpLock.RLock()
         defer mvp.mvpLock.RUnlock()
@@ -416,7 +417,7 @@ func (mvp *MvlanProfile) pushIgmpMcastFlows(OLTSerialNum string) {
                 logger.Infow(ctx, "NNI Port Status is: UP & Vlan Enabled", log.Fields{"Device": d, "port": p})
 
                 //Push Igmp DS Control Flows
-                err := mvp.ApplyIgmpDSFlowForMvp(d.Name)
+                err := mvp.ApplyIgmpDSFlowForMvp(cntx, d.Name)
                 if err != nil {
                         logger.Errorw(ctx, "DS IGMP Flow Add Failed for device",
                                 log.Fields{"Reason": err.Error(), "device": d.Name})
@@ -424,14 +425,14 @@ func (mvp *MvlanProfile) pushIgmpMcastFlows(OLTSerialNum string) {
 
                 //Trigger Join for static channels
                 if channelList, containsStatic := mvp.getAllStaticChannels(); containsStatic {
-                        mvp.ProcessStaticGroup(d.Name, channelList, true)
+                        mvp.ProcessStaticGroup(cntx, d.Name, channelList, true)
                 } else {
                         logger.Infow(ctx, "No Static Channels Present", log.Fields{"mvp": mvp.Name, "Mvlan": mvp.Mvlan})
                 }
         }
 }
 //removeIgmpMcastFlows - Removes all IGMP related flows (generic DS flow & static group flows)
-func (mvp *MvlanProfile) removeIgmpMcastFlows(oltSerialNum string) {
+func (mvp *MvlanProfile) removeIgmpMcastFlows(cntx context.Context, oltSerialNum string) {
 
         mvp.mvpLock.RLock()
         defer mvp.mvpLock.RUnlock()
@@ -446,7 +447,7 @@ func (mvp *MvlanProfile) removeIgmpMcastFlows(oltSerialNum string) {
 
                         //Trigger Leave for static channels
                         if channelList, containsStatic := mvp.getAllStaticChannels(); containsStatic {
-                                mvp.ProcessStaticGroup(d.Name, channelList, false)
+                                mvp.ProcessStaticGroup(cntx, d.Name, channelList, false)
                         } else {
                                 logger.Infow(ctx, "No Static Channels Present", log.Fields{"mvp": mvp.Name, "Mvlan": mvp.Mvlan})
                         }
@@ -456,16 +457,16 @@ func (mvp *MvlanProfile) removeIgmpMcastFlows(oltSerialNum string) {
                                 ig := value.(*IgmpGroup)
                                 if ig.Mvlan == mvp.Mvlan {
                                         igd := ig.Devices[d.Name]
-                                        ig.DelIgmpGroupDevice(igd)
+                                        ig.DelIgmpGroupDevice(cntx, igd)
                                         if ig.NumDevicesActive() == 0 {
-                                                GetApplication().DelIgmpGroup(ig)
+                                                GetApplication().DelIgmpGroup(cntx, ig)
                                         }
                                 }
                                 return true
                         })
 
                         //Remove DS Igmp trap flow
-                        err := mvp.RemoveIgmpDSFlowForMvp(d.Name)
+                        err := mvp.RemoveIgmpDSFlowForMvp(cntx, d.Name)
                         if err != nil {
                                 logger.Errorw(ctx, "DS IGMP Flow Del Failed", log.Fields{"Reason": err.Error(), "device": d.Name})
                         }
@@ -474,7 +475,7 @@ func (mvp *MvlanProfile) removeIgmpMcastFlows(oltSerialNum string) {
 }
 
 // ApplyIgmpDSFlowForMvp to apply Igmp DS flow for mvlan.
-func (mvp *MvlanProfile) ApplyIgmpDSFlowForMvp(device string) error {
+func (mvp *MvlanProfile) ApplyIgmpDSFlowForMvp(cntx context.Context, device string) error {
         va := GetApplication()
         dIntf, ok := va.DevicesDisc.Load(device)
         if !ok {
@@ -487,7 +488,7 @@ func (mvp *MvlanProfile) ApplyIgmpDSFlowForMvp(device string) error {
         if !ok || !flowAlreadyApplied {
                 flows, err := mvp.BuildIgmpDSFlows(device)
                 if err == nil {
-                        err = cntlr.GetController().AddFlows(d.NniPort, device, flows)
+                        err = cntlr.GetController().AddFlows(cntx, d.NniPort, device, flows)
                         if err != nil {
                                 logger.Warnw(ctx, "Configuring IGMP Flow for device failed ", log.Fields{"Device": device, "err": err})
                                 return err
@@ -504,7 +505,7 @@ func (mvp *MvlanProfile) ApplyIgmpDSFlowForMvp(device string) error {
 }
 
 // RemoveIgmpDSFlowForMvp to remove Igmp DS flow for mvlan.
-func (mvp *MvlanProfile) RemoveIgmpDSFlowForMvp(device string) error {
+func (mvp *MvlanProfile) RemoveIgmpDSFlowForMvp(cntx context.Context, device string) error {
 
         va := GetApplication()
         mvlan := mvp.Mvlan
@@ -522,7 +523,7 @@ func (mvp *MvlanProfile) RemoveIgmpDSFlowForMvp(device string) error {
         if err == nil {
                 flows.ForceAction = true
 
-                err = mvp.DelFlows(d, flows)
+                err = mvp.DelFlows(cntx, d, flows)
                 if err != nil {
                         logger.Warnw(ctx, "De-Configuring IGMP Flow for device failed ", log.Fields{"Device": device, "err": err})
                         return err
@@ -572,7 +573,7 @@ func (mvp *MvlanProfile) BuildIgmpDSFlows(device string) (*of.VoltFlow, error) {
 }
 
 //updateStaticGroups - Generates static joins & leaves for newly added and removed static channels respectively
-func (mvp *MvlanProfile) updateStaticGroups(deviceID string, added []net.IP, removed []net.IP) {
+func (mvp *MvlanProfile) updateStaticGroups(cntx context.Context, deviceID string, added []net.IP, removed []net.IP) {
 
         //Update static group configs for all associated devices
         updateGroups := func(key interface{}, value interface{}) bool {
@@ -583,8 +584,8 @@ func (mvp *MvlanProfile) updateStaticGroups(deviceID string, added []net.IP, rem
                         return true
                 }
                 //TODO if mvp.IsChannelBasedGroup {
-                mvp.ProcessStaticGroup(d.Name, added, true)
-                mvp.ProcessStaticGroup(d.Name, removed, false)
+                mvp.ProcessStaticGroup(cntx, d.Name, added, true)
+                mvp.ProcessStaticGroup(cntx, d.Name, removed, false)
                 //}
                 return true
         }
@@ -598,7 +599,7 @@ func (mvp *MvlanProfile) updateStaticGroups(deviceID string, added []net.IP, rem
 }
 
 //updateDynamicGroups - Generates joins with updated sources for existing channels
-func (mvp *MvlanProfile) updateDynamicGroups(deviceID string, added []net.IP, removed []net.IP) {
+func (mvp *MvlanProfile) updateDynamicGroups(cntx context.Context, deviceID string, added []net.IP, removed []net.IP) {
 
         //mvlan := mvp.Mvlan
         va := GetApplication()
@@ -617,7 +618,7 @@ func (mvp *MvlanProfile) updateDynamicGroups(deviceID string, added []net.IP, re
                         logger.Debugw(ctx, "IGMP Group", log.Fields{"Group": grpKey, "groupAddr": groupAddr})
                         if igIntf, ok := va.IgmpGroups.Load(grpKey); ok {
                                 ig := igIntf.(*IgmpGroup)
-                                if igd, ok := ig.getIgmpGroupDevice(d.Name); ok {
+                                if igd, ok := ig.getIgmpGroupDevice(cntx, d.Name); ok {
                                         if igcIntf, ok := igd.GroupChannels.Load(groupAddr.String()); ok {
                                                 igc := igcIntf.(*IgmpGroupChannel)
                                                 incl := false
@@ -631,12 +632,12 @@ func (mvp *MvlanProfile) updateDynamicGroups(deviceID string, added []net.IP, re
                                                 }
                                                 for port, igp := range igc.NewReceivers {
                                                         // Process the include/exclude list which may end up modifying the group
-                                                        if change, _ := igc.ProcessSources(port, ip, incl); change {
+                                                        if change, _ := igc.ProcessSources(cntx, port, ip, incl); change {
                                                                 groupModified = true
                                                         }
                                                         igc.ProcessMode(port, incl)
 
-                                                        if err := igp.WriteToDb(igc.Mvlan, igc.GroupAddr, igc.Device); err != nil {
+                                                        if err := igp.WriteToDb(cntx, igc.Mvlan, igc.GroupAddr, igc.Device); err != nil {
                                                                 logger.Errorw(ctx, "Igmp group port Write to DB failed", log.Fields{"mvlan": igc.Mvlan, "GroupAddr": igc.GroupAddr})
                                                         }
                                                 }
@@ -646,7 +647,7 @@ func (mvp *MvlanProfile) updateDynamicGroups(deviceID string, added []net.IP, re
                                                         logger.Debug(ctx, "Group Modified and IGMP report sent to the upstream server")
                                                         igc.SendReport(false)
                                                 }
-                                                if err := igc.WriteToDb(); err != nil {
+                                                if err := igc.WriteToDb(cntx); err != nil {
                                                         logger.Errorw(ctx, "Igmp group channel Write to DB failed", log.Fields{"mvlan": igc.Mvlan, "GroupAddr": igc.GroupAddr})
                                                 }
                                         }
@@ -667,7 +668,7 @@ func (mvp *MvlanProfile) updateDynamicGroups(deviceID string, added []net.IP, re
 
 //GroupsUpdated - Handles removing of Igmp Groups, flows & group table entries for
 //channels removed as part of update
-func (mvp *MvlanProfile) GroupsUpdated(deviceID string) {
+func (mvp *MvlanProfile) GroupsUpdated(cntx context.Context, deviceID string) {
 
         deleteChannelIfRemoved := func(key interface{}, value interface{}) bool {
                 ig := value.(*IgmpGroup)
@@ -703,32 +704,32 @@ func (mvp *MvlanProfile) GroupsUpdated(deviceID string) {
                                                 // If channel is not Static but existing Group is static - Migrate (from static to dynamic)
                                                 //    (Channel removed from satic but part of dynamic)
                                                 if (staticChannel != mvp.IsStaticGroup(ig.GroupName)) || (ig.IsGroupStatic != mvp.IsStaticGroup(ig.GroupName)) { // Equivalent of XOR
-                                                        ig.HandleGroupMigration(deviceID, channelIP)
+                                                        ig.HandleGroupMigration(cntx, deviceID, channelIP)
                                                 } else {
                                                         if (ig.IsGroupStatic) && mvp.IsStaticGroup(ig.GroupName) {
                                                                 if ig.GroupName != mvp.GetStaticGroupName(channelIP) {
-                                                                        ig.HandleGroupMigration(deviceID, channelIP)
+                                                                        ig.HandleGroupMigration(cntx, deviceID, channelIP)
                                                                 }
                                                         }
                                                         continue
                                                 }
                                         } else {
                                                 logger.Debugw(ctx, "Channel Removed", log.Fields{"Channel": channel, "Group": grpName})
-                                                ig.DelIgmpChannel(deviceID, net.ParseIP(channel))
+                                                ig.DelIgmpChannel(cntx, deviceID, net.ParseIP(channel))
                                                 if ig.NumDevicesActive() == 0 {
-                                                        GetApplication().DelIgmpGroup(ig)
+                                                        GetApplication().DelIgmpGroup(cntx, ig)
                                                 }
                                         }
                                 }
                                 ig.IsGroupStatic = mvp.IsStaticGroup(ig.GroupName)
-                                if err := ig.WriteToDb(); err != nil {
+                                if err := ig.WriteToDb(cntx); err != nil {
                                         logger.Errorw(ctx, "Igmp group Write to DB failed", log.Fields{"groupName": ig.GroupName})
                                 }
                                 return true
                         }
                 }
                 logger.Debugw(ctx, "Group Removed", log.Fields{"Channel": ig.GroupAddr, "Group": grpName, "ChannelBasedGroup": ig.IsChannelBasedGroup})
-                ig.DelIgmpGroup()
+                ig.DelIgmpGroup(cntx)
                 logger.Debugw(ctx, "Removed Igmp Group", log.Fields{"Channel": ig.GroupAddr, "Group": grpName})
                 return true
         }
@@ -771,7 +772,7 @@ func (mvp *MvlanProfile) GetMvlanGroup(ip net.IP) string {
 }
 
 // ProcessStaticGroup - Process Static Join/Leave Req for static channels
-func (mvp *MvlanProfile) ProcessStaticGroup(device string, groupAddresses []net.IP, isJoin bool) {
+func (mvp *MvlanProfile) ProcessStaticGroup(cntx context.Context, device string, groupAddresses []net.IP, isJoin bool) {
 
         logger.Debugw(ctx, "Received Static Group Request", log.Fields{"Device": device, "Join": isJoin, "Group Address List": groupAddresses})
 
@@ -790,9 +791,9 @@ func (mvp *MvlanProfile) ProcessStaticGroup(device string, groupAddresses []net.
                         if ig == nil {
                                 // First time group Creation: Create the IGMP group and then add the receiver to the group
                                 logger.Infow(ctx, "Static IGMP Add received for new group", log.Fields{"Addr": groupAddr, "Port": StaticPort})
-                                if ig := GetApplication().AddIgmpGroup(mvp.Name, groupAddr, device); ig != nil {
+                                if ig := GetApplication().AddIgmpGroup(cntx, mvp.Name, groupAddr, device); ig != nil {
                                         ig.IgmpGroupLock.Lock()
-                                        ig.AddReceiver(device, StaticPort, groupAddr, nil, getVersion(ver),
+                                        ig.AddReceiver(cntx, device, StaticPort, groupAddr, nil, getVersion(ver),
                                                 0, 0, 0xFF)
                                         ig.IgmpGroupLock.Unlock()
                                 } else {
@@ -801,12 +802,12 @@ func (mvp *MvlanProfile) ProcessStaticGroup(device string, groupAddresses []net.
                         } else {
                                 //Converting existing dynamic group to static group
                                 if !mvp.IsStaticGroup(ig.GroupName) {
-                                        ig.updateGroupName(ig.GroupName)
+                                        ig.updateGroupName(cntx, ig.GroupName)
                                 }
                                 // Update case: If the IGMP group is already created. just add the receiver
                                 logger.Infow(ctx, "Static IGMP Add received for existing group", log.Fields{"Addr": groupAddr, "Port": StaticPort})
                                 ig.IgmpGroupLock.Lock()
-                                ig.AddReceiver(device, StaticPort, groupAddr, nil, getVersion(ver),
+                                ig.AddReceiver(cntx, device, StaticPort, groupAddr, nil, getVersion(ver),
                                         0, 0, 0xFF)
                                 ig.IgmpGroupLock.Unlock()
                         }
@@ -817,19 +818,19 @@ func (mvp *MvlanProfile) ProcessStaticGroup(device string, groupAddresses []net.
                                 grpName := mvp.GetMvlanGroup(ig.GroupAddr)
                                 if grpName != "" {
                                         ig.IgmpGroupLock.Lock()
-                                        ig.DelReceiver(device, StaticPort, groupAddr, nil, 0xFF)
+                                        ig.DelReceiver(cntx, device, StaticPort, groupAddr, nil, 0xFF)
                                         ig.IgmpGroupLock.Unlock()
-                                        ig.updateGroupName(grpName)
+                                        ig.updateGroupName(cntx, grpName)
                                 } else {
-                                        ig.DelIgmpGroup()
+                                        ig.DelIgmpGroup(cntx)
                                 }
                         } else {
                                 ig.IgmpGroupLock.Lock()
-                                ig.DelReceiver(device, StaticPort, groupAddr, nil, 0xFF)
+                                ig.DelReceiver(cntx, device, StaticPort, groupAddr, nil, 0xFF)
                                 ig.IgmpGroupLock.Unlock()
                         }
                         if ig.NumDevicesActive() == 0 {
-                                GetApplication().DelIgmpGroup(ig)
+                                GetApplication().DelIgmpGroup(cntx, ig)
                         }
                 } else {
                         logger.Warnw(ctx, "Static IGMP Del received for unknown group", log.Fields{"Addr": groupAddr})
@@ -894,7 +895,7 @@ func (mvp *MvlanProfile) getGroupChannelDiff(newGroup *MvlanGroup, oldGroup *Mvl
 }
 
 // UpdateProfile - Updates the group & member info w.r.t the mvlan profile for the given device
-func (mvp *MvlanProfile) UpdateProfile(deviceID string) {
+func (mvp *MvlanProfile) UpdateProfile(cntx context.Context, deviceID string) {
         logger.Infow(ctx, "Update Mvlan Profile task triggered", log.Fields{"Mvlan": mvp.Mvlan})
         var removedStaticChannels []net.IP
         addedStaticChannels := []net.IP{}
@@ -922,12 +923,12 @@ func (mvp *MvlanProfile) UpdateProfile(deviceID string) {
                 logger.Debugw(ctx, "Update Task - Static Group Changes", log.Fields{"Added": addedStaticChannels, "Removed": removedStaticChannels})
 
                 if len(addedStaticChannels) > 0 || len(removedStaticChannels) > 0 {
-                        mvp.updateStaticGroups(deviceID, []net.IP{}, removedStaticChannels)
+                        mvp.updateStaticGroups(cntx, deviceID, []net.IP{}, removedStaticChannels)
                 }
         }
-        mvp.GroupsUpdated(deviceID)
+        mvp.GroupsUpdated(cntx, deviceID)
         if len(addedStaticChannels) > 0 {
-                mvp.updateStaticGroups(deviceID, addedStaticChannels, []net.IP{})
+                mvp.updateStaticGroups(cntx, deviceID, addedStaticChannels, []net.IP{})
         }
 
         /* Need to handle if SSM params are modified for groups */
@@ -936,10 +937,10 @@ func (mvp *MvlanProfile) UpdateProfile(deviceID string) {
                 if mvp.checkStaticGrpSSMProxyDiff(mvp.oldProxy[key], mvp.Proxy[key]) {
                         if mvp.Groups[key].IsStatic {
                                 /* Static group proxy modified, need to trigger membership report with new mode/src-list for existing channels */
-                                mvp.updateStaticGroups(deviceID, commonChannels, []net.IP{})
+                                mvp.updateStaticGroups(cntx, deviceID, commonChannels, []net.IP{})
                         } else {
                                 /* Dynamic group proxy modified, need to trigger membership report with new mode/src-list for existing channels */
-                                mvp.updateDynamicGroups(deviceID, commonChannels, []net.IP{})
+                                mvp.updateDynamicGroups(cntx, deviceID, commonChannels, []net.IP{})
                         }
                 }
         }
@@ -949,7 +950,7 @@ func (mvp *MvlanProfile) UpdateProfile(deviceID string) {
         if deviceID == "" || !mvp.isUpdateInProgress() {
                 mvp.oldGroups = nil
         }
-        if err := mvp.WriteToDb(); err != nil {
+        if err := mvp.WriteToDb(cntx); err != nil {
                 logger.Errorw(ctx, "Mvlan profile write to DB failed", log.Fields{"ProfileName": mvp.Name})
         }
         logger.Debugw(ctx, "Updated MVLAN Profile", log.Fields{"VLAN": mvp.Mvlan, "Name": mvp.Name, "Grp IPs": mvp.Groups})
@@ -1055,7 +1056,7 @@ func (mvp *MvlanProfile) UpdateActiveChannelSubscriberAlarm() {
 }
 
 //TriggerAssociatedFlowDelete - Re-trigger delete for pending delete flows
-func (mvp *MvlanProfile) TriggerAssociatedFlowDelete(device string) bool {
+func (mvp *MvlanProfile) TriggerAssociatedFlowDelete(cntx context.Context, device string) bool {
         mvp.mvpFlowLock.Lock()
 
         cookieList := []uint64{}
@@ -1078,7 +1079,7 @@ func (mvp *MvlanProfile) TriggerAssociatedFlowDelete(device string) bool {
                         subFlow.Cookie = cookie
                         flow.SubFlows[cookie] = subFlow
                         logger.Infow(ctx, "Retriggering Vnet Delete Flow", log.Fields{"Device": device, "Mvlan": mvp.Mvlan.String(), "Cookie": cookie})
-                        err := mvp.DelFlows(vd, flow)
+                        err := mvp.DelFlows(cntx, vd, flow)
                         if err != nil {
                                 logger.Warnw(ctx, "De-Configuring IGMP Flow for device failed ", log.Fields{"Device": device, "err": err})
                         }
@@ -1216,13 +1217,13 @@ func newDefaultIgmpProfile() *IgmpProfile {
 }
 
 // WriteToDb is utility to write Igmp Config Info to database
-func (igmpProfile *IgmpProfile) WriteToDb() error {
+func (igmpProfile *IgmpProfile) WriteToDb(cntx context.Context) error {
         igmpProfile.Version = database.PresentVersionMap[database.IgmpProfPath]
         b, err := json.Marshal(igmpProfile)
         if err != nil {
                 return err
         }
-        if err1 := db.PutIgmpProfile(igmpProfile.ProfileID, string(b)); err1 != nil {
+        if err1 := db.PutIgmpProfile(cntx, igmpProfile.ProfileID, string(b)); err1 != nil {
                 return err1
         }
         return nil

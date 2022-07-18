@@ -72,7 +72,7 @@ func (tt *TickTask) Stop() {
 func (tt *TickTask) Start(ctx context.Context, taskID uint8) error {
 	tt.taskID = taskID
 	tt.ctx = ctx
-	GetApplication().IgmpTick()
+	GetApplication().IgmpTick(ctx)
 	return nil
 }
 
@@ -124,7 +124,7 @@ func (pt *IgmpPacketTask) Stop() {
 func (pt *IgmpPacketTask) Start(ctx context.Context, taskID uint8) error {
 	pt.taskID = taskID
 	pt.ctx = ctx
-	GetApplication().IgmpProcessPkt(pt.Device, pt.Port, pt.Pkt)
+	GetApplication().IgmpProcessPkt(ctx, pt.Device, pt.Port, pt.Pkt)
 	return nil
 }
 
@@ -170,6 +170,6 @@ func (mt *UpdateMvlanTask) Start(ctx context.Context, taskID uint8) error {
 	mt.taskID = taskID
 	mt.ctx = ctx
 	mvp := mt.mvp
-	mvp.UpdateProfile(mt.DeviceID)
+	mvp.UpdateProfile(ctx, mt.DeviceID)
 	return nil
 }

@@ -17,6 +17,7 @@ package application
 
 import (
 	"encoding/hex"
+	"context"
 	"errors"
 	"net"
 	"sync"
@@ -93,9 +94,9 @@ type IDhcpRelaySession interface {
 	GetDhcpv6State() Dhcpv6RelayState
 	SetDhcpState(DhcpRelayState)
 	SetDhcpv6State(Dhcpv6RelayState)
-	SetMacAddr(net.HardwareAddr)
-	DhcpResultInd(*layers.DHCPv4)
-	Dhcpv6ResultInd(ipv6Addr net.IP, leaseTime uint32)
+	SetMacAddr(context.Context, net.HardwareAddr)
+	DhcpResultInd(context.Context, *layers.DHCPv4)
+	Dhcpv6ResultInd(cntx context.Context, ipv6Addr net.IP, leaseTime uint32)
 }
 
 // DhcpRelayVnet : The DHCP relay sessions are stored in a map to be retrieved from when
@@ -547,7 +548,7 @@ func GetIAPDAddress(dhcp6 *layers.DHCPv6) (net.IP, uint32) {
 // session is derived from the list of DHCP sessions stored in the
 // common map. The key for retrieval includes the VLAN tags in the
 // the packet and the MAC address of the client.
-func (va *VoltApplication) ProcessDsDhcpv4Packet(device string, port string, pkt gopacket.Packet) {
+func (va *VoltApplication) ProcessDsDhcpv4Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 
 	// Retrieve the layers to build the outgoing packet. It is not
 	// possible to add/remove layers to the existing packet and thus
@@ -600,9 +601,9 @@ func (va *VoltApplication) ProcessDsDhcpv4Packet(device string, port string, pkt
 					// flow installation request, VGC to update US HSIA flow with leanrt MAC.
 					// separate go rotuine is spawned to avoid drop of ACK packet
 					// as HSIA flows will be deleted if new MAC is learnt.
-					go vpv.SetMacAddr(dhcp4.ClientHWAddr)
+					go vpv.SetMacAddr(cntx, dhcp4.ClientHWAddr)
 				}
-				vpv.DhcpResultInd(dhcp4)
+				vpv.DhcpResultInd(cntx, dhcp4)
 
 			}
 			raiseDHCPv4Indication(msgType, vpv, dhcp4.ClientHWAddr, ipAddr, dsPbit, device, leaseTime)
@@ -761,7 +762,7 @@ func raiseDHCPv6Indication(msgType layers.DHCPv6MsgType, vpv *VoltPortVnet,
 
 // ProcessUsDhcpv4Packet : The US DHCPv4 packet is identified the DHCP OP in the packet. A request is considered upstream
 // and the service associated with the packet is located by the port and VLANs in the packet
-func (va *VoltApplication) ProcessUsDhcpv4Packet(device string, port string, pkt gopacket.Packet) {
+func (va *VoltApplication) ProcessUsDhcpv4Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	// We received the packet on an access port and the service for the packet can be
 	// gotten from the port and the packet
 	vpv, svc := va.GetVnetFromPkt(device, port, pkt)
@@ -819,7 +820,7 @@ func (va *VoltApplication) ProcessUsDhcpv4Packet(device string, port string, pkt
 				if NonZeroMacAddress(vpv.MacAddr) && vpv.MacLearning == Learn {
 					// update learnt mac for debug purpose
 					vpv.LearntMacAddr = dhcp4.ClientHWAddr
-					vpv.WriteToDb()
+					vpv.WriteToDb(cntx)
 					logger.Warnw(ctx, "Dropping the packet Mac relearn is disabled",
 						log.Fields{"vpv.MacAddr": vpv.MacAddr, "LearntMac": dhcp4.ClientHWAddr})
 					return
@@ -923,13 +924,13 @@ func (va *VoltApplication) ProcessUsDhcpv4Packet(device string, port string, pkt
 }
 
 // ProcessUDP4Packet : CallBack function registered with application to handle DHCP packetIn
-func ProcessUDP4Packet(device string, port string, pkt gopacket.Packet) {
-	GetApplication().ProcessUDP4Packet(device, port, pkt)
+func ProcessUDP4Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) {
+	GetApplication().ProcessUDP4Packet(cntx, device, port, pkt)
 }
 
 // ProcessUDP4Packet : The packet is a UDP packet and currently only DHCP relay application is supported
 // We determine the packet direction and process it based on the direction
-func (va *VoltApplication) ProcessUDP4Packet(device string, port string, pkt gopacket.Packet) {
+func (va *VoltApplication) ProcessUDP4Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	// Currently DHCP is the only application supported by the application
 	// We check for DHCP before proceeding futher. In future, this could be
 	// based on registration and the callbacks
@@ -943,17 +944,17 @@ func (va *VoltApplication) ProcessUDP4Packet(device string, port string, pkt gop
 		// This is treated as an upstream packet in the VOLT application
 		// as VOLT serves access subscribers who use DHCP to acquire IP
 		// address and these packets go upstream to the network
-		va.ProcessUsDhcpv4Packet(device, port, pkt)
+		va.ProcessUsDhcpv4Packet(cntx, device, port, pkt)
 	} else {
 		// This is a downstream packet
-		va.ProcessDsDhcpv4Packet(device, port, pkt)
+		va.ProcessDsDhcpv4Packet(cntx, device, port, pkt)
 	}
 
 }
 
 // ProcessUDP6Packet : CallBack function registered with application to handle DHCPv6 packetIn
-func ProcessUDP6Packet(device string, port string, pkt gopacket.Packet) {
-	GetApplication().ProcessUDP6Packet(device, port, pkt)
+func ProcessUDP6Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) {
+	GetApplication().ProcessUDP6Packet(cntx, device, port, pkt)
 }
 
 // ProcessUDP6Packet : As a LDRA node, we expect to see only RelayReply from the DHCP server and we always
@@ -962,7 +963,7 @@ func ProcessUDP6Packet(device string, port string, pkt gopacket.Packet) {
 // we should also see Renew. However, we should always pack the US message by adding
 // additional option that identifies to the server that the DHCP packet is forwarded
 // by an LDRA node.
-func (va *VoltApplication) ProcessUDP6Packet(device string, port string, pkt gopacket.Packet) []byte {
+func (va *VoltApplication) ProcessUDP6Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) []byte {
 	dhcpl := pkt.Layer(layers.LayerTypeDHCPv6)
 	if dhcpl == nil {
 		return nil
@@ -973,14 +974,14 @@ func (va *VoltApplication) ProcessUDP6Packet(device string, port string, pkt gop
 	case layers.DHCPv6MsgTypeSolicit, layers.DHCPv6MsgTypeRequest, layers.DHCPv6MsgTypeRenew,
 		layers.DHCPv6MsgTypeRelease, layers.DHCPv6MsgTypeRebind, layers.DHCPv6MsgTypeInformationRequest,
 		layers.DHCPv6MsgTypeDecline:
-		va.ProcessUsDhcpv6Packet(device, port, pkt)
+		va.ProcessUsDhcpv6Packet(cntx, device, port, pkt)
 	case layers.DHCPv6MsgTypeAdvertise, layers.DHCPv6MsgTypeConfirm, layers.DHCPv6MsgTypeReconfigure:
 		logger.Warnw(ctx, "SouthBound DHCPv6 DS Messages Expected For a Relay Agent", log.Fields{"Type": dhcpv6.MsgType})
 	case layers.DHCPv6MsgTypeRelayForward:
 		logger.Warn(ctx, "As the first DHCPv6 Relay Agent, Unexpected Relay Forward")
 	case layers.DHCPv6MsgTypeRelayReply:
 		// We received a response from the server
-		va.ProcessDsDhcpv6Packet(device, port, pkt)
+		va.ProcessDsDhcpv6Packet(cntx, device, port, pkt)
 	}
 	return nil
 }
@@ -1017,7 +1018,7 @@ func BuildRelayFwd(paddr net.IP, intfID []byte, remoteID []byte, payload []byte,
 }
 
 // ProcessUsDhcpv6Packet to rpocess upstream DHCPv6 packet
-func (va *VoltApplication) ProcessUsDhcpv6Packet(device string, port string, pkt gopacket.Packet) {
+func (va *VoltApplication) ProcessUsDhcpv6Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	// We received the packet on an access port and the service for the packet can be
 	// gotten from the port and the packet
 	logger.Infow(ctx, "Processing Southbound US DHCPv6 packet", log.Fields{"Port": port})
@@ -1092,7 +1093,7 @@ func (va *VoltApplication) ProcessUsDhcpv6Packet(device string, port string, pkt
 				if NonZeroMacAddress(vpv.MacAddr) && vpv.MacLearning == Learn {
 					// update learnt mac for debug purpose
 					vpv.LearntMacAddr = sourceMac
-					vpv.WriteToDb()
+					vpv.WriteToDb(cntx)
 					logger.Warnw(ctx, "Dropping the packet Mac relearn is disabled",
 						log.Fields{"vpv.MacAddr": vpv.MacAddr, "LearntMac": sourceMac})
 					return
@@ -1191,7 +1192,7 @@ func GetDhcpv6(payload []byte) (*layers.DHCPv6, error) {
 }
 
 // ProcessDsDhcpv6Packet to process downstream dhcpv6 packet
-func (va *VoltApplication) ProcessDsDhcpv6Packet(device string, port string, pkt gopacket.Packet) {
+func (va *VoltApplication) ProcessDsDhcpv6Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	logger.Infow(ctx, "Processing Southbound DS DHCPv6 packet", log.Fields{"Port": port})
 	logger.Debugw(ctx, "Packet IN", log.Fields{"Pkt": hex.EncodeToString(pkt.Data())})
 
@@ -1249,9 +1250,9 @@ func (va *VoltApplication) ProcessDsDhcpv6Packet(device string, port string, pkt
 				// separate go rotuine is spawned to avoid drop of ACK packet
 				// as HSIA flows will be deleted if new MAC is learnt.
 				if len(vpvList) == 1 {
-					go vpv.SetMacAddr(clientMac)
+					go vpv.SetMacAddr(cntx, clientMac)
 				}
-				vpv.Dhcpv6ResultInd(ipv6Addr, leaseTime)
+				vpv.Dhcpv6ResultInd(cntx, ipv6Addr, leaseTime)
 			}
 			raiseDHCPv6Indication(dhcp6.MsgType, vpv, clientMac, ipv6Addr, dsPbit, device, leaseTime)
 		}

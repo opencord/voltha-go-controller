@@ -17,6 +17,7 @@ package nbi
 
 import (
         "bytes"
+	"context"
         "encoding/json"
         "net/http"
 	"strings"
@@ -56,16 +57,16 @@ func (iph *IgmpProxyHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
         switch r.Method {
         case "POST":
-                iph.AddIgmpProxyInfo(w, r)
+                iph.AddIgmpProxyInfo(context.Background(), w, r)
         case "DELETE":
-                iph.DelIgmpProxyInfo(w, r)
+                iph.DelIgmpProxyInfo(context.Background(), w, r)
         default:
                 logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
         }
 }
 
 // AddIgmpProxyInfo to add igmp proxy info
-func (iph *IgmpProxyHandle) AddIgmpProxyInfo(w http.ResponseWriter, r *http.Request) {
+func (iph *IgmpProxyHandle) AddIgmpProxyInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 
         // Get the payload to process the request
         d := new(bytes.Buffer)
@@ -88,15 +89,15 @@ func (iph *IgmpProxyHandle) AddIgmpProxyInfo(w http.ResponseWriter, r *http.Requ
         }
         logger.Debugw(ctx, "Received-northbound-add-service-request", log.Fields{"req": req})
 
-        go iph.addIgmpProxy(w, req)
+        go iph.addIgmpProxy(cntx, w, req)
 }
 
 // DelIgmpProxyInfo to delete igmp proxy info
-func (iph *IgmpProxyHandle) DelIgmpProxyInfo(w http.ResponseWriter, r *http.Request) {
+func (iph *IgmpProxyHandle) DelIgmpProxyInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (iph *IgmpProxyHandle) addIgmpProxy(w http.ResponseWriter, req *IgmpProxy) {
+func (iph *IgmpProxyHandle) addIgmpProxy(cntx context.Context, w http.ResponseWriter, req *IgmpProxy) {
 	var config McastConfig
 
 	config.OltSerialNum = req.SourceDeviceAndPort
@@ -109,7 +110,7 @@ func (iph *IgmpProxyHandle) addIgmpProxy(w http.ResponseWriter, req *IgmpProxy) 
 
 	logger.Errorw(ctx, "IgmpProxy", log.Fields{"config":config})
 
-        if err := app.GetApplication().AddMcastConfig(config.MvlanProfileID, config.IgmpProfileID,
+        if err := app.GetApplication().AddMcastConfig(cntx, config.MvlanProfileID, config.IgmpProfileID,
                 config.IgmpProxyIP, config.OltSerialNum); err != nil {
                 logger.Errorw(ctx, "northbound-add-mcast-config-failed", log.Fields{"config": config, "Error": err})
                 http.Error(w, err.Error(), http.StatusConflict)

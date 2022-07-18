@@ -84,7 +84,7 @@ var db database.DBIntf
 var PacketHandlers map[string]CallBack
 
 // CallBack : registered call back function for different protocol packets
-type CallBack func(device string, port string, pkt gopacket.Packet)
+type CallBack func(cntx context.Context, device string, port string, pkt gopacket.Packet)
 
 const (
 	// ARP packet
@@ -338,7 +338,7 @@ func (d *VoltDevice) DelPort(port string) {
 }
 
 // pushFlowsForUnis to send port-up-indication for uni ports.
-func (d *VoltDevice) pushFlowsForUnis() {
+func (d *VoltDevice) pushFlowsForUnis(cntx context.Context) {
 
 	logger.Info(ctx, "NNI Discovered, Sending Port UP Ind for UNIs")
 	d.Ports.Range(func(key, value interface{}) bool {
@@ -359,7 +359,7 @@ func (d *VoltDevice) pushFlowsForUnis() {
 
 		for _, vpv := range vnets.([]*VoltPortVnet) {
 			vpv.VpvLock.Lock()
-			vpv.PortUpInd(d, port)
+			vpv.PortUpInd(cntx, d, port)
 			vpv.VpvLock.Unlock()
 
 		}
@@ -447,12 +447,12 @@ type NbDevice struct {
 }
 
 // RestoreNbDeviceFromDb restores the NB Device in case of VGC pod restart.
-func (va *VoltApplication) RestoreNbDeviceFromDb(deviceID string) *NbDevice {
+func (va *VoltApplication) RestoreNbDeviceFromDb(cntx context.Context, deviceID string) *NbDevice {
 
 	nbDevice := NewNbDevice()
 	nbDevice.SouthBoundID = deviceID
 
-	nbPorts, _ := db.GetAllNbPorts(deviceID)
+	nbPorts, _ := db.GetAllNbPorts(cntx, deviceID)
 
 	for key, p := range nbPorts {
 		b, ok := p.Value.([]byte)
@@ -481,17 +481,17 @@ func NewNbDevice() *NbDevice {
 }
 
 // WriteToDb writes nb device port config to kv store
-func (nbd *NbDevice) WriteToDb(portID uint32, ponPort *PonPortCfg) {
+func (nbd *NbDevice) WriteToDb(cntx context.Context, portID uint32, ponPort *PonPortCfg) {
 	b, err := json.Marshal(ponPort)
 	if err != nil {
 		logger.Errorw(ctx, "PonPortConfig-marshal-failed", log.Fields{"err": err})
 		return
 	}
-	db.PutNbDevicePort(nbd.SouthBoundID, portID, string(b))
+	db.PutNbDevicePort(cntx, nbd.SouthBoundID, portID, string(b))
 }
 
 // AddPortToNbDevice Adds pon port to NB Device and DB
-func (nbd *NbDevice) AddPortToNbDevice(portID, allowedChannels uint32,
+func (nbd *NbDevice) AddPortToNbDevice(cntx context.Context, portID, allowedChannels uint32,
 	enableMulticastKPI bool, portAlarmProfileID string) *PonPortCfg {
 
 	ponPort := &PonPortCfg{
@@ -501,12 +501,12 @@ func (nbd *NbDevice) AddPortToNbDevice(portID, allowedChannels uint32,
 		PortAlarmProfileID: portAlarmProfileID,
 	}
 	nbd.PonPorts.Store(portID, ponPort)
-	nbd.WriteToDb(portID, ponPort)
+	nbd.WriteToDb(cntx, portID, ponPort)
 	return ponPort
 }
 
 // UpdatePortToNbDevice Adds pon port to NB Device and DB
-func (nbd *NbDevice) UpdatePortToNbDevice(portID, allowedChannels uint32, enableMulticastKPI bool, portAlarmProfileID string) *PonPortCfg {
+func (nbd *NbDevice) UpdatePortToNbDevice(cntx context.Context, portID, allowedChannels uint32, enableMulticastKPI bool, portAlarmProfileID string) *PonPortCfg {
 
 	p, exists := nbd.PonPorts.Load(portID)
 	if !exists {
@@ -521,17 +521,17 @@ func (nbd *NbDevice) UpdatePortToNbDevice(portID, allowedChannels uint32, enable
 	}
 
 	nbd.PonPorts.Store(portID, port)
-	nbd.WriteToDb(portID, port)
+	nbd.WriteToDb(cntx, portID, port)
 	return port
 }
 
 // DeletePortFromNbDevice Deletes pon port from NB Device and DB
-func (nbd *NbDevice) DeletePortFromNbDevice(portID uint32) {
+func (nbd *NbDevice) DeletePortFromNbDevice(cntx context.Context, portID uint32) {
 
 	if _, ok := nbd.PonPorts.Load(portID); ok {
 		nbd.PonPorts.Delete(portID)
 	}
-	db.DelNbDevicePort(nbd.SouthBoundID, portID)
+	db.DelNbDevicePort(cntx, nbd.SouthBoundID, portID)
 }
 
 // GetApplication : Interface to access the singleton object
@@ -559,8 +559,8 @@ func newVoltApplication() *VoltApplication {
 	va.VnetsToDelete = make(map[string]bool)
 	va.ServicesToDelete = make(map[string]bool)
 	va.VoltPortVnetsToDelete = make(map[*VoltPortVnet]bool)
-	go va.Start(TimerCfg{tick: 100 * time.Millisecond}, tickTimer)
-	go va.Start(TimerCfg{tick: time.Duration(GroupExpiryTime) * time.Minute}, pendingPoolTimer)
+	go va.Start(context.Background(), TimerCfg{tick: 100 * time.Millisecond}, tickTimer)
+	go va.Start(context.Background(), TimerCfg{tick: time.Duration(GroupExpiryTime) * time.Minute}, pendingPoolTimer)
 	InitEventFuncMapper()
 	db = database.GetDatabase()
 	return &va
@@ -647,9 +647,9 @@ func (va *VoltApplication) PutIgmpGroupID(ig *IgmpGroup) {
 }
 
 //RestoreUpgradeStatus - gets upgrade/migration status from DB and updates local flags
-func (va *VoltApplication) RestoreUpgradeStatus() {
+func (va *VoltApplication) RestoreUpgradeStatus(cntx context.Context) {
 	Migrate := new(DataMigration)
-	if err := GetMigrationInfo(Migrate); err == nil {
+	if err := GetMigrationInfo(cntx, Migrate); err == nil {
 		if Migrate.Status == MigrationInProgress {
 			isUpgradeComplete = false
 			return
@@ -662,25 +662,25 @@ func (va *VoltApplication) RestoreUpgradeStatus() {
 
 // ReadAllFromDb : If we are restarted, learn from the database the current execution
 // stage
-func (va *VoltApplication) ReadAllFromDb() {
+func (va *VoltApplication) ReadAllFromDb(cntx context.Context) {
 	logger.Info(ctx, "Reading the meters from DB")
-	va.RestoreMetersFromDb()
+	va.RestoreMetersFromDb(cntx)
 	logger.Info(ctx, "Reading the VNETs from DB")
-	va.RestoreVnetsFromDb()
+	va.RestoreVnetsFromDb(cntx)
 	logger.Info(ctx, "Reading the VPVs from DB")
-	va.RestoreVpvsFromDb()
+	va.RestoreVpvsFromDb(cntx)
 	logger.Info(ctx, "Reading the Services from DB")
-	va.RestoreSvcsFromDb()
+	va.RestoreSvcsFromDb(cntx)
 	logger.Info(ctx, "Reading the MVLANs from DB")
-	va.RestoreMvlansFromDb()
+	va.RestoreMvlansFromDb(cntx)
 	logger.Info(ctx, "Reading the IGMP profiles from DB")
-	va.RestoreIGMPProfilesFromDb()
+	va.RestoreIGMPProfilesFromDb(cntx)
 	logger.Info(ctx, "Reading the Mcast configs from DB")
-	va.RestoreMcastConfigsFromDb()
+	va.RestoreMcastConfigsFromDb(cntx)
 	logger.Info(ctx, "Reading the IGMP groups for DB")
-	va.RestoreIgmpGroupsFromDb()
+	va.RestoreIgmpGroupsFromDb(cntx)
 	logger.Info(ctx, "Reading Upgrade status from DB")
-	va.RestoreUpgradeStatus()
+	va.RestoreUpgradeStatus(cntx)
 	logger.Info(ctx, "Reconciled from DB")
 }
 
@@ -723,7 +723,7 @@ func (va *VoltApplication) SetUpgradeFlag(flag bool) {
 // a single NNI port per OLT. This is true whether the network uses any
 // protection mechanism (LAG, ERPS, etc.). The aggregate of the such protection
 // is represented by a single NNI port
-func (va *VoltApplication) AddDevice(device string, slno, southBoundID string) {
+func (va *VoltApplication) AddDevice(cntx context.Context, device string, slno, southBoundID string) {
 	logger.Warnw(ctx, "Received Device Ind: Add", log.Fields{"Device": device, "SrNo": slno})
 	if _, ok := va.DevicesDisc.Load(device); ok {
 		logger.Warnw(ctx, "Device Exists", log.Fields{"Device": device})
@@ -742,7 +742,7 @@ func (va *VoltApplication) AddDevice(device string, slno, southBoundID string) {
 		nbDevice.(*NbDevice).PonPorts.Range(addPort)
 	} else {
 		// Check if NbPort exists in DB. VGC restart case.
-		nbd := va.RestoreNbDeviceFromDb(southBoundID)
+		nbd := va.RestoreNbDeviceFromDb(cntx, southBoundID)
 		nbd.PonPorts.Range(addPort)
 	}
 	va.DevicesDisc.Store(device, d)
@@ -757,16 +757,16 @@ func (va *VoltApplication) GetDevice(device string) *VoltDevice {
 }
 
 // DelDevice to delete a device.
-func (va *VoltApplication) DelDevice(device string) {
+func (va *VoltApplication) DelDevice(cntx context.Context, device string) {
 	logger.Warnw(ctx, "Received Device Ind: Delete", log.Fields{"Device": device})
 	if vdIntf, ok := va.DevicesDisc.Load(device); ok {
 		vd := vdIntf.(*VoltDevice)
 		va.DevicesDisc.Delete(device)
-		_ = db.DelAllRoutesForDevice(device)
-		va.HandleFlowClearFlag(device, vd.SerialNum, vd.SouthBoundID)
-		_ = db.DelAllGroup(device)
-		_ = db.DelAllMeter(device)
-		_ = db.DelAllPorts(device)
+		_ = db.DelAllRoutesForDevice(cntx, device)
+		va.HandleFlowClearFlag(cntx, device, vd.SerialNum, vd.SouthBoundID)
+		_ = db.DelAllGroup(cntx, device)
+		_ = db.DelAllMeter(cntx, device)
+		_ = db.DelAllPorts(cntx, device)
 		logger.Debugw(ctx, "Device deleted", log.Fields{"Device": device})
 	} else {
 		logger.Warnw(ctx, "Device Doesn't Exist", log.Fields{"Device": device})
@@ -788,7 +788,7 @@ func (va *VoltApplication) GetDeviceBySerialNo(slno string) *VoltDevice {
 // PortAddInd : This is a PORT add indication coming from the VPAgent, which is essentially
 // a request coming from VOLTHA. The device and identity of the port is provided
 // in this request. Add them to the application for further use
-func (va *VoltApplication) PortAddInd(device string, id uint32, portName string) {
+func (va *VoltApplication) PortAddInd(cntx context.Context, device string, id uint32, portName string) {
 	logger.Infow(ctx, "Received Port Ind: Add", log.Fields{"Device": device, "Port": portName})
 	va.portLock.Lock()
 	if d := va.GetDevice(device); d != nil {
@@ -797,7 +797,7 @@ func (va *VoltApplication) PortAddInd(device string, id uint32, portName string)
 		va.portLock.Unlock()
 		nni, _ := va.GetNniPort(device)
 		if nni == portName {
-			d.pushFlowsForUnis()
+			d.pushFlowsForUnis(cntx)
 		}
 	} else {
 		va.portLock.Unlock()
@@ -807,13 +807,13 @@ func (va *VoltApplication) PortAddInd(device string, id uint32, portName string)
 
 // PortDelInd : Only the NNI ports are recorded in the device for now. When port delete
 // arrives, only the NNI ports need adjustments.
-func (va *VoltApplication) PortDelInd(device string, port string) {
+func (va *VoltApplication) PortDelInd(cntx context.Context, device string, port string) {
 	logger.Infow(ctx, "Received Port Ind: Delete", log.Fields{"Device": device, "Port": port})
 	if d := va.GetDevice(device); d != nil {
 		p := d.GetPort(port)
 		if p != nil && p.State == PortStateUp {
 			logger.Infow(ctx, "Port state is UP. Trigerring Port Down Ind before deleting", log.Fields{"Port": p})
-			va.PortDownInd(device, port)
+			va.PortDownInd(cntx, device, port)
 		}
 		va.portLock.Lock()
 		defer va.portLock.Unlock()
@@ -840,7 +840,7 @@ func (va *VoltApplication) PortUpdateInd(device string, portName string, id uint
 }
 
 // AddNbPonPort Add pon port to nbDevice
-func (va *VoltApplication) AddNbPonPort(oltSbID string, portID, maxAllowedChannels uint32,
+func (va *VoltApplication) AddNbPonPort(cntx context.Context, oltSbID string, portID, maxAllowedChannels uint32,
 	enableMulticastKPI bool, portAlarmProfileID string) error {
 
 	var nbd *NbDevice
@@ -852,7 +852,7 @@ func (va *VoltApplication) AddNbPonPort(oltSbID string, portID, maxAllowedChanne
 	} else {
 		nbd = nbDevice.(*NbDevice)
 	}
-	port := nbd.AddPortToNbDevice(portID, maxAllowedChannels, enableMulticastKPI, portAlarmProfileID)
+	port := nbd.AddPortToNbDevice(cntx, portID, maxAllowedChannels, enableMulticastKPI, portAlarmProfileID)
 
 	// Add this port to voltDevice
 	addPort := func(key, value interface{}) bool {
@@ -872,7 +872,7 @@ func (va *VoltApplication) AddNbPonPort(oltSbID string, portID, maxAllowedChanne
 }
 
 // UpdateNbPonPort update pon port to nbDevice
-func (va *VoltApplication) UpdateNbPonPort(oltSbID string, portID, maxAllowedChannels uint32, enableMulticastKPI bool, portAlarmProfileID string) error {
+func (va *VoltApplication) UpdateNbPonPort(cntx context.Context, oltSbID string, portID, maxAllowedChannels uint32, enableMulticastKPI bool, portAlarmProfileID string) error {
 
 	var nbd *NbDevice
 	nbDevice, ok := va.NbDevice.Load(oltSbID)
@@ -883,7 +883,7 @@ func (va *VoltApplication) UpdateNbPonPort(oltSbID string, portID, maxAllowedCha
 	}
 	nbd = nbDevice.(*NbDevice)
 
-	port := nbd.UpdatePortToNbDevice(portID, maxAllowedChannels, enableMulticastKPI, portAlarmProfileID)
+	port := nbd.UpdatePortToNbDevice(cntx, portID, maxAllowedChannels, enableMulticastKPI, portAlarmProfileID)
 	if port == nil {
 		return fmt.Errorf("Port-doesn't-exists-%v", portID)
 	}
@@ -913,10 +913,10 @@ func (va *VoltApplication) UpdateNbPonPort(oltSbID string, portID, maxAllowedCha
 }
 
 // DeleteNbPonPort Delete pon port to nbDevice
-func (va *VoltApplication) DeleteNbPonPort(oltSbID string, portID uint32) error {
+func (va *VoltApplication) DeleteNbPonPort(cntx context.Context, oltSbID string, portID uint32) error {
 	nbDevice, ok := va.NbDevice.Load(oltSbID)
 	if ok {
-		nbDevice.(*NbDevice).DeletePortFromNbDevice(portID)
+		nbDevice.(*NbDevice).DeletePortFromNbDevice(cntx, portID)
 		va.NbDevice.Store(oltSbID, nbDevice.(*NbDevice))
 	} else {
 		logger.Warnw(ctx, "Delete pon received for unknown device", log.Fields{"oltSbID": oltSbID})
@@ -954,19 +954,19 @@ func (va *VoltApplication) GetNniPort(device string) (string, error) {
 }
 
 // NniDownInd process for Nni down indication.
-func (va *VoltApplication) NniDownInd(deviceID string, devSrNo string) {
+func (va *VoltApplication) NniDownInd(cntx context.Context, deviceID string, devSrNo string) {
 
 	logger.Debugw(ctx, "NNI Down Ind", log.Fields{"device": devSrNo})
 
 	handleIgmpDsFlows := func(key interface{}, value interface{}) bool {
 		mvProfile := value.(*MvlanProfile)
-		mvProfile.removeIgmpMcastFlows(devSrNo)
+		mvProfile.removeIgmpMcastFlows(cntx, devSrNo)
 		return true
 	}
 	va.MvlanProfilesByName.Range(handleIgmpDsFlows)
 
 	//Clear Static Group
-	va.ReceiverDownInd(deviceID, StaticPort)
+	va.ReceiverDownInd(cntx, deviceID, StaticPort)
 }
 
 // DeviceUpInd changes device state to up.
@@ -990,7 +990,7 @@ func (va *VoltApplication) DeviceDownInd(device string) {
 }
 
 // DeviceRebootInd process for handling flow clear flag for device reboot
-func (va *VoltApplication) DeviceRebootInd(device string, serialNum string, southBoundID string) {
+func (va *VoltApplication) DeviceRebootInd(cntx context.Context, device string, serialNum string, southBoundID string) {
 	logger.Warnw(ctx, "Received Device Ind: Reboot", log.Fields{"Device": device, "SerialNumber": serialNum})
 
 	if d := va.GetDevice(device); d != nil {
@@ -1000,12 +1000,12 @@ func (va *VoltApplication) DeviceRebootInd(device string, serialNum string, sout
 		}
 		d.State = controller.DeviceStateREBOOTED
 	}
-	va.HandleFlowClearFlag(device, serialNum, southBoundID)
+	va.HandleFlowClearFlag(cntx, device, serialNum, southBoundID)
 
 }
 
 // DeviceDisableInd handles device deactivation process
-func (va *VoltApplication) DeviceDisableInd(device string) {
+func (va *VoltApplication) DeviceDisableInd(cntx context.Context, device string) {
 	logger.Warnw(ctx, "Received Device Ind: Disable", log.Fields{"Device": device})
 
 	d := va.GetDevice(device)
@@ -1015,11 +1015,11 @@ func (va *VoltApplication) DeviceDisableInd(device string) {
 	}
 
 	d.State = controller.DeviceStateDISABLED
-	va.HandleFlowClearFlag(device, d.SerialNum, d.SouthBoundID)
+	va.HandleFlowClearFlag(cntx, device, d.SerialNum, d.SouthBoundID)
 }
 
 // ProcessIgmpDSFlowForMvlan for processing Igmp DS flow for device
-func (va *VoltApplication) ProcessIgmpDSFlowForMvlan(d *VoltDevice, mvp *MvlanProfile, addFlow bool) {
+func (va *VoltApplication) ProcessIgmpDSFlowForMvlan(cntx context.Context, d *VoltDevice, mvp *MvlanProfile, addFlow bool) {
 
 	logger.Debugw(ctx, "Process IGMP DS Flows for MVlan", log.Fields{"device": d.Name, "Mvlan": mvp.Mvlan, "addFlow": addFlow})
 	portState := false
@@ -1030,20 +1030,20 @@ func (va *VoltApplication) ProcessIgmpDSFlowForMvlan(d *VoltDevice, mvp *MvlanPr
 
 	if addFlow {
 		if portState {
-			mvp.pushIgmpMcastFlows(d.SerialNum)
+			mvp.pushIgmpMcastFlows(cntx, d.SerialNum)
 		}
 	} else {
-		mvp.removeIgmpMcastFlows(d.SerialNum)
+		mvp.removeIgmpMcastFlows(cntx, d.SerialNum)
 	}
 }
 
 // ProcessIgmpDSFlowForDevice for processing Igmp DS flow for device
-func (va *VoltApplication) ProcessIgmpDSFlowForDevice(d *VoltDevice, addFlow bool) {
+func (va *VoltApplication) ProcessIgmpDSFlowForDevice(cntx context.Context, d *VoltDevice, addFlow bool) {
 	logger.Debugw(ctx, "Process IGMP DS Flows for device", log.Fields{"device": d.Name, "addFlow": addFlow})
 
 	handleIgmpDsFlows := func(key interface{}, value interface{}) bool {
 		mvProfile := value.(*MvlanProfile)
-		va.ProcessIgmpDSFlowForMvlan(d, mvProfile, addFlow)
+		va.ProcessIgmpDSFlowForMvlan(cntx, d, mvProfile, addFlow)
 		return true
 	}
 	va.MvlanProfilesByName.Range(handleIgmpDsFlows)
@@ -1166,13 +1166,13 @@ func (va *VoltApplication) DelIcmpv6Receivers(device string, portID uint32) []ui
 // device - Device Obj
 // vnet - vnet profile name
 // enabled - vlan enabled/disabled - based on the status, the flow shall be added/removed
-func (va *VoltApplication) ProcessDevFlowForDevice(device *VoltDevice, vnet *VoltVnet, enabled bool) {
+func (va *VoltApplication) ProcessDevFlowForDevice(cntx context.Context, device *VoltDevice, vnet *VoltVnet, enabled bool) {
 	_, applied := device.ConfiguredVlanForDeviceFlows.Get(VnetKey(vnet.SVlan, vnet.CVlan, 0))
 	if enabled {
-		va.PushDevFlowForVlan(vnet)
+		va.PushDevFlowForVlan(cntx, vnet)
 	} else if !enabled && applied {
 		//va.DeleteDevFlowForVlan(vnet)
-		va.DeleteDevFlowForVlanFromDevice(vnet, device.SerialNum)
+		va.DeleteDevFlowForVlanFromDevice(cntx, vnet, device.SerialNum)
 	}
 }
 
@@ -1212,7 +1212,7 @@ func (va *VoltApplication) NniVlanIndToIgmp(device *VoltDevice, mvp *MvlanProfil
 // Port UP indication is passed to all services associated with the port
 // so that the services can configure flows applicable when the port goes
 // up from down state
-func (va *VoltApplication) PortUpInd(device string, port string) {
+func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port string) {
 	d := va.GetDevice(device)
 
 	if d == nil {
@@ -1264,9 +1264,9 @@ func (va *VoltApplication) PortUpInd(device string, port string) {
 		for _, vpv := range vpvs.([]*VoltPortVnet) {
 			vpv.VpvLock.Lock()
 			logger.Warnw(ctx, "Removing existing VPVs/Services flows for for Subscriber: UNI Detected on wrong PON", log.Fields{"Port": vpv.Port, "Vnet": vpv.VnetName})
-			vpv.PortDownInd(device, port)
+			vpv.PortDownInd(cntx, device, port)
 			if vpv.IgmpEnabled {
-				va.ReceiverDownInd(device, port)
+				va.ReceiverDownInd(cntx, device, port)
 			}
 			vpv.VpvLock.Unlock()
 		}
@@ -1288,7 +1288,7 @@ func (va *VoltApplication) PortUpInd(device string, port string) {
 		// part of service delete (during the lock wait duration)
 		// In that case, the services associated wil be zero
 		if vpv.servicesCount.Load() != 0 {
-			vpv.PortUpInd(d, port)
+			vpv.PortUpInd(cntx, d, port)
 		}
 		vpv.VpvLock.Unlock()
 	}
@@ -1342,7 +1342,7 @@ func ReceiverUpInd(key, value interface{}) bool {
 
 // PortDownInd : Port down indication is passed on to the services so that the services
 // can make changes at this transition.
-func (va *VoltApplication) PortDownInd(device string, port string) {
+func (va *VoltApplication) PortDownInd(cntx context.Context, device string, port string) {
 	logger.Infow(ctx, "Received SouthBound Port Ind: DOWN", log.Fields{"Device": device, "Port": port})
 	d := va.GetDevice(device)
 
@@ -1371,9 +1371,9 @@ func (va *VoltApplication) PortDownInd(device string, port string) {
 
 	if p.Type == VoltPortTypeNni {
 		logger.Warnw(ctx, "Received NNI Port Ind: DOWN", log.Fields{"Device": device, "Port": port})
-		va.DeleteDevFlowForDevice(d)
-		va.NniDownInd(device, d.SerialNum)
-		va.RemovePendingGroups(device, true)
+		va.DeleteDevFlowForDevice(cntx, d)
+		va.NniDownInd(cntx, device, d.SerialNum)
+		va.RemovePendingGroups(cntx, device, true)
 	}
 	vpvs, ok := va.VnetsByPort.Load(port)
 	if !ok || nil == vpvs || len(vpvs.([]*VoltPortVnet)) == 0 {
@@ -1390,9 +1390,9 @@ func (va *VoltApplication) PortDownInd(device string, port string) {
 */
 	for _, vpv := range vpvs.([]*VoltPortVnet) {
 		vpv.VpvLock.Lock()
-		vpv.PortDownInd(device, port)
+		vpv.PortDownInd(cntx, device, port)
 		if vpv.IgmpEnabled {
-			va.ReceiverDownInd(device, port)
+			va.ReceiverDownInd(cntx, device, port)
 		}
 		vpv.VpvLock.Unlock()
 	}
@@ -1406,7 +1406,7 @@ func (va *VoltApplication) PortDownInd(device string, port string) {
 // packet is decoded and the right processor is called. Currently, we
 // plan to support only DHCP and IGMP. In future, we can add more
 // capabilities as needed
-func (va *VoltApplication) PacketInInd(device string, port string, pkt []byte) {
+func (va *VoltApplication) PacketInInd(cntx context.Context, device string, port string, pkt []byte) {
 	// Decode the incoming packet
 	packetSide := US
 	if strings.Contains(port, NNI) {
@@ -1440,7 +1440,7 @@ func (va *VoltApplication) PacketInInd(device string, port string, pkt []byte) {
 	arpl := gopkt.Layer(layers.LayerTypeARP)
 	if arpl != nil {
 		if callBack, ok := PacketHandlers[ARP]; ok {
-			callBack(device, port, gopkt)
+			callBack(cntx, device, port, gopkt)
 		} else {
 			logger.Debugw(ctx, "ARP handler is not registered, dropping the packet", log.Fields{"Pkt": hex.EncodeToString(gopkt.Data())})
 		}
@@ -1455,7 +1455,7 @@ func (va *VoltApplication) PacketInInd(device string, port string, pkt []byte) {
 			dhcpl := gopkt.Layer(layers.LayerTypeDHCPv4)
 			if dhcpl != nil {
 				if callBack, ok := PacketHandlers[DHCPv4]; ok {
-					callBack(device, port, gopkt)
+					callBack(cntx, device, port, gopkt)
 				} else {
 					logger.Debugw(ctx, "DHCPv4 handler is not registered, dropping the packet", log.Fields{"Pkt": hex.EncodeToString(gopkt.Data())})
 				}
@@ -1463,7 +1463,7 @@ func (va *VoltApplication) PacketInInd(device string, port string, pkt []byte) {
 		} else if ip.Protocol == layers.IPProtocolIGMP {
 			logger.Debugw(ctx, "Received Southbound IGMP packet in", log.Fields{"StreamSide": packetSide})
 			if callBack, ok := PacketHandlers[IGMP]; ok {
-				callBack(device, port, gopkt)
+				callBack(cntx, device, port, gopkt)
 			} else {
 				logger.Debugw(ctx, "IGMP handler is not registered, dropping the packet", log.Fields{"Pkt": hex.EncodeToString(gopkt.Data())})
 			}
@@ -1478,7 +1478,7 @@ func (va *VoltApplication) PacketInInd(device string, port string, pkt []byte) {
 			dhcpl := gopkt.Layer(layers.LayerTypeDHCPv6)
 			if dhcpl != nil {
 				if callBack, ok := PacketHandlers[DHCPv6]; ok {
-					callBack(device, port, gopkt)
+					callBack(cntx, device, port, gopkt)
 				} else {
 					logger.Debugw(ctx, "DHCPv6 handler is not registered, dropping the packet", log.Fields{"Pkt": hex.EncodeToString(gopkt.Data())})
 				}
@@ -1491,7 +1491,7 @@ func (va *VoltApplication) PacketInInd(device string, port string, pkt []byte) {
 	if pppoel != nil {
 		logger.Debugw(ctx, "Received Southbound PPPoE packet in", log.Fields{"StreamSide": packetSide})
 		if callBack, ok := PacketHandlers[PPPOE]; ok {
-			callBack(device, port, gopkt)
+			callBack(cntx, device, port, gopkt)
 		} else {
 			logger.Debugw(ctx, "PPPoE handler is not registered, dropping the packet", log.Fields{"Pkt": hex.EncodeToString(gopkt.Data())})
 		}
@@ -1528,7 +1528,7 @@ func GetPriority(pkt gopacket.Packet) uint8 {
 }
 
 // HandleFlowClearFlag to handle flow clear flag during reboot
-func (va *VoltApplication) HandleFlowClearFlag(deviceID string, serialNum, southBoundID string) {
+func (va *VoltApplication) HandleFlowClearFlag(cntx context.Context, deviceID string, serialNum, southBoundID string) {
 	logger.Warnw(ctx, "Clear All flags for Device", log.Fields{"Device": deviceID, "SerialNum": serialNum, "SBID": southBoundID})
 	dev, ok := va.DevicesDisc.Load(deviceID)
 	if ok && dev != nil {
@@ -1557,13 +1557,13 @@ func (va *VoltApplication) HandleFlowClearFlag(deviceID string, serialNum, south
 				logger.Infow(ctx, "Clear Flags for vpv",
 					log.Fields{"device": vpv.Device, "port": vpv.Port,
 						"svlan": vpv.SVlan, "cvlan": vpv.CVlan, "univlan": vpv.UniVlan})
-				vpv.ClearAllServiceFlags()
-				vpv.ClearAllVpvFlags()
+				vpv.ClearAllServiceFlags(cntx)
+				vpv.ClearAllVpvFlags(cntx)
 
 				if vpv.IgmpEnabled {
-					va.ReceiverDownInd(vpv.Device, vpv.Port)
+					va.ReceiverDownInd(cntx, vpv.Device, vpv.Port)
 					//Also clear service igmp stats
-					vpv.ClearServiceCounters()
+					vpv.ClearServiceCounters(cntx)
 				}
 			}
 		}
@@ -1572,12 +1572,12 @@ func (va *VoltApplication) HandleFlowClearFlag(deviceID string, serialNum, south
 	va.VnetsByPort.Range(getVpvs)
 
 	//Clear Static Group
-	va.ReceiverDownInd(deviceID, StaticPort)
+	va.ReceiverDownInd(cntx, deviceID, StaticPort)
 
 	logger.Warnw(ctx, "All flags cleared for device", log.Fields{"Device": deviceID})
 
 	//Reset pending group pool
-	va.RemovePendingGroups(deviceID, true)
+	va.RemovePendingGroups(cntx, deviceID, true)
 
 	//Process all Migrate Service Request - force udpate all profiles since resources are already cleaned up
 	if dev != nil {
@@ -1585,7 +1585,7 @@ func (va *VoltApplication) HandleFlowClearFlag(deviceID string, serialNum, south
 			msrList := value.(*util.ConcurrentMap)
 			forceUpdateServices := func(key, value interface{}) bool {
 				msr := value.(*MigrateServicesRequest)
-				forceUpdateAllServices(msr)
+				forceUpdateAllServices(cntx, msr)
 				return true
 			}
 			msrList.Range(forceUpdateServices)
@@ -1593,7 +1593,7 @@ func (va *VoltApplication) HandleFlowClearFlag(deviceID string, serialNum, south
 		}
 		dev.(*VoltDevice).MigratingServices.Range(triggerForceUpdate)
 	} else {
-		va.FetchAndProcessAllMigrateServicesReq(deviceID, forceUpdateAllServices)
+		va.FetchAndProcessAllMigrateServicesReq(cntx, deviceID, forceUpdateAllServices)
 	}
 }
 
@@ -1604,7 +1604,7 @@ func GetPonPortIDFromUNIPort(uniPortID uint32) uint32 {
 }
 
 //ProcessFlowModResultIndication - Processes Flow mod operation indications from controller
-func (va *VoltApplication) ProcessFlowModResultIndication(flowStatus intf.FlowStatus) {
+func (va *VoltApplication) ProcessFlowModResultIndication(cntx context.Context, flowStatus intf.FlowStatus) {
 
 	d := va.GetDevice(flowStatus.Device)
 	if d == nil {
@@ -1612,7 +1612,7 @@ func (va *VoltApplication) ProcessFlowModResultIndication(flowStatus intf.FlowSt
 		return
 	}
 
-	cookieExists := ExecuteFlowEvent(d, flowStatus.Cookie, flowStatus)
+	cookieExists := ExecuteFlowEvent(cntx, d, flowStatus.Cookie, flowStatus)
 
 	if flowStatus.Flow != nil {
 		flowAdd := (flowStatus.FlowModType == of.CommandAdd)
@@ -1670,12 +1670,12 @@ func pushFlowFailureNotif(flowStatus intf.FlowStatus) {
 }
 
 //UpdateMvlanProfilesForDevice to update mvlan profile for device
-func (va *VoltApplication) UpdateMvlanProfilesForDevice(device string) {
+func (va *VoltApplication) UpdateMvlanProfilesForDevice(cntx context.Context, device string) {
 
 	checkAndAddMvlanUpdateTask := func(key, value interface{}) bool {
 		mvp := value.(*MvlanProfile)
 		if mvp.IsUpdateInProgressForDevice(device) {
-			mvp.UpdateProfile(device)
+			mvp.UpdateProfile(cntx, device)
 		}
 		return true
 	}
@@ -1867,26 +1867,26 @@ func (va *VoltApplication) RemoveGroupFromPendingPool(device string, ig *IgmpGro
 }
 
 //RemoveGroupsFromPendingPool - removes the group from global pending group pool
-func (va *VoltApplication) RemoveGroupsFromPendingPool(device string, mvlan of.VlanType) {
+func (va *VoltApplication) RemoveGroupsFromPendingPool(cntx context.Context, device string, mvlan of.VlanType) {
 	GetApplication().PendingPoolLock.Lock()
 	defer GetApplication().PendingPoolLock.Unlock()
 
 	logger.Infow(ctx, "Removing IgmpGroups from Global Pending Pool for given Deivce & Mvlan", log.Fields{"Device": device, "Mvlan": mvlan.String()})
 
 	key := getPendingPoolKey(mvlan, device)
-	va.RemoveGroupListFromPendingPool(key)
+	va.RemoveGroupListFromPendingPool(cntx, key)
 }
 
 //RemoveGroupListFromPendingPool - removes the groups for provided key
 // 1. Deletes the group from device
 // 2. Delete the IgmpGroup obj and release the group ID to pool
 // Note: Make sure to obtain PendingPoolLock lock before calling this func
-func (va *VoltApplication) RemoveGroupListFromPendingPool(key string) {
+func (va *VoltApplication) RemoveGroupListFromPendingPool(cntx context.Context, key string) {
 	if grpMap, ok := va.IgmpPendingPool[key]; ok {
 		delete(va.IgmpPendingPool, key)
 		for ig := range grpMap {
 			for device := range ig.Devices {
-				ig.DeleteIgmpGroupDevice(device)
+				ig.DeleteIgmpGroupDevice(cntx, device)
 			}
 		}
 	}
@@ -1942,7 +1942,7 @@ func (va *VoltApplication) GetGroupFromPendingPool(mvlan of.VlanType, device str
 // reference - mvlan/device ID
 // isRefDevice - true  - Device as reference
 //               false - Mvlan as reference
-func (va *VoltApplication) RemovePendingGroups(reference string, isRefDevice bool) {
+func (va *VoltApplication) RemovePendingGroups(cntx context.Context, reference string, isRefDevice bool) {
 	va.PendingPoolLock.Lock()
 	defer va.PendingPoolLock.Unlock()
 
@@ -1960,7 +1960,7 @@ func (va *VoltApplication) RemovePendingGroups(reference string, isRefDevice boo
 	for key := range va.IgmpPendingPool {
 		keyParams := strings.Split(key, "_")
 		if keyParams[paramPosition] == reference {
-			va.RemoveGroupListFromPendingPool(key)
+			va.RemoveGroupListFromPendingPool(cntx, key)
 		}
 	}
 }
@@ -1969,26 +1969,26 @@ func getPendingPoolKey(mvlan of.VlanType, device string) string {
 	return mvlan.String() + "_" + device
 }
 
-func (va *VoltApplication) removeExpiredGroups() {
+func (va *VoltApplication) removeExpiredGroups(cntx context.Context) {
 	logger.Debug(ctx, "Check for expired Igmp Groups")
 	removeExpiredGroups := func(key interface{}, value interface{}) bool {
 		ig := value.(*IgmpGroup)
-		ig.removeExpiredGroupFromDevice()
+		ig.removeExpiredGroupFromDevice(cntx)
 		return true
 	}
 	va.IgmpGroups.Range(removeExpiredGroups)
 }
 
 //TriggerPendingProfileDeleteReq - trigger pending profile delete request
-func (va *VoltApplication) TriggerPendingProfileDeleteReq(device string) {
-	va.TriggerPendingServiceDeleteReq(device)
-	va.TriggerPendingVpvDeleteReq(device)
-	va.TriggerPendingVnetDeleteReq(device)
+func (va *VoltApplication) TriggerPendingProfileDeleteReq(cntx context.Context, device string) {
+	va.TriggerPendingServiceDeleteReq(cntx, device)
+	va.TriggerPendingVpvDeleteReq(cntx, device)
+	va.TriggerPendingVnetDeleteReq(cntx, device)
 	logger.Warnw(ctx, "All Pending Profile Delete triggered for device", log.Fields{"Device": device})
 }
 
 //TriggerPendingServiceDeleteReq - trigger pending service delete request
-func (va *VoltApplication) TriggerPendingServiceDeleteReq(device string) {
+func (va *VoltApplication) TriggerPendingServiceDeleteReq(cntx context.Context, device string) {
 
 	logger.Warnw(ctx, "Pending Services to be deleted", log.Fields{"Count": len(va.ServicesToDelete)})
 	for serviceName := range va.ServicesToDelete {
@@ -1996,9 +1996,9 @@ func (va *VoltApplication) TriggerPendingServiceDeleteReq(device string) {
 		if vs := va.GetService(serviceName); vs != nil {
 			if vs.Device == device {
 				logger.Warnw(ctx, "Triggering Pending Service delete", log.Fields{"Service": vs.Name})
-				vs.DelHsiaFlows()
+				vs.DelHsiaFlows(cntx)
 				if vs.ForceDelete {
-					vs.DelFromDb()
+					vs.DelFromDb(cntx)
 					/*
 					portState := msgbus.PortDown
 					if d, err := va.GetDeviceFromPort(vs.Port); d != nil {
@@ -2027,19 +2027,19 @@ func (va *VoltApplication) TriggerPendingServiceDeleteReq(device string) {
 }
 
 //TriggerPendingVpvDeleteReq - trigger pending VPV delete request
-func (va *VoltApplication) TriggerPendingVpvDeleteReq(device string) {
+func (va *VoltApplication) TriggerPendingVpvDeleteReq(cntx context.Context, device string) {
 
 	logger.Warnw(ctx, "Pending VPVs to be deleted", log.Fields{"Count": len(va.VoltPortVnetsToDelete)})
 	for vpv := range va.VoltPortVnetsToDelete {
 		if vpv.Device == device {
 			logger.Warnw(ctx, "Triggering Pending VPv flow delete", log.Fields{"Port": vpv.Port, "Device": vpv.Device, "Vnet": vpv.VnetName})
-			va.DelVnetFromPort(vpv.Port, vpv)
+			va.DelVnetFromPort(cntx, vpv.Port, vpv)
 		}
 	}
 }
 
 //TriggerPendingVnetDeleteReq - trigger pending vnet delete request
-func (va *VoltApplication) TriggerPendingVnetDeleteReq(device string) {
+func (va *VoltApplication) TriggerPendingVnetDeleteReq(cntx context.Context, device string) {
 
 	logger.Warnw(ctx, "Pending Vnets to be deleted", log.Fields{"Count": len(va.VnetsToDelete)})
 	for vnetName := range va.VnetsToDelete {
@@ -2047,7 +2047,7 @@ func (va *VoltApplication) TriggerPendingVnetDeleteReq(device string) {
 			vnet := vnetIntf.(*VoltVnet)
 			logger.Warnw(ctx, "Triggering Pending Vnet flows delete", log.Fields{"Vnet": vnet.Name})
 			if d := va.GetDeviceBySerialNo(vnet.PendingDeviceToDelete); d != nil && d.SerialNum == vnet.PendingDeviceToDelete {
-				va.DeleteDevFlowForVlanFromDevice(vnet, vnet.PendingDeviceToDelete)
+				va.DeleteDevFlowForVlanFromDevice(cntx, vnet, vnet.PendingDeviceToDelete)
 				va.deleteVnetConfig(vnet)
 			} else {
 				logger.Warnw(ctx, "Vnet Delete Failed : Device Not Found", log.Fields{"Vnet": vnet.Name, "Device": vnet.PendingDeviceToDelete})

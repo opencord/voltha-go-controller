@@ -45,7 +45,7 @@ const (
 // IVPClient interface
 type IVPClient interface {
 	ChangeEvent(*ofp.ChangeEvent) error
-	PacketIn(*ofp.PacketIn)
+	PacketIn(context.Context, *ofp.PacketIn)
 	ConnectInd(cxt context.Context, DiscType DiscoveryType)
 	Stop()
 }
@@ -59,7 +59,7 @@ type VPAgent interface {
 // IVPClientAgent interface
 type IVPClientAgent interface {
 	AddNewDevice(cfg *VPClientCfg)
-	DelDevice(id string)
+	DelDevice(cntx context.Context, id string)
 	IsRebootInProgressForDevice(device string) bool
 	// RebootInd(string, string, string)
 	IsBlockedDevice(string) bool

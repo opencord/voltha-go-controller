@@ -84,7 +84,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 		logger.Infow(ctx, "Flow Mod Request", log.Fields{"Cookie": flow.Cookie, "Oper": aft.flow.Command, "Port": aft.flow.PortID})
 		if aft.flow.Command == of.CommandAdd {
 			flow.State = of.FlowAddPending
-			if err := aft.device.AddFlow(flow); err != nil {
+			if err := aft.device.AddFlow(ctx, flow); err != nil {
 				logger.Warnw(ctx, "Add Flow Error", log.Fields{"Cookie": flow.Cookie, "Reason": err.Error()})
 
 				// If flow already exists in cache, check for flow state
@@ -93,7 +93,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 				if err.Error() == ErrDuplicateFlow {
 					dbFlow, _ := aft.device.GetFlow(flow.Cookie)
 					if dbFlow.State == of.FlowAddSuccess {
-						aft.device.triggerFlowNotification(flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
+						aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
 						flowsPresent++
 					}
 				}
@@ -108,7 +108,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 				// aft.device.AddFlowToDb(dbFlow)
 				flowsToProcess[flow.Cookie] = dbFlow
 			}
-			aft.device.triggerFlowNotification(flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
+			aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
 		}
 	}
 
@@ -124,7 +124,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 			for _, flow := range aft.flow.SubFlows {
 				logger.Errorw(ctx, "Skip Flow Update", log.Fields{"Reason": "Port Deleted", "PortName": aft.flow.PortName, "PortNo": aft.flow.PortID, "Cookie": flow.Cookie, "Operation": aft.flow.Command})
 				if aft.flow.Command == of.CommandDel {
-					aft.device.triggerFlowNotification(flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
+					aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
 				}
 			}
 			return nil
@@ -160,7 +160,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 				}
 				break
 			}
-			aft.device.triggerFlowNotification(flow.FlowMod.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
+			aft.device.triggerFlowNotification(ctx, flow.FlowMod.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
 
 		} else {
 			logger.Errorw(ctx, "Update Flow Table Failed: Voltha Client Unavailable", log.Fields{"Flow": flow})

@@ -17,6 +17,7 @@ package nbi
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net"
 	"net/http"
@@ -75,16 +76,16 @@ func (sh *SubscriberHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
 	case "POST":
-		sh.AddSubscriberInfo(w, r)
+		sh.AddSubscriberInfo(context.Background(), w, r)
 	case "DELETE":
-		sh.DelSubscriberInfo(w, r)
+		sh.DelSubscriberInfo(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
 	}
 }
 
 // AddSubscriberInfo to add service
-func (sh *SubscriberHandle) AddSubscriberInfo(w http.ResponseWriter, r *http.Request) {
+func (sh *SubscriberHandle) AddSubscriberInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
@@ -104,10 +105,10 @@ func (sh *SubscriberHandle) AddSubscriberInfo(w http.ResponseWriter, r *http.Req
 
 	//vsCfgList := getVoltServiceFromSrvInfo(req)
 
-	go addAllService(req)
+	go addAllService(cntx, req)
 }
 
-func addAllService(srvInfo *SubscriberDeviceInfo) {
+func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 
 	//vsCfgList := getVoltServiceFromSrvInfo(srvInfo)
 
@@ -178,10 +179,10 @@ func addAllService(srvInfo *SubscriberDeviceInfo) {
 			vnetcfg.VlanControl = app.OLTSVlan
 		}
 
-		if err := app.GetApplication().AddVnet(vnetcfg, nil); err != nil {
+		if err := app.GetApplication().AddVnet(cntx, vnetcfg, nil); err != nil {
 			logger.Errorw(ctx, "AddVnet Failed", log.Fields{"VnetName": vnetName, "Error": err})
 		}
-		if err := app.GetApplication().AddService(vs, nil); err != nil {
+		if err := app.GetApplication().AddService(cntx, vs, nil); err != nil {
 			logger.Errorw(ctx, "AddService Failed", log.Fields{"Service": vs.Name, "Error": err})
 		}
 
@@ -189,7 +190,7 @@ func addAllService(srvInfo *SubscriberDeviceInfo) {
 }
 
 // DelSubscriberInfo to delete service
-func (sh *SubscriberHandle) DelSubscriberInfo(w http.ResponseWriter, r *http.Request) {
+func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -200,5 +201,5 @@ func (sh *SubscriberHandle) DelSubscriberInfo(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusAccepted)
 
 	logger.Warnw(ctx, "northbound-del-service-req", log.Fields{"ServiceName": id})
-	go app.GetApplication().DelServiceWithPrefix(id)
+	go app.GetApplication().DelServiceWithPrefix(cntx, id)
 }

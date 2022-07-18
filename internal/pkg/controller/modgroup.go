@@ -95,9 +95,9 @@ func (grp *ModGroupTask) Start(ctx context.Context, taskID uint8) error {
 
 	if grp.group.Command != of.GroupCommandDel {
 		grp.group.State = of.GroupOperPending
-		grp.device.UpdateGroupEntry(grp.group)
+		grp.device.UpdateGroupEntry(ctx, grp.group)
 	} else {
-		grp.device.DelGroupEntry(grp.group)
+		grp.device.DelGroupEntry(ctx, grp.group)
 	}
 
 	if !grp.device.isSBOperAllowed(grp.group.ForceAction) {

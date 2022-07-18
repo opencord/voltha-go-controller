@@ -17,6 +17,7 @@ package application
 
 import (
 	"errors"
+	"context"
 	"net"
 	"voltha-go-controller/internal/pkg/types"
 
@@ -27,7 +28,7 @@ import (
 	"voltha-go-controller/log"
 )
 
-type paramsUpdationFunc func(hash string, value interface{}) error
+type paramsUpdationFunc func(cntx context.Context, hash string, value interface{}) error
 
 //map to store conversion functions
 var updationMap = map[string]paramsUpdationFunc{
@@ -41,9 +42,9 @@ var updationMap = map[string]paramsUpdationFunc{
 }
 
 // UpdateDbData to update database data
-func UpdateDbData(dbPath, hash string, value interface{}) error {
+func UpdateDbData(cntx context.Context, dbPath, hash string, value interface{}) error {
 	if migrationFunc, ok := updationMap[dbPath]; ok {
-		err := migrationFunc(hash, value)
+		err := migrationFunc(cntx, hash, value)
 		if err != nil {
 			logger.Error(ctx, "Error in migrating data\n")
 			return errors.New("Error-in-migration")
@@ -54,7 +55,7 @@ func UpdateDbData(dbPath, hash string, value interface{}) error {
 
 //This function modifyies the old data as per current version requirement and also
 //returns the new path on which the modified data has to be written
-func updateServices(hash string, value interface{}) error {
+func updateServices(cntx context.Context, hash string, value interface{}) error {
 	param := value.(*VoltService)
 	param.VnetID = VnetKey(param.SVlan, param.CVlan, param.UniVlan)
 	return nil
@@ -62,12 +63,12 @@ func updateServices(hash string, value interface{}) error {
 
 //This function modifyies the old data as per current version requirement and also
 //returns the new path on which the modified data has to be written
-func updateVnets(hash string, value interface{}) error {
+func updateVnets(cntx context.Context, hash string, value interface{}) error {
 	param := value.(*VoltVnet)
 	newKey := VnetKey(param.SVlan, param.CVlan, param.UniVlan)
 	if newKey != hash {
 		//Delete the older key
-		_ = db.DelVnet(hash)
+		_ = db.DelVnet(cntx, hash)
 	} else {
 		//Update SVlan Tag Protocol id param with default valud if not present
 		if param.SVlanTpid == 0 {
@@ -83,7 +84,7 @@ func updateVnets(hash string, value interface{}) error {
 
 //This function modifyies the old data as per current version requirement and also
 //returns the new path on which the modified data has to be written
-func updateVpvs(hash string, value interface{}) error {
+func updateVpvs(cntx context.Context, hash string, value interface{}) error {
 
 	//var param VoltPortVnet
 	param := value.(*VoltPortVnet)
@@ -99,20 +100,20 @@ func updateVpvs(hash string, value interface{}) error {
 	}
 
 	//Add the vpv under new path
-	param.WriteToDb()
+	param.WriteToDb(cntx)
 	//delete the older path
 	fullPath := database.BasePath + database.VpvPath + hash
-	if err := db.Del(fullPath); err != nil {
+	if err := db.Del(cntx, fullPath); err != nil {
 		logger.Errorw(ctx, "Vpv Delete from DB failed", log.Fields{"Error": err, "key": fullPath})
 	}
 	return nil
 }
 
-func updateMvlans(hash string, value interface{}) error {
+func updateMvlans(cntx context.Context, hash string, value interface{}) error {
 	param := value.(*MvlanProfile)
 	if param.DevicesList == nil || len(param.DevicesList) == 0 {
 		param.DevicesList = make(map[string]OperInProgress) //Empty OLT serial number as of now since submgr won't have proper serial num
-		if err := param.WriteToDb(); err != nil {
+		if err := param.WriteToDb(cntx); err != nil {
 			logger.Errorw(ctx, "Mvlan profile write to DB failed", log.Fields{"ProfileName": param.Name})
 		}
 
@@ -125,14 +126,14 @@ func updateMvlans(hash string, value interface{}) error {
 
 //This function modifyies the old Igmp Group data as per current version requirement and also
 //returns the new path on which the modified data has to be written
-func updateIgmpGroups(hash string, value interface{}) error {
+func updateIgmpGroups(cntx context.Context, hash string, value interface{}) error {
 
 	ig := value.(*IgmpGroup)
 	logger.Infow(ctx, "Group Data Migration", log.Fields{"ig": ig, "GroupAddr": ig.GroupAddr, "hash": hash})
 	if ig.GroupAddr == nil {
 		ig.GroupAddr = net.ParseIP("0.0.0.0")
 	}
-	if err := ig.WriteToDb(); err != nil {
+	if err := ig.WriteToDb(cntx); err != nil {
 		logger.Errorw(ctx, "Igmp group Write to DB failed", log.Fields{"groupName": ig.GroupName})
 	}
 
@@ -141,13 +142,13 @@ func updateIgmpGroups(hash string, value interface{}) error {
 
 //This function modifyies the old Igmp  Device data as per current version requirement and also
 //returns the new path on which the modified data has to be written
-func updateIgmpDevices(hash string, value interface{}) error {
+func updateIgmpDevices(cntx context.Context, hash string, value interface{}) error {
 	igd := value.(*IgmpGroupDevice)
 	logger.Infow(ctx, "Group Device Migration", log.Fields{"igd": igd, "GroupAddr": igd.GroupAddr, "hash": hash})
 	if igd.GroupAddr == nil {
 		igd.GroupAddr = net.ParseIP("0.0.0.0")
 	}
-	if err := igd.WriteToDb(); err != nil {
+	if err := igd.WriteToDb(cntx); err != nil {
 		logger.Errorw(ctx, "Igmp group device Write to DB failed", log.Fields{"Device": igd.Device,
 					"GroupName": igd.GroupName, "GroupAddr": igd.GroupAddr.String()})
 	}
@@ -157,15 +158,15 @@ func updateIgmpDevices(hash string, value interface{}) error {
 
 //This function modifyies the old Igmp  Profile data as per current version requirement and also
 //returns the new path on which the modified data has to be written
-func updateIgmpProfiles(hash string, value interface{}) error {
+func updateIgmpProfiles(cntx context.Context, hash string, value interface{}) error {
 	igmpProfile := value.(*IgmpProfile)
 	logger.Infow(ctx, "IGMP Profile Migration", log.Fields{"igmpProfile": igmpProfile, "hash": hash})
 	return nil
 }
 
-func (ig *IgmpGroup) migrateIgmpDevices() {
+func (ig *IgmpGroup) migrateIgmpDevices(cntx context.Context) {
 
-	devices, _ := db.GetPrevIgmpDevices(ig.Mvlan, ig.GroupName)
+	devices, _ := db.GetPrevIgmpDevices(cntx, ig.Mvlan, ig.GroupName)
 	logger.Infow(ctx, "Migratable Devices", log.Fields{"Devices": devices})
 	for _, device := range devices {
 		b, ok := device.Value.([]byte)
@@ -176,10 +177,10 @@ func (ig *IgmpGroup) migrateIgmpDevices() {
 		if igd, err := NewIgmpGroupDeviceFromBytes(b); err == nil {
 			key := database.BasePath + database.IgmpDevicePath + igd.Mvlan.String() + "/" + igd.GroupName + "/" + igd.Device
 			logger.Infow(ctx, "Deleting old entry", log.Fields{"Path": key, "igd": igd})
-			if err := db.Del(key); err != nil {
+			if err := db.Del(cntx, key); err != nil {
 				logger.Errorw(ctx, "Igmp Group Delete from DB failed", log.Fields{"Error": err, "key": key})
 			}
-			if err := UpdateDbData(database.IgmpDevicePath, key, igd); err != nil {
+			if err := UpdateDbData(cntx, database.IgmpDevicePath, key, igd); err != nil {
 				logger.Warnw(ctx, "Group Device Migration failed", log.Fields{"IGD": igd, "Error": err})
 			} else {
 				logger.Infow(ctx, "Group Device Migrated", log.Fields{"IGD": igd})
@@ -190,9 +191,9 @@ func (ig *IgmpGroup) migrateIgmpDevices() {
 	}
 }
 
-func (igd *IgmpGroupDevice) migrateIgmpChannels() {
+func (igd *IgmpGroupDevice) migrateIgmpChannels(cntx context.Context) {
 
-	channels, _ := db.GetPrevIgmpChannels(igd.GroupName, igd.Device)
+	channels, _ := db.GetPrevIgmpChannels(cntx, igd.GroupName, igd.Device)
 	logger.Infow(ctx, "Migratable Channels", log.Fields{"Channels": channels})
 	for _, channel := range channels {
 
@@ -204,10 +205,10 @@ func (igd *IgmpGroupDevice) migrateIgmpChannels() {
 		if igc, err := NewIgmpGroupChannelFromBytes(b); err == nil {
 			key := database.BasePath + database.IgmpChannelPath + igc.GroupName + "/" + igc.Device + "/" + igc.GroupAddr.String()
 			logger.Infow(ctx, "Deleting old entry", log.Fields{"Path": key, "igc": igc})
-			if err := db.Del(key); err != nil {
+			if err := db.Del(cntx, key); err != nil {
 				logger.Errorw(ctx, "Igmp Group Delete from DB failed", log.Fields{"Error": err, "key": key})
 			}
-			if err := igc.WriteToDb(); err != nil {
+			if err := igc.WriteToDb(cntx); err != nil {
 				logger.Errorw(ctx, "Igmp group channel Write to DB failed", log.Fields{"mvlan": igc.Mvlan, "GroupAddr": igc.GroupAddr})
 			}
 
@@ -218,9 +219,9 @@ func (igd *IgmpGroupDevice) migrateIgmpChannels() {
 	}
 }
 
-func (igc *IgmpGroupChannel) migrateIgmpPorts() {
+func (igc *IgmpGroupChannel) migrateIgmpPorts(cntx context.Context) {
 
-	ports, _ := db.GetPrevIgmpRcvrs(igc.GroupAddr, igc.Device)
+	ports, _ := db.GetPrevIgmpRcvrs(cntx, igc.GroupAddr, igc.Device)
 	logger.Infow(ctx, "Migratable Ports", log.Fields{"Ports": ports})
 	for _, port := range ports {
 
@@ -232,10 +233,10 @@ func (igc *IgmpGroupChannel) migrateIgmpPorts() {
 		if igp, err := NewIgmpGroupPortFromBytes(b); err == nil {
 			key := database.BasePath + database.IgmpPortPath + igc.GroupAddr.String() + "/" + igc.Device + "/" + igp.Port
 			logger.Infow(ctx, "Deleting old entry", log.Fields{"Key": key, "Igp": igp})
-			if err := db.Del(key); err != nil {
+			if err := db.Del(cntx, key); err != nil {
 				logger.Errorw(ctx, "Igmp Group port Delete from DB failed", log.Fields{"Error": err, "key": key})
 			}
-			if err := igp.WriteToDb(igc.Mvlan, igc.GroupAddr, igc.Device); err != nil {
+			if err := igp.WriteToDb(cntx, igc.Mvlan, igc.GroupAddr, igc.Device); err != nil {
 				logger.Errorw(ctx, "Igmp group port Write to DB failed", log.Fields{"mvlan": igc.Mvlan, "GroupAddr": igc.GroupAddr})
 			}
 

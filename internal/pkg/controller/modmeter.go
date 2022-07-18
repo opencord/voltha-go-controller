@@ -89,12 +89,12 @@ func (mmt *ModMeterTask) Start(ctx context.Context, taskID uint8) error {
 	// First add/delete the flows first locally before passing them to actual device
 	if mmt.command == of.MeterCommandAdd {
 		mmt.meter.State = of.MeterOperPending
-		if err := mmt.device.AddMeter(mmt.meter); err != nil {
+		if err := mmt.device.AddMeter(ctx, mmt.meter); err != nil {
 			// Meter already exists so we dont have to do anything here
 			return nil
 		}
 	} else {
-		if !mmt.device.DelMeter(mmt.meter) {
+		if !mmt.device.DelMeter(ctx, mmt.meter) {
 			// Meter doesn't exist so we dont have to do anything here
 			return nil
 		}

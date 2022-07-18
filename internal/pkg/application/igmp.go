@@ -16,6 +16,7 @@
 package application
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net"
@@ -106,7 +107,7 @@ func init() {
 }
 
 // ProcessIgmpPacket : CallBack function registered with application to handle IGMP packetIn
-func ProcessIgmpPacket(device string, port string, pkt gopacket.Packet) {
+func ProcessIgmpPacket(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	GetApplication().IgmpPacketInd(device, port, pkt)
 }
 
@@ -420,7 +421,7 @@ func IsIPPresent(i net.IP, ips []net.IP) bool {
 }
 
 //AddToPendingPool - adds Igmp Device obj to pending pool
-func AddToPendingPool(device string, groupKey string) bool {
+func AddToPendingPool(cntx context.Context, device string, groupKey string) bool {
 
 	logger.Infow(ctx, "Add Device to IgmpGroup Pending Pool", log.Fields{"Device": device, "GroupKey": groupKey})
 	if grp, ok := GetApplication().IgmpGroups.Load(groupKey); ok {
@@ -429,7 +430,7 @@ func AddToPendingPool(device string, groupKey string) bool {
 		logger.Infow(ctx, "Adding Device to IgmpGroup Pending Pool", log.Fields{"Device": device, "GroupID": ig.GroupID, "GroupName": ig.GroupName, "GroupAddr": ig.GroupAddr.String()})
 		ig.PendingGroupForDevice[device] = time.Now().Add(time.Duration(GroupExpiryTime) * time.Minute)
 		ig.PendingPoolLock.Unlock()
-		if err := ig.WriteToDb(); err != nil {
+		if err := ig.WriteToDb(cntx); err != nil {
 			logger.Errorw(ctx, "Igmp group Write to DB failed", log.Fields{"groupName": ig.GroupName})
 		}
 		return true
@@ -504,9 +505,9 @@ func GetMcastServiceForSubAlarm(uniPort *VoltPort, mvp *MvlanProfile) string {
 }
 
 // RestoreIgmpGroupsFromDb to restore igmp groups from database
-func (va *VoltApplication) RestoreIgmpGroupsFromDb() {
+func (va *VoltApplication) RestoreIgmpGroupsFromDb(cntx context.Context) {
 
-	groups, _ := db.GetIgmpGroups()
+	groups, _ := db.GetIgmpGroups(cntx)
 	for _, group := range groups {
 		b, ok := group.Value.([]byte)
 		if !ok {
@@ -532,7 +533,7 @@ func (va *VoltApplication) RestoreIgmpGroupsFromDb() {
 		if _, err := va.GetIgmpGroupID(ig.GroupID); err != nil {
 			logger.Warnw(ctx, "GetIgmpGroupID Failed", log.Fields{"igGroupID": ig.GroupID, "Error": err})
 		}
-		ig.RestoreDevices()
+		ig.RestoreDevices(cntx)
 
 		if ig.NumDevicesActive() == 0 {
 			va.AddGroupToPendingPool(&ig)
@@ -544,16 +545,16 @@ func (va *VoltApplication) RestoreIgmpGroupsFromDb() {
 // AddIgmpGroup : When the first IGMP packet is received, the MVLAN profile is identified
 // for the IGMP group and grp obj is obtained from the available pending pool of groups.
 // If not, new group obj will be created based on available group IDs
-func (va *VoltApplication) AddIgmpGroup(mvpName string, gip net.IP, device string) *IgmpGroup {
+func (va *VoltApplication) AddIgmpGroup(cntx context.Context, mvpName string, gip net.IP, device string) *IgmpGroup {
 
 	var ig *IgmpGroup
 	if mvp, grpName := va.GetMvlanProfileForMcIP(mvpName, gip); mvp != nil {
 		if ig = va.GetGroupFromPendingPool(mvp.Mvlan, device); ig != nil {
 			logger.Infow(ctx, "Igmp Group obtained from global pending pool", log.Fields{"MvlanProfile": mvpName, "GroupID": ig.GroupID, "Device": device, "GroupName": ig.GroupName, "GroupAddr": ig.GroupAddr.String()})
 			oldKey := mvp.generateGroupKey(ig.GroupName, ig.GroupAddr.String())
-			ig.IgmpGroupReInit(grpName, gip)
+			ig.IgmpGroupReInit(cntx, grpName, gip)
 			ig.IsGroupStatic = mvp.Groups[grpName].IsStatic
-			ig.UpdateIgmpGroup(oldKey, ig.getKey())
+			ig.UpdateIgmpGroup(cntx, oldKey, ig.getKey())
 		} else {
 			logger.Infow(ctx, "No Igmp Group available in global pending pool. Creating new Igmp Group", log.Fields{"MvlanProfile": mvpName, "Device": device, "GroupAddr": gip.String()})
 			if ig = va.GetAvailIgmpGroupID(); ig == nil {
@@ -564,7 +565,7 @@ func (va *VoltApplication) AddIgmpGroup(mvpName string, gip net.IP, device strin
 			grpKey := ig.getKey()
 			va.IgmpGroups.Store(grpKey, ig)
 		}
-		if err := ig.WriteToDb(); err != nil {
+		if err := ig.WriteToDb(cntx); err != nil {
 			logger.Errorw(ctx, "Igmp group Write to DB failed", log.Fields{"groupName": ig.GroupName})
 		}
 		return ig
@@ -606,7 +607,7 @@ func (va *VoltApplication) GetIgmpGroup(mvlan of.VlanType, gip net.IP) *IgmpGrou
 
 // DelIgmpGroup : When the last subscriber leaves the IGMP group across all the devices
 // the IGMP group is removed.
-func (va *VoltApplication) DelIgmpGroup(ig *IgmpGroup) {
+func (va *VoltApplication) DelIgmpGroup(cntx context.Context, ig *IgmpGroup) {
 
 	profile, found := GetApplication().MvlanProfilesByTag.Load(ig.Mvlan)
 	if found {
@@ -621,11 +622,11 @@ func (va *VoltApplication) DelIgmpGroup(ig *IgmpGroup) {
 				logger.Debugw(ctx, "Deleting IGMP Group", log.Fields{"Group": grpKey})
 				va.PutIgmpGroupID(ig)
 				va.IgmpGroups.Delete(grpKey)
-				_ = db.DelIgmpGroup(grpKey)
+				_ = db.DelIgmpGroup(cntx, grpKey)
 			} else {
 				logger.Infow(ctx, "Skipping IgmpGroup Device. Pending Igmp Group Devices present", log.Fields{"GroupID": ig.GroupID, "GroupName": ig.GroupName, "GroupAddr": ig.GroupAddr.String(), "PendingDevices": len(ig.Devices)})
 				va.AddGroupToPendingPool(ig)
-				if err := ig.WriteToDb(); err != nil {
+				if err := ig.WriteToDb(cntx); err != nil {
 					logger.Errorw(ctx, "Igmp group Write to DB failed", log.Fields{"groupName": ig.GroupName})
 				}
 			}
@@ -807,7 +808,7 @@ func (va *VoltApplication) IsMaxChannelsCountExceeded(device, uniPortID string,
 }
 
 // ProcessIgmpv2Pkt : This is IGMPv2 packet.
-func (va *VoltApplication) ProcessIgmpv2Pkt(device string, port string, pkt gopacket.Packet) {
+func (va *VoltApplication) ProcessIgmpv2Pkt(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	// First get the layers of interest
 	dot1Q := pkt.Layer(layers.LayerTypeDot1Q).(*layers.Dot1Q)
 	pktVlan := of.VlanType(dot1Q.VLANIdentifier)
@@ -868,11 +869,11 @@ func (va *VoltApplication) ProcessIgmpv2Pkt(device string, port string, pkt gopa
 				ig.IgmpGroupLock.Unlock()
 				return
 			}
-			ig.AddReceiver(device, port, igmpv2.GroupAddress, nil, IgmpVersion2, dot1Q.VLANIdentifier, dot1Q.Priority, ponPortID)
+			ig.AddReceiver(cntx, device, port, igmpv2.GroupAddress, nil, IgmpVersion2, dot1Q.VLANIdentifier, dot1Q.Priority, ponPortID)
 			ig.IgmpGroupLock.Unlock()
 		} else {
 			// Create the IGMP group and then add the receiver to the group
-			if ig := va.AddIgmpGroup(vpv.MvlanProfileName, igmpv2.GroupAddress, device); ig != nil {
+			if ig := va.AddIgmpGroup(cntx, vpv.MvlanProfileName, igmpv2.GroupAddress, device); ig != nil {
 				logger.Infow(ctx, "New IGMP Group", log.Fields{"Group": ig.GroupID, "devices": ig.Devices})
 				ig.IgmpGroupLock.Lock()
 				// Check for port state to avoid race condition where PortDown event
@@ -885,7 +886,7 @@ func (va *VoltApplication) ProcessIgmpv2Pkt(device string, port string, pkt gopa
 					ig.IgmpGroupLock.Unlock()
 					return
 				}
-				ig.AddReceiver(device, port, igmpv2.GroupAddress, nil, IgmpVersion2, dot1Q.VLANIdentifier, dot1Q.Priority, ponPortID)
+				ig.AddReceiver(cntx, device, port, igmpv2.GroupAddress, nil, IgmpVersion2, dot1Q.VLANIdentifier, dot1Q.Priority, ponPortID)
 				ig.IgmpGroupLock.Unlock()
 			} else {
 				logger.Errorw(ctx, "IGMP Group Creation Failed", log.Fields{"Addr": igmpv2.GroupAddress})
@@ -914,10 +915,10 @@ func (va *VoltApplication) ProcessIgmpv2Pkt(device string, port string, pkt gopa
 		if ig := va.GetIgmpGroup(mvlan, igmpv2.GroupAddress); ig != nil {
 			ig.IgmpGroupLock.Lock()
 			// Delete the receiver once the IgmpGroup is identified
-			ig.DelReceiver(device, port, igmpv2.GroupAddress, nil, ponPortID)
+			ig.DelReceiver(cntx, device, port, igmpv2.GroupAddress, nil, ponPortID)
 			ig.IgmpGroupLock.Unlock()
 			if ig.NumDevicesActive() == 0 {
-				va.DelIgmpGroup(ig)
+				va.DelIgmpGroup(cntx, ig)
 			}
 		}
 	} else {
@@ -936,13 +937,13 @@ func (va *VoltApplication) ProcessIgmpv2Pkt(device string, port string, pkt gopa
 		defer mvp.mvpLock.RUnlock()
 
 		if net.ParseIP("0.0.0.0").Equal(igmpv2.GroupAddress) {
-			va.processIgmpQueries(device, pktVlan, IgmpVersion2)
+			va.processIgmpQueries(cntx, device, pktVlan, IgmpVersion2)
 		} else {
 			if ig := va.GetIgmpGroup(pktVlan, igmpv2.GroupAddress); ig != nil {
 				ig.IgmpGroupLock.Lock()
 				igd, ok := ig.Devices[device]
 				if ok {
-					igd.ProcessQuery(igmpv2.GroupAddress, IgmpVersion2)
+					igd.ProcessQuery(cntx, igmpv2.GroupAddress, IgmpVersion2)
 				} else {
 					logger.Warnw(ctx, "IGMP Device not found", log.Fields{"Device": device, "Group": igmpv2.GroupAddress})
 				}
@@ -953,7 +954,7 @@ func (va *VoltApplication) ProcessIgmpv2Pkt(device string, port string, pkt gopa
 }
 
 // ProcessIgmpv3Pkt : Process IGMPv3 packet
-func (va *VoltApplication) ProcessIgmpv3Pkt(device string, port string, pkt gopacket.Packet) {
+func (va *VoltApplication) ProcessIgmpv3Pkt(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	// First get the layers of interest
 	dot1QLayer := pkt.Layer(layers.LayerTypeDot1Q)
 
@@ -1018,13 +1019,13 @@ func (va *VoltApplication) ProcessIgmpv3Pkt(device string, port string, pkt gopa
 						ig.IgmpGroupLock.Unlock()
 						return
 					}
-					ig.AddReceiver(device, port, group.MulticastAddress, &group, IgmpVersion3,
+					ig.AddReceiver(cntx, device, port, group.MulticastAddress, &group, IgmpVersion3,
 						dot1Q.VLANIdentifier, dot1Q.Priority, ponPortID)
 					ig.IgmpGroupLock.Unlock()
 				} else {
 					// Create the IGMP group and then add the receiver to the group
 					logger.Infow(ctx, "IGMP Join received for new group", log.Fields{"Addr": group.MulticastAddress, "Port": port})
-					if ig := va.AddIgmpGroup(vpv.MvlanProfileName, group.MulticastAddress, device); ig != nil {
+					if ig := va.AddIgmpGroup(cntx, vpv.MvlanProfileName, group.MulticastAddress, device); ig != nil {
 						ig.IgmpGroupLock.Lock()
 						// Check for port state to avoid race condition where PortDown event
 						// acquired lock before packet processing
@@ -1036,7 +1037,7 @@ func (va *VoltApplication) ProcessIgmpv3Pkt(device string, port string, pkt gopa
 							ig.IgmpGroupLock.Unlock()
 							return
 						}
-						ig.AddReceiver(device, port, group.MulticastAddress, &group, IgmpVersion3,
+						ig.AddReceiver(cntx, device, port, group.MulticastAddress, &group, IgmpVersion3,
 							dot1Q.VLANIdentifier, dot1Q.Priority, ponPortID)
 						ig.IgmpGroupLock.Unlock()
 					} else {
@@ -1046,10 +1047,10 @@ func (va *VoltApplication) ProcessIgmpv3Pkt(device string, port string, pkt gopa
 			} else if ig != nil {
 				logger.Infow(ctx, "IGMP Leave received for existing group", log.Fields{"Addr": group.MulticastAddress, "Port": port})
 				ig.IgmpGroupLock.Lock()
-				ig.DelReceiver(device, port, group.MulticastAddress, &group, ponPortID)
+				ig.DelReceiver(cntx, device, port, group.MulticastAddress, &group, ponPortID)
 				ig.IgmpGroupLock.Unlock()
 				if ig.NumDevicesActive() == 0 {
-					va.DelIgmpGroup(ig)
+					va.DelIgmpGroup(cntx, ig)
 				}
 			} else {
 				logger.Warnw(ctx, "IGMP Leave received for unknown group", log.Fields{"Addr": group.MulticastAddress})
@@ -1071,13 +1072,13 @@ func (va *VoltApplication) ProcessIgmpv3Pkt(device string, port string, pkt gopa
 		defer mvp.mvpLock.RUnlock()
 
 		if net.ParseIP("0.0.0.0").Equal(igmpv3.GroupAddress) {
-			va.processIgmpQueries(device, pktVlan, IgmpVersion3)
+			va.processIgmpQueries(cntx, device, pktVlan, IgmpVersion3)
 		} else {
 			if ig := va.GetIgmpGroup(pktVlan, igmpv3.GroupAddress); ig != nil {
 				ig.IgmpGroupLock.Lock()
 				igd, ok := ig.Devices[device]
 				if ok {
-					igd.ProcessQuery(igmpv3.GroupAddress, IgmpVersion3)
+					igd.ProcessQuery(cntx, igmpv3.GroupAddress, IgmpVersion3)
 				} else {
 					logger.Warnw(ctx, "IGMP Device not found", log.Fields{"Device": device, "Group": igmpv3.GroupAddress})
 				}
@@ -1088,7 +1089,7 @@ func (va *VoltApplication) ProcessIgmpv3Pkt(device string, port string, pkt gopa
 }
 
 // processIgmpQueries to process the igmp queries
-func (va *VoltApplication) processIgmpQueries(device string, pktVlan of.VlanType, version uint8) {
+func (va *VoltApplication) processIgmpQueries(cntx context.Context, device string, pktVlan of.VlanType, version uint8) {
 	// This is a generic query and respond with all the groups channels in currently being viewed.
 	processquery := func(key interface{}, value interface{}) bool {
 		ig := value.(*IgmpGroup)
@@ -1105,7 +1106,7 @@ func (va *VoltApplication) processIgmpQueries(device string, pktVlan of.VlanType
 		}
 		processQueryForEachChannel := func(key interface{}, value interface{}) bool {
 			groupAddr := key.(string)
-			igd.ProcessQuery(net.ParseIP(groupAddr), version)
+			igd.ProcessQuery(cntx, net.ParseIP(groupAddr), version)
 			return true
 		}
 		igd.GroupChannels.Range(processQueryForEachChannel)
@@ -1143,7 +1144,7 @@ func isIncl(recordType layers.IGMPv3GroupRecordType) bool {
 
 // IgmpProcessPkt to process the IGMP packet received. The packet received brings along with it
 // the port on which the packet is received and the device the port is in.
-func (va *VoltApplication) IgmpProcessPkt(device string, port string, pkt gopacket.Packet) {
+func (va *VoltApplication) IgmpProcessPkt(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	igmpl := pkt.Layer(layers.LayerTypeIGMP)
 	if igmpl == nil {
 		logger.Error(ctx, "Invalid IGMP packet arrived as IGMP packet")
@@ -1152,12 +1153,12 @@ func (va *VoltApplication) IgmpProcessPkt(device string, port string, pkt gopack
 	if igmp, ok := igmpl.(*layers.IGMPv1or2); ok {
 		// This is an IGMPv2 packet.
 		logger.Debugw(ctx, "IGMPv2 Packet Received", log.Fields{"IPAddr": igmp.GroupAddress})
-		va.ProcessIgmpv2Pkt(device, port, pkt)
+		va.ProcessIgmpv2Pkt(cntx, device, port, pkt)
 		return
 	}
 	if igmpv3, ok := igmpl.(*layers.IGMP); ok {
 		logger.Debugw(ctx, "IGMPv3 Packet Received", log.Fields{"NumOfGroups": igmpv3.NumberOfGroupRecords})
-		va.ProcessIgmpv3Pkt(device, port, pkt)
+		va.ProcessIgmpv3Pkt(cntx, device, port, pkt)
 	}
 }
 
@@ -1180,8 +1181,8 @@ func (va *VoltApplication) deleteMvlansMap(mvlan of.VlanType, name string) {
 }
 
 // RestoreMvlansFromDb to read from the DB and restore all the MVLANs
-func (va *VoltApplication) RestoreMvlansFromDb() {
-	mvlans, _ := db.GetMvlans()
+func (va *VoltApplication) RestoreMvlansFromDb(cntx context.Context) {
+	mvlans, _ := db.GetMvlans(cntx)
 	for _, mvlan := range mvlans {
 		b, ok := mvlan.Value.([]byte)
 		if !ok {
@@ -1223,7 +1224,7 @@ func (va *VoltApplication) GetMvlanProfileByName(name string) *MvlanProfile {
 }
 
 //UpdateMvlanProfile - only channel groups be updated
-func (va *VoltApplication) UpdateMvlanProfile(name string, vlan of.VlanType, groups map[string][]string, activeChannelCount int, proxy map[string]common.MulticastGroupProxy) error {
+func (va *VoltApplication) UpdateMvlanProfile(cntx context.Context, name string, vlan of.VlanType, groups map[string][]string, activeChannelCount int, proxy map[string]common.MulticastGroupProxy) error {
 
 	mvpIntf, ok := va.MvlanProfilesByName.Load(name)
 	if !ok {
@@ -1256,7 +1257,7 @@ func (va *VoltApplication) UpdateMvlanProfile(name string, vlan of.VlanType, gro
 		logger.Info(ctx, "No change in groups config")
 		if uint32(activeChannelCount) != mvp.MaxActiveChannels {
 			mvp.MaxActiveChannels = uint32(activeChannelCount)
-			if err := mvp.WriteToDb(); err != nil {
+			if err := mvp.WriteToDb(cntx); err != nil {
 				logger.Errorw(ctx, "Mvlan profile Write to DB failed", log.Fields{"ProfileName": mvp.Name})
 			}
 			if prevMaxActiveChannels != mvp.MaxActiveChannels {
@@ -1275,7 +1276,7 @@ func (va *VoltApplication) UpdateMvlanProfile(name string, vlan of.VlanType, gro
 	mvp.oldGroups = existingGroup
 	mvp.oldProxy = existingProxy
 	va.storeMvlansMap(vlan, name, mvp)
-	if err := mvp.WriteToDb(); err != nil {
+	if err := mvp.WriteToDb(cntx); err != nil {
 		logger.Errorw(ctx, "Mvlan profile Write to DB failed", log.Fields{"ProfileName": mvp.Name})
 	}
 	if prevMaxActiveChannels != mvp.MaxActiveChannels {
@@ -1321,7 +1322,7 @@ func (va *VoltApplication) deleteMcastConfig(oltSerialNum string, mvlanProfID st
 }
 
 // AddMcastConfig for addition of a MVLAN profile
-func (va *VoltApplication) AddMcastConfig(MvlanProfileID string, IgmpProfileID string, IgmpProxyIP string, OltSerialNum string) error {
+func (va *VoltApplication) AddMcastConfig(cntx context.Context, MvlanProfileID string, IgmpProfileID string, IgmpProxyIP string, OltSerialNum string) error {
 	var mcastCfg *McastConfig
 
 	mcastCfg = va.GetMcastConfig(OltSerialNum, MvlanProfileID)
@@ -1371,61 +1372,61 @@ func (va *VoltApplication) AddMcastConfig(MvlanProfileID string, IgmpProfileID s
 	va.IgmpGroups.Range(iterIgmpGroups)
 
 	va.storeMcastConfig(OltSerialNum, MvlanProfileID, mcastCfg)
-	if err := mcastCfg.WriteToDb(); err != nil {
+	if err := mcastCfg.WriteToDb(cntx); err != nil {
 		logger.Errorw(ctx, "McastConfig Write to DB failed", log.Fields{"OltSerialNum": mcastCfg.OltSerialNum, "MvlanProfileID": mcastCfg.MvlanProfileID})
 	}
-	va.addOltToMvlan(MvlanProfileID, OltSerialNum)
+	va.addOltToMvlan(cntx, MvlanProfileID, OltSerialNum)
 
 	return nil
 }
 
-func (va *VoltApplication) addOltToMvlan(MvlanProfileID string, OltSerialNum string) {
+func (va *VoltApplication) addOltToMvlan(cntx context.Context, MvlanProfileID string, OltSerialNum string) {
 	var mvp *MvlanProfile
 	if mvpIntf, ok := va.MvlanProfilesByName.Load(MvlanProfileID); ok {
 		servVersion := IgmpVersion0
 		mvp = mvpIntf.(*MvlanProfile)
 		mvp.DevicesList[OltSerialNum] = NoOp
 		mvp.IgmpServVersion[OltSerialNum] = &servVersion
-		if err := mvp.WriteToDb(); err != nil {
+		if err := mvp.WriteToDb(cntx); err != nil {
 			logger.Errorw(ctx, "Mvlan profile Write to DB failed", log.Fields{"ProfileName": mvp.Name})
 		}
-		mvp.pushIgmpMcastFlows(OltSerialNum)
+		mvp.pushIgmpMcastFlows(cntx, OltSerialNum)
 	}
 }
 
-func (va *VoltApplication) delOltFromMvlan(MvlanProfileID string, OltSerialNum string) {
+func (va *VoltApplication) delOltFromMvlan(cntx context.Context, MvlanProfileID string, OltSerialNum string) {
 	var mvp *MvlanProfile
 	if mvpIntf, ok := va.MvlanProfilesByName.Load(MvlanProfileID); ok {
 		mvp = mvpIntf.(*MvlanProfile)
 		//Delete from mvp list
-		mvp.removeIgmpMcastFlows(OltSerialNum)
+		mvp.removeIgmpMcastFlows(cntx, OltSerialNum)
 		delete(mvp.DevicesList, OltSerialNum)
-		if err := mvp.WriteToDb(); err != nil {
+		if err := mvp.WriteToDb(cntx); err != nil {
 			logger.Errorw(ctx, "Mvlan profile Write to DB failed", log.Fields{"ProfileName": mvp.Name})
 		}
 	}
 }
 
 // DelMcastConfig for addition of a MVLAN profile
-func (va *VoltApplication) DelMcastConfig(MvlanProfileID string, IgmpProfileID string, IgmpProxyIP string, OltSerialNum string) {
+func (va *VoltApplication) DelMcastConfig(cntx context.Context, MvlanProfileID string, IgmpProfileID string, IgmpProxyIP string, OltSerialNum string) {
 
-	va.delOltFromMvlan(MvlanProfileID, OltSerialNum)
+	va.delOltFromMvlan(cntx, MvlanProfileID, OltSerialNum)
 	va.deleteMcastConfig(OltSerialNum, MvlanProfileID)
-	_ = db.DelMcastConfig(McastConfigKey(OltSerialNum, MvlanProfileID))
+	_ = db.DelMcastConfig(cntx, McastConfigKey(OltSerialNum, MvlanProfileID))
 	if d := va.GetDeviceBySerialNo(OltSerialNum); d != nil {
 		if mvp := va.GetMvlanProfileByName(MvlanProfileID); mvp != nil {
-			va.RemoveGroupsFromPendingPool(d.Name, mvp.Mvlan)
+			va.RemoveGroupsFromPendingPool(cntx, d.Name, mvp.Mvlan)
 		}
 	}
 }
 
 // DelAllMcastConfig for deletion of all mcast config
-func (va *VoltApplication) DelAllMcastConfig(OltSerialNum string) error {
+func (va *VoltApplication) DelAllMcastConfig(cntx context.Context, OltSerialNum string) error {
 
 	deleteIndividualMcastConfig := func(key interface{}, value interface{}) bool {
 		mcastCfg := value.(*McastConfig)
 		if mcastCfg.OltSerialNum == OltSerialNum {
-			va.DelMcastConfig(mcastCfg.MvlanProfileID, mcastCfg.IgmpProfileID, mcastCfg.IgmpProxyIP.String(), mcastCfg.OltSerialNum)
+			va.DelMcastConfig(cntx, mcastCfg.MvlanProfileID, mcastCfg.IgmpProfileID, mcastCfg.IgmpProxyIP.String(), mcastCfg.OltSerialNum)
 		}
 		return true
 	}
@@ -1434,7 +1435,7 @@ func (va *VoltApplication) DelAllMcastConfig(OltSerialNum string) error {
 }
 
 // UpdateMcastConfig for addition of a MVLAN profile
-func (va *VoltApplication) UpdateMcastConfig(MvlanProfileID string, IgmpProfileID string, IgmpProxyIP string, OltSerialNum string) error {
+func (va *VoltApplication) UpdateMcastConfig(cntx context.Context, MvlanProfileID string, IgmpProfileID string, IgmpProxyIP string, OltSerialNum string) error {
 
 	mcastCfg := va.GetMcastConfig(OltSerialNum, MvlanProfileID)
 	if mcastCfg == nil {
@@ -1463,7 +1464,7 @@ func (va *VoltApplication) UpdateMcastConfig(MvlanProfileID string, IgmpProfileI
 		mcastCfg.IgmpGroupDevices.Range(updateIgdProxyCfg)
 	}
 
-	if err := mcastCfg.WriteToDb(); err != nil {
+	if err := mcastCfg.WriteToDb(cntx); err != nil {
 		logger.Errorw(ctx, "McastConfig Write to DB failed", log.Fields{"OltSerialNum": mcastCfg.OltSerialNum, "MvlanProfileID": mcastCfg.MvlanProfileID})
 	}
 
@@ -1471,21 +1472,21 @@ func (va *VoltApplication) UpdateMcastConfig(MvlanProfileID string, IgmpProfileI
 }
 
 // WriteToDb is utility to write Mcast config Info to database
-func (mc *McastConfig) WriteToDb() error {
+func (mc *McastConfig) WriteToDb(cntx context.Context) error {
 	mc.Version = database.PresentVersionMap[database.McastConfigPath]
 	b, err := json.Marshal(mc)
 	if err != nil {
 		return err
 	}
-	if err1 := db.PutMcastConfig(McastConfigKey(mc.OltSerialNum, mc.MvlanProfileID), string(b)); err1 != nil {
+	if err1 := db.PutMcastConfig(cntx, McastConfigKey(mc.OltSerialNum, mc.MvlanProfileID), string(b)); err1 != nil {
 		return err1
 	}
 	return nil
 }
 
 // RestoreMcastConfigsFromDb to read from the DB and restore Mcast configs
-func (va *VoltApplication) RestoreMcastConfigsFromDb() {
-	mcastConfigs, _ := db.GetMcastConfigs()
+func (va *VoltApplication) RestoreMcastConfigsFromDb(cntx context.Context) {
+	mcastConfigs, _ := db.GetMcastConfigs(cntx)
 	for hash, mcastConfig := range mcastConfigs {
 		b, ok := mcastConfig.Value.([]byte)
 		if !ok {
@@ -1504,7 +1505,7 @@ func (va *VoltApplication) RestoreMcastConfigsFromDb() {
 }
 
 // AddMvlanProfile for addition of a MVLAN profile
-func (va *VoltApplication) AddMvlanProfile(name string, mvlan of.VlanType, ponVlan of.VlanType,
+func (va *VoltApplication) AddMvlanProfile(cntx context.Context, name string, mvlan of.VlanType, ponVlan of.VlanType,
 	groups map[string][]string, isChannelBasedGroup bool, OLTSerialNum []string, activeChannelsPerPon int, proxy map[string]common.MulticastGroupProxy) error {
 	var mvp *MvlanProfile
 
@@ -1518,7 +1519,7 @@ func (va *VoltApplication) AddMvlanProfile(name string, mvlan of.VlanType, ponVl
 			if mvp.DevicesList[serialNum] != Nil {
 				//This is backup restore scenario, just update the profile
 				logger.Info(ctx, "Add Mvlan : Profile Name already exists, update-the-profile")
-				return va.UpdateMvlanProfile(name, mvlan, groups, activeChannelsPerPon, proxy)
+				return va.UpdateMvlanProfile(cntx, name, mvlan, groups, activeChannelsPerPon, proxy)
 			}
 		}
 	}
@@ -1546,7 +1547,7 @@ func (va *VoltApplication) AddMvlanProfile(name string, mvlan of.VlanType, ponVl
 	logger.Debugw(ctx, "Added MVLAN Profile", log.Fields{"MVLAN": mvp.Mvlan, "PonVlan": mvp.PonVlan, "Name": mvp.Name, "Grp IPs": mvp.Groups, "IsPonVlanPresent": mvp.IsPonVlanPresent})
 	mvp.mvpLock.Unlock()
 
-	if err := mvp.WriteToDb(); err != nil {
+	if err := mvp.WriteToDb(cntx); err != nil {
 		logger.Errorw(ctx, "Mvlan profile Write to DB failed", log.Fields{"ProfileName": mvp.Name})
 	}
 
@@ -1570,7 +1571,7 @@ func (va *VoltApplication) GetMvlanProfileForMcIP(profileName string, ip net.IP)
 }
 
 // IgmpTick for igmp tick info
-func (va *VoltApplication) IgmpTick() {
+func (va *VoltApplication) IgmpTick(cntx context.Context) {
 	tickCount++
 	if (tickCount % 1000) == 0 {
 		logger.Debugw(ctx, "Time @ Tick", log.Fields{"Tick": tickCount, "Time": time.Now()})
@@ -1580,10 +1581,10 @@ func (va *VoltApplication) IgmpTick() {
 		if ig.NumDevicesActive() != 0 {
 			if tickCount%10 == ig.Hash()%10 {
 				ig.IgmpGroupLock.Lock()
-				ig.Tick()
+				ig.Tick(cntx)
 				ig.IgmpGroupLock.Unlock()
 				if ig.NumDevicesActive() == 0 {
-					va.DelIgmpGroup(ig)
+					va.DelIgmpGroup(cntx, ig)
 				}
 			}
 		}
@@ -1600,12 +1601,12 @@ func (va *VoltApplication) Tick() {
 }
 
 //AddIgmpProfile for addition of IGMP Profile
-func (va *VoltApplication) AddIgmpProfile(igmpProfileConfig *common.IGMPConfig) error {
+func (va *VoltApplication) AddIgmpProfile(cntx context.Context, igmpProfileConfig *common.IGMPConfig) error {
 	var igmpProfile *IgmpProfile
 
 	if igmpProfileConfig.ProfileID == DefaultIgmpProfID {
 		logger.Info(ctx, "Updating default IGMP profile")
-		return va.UpdateIgmpProfile(igmpProfileConfig)
+		return va.UpdateIgmpProfile(cntx, igmpProfileConfig)
 	}
 
 	igmpProfile = va.checkIgmpProfileMap(igmpProfileConfig.ProfileID)
@@ -1618,7 +1619,7 @@ func (va *VoltApplication) AddIgmpProfile(igmpProfileConfig *common.IGMPConfig) 
 
 	va.storeIgmpProfileMap(igmpProfileConfig.ProfileID, igmpProfile)
 
-	if err := igmpProfile.WriteToDb(); err != nil {
+	if err := igmpProfile.WriteToDb(cntx); err != nil {
 		logger.Errorw(ctx, "Igmp profile Write to DB failed", log.Fields{"profileID": igmpProfile.ProfileID})
 	}
 
@@ -1633,7 +1634,7 @@ func (va *VoltApplication) checkIgmpProfileMap(name string) *IgmpProfile {
 	return nil
 }
 
-func (va *VoltApplication) resetIgmpProfileToDefault() {
+func (va *VoltApplication) resetIgmpProfileToDefault(cntx context.Context) {
 	igmpProf := va.getIgmpProfileMap(DefaultIgmpProfID)
 	defIgmpProf := newDefaultIgmpProfile()
 
@@ -1651,7 +1652,7 @@ func (va *VoltApplication) resetIgmpProfileToDefault() {
 	igmpProf.IgmpVerToServer = defIgmpProf.IgmpVerToServer
 	igmpProf.IgmpSourceIP = defIgmpProf.IgmpSourceIP
 
-	if err := igmpProf.WriteToDb(); err != nil {
+	if err := igmpProf.WriteToDb(cntx); err != nil {
 		logger.Errorw(ctx, "Igmp profile Write to DB failed", log.Fields{"profileID": igmpProf.ProfileID})
 	}
 }
@@ -1678,11 +1679,11 @@ func (va *VoltApplication) deleteIgmpProfileMap(name string) {
 }
 
 //DelIgmpProfile for addition of IGMP Profile
-func (va *VoltApplication) DelIgmpProfile(igmpProfileConfig *common.IGMPConfig) error {
+func (va *VoltApplication) DelIgmpProfile(cntx context.Context, igmpProfileConfig *common.IGMPConfig) error {
 	// Deletion of default igmp profile is blocked from submgr. Keeping additional check for safety.
 	if igmpProfileConfig.ProfileID == DefaultIgmpProfID {
 		logger.Info(ctx, "Resetting default IGMP profile")
-		va.resetIgmpProfileToDefault()
+		va.resetIgmpProfileToDefault(cntx)
 		return nil
 	}
 	igmpProfile := va.checkIgmpProfileMap(igmpProfileConfig.ProfileID)
@@ -1693,13 +1694,13 @@ func (va *VoltApplication) DelIgmpProfile(igmpProfileConfig *common.IGMPConfig) 
 
 	va.deleteIgmpProfileMap(igmpProfileConfig.ProfileID)
 
-	_ = db.DelIgmpProfile(igmpProfileConfig.ProfileID)
+	_ = db.DelIgmpProfile(cntx, igmpProfileConfig.ProfileID)
 
 	return nil
 }
 
 //UpdateIgmpProfile for addition of IGMP Profile
-func (va *VoltApplication) UpdateIgmpProfile(igmpProfileConfig *common.IGMPConfig) error {
+func (va *VoltApplication) UpdateIgmpProfile(cntx context.Context, igmpProfileConfig *common.IGMPConfig) error {
 	igmpProfile := va.checkIgmpProfileMap(igmpProfileConfig.ProfileID)
 	if igmpProfile == nil {
 		logger.Errorw(ctx, "Igmp Profile not found. Unable to update", log.Fields{"Profile ID": igmpProfileConfig.ProfileID})
@@ -1738,7 +1739,7 @@ func (va *VoltApplication) UpdateIgmpProfile(igmpProfileConfig *common.IGMPConfi
 		igmpProfile.IgmpSourceIP = net.ParseIP(igmpProfileConfig.IgmpSourceIP)
 	}
 
-	if err := igmpProfile.WriteToDb(); err != nil {
+	if err := igmpProfile.WriteToDb(cntx); err != nil {
 		logger.Errorw(ctx, "Igmp profile Write to DB failed", log.Fields{"profileID": igmpProfile.ProfileID})
 	}
 
@@ -1746,9 +1747,9 @@ func (va *VoltApplication) UpdateIgmpProfile(igmpProfileConfig *common.IGMPConfi
 }
 
 // RestoreIGMPProfilesFromDb to read from the DB and restore IGMP Profiles
-func (va *VoltApplication) RestoreIGMPProfilesFromDb() {
+func (va *VoltApplication) RestoreIGMPProfilesFromDb(cntx context.Context) {
 	// Loading IGMP profiles
-	igmpProfiles, _ := db.GetIgmpProfiles()
+	igmpProfiles, _ := db.GetIgmpProfiles(cntx)
 	for _, igmpProfile := range igmpProfiles {
 		b, ok := igmpProfile.Value.([]byte)
 		if !ok {
@@ -1777,13 +1778,13 @@ func (va *VoltApplication) InitIgmpSrcMac() {
 }
 
 // DelMvlanProfile for deletion of a MVLAN group
-func (va *VoltApplication) DelMvlanProfile(name string) error {
+func (va *VoltApplication) DelMvlanProfile(cntx context.Context, name string) error {
 	if mvpIntf, ok := va.MvlanProfilesByName.Load(name); ok {
 		mvp := mvpIntf.(*MvlanProfile)
 
 		if len(mvp.DevicesList) == 0 {
 			mvp.DeleteInProgress = true
-			mvp.DelFromDb()
+			mvp.DelFromDb(cntx)
 			va.deleteMvlansMap(mvp.Mvlan, name)
 			logger.Debugw(ctx, "Deleted MVLAN Profile", log.Fields{"Name": mvp.Name})
 		} else {
@@ -1839,7 +1840,7 @@ func sendGeneralQuery(device string, port string, cVlan of.VlanType, pbit uint8,
 }
 
 // ReceiverDownInd to send receiver down indication
-func (va *VoltApplication) ReceiverDownInd(device string, port string) {
+func (va *VoltApplication) ReceiverDownInd(cntx context.Context, device string, port string) {
 	logger.Infow(ctx, " Receiver Indication: DOWN", log.Fields{"device": device, "port": port})
 
 	ponPortID := va.GetPonPortID(device, port)
@@ -1847,10 +1848,10 @@ func (va *VoltApplication) ReceiverDownInd(device string, port string) {
 	del := func(key interface{}, value interface{}) bool {
 		ig := value.(*IgmpGroup)
 		ig.IgmpGroupLock.Lock()
-		ig.DelReceiveronDownInd(device, port, ponPortID)
+		ig.DelReceiveronDownInd(cntx, device, port, ponPortID)
 		ig.IgmpGroupLock.Unlock()
 		if ig.NumDevicesActive() == 0 {
-			va.DelIgmpGroup(ig)
+			va.DelIgmpGroup(cntx, ig)
 		}
 		return true
 	}

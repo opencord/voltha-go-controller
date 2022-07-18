@@ -97,7 +97,7 @@ func (att *AuditTablesTask) Start(ctx context.Context, taskID uint8) error {
 	}
 
 	// Audit the flows
-	if err = att.AuditFlows(); err != nil {
+	if err = att.AuditFlows(ctx); err != nil {
 		logger.Errorw(ctx, "Audit Flows Failed", log.Fields{"Reason": err.Error()})
 		errInfo = err
 	}
@@ -211,7 +211,7 @@ func (att *AuditTablesTask) DelExcessMeters(meters map[uint32]*ofp.OfpMeterStats
 // voltha and identifying the delta between the ones held here and the
 // ones held at VOLTHA. The delta must be cleaned up to keep both the
 // components in sync
-func (att *AuditTablesTask) AuditFlows() error {
+func (att *AuditTablesTask) AuditFlows(cntx context.Context) error {
 
 	if att.stop {
 		return tasks.ErrTaskCancelError
@@ -267,7 +267,7 @@ func (att *AuditTablesTask) AuditFlows() error {
 			defaultSuccessFlowStatus.Cookie = strconv.FormatUint(flow.Cookie, 10)
 
 			logger.Infow(ctx, "Triggering Internal Flow Notification", log.Fields{"Flow Status": defaultSuccessFlowStatus})
-			GetController().ProcessFlowModResultIndication(defaultSuccessFlowStatus)
+			GetController().ProcessFlowModResultIndication(cntx, defaultSuccessFlowStatus)
 		} else {
 			// The flow exists at the controller but not at the device
 			// Push the flow to the device
@@ -280,9 +280,9 @@ func (att *AuditTablesTask) AuditFlows() error {
 	if !att.stop {
 		//  The flows remaining in the received flows are the excess flows at
 		// the device. Delete those flows
-		att.DelExcessFlows(rcvdFlows)
+		att.DelExcessFlows(cntx, rcvdFlows)
 		// Add the flows missing at the device
-		att.AddMissingFlows(flowsToAdd)
+		att.AddMissingFlows(cntx, flowsToAdd)
 	} else {
 		err = tasks.ErrTaskCancelError
 	}
@@ -291,7 +291,7 @@ func (att *AuditTablesTask) AuditFlows() error {
 
 // AddMissingFlows : The flows missing from the device are reinstalled att the audit
 // The flows are added into a VoltFlow structure.
-func (att *AuditTablesTask) AddMissingFlows(mflow *of.VoltFlow) {
+func (att *AuditTablesTask) AddMissingFlows(cntx context.Context, mflow *of.VoltFlow) {
 	logger.Debugw(ctx, "Add Missing Flows", log.Fields{"Number": len(mflow.SubFlows)})
 	mflow.Command = of.CommandAdd
 	ofFlows := of.ProcessVoltFlow(att.device.ID, mflow.Command, mflow.SubFlows)
@@ -314,12 +314,12 @@ func (att *AuditTablesTask) AddMissingFlows(mflow *of.VoltFlow) {
 		if _, err = vc.UpdateLogicalDeviceFlowTable(att.ctx, flow); err != nil {
 			logger.Errorw(ctx, "Update Flow Table Failed", log.Fields{"Reason": err.Error()})
 		}
-		att.device.triggerFlowResultNotification(flow.FlowMod.Cookie, dbFlow, of.CommandAdd, bwConsumedInfo, err)
+		att.device.triggerFlowResultNotification(cntx, flow.FlowMod.Cookie, dbFlow, of.CommandAdd, bwConsumedInfo, err)
 	}
 }
 
 // DelExcessFlows delete the excess flows held at the VOLTHA
-func (att *AuditTablesTask) DelExcessFlows(flows map[uint64]*ofp.OfpFlowStats) {
+func (att *AuditTablesTask) DelExcessFlows(cntx context.Context, flows map[uint64]*ofp.OfpFlowStats) {
 	logger.Debugw(ctx, "Deleting Excess Flows", log.Fields{"Number of Flows": len(flows)})
 
 	var vc voltha.VolthaServiceClient
@@ -362,7 +362,7 @@ func (att *AuditTablesTask) DelExcessFlows(flows map[uint64]*ofp.OfpFlowStats) {
 		if _, err = vc.UpdateLogicalDeviceFlowTable(att.ctx, flowUpdate); err != nil {
 			logger.Errorw(ctx, "Flow Audit Delete Failed", log.Fields{"Reason": err.Error()})
 		}
-		att.device.triggerFlowResultNotification(flow.Cookie, nil, of.CommandDel, of.BwAvailDetails{}, err)
+		att.device.triggerFlowResultNotification(cntx, flow.Cookie, nil, of.CommandDel, of.BwAvailDetails{}, err)
 	}
 }
 

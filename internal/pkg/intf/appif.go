@@ -15,23 +15,25 @@
 
 package intf
 
+import "context"
+
 // App Interface
 type App interface {
-	PortAddInd(string, uint32, string)
-	PortDelInd(string, string)
+	PortAddInd(context.Context, string, uint32, string)
+	PortDelInd(context.Context, string, string)
 	PortUpdateInd(string, string, uint32)
-	PacketInInd(string, string, []byte)
-	PortUpInd(string, string)
-	PortDownInd(string, string)
-	AddDevice(string, string, string)
+	PacketInInd(context.Context, string, string, []byte)
+	PortUpInd(context.Context, string, string)
+	PortDownInd(context.Context, string, string)
+	AddDevice(context.Context, string, string, string)
 	DeviceUpInd(string)
 	DeviceDownInd(string)
-	DelDevice(string)
+	DelDevice(context.Context, string)
 	SetRebootFlag(bool)
-	ProcessFlowModResultIndication(FlowStatus)
-	DeviceRebootInd(string, string, string)
-	DeviceDisableInd(string)
-	UpdateMvlanProfilesForDevice(string)
-	TriggerPendingProfileDeleteReq(string)
-	TriggerPendingMigrateServicesReq(string)
+	ProcessFlowModResultIndication(context.Context, FlowStatus)
+	DeviceRebootInd(context.Context, string, string, string)
+	DeviceDisableInd(context.Context, string)
+	UpdateMvlanProfilesForDevice(context.Context, string)
+	TriggerPendingProfileDeleteReq(context.Context, string)
+	TriggerPendingMigrateServicesReq(context.Context, string)
 }

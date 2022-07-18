@@ -18,6 +18,7 @@ package application
 import (
 	"encoding/json"
 	"errors"
+	"context"
 	"sync"
 
 	cntlr "voltha-go-controller/internal/pkg/controller"
@@ -87,21 +88,21 @@ type VoltMeter struct {
 }
 
 // WriteToDb to write a meter profile to DB
-func (vm *VoltMeter) WriteToDb() error {
+func (vm *VoltMeter) WriteToDb(cntx context.Context) error {
 	vm.Version = database.PresentVersionMap[database.MeterPath]
 	b, err := json.Marshal(vm)
 	if err != nil {
 		return err
 	}
-	if err1 := db.PutMeter(vm.Name, string(b)); err1 != nil {
+	if err1 := db.PutMeter(cntx, vm.Name, string(b)); err1 != nil {
 		return err1
 	}
 	return nil
 }
 
 // DelFromDb to delete a meter profile from DB
-func (vm *VoltMeter) DelFromDb() {
-	_ = db.DelMeter(vm.Name)
+func (vm *VoltMeter) DelFromDb(cntx context.Context) {
+	_ = db.DelMeter(cntx, vm.Name)
 }
 
 // GetMeterByName to get meter by name
@@ -215,10 +216,10 @@ func (m *MeterMgr) AddMeterToDevice(port string, device string, meterID uint32, 
 }
 
 // RestoreMetersFromDb to read from the DB and restore all the services
-func (m *MeterMgr) RestoreMetersFromDb() {
+func (m *MeterMgr) RestoreMetersFromDb(cntx context.Context) {
 	// VNETS must be learnt first
 	logger.Infow(ctx, "LastMeterID on restart", log.Fields{"LastMeterID": m.LastMeterID})
-	ms, _ := db.GetMeters()
+	ms, _ := db.GetMeters(cntx)
 	for _, mt := range ms {
 		b, ok := mt.Value.([]byte)
 		if !ok {
@@ -241,7 +242,7 @@ func (m *MeterMgr) RestoreMetersFromDb() {
 }
 
 // AddMeterProf to add the meter profile name as key
-func (va *VoltApplication) AddMeterProf(cfg VoltMeter) {
+func (va *VoltApplication) AddMeterProf(cntx context.Context, cfg VoltMeter) {
 
 	mm := &va.MeterMgr
 	if _, ok := mm.GetMeterByName(cfg.Name); ok {
@@ -256,20 +257,20 @@ func (va *VoltApplication) AddMeterProf(cfg VoltMeter) {
 	id := mm.LastMeterID
 	cfg.ID = id
 	mm.AddMeter(&cfg)
-	if err := cfg.WriteToDb(); err != nil {
+	if err := cfg.WriteToDb(cntx); err != nil {
 		logger.Warnw(ctx, "MeterProf Write to DB Failed", log.Fields{"MeterConfig": cfg, "Error": err})
 	}
 }
 
 // UpdateMeterProf to update the meter profile
-func (va *VoltApplication) UpdateMeterProf(cfg VoltMeter) {
+func (va *VoltApplication) UpdateMeterProf(cntx context.Context, cfg VoltMeter) {
 	mm := &va.MeterMgr
 	if _, ok := mm.GetMeterByName(cfg.Name); !ok {
 		logger.Warnw(ctx, "Meter profile does not exist", log.Fields{"Name": cfg.Name})
 		return
 	}
 	mm.AddMeter(&cfg)
-	if err := cfg.WriteToDb(); err != nil {
+	if err := cfg.WriteToDb(cntx); err != nil {
 		logger.Warnw(ctx, "MeterProf Write to DB Failed", log.Fields{"MeterConfig": cfg, "Error": err})
 	}
 }
@@ -304,7 +305,7 @@ func (vm *VoltMeter) DeleteFromDevice(port string, device string) {
 }
 
 // DelMeterProf to delete meter profile
-func (va *VoltApplication) DelMeterProf(name string) error {
+func (va *VoltApplication) DelMeterProf(cntx context.Context, name string) error {
 	mm := &va.MeterMgr
 	if _, ok := mm.GetMeterByName(name); !ok {
 		logger.Warnw(ctx, "Meter profile does not exist", log.Fields{"Name": name})
@@ -324,7 +325,7 @@ func (va *VoltApplication) DelMeterProf(name string) error {
 		return true
 	}
 	va.DevicesDisc.Range(delmeterFromDevice)
-	cfg.DelFromDb()
+	cfg.DelFromDb(cntx)
 	//Delete meter from device will be invoked by caller separately
 	mm.DelMeter(cfg)
 	return nil

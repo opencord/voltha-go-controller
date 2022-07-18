@@ -17,6 +17,7 @@ package nbi
 
 import (
         "bytes"
+	"context"
         "encoding/json"
         "net/http"
         "strconv"
@@ -76,16 +77,16 @@ func (iph *MulticastHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
         switch r.Method {
         case "POST":
-                iph.AddMvlanInfo(w, r)
+                iph.AddMvlanInfo(context.Background(), w, r)
         case "DELETE":
-                iph.DelMvlanInfo(w, r)
+                iph.DelMvlanInfo(context.Background(), w, r)
         default:
                 logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
         }
 }
 
 // AddMvlanInfo to add igmp proxy info
-func (iph *MulticastHandle) AddMvlanInfo(w http.ResponseWriter, r *http.Request) {
+func (iph *MulticastHandle) AddMvlanInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 
         // Get the payload to process the request
         d := new(bytes.Buffer)
@@ -104,15 +105,15 @@ func (iph *MulticastHandle) AddMvlanInfo(w http.ResponseWriter, r *http.Request)
         }
         logger.Debugw(ctx, "Received-northbound-add-service-request", log.Fields{"req": req})
 
-        go iph.addMvlan(w, req)
+        go iph.addMvlan(cntx, w, req)
 }
 
 // DelMvlanInfo to delete igmp proxy info
-func (iph *MulticastHandle) DelMvlanInfo(w http.ResponseWriter, r *http.Request) {
+func (iph *MulticastHandle) DelMvlanInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (iph *MulticastHandle) addMvlan(w http.ResponseWriter, req *Mvlan) {
+func (iph *MulticastHandle) addMvlan(cntx context.Context, w http.ResponseWriter, req *Mvlan) {
 	var config MvlanProfile
 	var groups []string
 
@@ -123,7 +124,7 @@ func (iph *MulticastHandle) addMvlan(w http.ResponseWriter, req *Mvlan) {
 	config.Groups = make(map[string][]string)
 	config.Groups["default"] = groups
 
-	if err := app.GetApplication().AddMvlanProfile(config.Name, config.Mvlan, config.PonVlan, config.Groups,
+	if err := app.GetApplication().AddMvlanProfile(cntx, config.Name, config.Mvlan, config.PonVlan, config.Groups,
 							config.IsChannelBasedGroup, config.OLTSerialNum,
 							255, config.Proxy); err != nil {
                 logger.Errorw(ctx, "northbound-add-mvlan-failed", log.Fields{"mvlan": config.Name, "Reason": err.Error()})

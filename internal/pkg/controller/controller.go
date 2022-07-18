@@ -89,16 +89,16 @@ func NewController(ctx context.Context, app intf.App) intf.IVPClientAgent {
 }
 
 // AddDevice to add device
-func (v *VoltController) AddDevice(config *intf.VPClientCfg) intf.IVPClient {
+func (v *VoltController) AddDevice(cntx context.Context, config *intf.VPClientCfg) intf.IVPClient {
 
-	d := NewDevice(config.DeviceID, config.SerialNum, config.VolthaClient, config.SouthBoundID)
+	d := NewDevice(cntx, config.DeviceID, config.SerialNum, config.VolthaClient, config.SouthBoundID)
 	v.devices[config.DeviceID] = d
-	v.app.AddDevice(d.ID, d.SerialNum, config.SouthBoundID)
+	v.app.AddDevice(cntx, d.ID, d.SerialNum, config.SouthBoundID)
 
-	d.RestoreMetersFromDb()
-	d.RestoreGroupsFromDb()
-	d.RestoreFlowsFromDb()
-	d.RestorePortsFromDb()
+	d.RestoreMetersFromDb(cntx)
+	d.RestoreGroupsFromDb(cntx)
+	d.RestoreFlowsFromDb(cntx)
+	d.RestorePortsFromDb(cntx)
 	d.ConnectInd(context.TODO(), intf.DeviceDisc)
 	d.packetOutChannel = config.PacketOutChannel
 
@@ -108,13 +108,13 @@ func (v *VoltController) AddDevice(config *intf.VPClientCfg) intf.IVPClient {
 }
 
 // DelDevice to delete device
-func (v *VoltController) DelDevice(id string) {
+func (v *VoltController) DelDevice(cntx context.Context, id string) {
 	d, ok := v.devices[id]
 	if ok {
 		delete(v.devices, id)
 		d.Delete()
 	}
-	v.app.DelDevice(id)
+	v.app.DelDevice(cntx, id)
 	d.cancel() // To stop the device tables sync routine
 	logger.Warnw(ctx, "Deleted device", log.Fields{"Device": id})
 }
@@ -193,27 +193,27 @@ func (v *VoltController) ReSetRebootInProgressForDevice(device string) bool {
 }
 
 // DeviceRebootInd is device reboot indication
-func (v *VoltController) DeviceRebootInd(dID string, srNo string, sbID string) {
-	v.app.DeviceRebootInd(dID, srNo, sbID)
-	_ = db.DelAllRoutesForDevice(dID)
-	_ = db.DelAllGroup(dID)
-	_ = db.DelAllMeter(dID)
-	_ = db.DelAllPONCounters(dID)
+func (v *VoltController) DeviceRebootInd(cntx context.Context, dID string, srNo string, sbID string) {
+	v.app.DeviceRebootInd(cntx, dID, srNo, sbID)
+	_ = db.DelAllRoutesForDevice(cntx, dID)
+	_ = db.DelAllGroup(cntx, dID)
+	_ = db.DelAllMeter(cntx, dID)
+	_ = db.DelAllPONCounters(cntx, dID)
 }
 
 // DeviceDisableInd is device deactivation indication
-func (v *VoltController) DeviceDisableInd(dID string) {
-	v.app.DeviceDisableInd(dID)
+func (v *VoltController) DeviceDisableInd(cntx context.Context, dID string) {
+	v.app.DeviceDisableInd(cntx, dID)
 }
 
 //TriggerPendingProfileDeleteReq - trigger pending profile delete requests
-func (v *VoltController) TriggerPendingProfileDeleteReq(device string) {
-	v.app.TriggerPendingProfileDeleteReq(device)
+func (v *VoltController) TriggerPendingProfileDeleteReq(cntx context.Context, device string) {
+	v.app.TriggerPendingProfileDeleteReq(cntx, device)
 }
 
 //TriggerPendingMigrateServicesReq - trigger pending services migration requests
-func (v *VoltController) TriggerPendingMigrateServicesReq(device string) {
-	v.app.TriggerPendingMigrateServicesReq(device)
+func (v *VoltController) TriggerPendingMigrateServicesReq(cntx context.Context, device string) {
+	v.app.TriggerPendingMigrateServicesReq(cntx, device)
 }
 
 // SetAuditFlags to set the audit flags
@@ -229,8 +229,8 @@ func (v *VoltController) ResetAuditFlags(device *Device) {
 }
 
 //ProcessFlowModResultIndication - send flow mod result notification
-func (v *VoltController) ProcessFlowModResultIndication(flowStatus intf.FlowStatus) {
-	v.app.ProcessFlowModResultIndication(flowStatus)
+func (v *VoltController) ProcessFlowModResultIndication(cntx context.Context, flowStatus intf.FlowStatus) {
+	v.app.ProcessFlowModResultIndication(cntx, flowStatus)
 }
 
 // AddVPAgent to add the vpagent
@@ -259,7 +259,7 @@ func (v *VoltController) PacketOutReq(device string, inport string, outport stri
 }
 
 // AddFlows to add flows
-func (v *VoltController) AddFlows(port string, device string, flow *of.VoltFlow) error {
+func (v *VoltController) AddFlows(cntx context.Context, port string, device string, flow *of.VoltFlow) error {
 	d, err := v.GetDevice(device)
 	if err != nil {
 		logger.Errorw(ctx, "Device Not Found", log.Fields{"Device": device})
@@ -292,10 +292,10 @@ func (v *VoltController) AddFlows(port string, device string, flow *of.VoltFlow)
 		// Actual flow deletion and addition at voltha will happen during flow tables audit.
 		for _, subFlow := range flow.SubFlows {
 			logger.Debugw(ctx, "Cookie Migration Required", log.Fields{"OldCookie": subFlow.OldCookie, "NewCookie": subFlow.Cookie})
-			if err := d.DelFlowWithOldCookie(subFlow); err != nil {
+			if err := d.DelFlowWithOldCookie(cntx, subFlow); err != nil {
 				logger.Errorw(ctx, "Delete flow with old cookie failed", log.Fields{"Error": err, "OldCookie": subFlow.OldCookie})
 			}
-			if err := d.AddFlow(subFlow); err != nil {
+			if err := d.AddFlow(cntx, subFlow); err != nil {
 				logger.Errorw(ctx, "Flow Add Failed", log.Fields{"Error": err, "Cookie": subFlow.Cookie})
 			}
 		}
@@ -310,7 +310,7 @@ func (v *VoltController) AddFlows(port string, device string, flow *of.VoltFlow)
 }
 
 // DelFlows to delete flows
-func (v *VoltController) DelFlows(port string, device string, flow *of.VoltFlow) error {
+func (v *VoltController) DelFlows(cntx context.Context, port string, device string, flow *of.VoltFlow) error {
 	d, err := v.GetDevice(device)
 	if err != nil {
 		logger.Errorw(ctx, "Device Not Found", log.Fields{"Device": device})
@@ -343,7 +343,7 @@ func (v *VoltController) DelFlows(port string, device string, flow *of.VoltFlow)
 		// Actual flow deletion at voltha will happen during flow tables audit.
 		for _, subFlow := range flow.SubFlows {
 			logger.Debugw(ctx, "Old Cookie delete Required", log.Fields{"OldCookie": subFlow.OldCookie})
-			if err := d.DelFlowWithOldCookie(subFlow); err != nil {
+			if err := d.DelFlowWithOldCookie(cntx, subFlow); err != nil {
 				logger.Errorw(ctx, "DelFlowWithOldCookie failed", log.Fields{"OldCookie": subFlow.OldCookie, "Error": err})
 			}
 		}
@@ -400,13 +400,13 @@ func (v *VoltController) ModMeter(port string, device string, command of.MeterCo
 }
 
 // PortAddInd for port add indication
-func (v *VoltController) PortAddInd(device string, id uint32, name string) {
-	v.app.PortAddInd(device, id, name)
+func (v *VoltController) PortAddInd(cntx context.Context, device string, id uint32, name string) {
+	v.app.PortAddInd(cntx, device, id, name)
 }
 
 // PortDelInd for port delete indication
-func (v *VoltController) PortDelInd(device string, port string) {
-	v.app.PortDelInd(device, port)
+func (v *VoltController) PortDelInd(cntx context.Context, device string, port string) {
+	v.app.PortDelInd(cntx, device, port)
 }
 
 // PortUpdateInd for port update indication
@@ -415,13 +415,13 @@ func (v *VoltController) PortUpdateInd(device string, name string, id uint32) {
 }
 
 // PortUpInd for port up indication
-func (v *VoltController) PortUpInd(device string, port string) {
-	v.app.PortUpInd(device, port)
+func (v *VoltController) PortUpInd(cntx context.Context, device string, port string) {
+	v.app.PortUpInd(cntx, device, port)
 }
 
 // PortDownInd for port down indication
-func (v *VoltController) PortDownInd(device string, port string) {
-	v.app.PortDownInd(device, port)
+func (v *VoltController) PortDownInd(cntx context.Context, device string, port string) {
+	v.app.PortDownInd(cntx, device, port)
 }
 
 // DeviceUpInd for device up indication
@@ -435,8 +435,8 @@ func (v *VoltController) DeviceDownInd(device string) {
 }
 
 // PacketInInd for packet in indication
-func (v *VoltController) PacketInInd(device string, port string, data []byte) {
-	v.app.PacketInInd(device, port, data)
+func (v *VoltController) PacketInInd(cntx context.Context, device string, port string, data []byte) {
+	v.app.PacketInInd(cntx, device, port, data)
 }
 
 // GetPortState to get port status
@@ -450,8 +450,8 @@ func (v *VoltController) GetPortState(device string, name string) (PortState, er
 }
 
 // UpdateMvlanProfiles for update mvlan profiles
-func (v *VoltController) UpdateMvlanProfiles(device string) {
-	v.app.UpdateMvlanProfilesForDevice(device)
+func (v *VoltController) UpdateMvlanProfiles(cntx context.Context, device string) {
+	v.app.UpdateMvlanProfilesForDevice(cntx, device)
 }
 
 // GetController to get controller

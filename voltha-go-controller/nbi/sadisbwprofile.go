@@ -17,6 +17,7 @@ package nbi
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -51,18 +52,18 @@ func (mh *ProfileHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
 	case "GET":
-		mh.GetProfile(w, r)
+		mh.GetProfile(context.Background(), w, r)
 	case "POST":
-		mh.AddProfile(w, r)
+		mh.AddProfile(context.Background(), w, r)
 	case "DELETE":
-		mh.DelProfile(w, r)
+		mh.DelProfile(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
 	}
 }
 
 // AddProfile to add meter
-func (mh *ProfileHandle) AddProfile(w http.ResponseWriter, r *http.Request) {
+func (mh *ProfileHandle) AddProfile(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body);  err != nil {
@@ -89,16 +90,16 @@ func (mh *ProfileHandle) AddProfile(w http.ResponseWriter, r *http.Request) {
 		Eir:  req.ExceededInformationRate,
 		Ebs:  req.ExceededBurstSize,
 	}
-	app.GetApplication().AddMeterProf(metercfg)
+	app.GetApplication().AddMeterProf(cntx, metercfg)
 	logger.Debugw(ctx, "northbound-add-meter-successful", log.Fields{"req": req})
 }
 
 // GetProfile to get meter
-func (mh *ProfileHandle) GetProfile(w http.ResponseWriter, r *http.Request) {
+func (mh *ProfileHandle) GetProfile(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 // DelProfile to delete meter
-func (mh *ProfileHandle) DelProfile(w http.ResponseWriter, r *http.Request) {
+func (mh *ProfileHandle) DelProfile(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	//TODO : Change the URL and Mux to fetch meter id from the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body);  err != nil {
@@ -115,7 +116,7 @@ func (mh *ProfileHandle) DelProfile(w http.ResponseWriter, r *http.Request) {
 	logger.Debugw(ctx, "Received-northbound-del-meter-request", log.Fields{"req": req})
 
 	meterName := req.ID
-	if err := app.GetApplication().DelMeterProf(meterName); err != nil {
+	if err := app.GetApplication().DelMeterProf(cntx, meterName); err != nil {
 		logger.Errorw(ctx, "northbound-del-meter-failed", log.Fields{"req": req})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return

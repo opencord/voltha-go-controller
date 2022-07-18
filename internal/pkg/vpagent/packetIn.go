@@ -88,7 +88,7 @@ top:
 			break top
 		case packet := <-vpa.packetInChannel:
 			if vpc := vpa.getVPClient(packet.Id); vpc != nil {
-				vpc.PacketIn(packet)
+				vpc.PacketIn(ctx, packet)
 			}
 		}
 	}

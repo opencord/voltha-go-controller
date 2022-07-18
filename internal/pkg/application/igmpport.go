@@ -16,6 +16,7 @@
 package application
 
 import (
+	"context"
 	"encoding/json"
 	"net"
 
@@ -100,12 +101,12 @@ func (igp *IgmpGroupPort) DelExclSource(src net.IP) {
 }
 
 // WriteToDb is utility to write IGMP Group Port Info to database
-func (igp *IgmpGroupPort) WriteToDb(mvlan of.VlanType, gip net.IP, device string) error {
+func (igp *IgmpGroupPort) WriteToDb(cntx context.Context, mvlan of.VlanType, gip net.IP, device string) error {
         b, err := json.Marshal(igp)
         if err != nil {
                 return err
         }
-        if err1 := db.PutIgmpRcvr(mvlan, gip, device, igp.Port, string(b)); err1 != nil {
+        if err1 := db.PutIgmpRcvr(cntx, mvlan, gip, device, igp.Port, string(b)); err1 != nil {
                 return err1
         }
         return nil

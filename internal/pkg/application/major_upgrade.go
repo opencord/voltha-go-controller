@@ -48,7 +48,7 @@ type DataMigration struct {
 	ModuleVer map[string]string // eg. "service": "v1"
 }
 
-type paramsMigrationFunc func([]byte) string
+type paramsMigrationFunc func(context.Context, []byte) string
 
 //map to store conversion functions
 var migrationMap = map[string]paramsMigrationFunc{
@@ -79,32 +79,32 @@ var migrationMap = map[string]paramsMigrationFunc{
 }
 
 // WriteToDb write a meter profile to DB
-func (md *DataMigration) WriteToDb() error {
+func (md *DataMigration) WriteToDb(cntx context.Context) error {
 	b, err := json.Marshal(md)
 	if err != nil {
 		return err
 	}
-	if err1 := db.PutMigrationInfo(string(b)); err1 != nil {
+	if err1 := db.PutMigrationInfo(cntx, string(b)); err1 != nil {
 		return err1
 	}
 	return nil
 }
 
 // DelFromDb delete a meter profile from DB
-func (md *DataMigration) DelFromDb() {
-	if err := db.DelMigrationInfo(); err != nil {
+func (md *DataMigration) DelFromDb(cntx context.Context) {
+	if err := db.DelMigrationInfo(cntx); err != nil {
 		logger.Warnw(ctx, "DelMigrationInfo Failed", log.Fields{"Error": err})
 	}
 }
 
 // GetMigrationInfo to get data migration info
-func GetMigrationInfo(dmInfo *DataMigration) error {
+func GetMigrationInfo(cntx context.Context, dmInfo *DataMigration) error {
 	var migrationInfo string
 	var err error
 	if db == nil {
 		db = database.GetDatabase()
 	}
-	if migrationInfo, err = db.GetMigrationInfo(); err != nil {
+	if migrationInfo, err = db.GetMigrationInfo(cntx); err != nil {
 		return err
 	}
 	err = json.Unmarshal([]byte(migrationInfo), &dmInfo)
@@ -122,7 +122,7 @@ func GetMigrationInfo(dmInfo *DataMigration) error {
 func CheckIfMigrationRequired(ctx context.Context) bool {
 	Migrate := new(DataMigration)
 	var NoDataInDB bool
-	err := GetMigrationInfo(Migrate)
+	err := GetMigrationInfo(ctx, Migrate)
 	logger.Debugw(ctx, "Migration data", log.Fields{"DataMigration": Migrate})
 	// No DB entry represents N verison Bring Up for the First time
 	if err != nil {
@@ -135,7 +135,7 @@ func CheckIfMigrationRequired(ctx context.Context) bool {
 		Migrate.Version = database.PresentVersion
 		Migrate.Status = MigrationComplete
 		Migrate.ModuleVer = database.PresentVersionMap
-		if err := Migrate.WriteToDb(); err != nil {
+		if err := Migrate.WriteToDb(ctx); err != nil {
 			logger.Errorw(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
 		}
 		//MigrateProbestatus has to be Updated to Complete when No Migration is Required
@@ -191,11 +191,11 @@ func InitiateDataMigration(ctx context.Context) {
 
 	go func() {
 		logger.Debug(ctx, "Started Go Routine for data migration")
-		err = MigrateDBData()
+		err = MigrateDBData(ctx)
 		if err != nil {
 			logger.Errorw(ctx, "Failed to Migrate the Data", log.Fields{"error": err})
 			Migrate.Status = MigrationFailed
-			if err := Migrate.WriteToDb(); err != nil {
+			if err := Migrate.WriteToDb(ctx); err != nil {
 				logger.Errorw(ctx, "DB Write failed to Migration Path", log.Fields{"error": err})
 			}
 		}
@@ -205,7 +205,7 @@ func InitiateDataMigration(ctx context.Context) {
 		Migrate.Version = database.PresentVersion
 		Migrate.Status = MigrationInProgress
 		Migrate.ModuleVer = database.PresentVersionMap
-		if err = Migrate.WriteToDb(); err != nil {
+		if err = Migrate.WriteToDb(ctx); err != nil {
 			logger.Errorw(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
 			return
 		}
@@ -215,7 +215,7 @@ func InitiateDataMigration(ctx context.Context) {
 		if err := recover(); err != nil {
 			logger.Errorw(ctx, "Migration failure due to Exception happend", log.Fields{"reason": err})
 			Migrate.Status = MigrationFailed
-			if err := Migrate.WriteToDb(); err != nil {
+			if err := Migrate.WriteToDb(ctx); err != nil {
 				logger.Errorw(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
 			}
 			//probe.UpdateDBMigrationStatus(ctx, false)
@@ -226,14 +226,14 @@ func InitiateDataMigration(ctx context.Context) {
 	migrationWG.Wait()
 	//probe.UpdateDBMigrationStatus(ctx, true)
 	Migrate.Status = MigrationComplete
-	if err := Migrate.WriteToDb(); err != nil {
+	if err := Migrate.WriteToDb(ctx); err != nil {
 		logger.Errorw(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
 	}
 	logger.Infow(ctx, "Migration completed successfully", log.Fields{"Status": Migrate.Status})
 }
 
 // MigrateDBData to migrate database data
-func MigrateDBData() error {
+func MigrateDBData(cntx context.Context) error {
 
 	var err error
 	for module, currentVersion := range database.PresentVersionMap {
@@ -251,7 +251,7 @@ func MigrateDBData() error {
 				database.DeviceFlowHashPath:
 				err = FetchAndMigrateDeviceDBData(module)
 			default:
-				err = FetchAndMigrateDBData(module)
+				err = FetchAndMigrateDBData(cntx, module)
 			}
 		} else {
 			logger.Infow(ctx, "No Data Migration handling found for module", log.Fields{"Table": module, "Version": currentVersion})
@@ -272,10 +272,10 @@ func FetchAndMigrateDeviceDBData(module string) error {
 }
 
 //FetchAndMigrateDBData fetchs the data from database and migrte the same to latest versions and store ot back ot database
-func FetchAndMigrateDBData(module string) error {
+func FetchAndMigrateDBData(cntx context.Context, module string) error {
 
 	previousPath := database.GetModuleKeypath(module, database.PreviousVersionMap[module])
-	dbPathKeysValueMap, err := db.List(previousPath)
+	dbPathKeysValueMap, err := db.List(cntx, previousPath)
 	if err != nil {
 		logger.Errorw(ctx, "failed to Fetch the Keys from Redis", log.Fields{"error": err})
 		//No return required, Data might not be present in DB
@@ -296,7 +296,7 @@ func FetchAndMigrateDBData(module string) error {
 			return errors.New("Error-in-migration")
 		}
 
-		presentParams := migrationMap[module](b)
+		presentParams := migrationMap[module](cntx, b)
 		logger.Infow(ctx, "Migrated data", log.Fields{"presentParams": presentParams})
 		if "" == presentParams {
 			logger.Error(ctx, "Error in migrating data\n")
@@ -306,7 +306,7 @@ func FetchAndMigrateDBData(module string) error {
 		}
 		presentPath := database.GetKeyPath(module) + hash
 		logger.Infow(ctx, "Before writing to DB", log.Fields{"presentParams": presentParams})
-		if err := db.Put(presentPath, presentParams); err != nil {
+		if err := db.Put(cntx, presentPath, presentParams); err != nil {
 			logger.Errorw(ctx, "Update Params failed", log.Fields{"key": presentPath, "presentparams": presentParams})
 			return err
 		}
@@ -315,7 +315,7 @@ func FetchAndMigrateDBData(module string) error {
 }
 
 //MigrateServices modifyies the old data as per current version requirement and updates the database
-func MigrateServices(data []byte) string {
+func MigrateServices(cntx context.Context, data []byte) string {
 	var vs VoltService
 	var updatedData, updatedData1 []byte
 	var vsmap map[string]interface{}
@@ -356,43 +356,43 @@ func MigrateServices(data []byte) string {
 }
 
 //MigrateDevices modifyies the old data as per current version requirement and updates the database
-func MigrateDevices(data []byte) string {
+func MigrateDevices(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for Devices")
 	return ""
 }
 
 //MigrateDevicePorts modifyies the old data as per current version requirement and updates the database
-func MigrateDevicePorts(data []byte) string {
+func MigrateDevicePorts(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for Ports")
 	return ""
 }
 
 //MigrateDeviceFlows modifyies the old data as per current version requirement and updates the database
-func MigrateDeviceFlows(data []byte) string {
+func MigrateDeviceFlows(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for Flows")
 	return ""
 }
 
 //MigrateDeviceGroups modifyies the old data as per current version requirement and updates the database
-func MigrateDeviceGroups(data []byte) string {
+func MigrateDeviceGroups(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for Groups")
 	return ""
 }
 
 //MigrateDeviceMeters modifyies the old data as per current version requirement and updates the database
-func MigrateDeviceMeters(data []byte) string {
+func MigrateDeviceMeters(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for Meters")
 	return ""
 }
 
 //MigrateDeviceFlowHash modifyies the old data as per current version requirement and updates the database
-func MigrateDeviceFlowHash(data []byte) string {
+func MigrateDeviceFlowHash(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for FlowHash")
 	return ""
 }
 
 //MigrateVnets modifyies the old data as per current version requirement and updates the database
-func MigrateVnets(data []byte) string {
+func MigrateVnets(cntx context.Context, data []byte) string {
 
 	var vnet VoltVnet
 	var updatedData []byte
@@ -423,7 +423,7 @@ func MigrateVnets(data []byte) string {
 }
 
 //MigrateVpvs modifyies the old data as per current version requirement and updates the database
-func MigrateVpvs(data []byte) string {
+func MigrateVpvs(cntx context.Context, data []byte) string {
 	var vpv VoltPortVnet
 	var updatedData, updatedData1 []byte
 	var vpvmap map[string]interface{}
@@ -479,7 +479,7 @@ func MigrateVpvs(data []byte) string {
 }
 
 //MigrateMvlans modifyies the old data as per current version requirement and updates the database
-func MigrateMvlans(data []byte) string {
+func MigrateMvlans(cntx context.Context, data []byte) string {
 	var mvp MvlanProfile
 	var updatedData []byte
 
@@ -504,13 +504,13 @@ func MigrateMvlans(data []byte) string {
 }
 
 //MigrateMeters modifyies the old data as per current version requirement and updates the database
-func MigrateMeters(data []byte) string {
+func MigrateMeters(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for Meters")
 	return ""
 }
 
 //MigrateIgmpConfs modifyies the old data as per current version requirement and updates the database
-func MigrateIgmpConfs(data []byte) string {
+func MigrateIgmpConfs(cntx context.Context, data []byte) string {
 	var igmpProfile IgmpProfile
 
 	err := json.Unmarshal(data, &igmpProfile)
@@ -518,7 +518,7 @@ func MigrateIgmpConfs(data []byte) string {
 		logger.Warn(ctx, "Unmarshal of IGMP failed")
 		return ""
 	}
-	if err := igmpProfile.WriteToDb(); err != nil {
+	if err := igmpProfile.WriteToDb(cntx); err != nil {
 		logger.Errorw(ctx, "Igmp profile Write to DB failed", log.Fields{"profileID": igmpProfile.ProfileID})
 	}
 
@@ -527,73 +527,73 @@ func MigrateIgmpConfs(data []byte) string {
 }
 
 //MigrateIgmpGroups modifyies the old data as per current version requirement and updates the database
-func MigrateIgmpGroups(data []byte) string {
+func MigrateIgmpGroups(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for IGMP Groups")
 	return ""
 }
 
 //MigrateIgmpDevices modifyies the old data as per current version requirement and updates the database
-func MigrateIgmpDevices(data []byte) string {
+func MigrateIgmpDevices(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for IGMP Device")
 	return ""
 }
 
 //MigrateIgmpChannels modifyies the old data as per current version requirement and updates the database
-func MigrateIgmpChannels(data []byte) string {
+func MigrateIgmpChannels(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for IGMP Channels")
 	return ""
 }
 
 //MigrateIgmpPorts modifyies the old data as per current version requirement and updates the database
-func MigrateIgmpPorts(data []byte) string {
+func MigrateIgmpPorts(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for IGMP Ports")
 	return ""
 }
 
 //MigrateIgmpProfs modifyies the old data as per current version requirement and updates the database
-func MigrateIgmpProfs(data []byte) string {
+func MigrateIgmpProfs(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for IGMP Profs")
 	return ""
 }
 
 //MigrateMcastConfs modifyies the old data as per current version requirement and updates the database
-func MigrateMcastConfs(data []byte) string {
+func MigrateMcastConfs(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for Mcast Confs")
 	return ""
 }
 
 //MigrateLogLevels modifyies the old data as per current version requirement and updates the database
-func MigrateLogLevels(data []byte) string {
+func MigrateLogLevels(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for Log Levels")
 	return ""
 }
 
 //MigrateHealth modifyies the old data as per current version requirement and updates the database
-func MigrateHealth(data []byte) string {
+func MigrateHealth(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for Health")
 	return ""
 }
 
 //MigratePonCounters modifyies the old data as per current version requirement and updates the database
-func MigratePonCounters(data []byte) string {
+func MigratePonCounters(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for Pon Counters")
 	return ""
 }
 
 //MigrateChannelCounters modifyies the old data as per current version requirement and updates the database
-func MigrateChannelCounters(data []byte) string {
+func MigrateChannelCounters(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for Channel Counters")
 	return ""
 }
 
 //MigrateServiceCounters modifyies the old data as per current version requirement and updates the database
-func MigrateServiceCounters(data []byte) string {
+func MigrateServiceCounters(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for Service Counters")
 	return ""
 }
 
 //MigrateNbDevices modifyies the old data as per current version requirement and updates the database
-func MigrateNbDevices(data []byte) string {
+func MigrateNbDevices(cntx context.Context, data []byte) string {
 	logger.Error(ctx, "Data Migration not implemented for NB Devices")
 	return ""
 }
@@ -605,11 +605,11 @@ func MigrateFlowHash(data []byte) string {
 }
 
 //DeleteDbPathKeys Deleted the paths from DB
-func DeleteDbPathKeys(keyPath string) error {
+func DeleteDbPathKeys(cntx context.Context, keyPath string) error {
 	logger.Debugw(ctx, "Deleting paths for version", log.Fields{"Path": keyPath})
 
 	// Delete all the keys
-	err := db.DeleteAll(keyPath)
+	err := db.DeleteAll(cntx, keyPath)
 	if err != nil && err.Error() != common.ErrEntryNotFound.Error() {
 		logger.Errorw(ctx, "Delete Key failed", log.Fields{"error": err})
 		return err

@@ -54,7 +54,7 @@ func (fh *FlowHashHandle) PutFlowHash(w http.ResponseWriter, r *http.Request) {
 			logger.Errorw(ctx, "Failed to get device", log.Fields{"device": id})
 			return
 		}
-		device.SetFlowHash(uint32(flowhash))
+		device.SetFlowHash(ctx, uint32(flowhash))
 	}
 
 	logger.Debugw(ctx, "flowhash data is ", log.Fields{"vars": vars, "value": string(reqBody)})

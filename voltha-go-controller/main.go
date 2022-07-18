@@ -115,6 +115,10 @@ func main() {
 	if config.Banner {
 		printBanner()
 	}
+	// Create a context adding the status update channel
+	p := &probe.Probe{}
+	ctx := context.WithValue(context.Background(), probe.ProbeContextKey, p)
+
 
 	pc.Init()
 
@@ -140,7 +144,7 @@ func main() {
 		logger.Errorw(ctx, "KVClient Establishment Failure", log.Fields{"Reason": err})
 	}
 
-	if dbHandler, err = db.Initialize(config.KVStoreType, config.KVStoreEndPoint, config.KVStoreTimeout); err != nil {
+	if dbHandler, err = db.Initialize(ctx, config.KVStoreType, config.KVStoreEndPoint, config.KVStoreTimeout); err != nil {
 		logger.Errorw(ctx, "unable-to-connect-to-db", log.Fields{"error": err})
 		return
 	}
@@ -150,10 +154,6 @@ func main() {
 		"port": config.KVStorePort, "retries": config.ConnectionMaxRetries,
 		"retryInterval": config.ConnectionRetryDelay})
 
-	// Create a context adding the status update channel
-	p := &probe.Probe{}
-	ctx := context.WithValue(context.Background(), probe.ProbeContextKey, p)
-
 	err = waitUntilKVStoreReachableOrMaxTries(ctx, config)
 	if err != nil {
 		logger.Fatalw(ctx, "Unable-to-connect-to-KV-store", log.Fields{"KVStoreType": config.KVStoreType, "Address": config.KVStoreEndPoint})
@@ -161,7 +161,7 @@ func main() {
 
 	logger.Info(ctx, "KV-store-reachable")
 	//Read if log-level is stored in DB
-	if logLevel, err := dbHandler.Get(db.GetKeyPath(db.LogLevelPath)); err == nil {
+	if logLevel, err := dbHandler.Get(ctx, db.GetKeyPath(db.LogLevelPath)); err == nil {
 		logger.Infow(ctx, "Read log-level from db", log.Fields{"logLevel": logLevel})
 		storedLogLevel, _ := log.StringToLogLevel(logLevel)
 		log.SetAllLogLevel(int(storedLogLevel))
@@ -191,7 +191,7 @@ func main() {
 	 */
 	go p.ListenAndServe(ctx, config.ProbeEndPoint)
 
-	app.GetApplication().ReadAllFromDb()
+	app.GetApplication().ReadAllFromDb(ctx)
 	app.GetApplication().InitStaticConfig()
 	app.GetApplication().SetVendorID(config.VendorID)
 	ofca := controller.NewController(ctx, app.GetApplication())

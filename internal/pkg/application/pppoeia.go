@@ -77,7 +77,7 @@ type IPppoeIaSession interface {
 	GetNniVlans() (uint16, uint16)
 	GetPppoeIaState() PppoeIaState
 	SetPppoeIaState(PppoeIaState)
-	SetMacAddr(net.HardwareAddr)
+	SetMacAddr(context.Context, net.HardwareAddr)
 }
 
 // PppoeIaRelayVnet : The PppoeIa relay sessions are stored in a map to be retrieved from when
@@ -280,7 +280,7 @@ func DelIaOption(pppoe *layers.PPPoE) {
 // session is derived from the list of PppoeIa sessions stored in the
 // common map. The key for retrieval includes the VLAN tags in the
 // the packet and the MAC address of the client.
-func (va *VoltApplication) ProcessDsPppoeIaPacket(device string, port string, pkt gopacket.Packet) {
+func (va *VoltApplication) ProcessDsPppoeIaPacket(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 
 	// Retrieve the layers to build the outgoing packet. It is not
 	// possible to add/remove layers to the existing packet and thus
@@ -319,7 +319,7 @@ func (va *VoltApplication) ProcessDsPppoeIaPacket(device string, port string, pk
 		} else if pppoe.Code == layers.PPPoECodePADT {
 			vpv.SetPppoeIaState(PppoeIaStatePADT)
 		}
-		vpv.WriteToDb()
+		vpv.WriteToDb(cntx)
 	}
 	// Create the outgoing bufer and set the checksum in the packet
 	buff := gopacket.NewSerializeBuffer()
@@ -394,7 +394,7 @@ func (va *VoltApplication) ProcessDsPppoeIaPacket(device string, port string, pk
 
 // ProcessUsPppoeIaPacket : The US PppoeIa packet is identified the PppoeIa OP in the packet. A request is considered upstream
 // and the service associated with the packet is located by the port and VLANs in the packet
-func (va *VoltApplication) ProcessUsPppoeIaPacket(device string, port string, pkt gopacket.Packet) {
+func (va *VoltApplication) ProcessUsPppoeIaPacket(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	// We received the packet on an access port and the service for the packet can be
 	// gotten from the port and the packet
 	vpv, svc := va.GetVnetFromPkt(device, port, pkt)
@@ -443,7 +443,7 @@ func (va *VoltApplication) ProcessUsPppoeIaPacket(device string, port string, pk
 					return
 				}
 			}
-			vpv.SetMacAddr(eth.SrcMAC)
+			vpv.SetMacAddr(cntx, eth.SrcMAC)
 		}
 
 		if pppoe.Code == layers.PPPoECodePADI {
@@ -451,7 +451,7 @@ func (va *VoltApplication) ProcessUsPppoeIaPacket(device string, port string, pk
 		} else if pppoe.Code == layers.PPPoECodePADR {
 			vpv.SetPppoeIaState(PppoeIaStatePADR)
 		}
-		vpv.WriteToDb()
+		vpv.WriteToDb(cntx)
 	}
 
 	buff := gopacket.NewSerializeBuffer()
@@ -521,7 +521,7 @@ func (va *VoltApplication) ProcessUsPppoeIaPacket(device string, port string, pk
 }
 
 // ProcessPPPoEIaPacket to process Pppoeia packet
-func (va *VoltApplication) ProcessPPPoEIaPacket(device string, port string, pkt gopacket.Packet) {
+func (va *VoltApplication) ProcessPPPoEIaPacket(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	// Make some error checks before proceeding
 	pppoel := pkt.Layer(layers.LayerTypePPPoE)
 	if pppoel == nil {
@@ -544,10 +544,10 @@ func (va *VoltApplication) ProcessPPPoEIaPacket(device string, port string, pkt 
 		// This is treated as an upstream packet in the VOLT application
 		// as VOLT serves access subscribers who use DHCP to acquire IP
 		// address and these packets go upstream to the network
-		va.ProcessUsPppoeIaPacket(device, port, pkt)
+		va.ProcessUsPppoeIaPacket(cntx, device, port, pkt)
 	} else {
 		// This is a downstream packet
-		va.ProcessDsPppoeIaPacket(device, port, pkt)
+		va.ProcessDsPppoeIaPacket(cntx, device, port, pkt)
 	}
 }
 
@@ -566,7 +566,7 @@ func init() {
 }
 
 // ProcessPPPoEPacket : CallBack function registered with application to handle PPPoE packetIn
-func ProcessPPPoEPacket(device string, port string, pkt gopacket.Packet) {
+func ProcessPPPoEPacket(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	GetApplication().ProcessPPPoEPacket(device, port, pkt)
 }
 
@@ -613,6 +613,6 @@ func (dpt *PppoeIaPacketTask) Stop() {
 func (dpt *PppoeIaPacketTask) Start(ctx context.Context, taskID uint8) error {
 	dpt.taskID = taskID
 	dpt.ctx = ctx
-	GetApplication().ProcessPPPoEIaPacket(dpt.device, dpt.port, dpt.pkt)
+	GetApplication().ProcessPPPoEIaPacket(ctx, dpt.device, dpt.port, dpt.pkt)
 	return nil
 }

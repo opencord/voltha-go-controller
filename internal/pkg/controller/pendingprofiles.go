@@ -69,19 +69,19 @@ func (ppt *PendingProfilesTask) Start(ctx context.Context, taskID uint8) error {
 
 	//Trigger Pending Service Delete Tasks
 	logger.Warnw(ctx, "Pending Service Delete Task Triggered", log.Fields{"Device": ppt.device.ID})
-	GetController().TriggerPendingProfileDeleteReq(ppt.device.ID)
+	GetController().TriggerPendingProfileDeleteReq(ctx, ppt.device.ID)
 	logger.Warnw(ctx, "Pending Service Delete Task Completed", log.Fields{"Device": ppt.device.ID})
 
 	//Trigger Pending Migrate Services Tasks
 	logger.Warnw(ctx, "Pending Migrate Services Task Triggered", log.Fields{"Device": ppt.device.ID})
-	GetController().TriggerPendingMigrateServicesReq(ppt.device.ID)
+	GetController().TriggerPendingMigrateServicesReq(ctx, ppt.device.ID)
 	logger.Warnw(ctx, "Pending Migrate Services Task Completed", log.Fields{"Device": ppt.device.ID})
 
 	GetController().ResetAuditFlags(ppt.device)
 
 	// Updating Mvlan Profile
 	logger.Warnw(ctx, "Pending Update Mvlan Task Triggered", log.Fields{"Device": ppt.device.ID})
-	if err := ppt.UpdateMvlanProfiles(); err != nil {
+	if err := ppt.UpdateMvlanProfiles(ctx); err != nil {
 		logger.Errorw(ctx, "Update Mvlan Profile Failed", log.Fields{"Reason": err.Error()})
 		errInfo = err
 	}
@@ -92,7 +92,7 @@ func (ppt *PendingProfilesTask) Start(ctx context.Context, taskID uint8) error {
 }
 
 // UpdateMvlanProfiles to update the mvlan profiles
-func (ppt *PendingProfilesTask) UpdateMvlanProfiles() error {
-	GetController().UpdateMvlanProfiles(ppt.device.ID)
+func (ppt *PendingProfilesTask) UpdateMvlanProfiles(cntx context.Context) error {
+	GetController().UpdateMvlanProfiles(cntx, ppt.device.ID)
 	return nil
 }
