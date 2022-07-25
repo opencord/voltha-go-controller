@@ -1,0 +1,8 @@
+Verified+1: Jenkins Technical User <do-not-reply@opennetworking.org>
+Code-Review+1: Girish Gowdra <girish.gowdra@intel.com>
+Code-Review+2: Suhas Gururaj Rao <sgururaj@radisys.com>
+Submitted-by: Suhas Gururaj Rao <sgururaj@radisys.com>
+Submitted-at: Mon, 25 Jul 2022 10:02:43 +0000
+Reviewed-on: https://gerrit.opencord.org/c/voltha-go-controller/+/33081
+Project: voltha-go-controller
+Branch: refs/heads/master
