@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7270c721_13bd5d4c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-07-26T14:26:00Z",
+      "side": 1,
+      "message": "Thanks for the work done here. I\u0027ve only a single comment regarding the functionality and the others are mostly for documentation.\nIt would also be good to know in the documentation the CLI commands to operate and configure the igmp application.\n",
+      "revId": "bf54e17f9458d06ccbd523803316b3e3546fa72a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bcaca1f8_e4adc893",
+        "filename": "internal/pkg/application/igmp.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1821,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-07-26T14:26:00Z",
+      "side": 1,
+      "message": "general queries should be sent to 224.0.0.1 which is AllSystemsMulticastGroupIPString",
+      "revId": "bf54e17f9458d06ccbd523803316b3e3546fa72a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "921d55ee_6ab7659a",
+        "filename": "internal/pkg/application/igmpprofiles.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1152,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-07-26T14:26:00Z",
+      "side": 1,
+      "message": "Please define which of these features are currently implemented. For example, I don\u0027t see the LastQueryInterval functionality is not implemented.",
+      "revId": "bf54e17f9458d06ccbd523803316b3e3546fa72a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "377a2574_2b314f4e",
+        "filename": "internal/pkg/application/igmpprofiles.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1154,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-07-26T14:26:00Z",
+      "side": 1,
+      "message": "same as above",
+      "range": {
+        "startLine": 1154,
+        "startChar": 8,
+        "endLine": 1154,
+        "endChar": 17
+      },
+      "revId": "bf54e17f9458d06ccbd523803316b3e3546fa72a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8febe0ad_88722a80",
+        "filename": "internal/pkg/application/igmpprofiles.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1155,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-07-26T14:26:00Z",
+      "side": 1,
+      "message": "same as above",
+      "range": {
+        "startLine": 1155,
+        "startChar": 8,
+        "endLine": 1155,
+        "endChar": 21
+      },
+      "revId": "bf54e17f9458d06ccbd523803316b3e3546fa72a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
