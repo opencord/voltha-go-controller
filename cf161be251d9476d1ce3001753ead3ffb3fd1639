@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e3cf846b_0025d61c",
+        "filename": "internal/pkg/application/igmpgroupchannel.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-07-28T11:16:44Z",
+      "side": 1,
+      "message": "After returning here, should we update the DB?",
+      "revId": "cf161be251d9476d1ce3001753ead3ffb3fd1639",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
