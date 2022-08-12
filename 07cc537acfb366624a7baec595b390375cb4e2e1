@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "362d362c_039c95d1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-08-12T08:38:54Z",
+      "side": 1,
+      "message": "There still need to be more cleanup. Searching for context.TODO() in the code reveals 14 results. Some of them should be removed.\n\nPlease see my comment in application.go file.",
+      "revId": "07cc537acfb366624a7baec595b390375cb4e2e1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2eeb4888_ca0b671d",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-08-12T08:38:54Z",
+      "side": 1,
+      "message": "I believe this should be removed. Some of the functions in this files uses this context.",
+      "revId": "07cc537acfb366624a7baec595b390375cb4e2e1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
