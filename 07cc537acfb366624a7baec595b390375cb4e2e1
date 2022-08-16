@@ -33,6 +33,24 @@
       "message": "I believe this should be removed. Some of the functions in this files uses this context.",
       "revId": "07cc537acfb366624a7baec595b390375cb4e2e1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a2efeab7_e6098fd7",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-08-16T14:52:32Z",
+      "side": 1,
+      "message": "This context is used for logging purposes. Hence it is kept as it is. currently context passed for logger is TODO.",
+      "parentUuid": "2eeb4888_ca0b671d",
+      "revId": "07cc537acfb366624a7baec595b390375cb4e2e1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
