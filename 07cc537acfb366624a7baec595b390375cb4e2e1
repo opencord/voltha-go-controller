@@ -51,6 +51,24 @@
       "parentUuid": "2eeb4888_ca0b671d",
       "revId": "07cc537acfb366624a7baec595b390375cb4e2e1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "58b8b99a_0bd1e51e",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2022-08-18T07:45:14Z",
+      "side": 1,
+      "message": "Understood. Do we need to create different TODO contexts for logging purposes? If you use the same context passed to the logger, you\u0027d be able to use the parameters in the context in your logs in the future.",
+      "parentUuid": "a2efeab7_e6098fd7",
+      "revId": "07cc537acfb366624a7baec595b390375cb4e2e1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
