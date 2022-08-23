@@ -105,6 +105,24 @@
       "parentUuid": "030992b9_e30f275d",
       "revId": "07cc537acfb366624a7baec595b390375cb4e2e1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9d1534a_c0ae014b",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-08-23T07:28:01Z",
+      "side": 1,
+      "message": "As discussed created Jira to handle the same VOL-4768",
+      "parentUuid": "030992b9_e30f275d",
+      "revId": "07cc537acfb366624a7baec595b390375cb4e2e1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
