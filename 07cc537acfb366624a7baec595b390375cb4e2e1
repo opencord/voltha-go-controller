@@ -69,6 +69,24 @@
       "parentUuid": "a2efeab7_e6098fd7",
       "revId": "07cc537acfb366624a7baec595b390375cb4e2e1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "030992b9_e30f275d",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-08-23T07:14:55Z",
+      "side": 1,
+      "message": "Can we take it up as a separate Jira? Since this require changes in all function prototypes.",
+      "parentUuid": "58b8b99a_0bd1e51e",
+      "revId": "07cc537acfb366624a7baec595b390375cb4e2e1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
