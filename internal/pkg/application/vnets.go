@@ -1036,7 +1036,10 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 		//TODO-COMM: 		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 		return
 	}
-
+	if !svc.IsActivated {
+		logger.Warn(ctx, "Not pushing Service Flows: Service Not activated")
+		return
+	}
 	//Push Service Flows if DHCP relay is not configured
 	//or already DHCP flows are configured for the VPV
 	//to which the serivce is associated
@@ -2244,6 +2247,17 @@ func (va *VoltApplication) AddVnetToPort(cntx context.Context, port string, vvne
 	// Add the service that is causing the VNET to be added to the port
 	vpv.AddSvc(cntx, vs)
 
+	if !vs.IsActivated {
+		logger.Warn(ctx, "Not Checking port state: Service Not activated")
+		// Process the PORT UP if the port is already up
+		d, err := va.GetDeviceFromPort(port)
+		if err == nil {
+			vpv.setDevice(d.Name)
+		}
+		vpv.WriteToDb(cntx)
+		return vpv
+	}
+
 	// Process the PORT UP if the port is already up
 	d, err := va.GetDeviceFromPort(port)
 	if err == nil {
@@ -3205,4 +3219,18 @@ func (vpv *VoltPortVnet) JsonMarshal() ([]byte, error) {
 		Blocked:                    vpv.Blocked,
 		DhcpPbit:                   vpv.DhcpPbit,
 	})
+}
+
+func (vpv *VoltPortVnet) IsServiceActivated(cntx context.Context) bool {
+	isActivated := false
+	vpv.services.Range(func(key, value interface{}) bool {
+		svc := value.(*VoltService)
+		if svc.IsActivated {
+			logger.Infow(ctx, "Found activated service on the vpv", log.Fields{"Name": svc.Name})
+			isActivated = true
+			return false //to exit loop
+		}
+		return true
+	})
+	return isActivated
 }

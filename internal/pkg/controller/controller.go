@@ -521,3 +521,35 @@ func (v *VoltController) IsBlockedDevice(deviceSerialNumber string) bool {
 	_, ifPresent := v.BlockedDeviceList.Get(deviceSerialNumber)
 	return ifPresent
 }
+
+// GetFlows returns flow specific to device and flowID
+func (v *VoltController) GetFlow(deviceID string, cookie uint64) (*of.VoltSubFlow, error) {
+	d, err := v.GetDevice(deviceID)
+	if err != nil {
+		logger.Errorw(ctx, "Device Not Found", log.Fields{"Device": deviceID, "Error": err})
+		return nil, err
+	}
+	if flow, ok := d.GetFlow(cookie); ok {
+		return flow, nil
+	}
+	return nil, nil
+}
+
+// GetFlows returns list of flows for a particular device
+func (v *VoltController) GetFlows(deviceID string) ([]*of.VoltSubFlow, error) {
+	d, err := v.GetDevice(deviceID)
+	if err != nil {
+		logger.Errorw(ctx, "Device Not Found", log.Fields{"Device": deviceID, "Error": err})
+		return nil, err
+	}
+	return d.GetAllFlows(), nil
+}
+
+// GetAllFlows returns list of all flows
+func (v *VoltController) GetAllFlows() ([]*of.VoltSubFlow, error) {
+	var flows []*of.VoltSubFlow
+	for _, d := range v.devices {
+		flows = append(flows, d.GetAllFlows()...)
+	}
+	return flows, nil
+}

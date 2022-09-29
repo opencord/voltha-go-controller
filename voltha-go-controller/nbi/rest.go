@@ -22,6 +22,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"voltha-go-controller/log"
+	"voltha-go-controller/voltha-go-controller/onos_nbi"
 )
 
 var logger log.CLogger
@@ -35,6 +36,28 @@ func RestStart() {
 	mu.HandleFunc("/profiles/{id}", (&ProfileHandle{}).ServeHTTP)
 	mu.HandleFunc("/igmp-proxy/", (&IgmpProxyHandle{}).ServeHTTP)
 	mu.HandleFunc("/multicast/", (&MulticastHandle{}).ServeHTTP)
+
+        mu.HandleFunc("/flows/", (&onos_nbi.FlowHandle{}).ServeHTTP)
+        mu.HandleFunc("/flows/{deviceId}", (&onos_nbi.FlowHandle{}).ServeHTTP)
+        mu.HandleFunc("/flows/{deviceId}/{flowId}", (&onos_nbi.FlowHandle{}).ServeHTTP)
+        mu.HandleFunc("/flows/pending/", (&onos_nbi.PendingFlowHandle{}).ServeHTTP)
+        mu.HandleFunc("/programmed-subscribers/", (&onos_nbi.ServiceAdapter{}).ServeHTTP)
+        mu.HandleFunc("/services/{device}/{port}", (&onos_nbi.ServiceAdapter{}).ServeHTTP)
+        mu.HandleFunc("/services/{portName}", (&onos_nbi.ServiceAdapter{}).ServeHTTPWithPortName)
+        mu.HandleFunc("/services/{portName}/{sTag}/{cTag}/{tpId}", (&onos_nbi.ServiceAdapter{}).ServeHTTPWithPortName)
+        mu.HandleFunc("/allocations/", (&onos_nbi.DhcpRelayHandle{}).ServeHTTP)
+        mu.HandleFunc("/allocations/{deviceId}", (&onos_nbi.DhcpRelayHandle{}).ServeHTTP)
+
+	/*
+	mu.HandleFunc("/flows/", (&FlowHandle{}).ServeHTTP)
+	mu.HandleFunc("/flows/{deviceId}", (&FlowHandle{}).ServeHTTP)
+	mu.HandleFunc("/flows/{deviceId}/{flowId}", (&FlowHandle{}).ServeHTTP)
+	mu.HandleFunc("/flows/pending/", (&PendingFlowHandle{}).ServeHTTP)
+	mu.HandleFunc("/programmed-subscribers/", (&ServiceAdapter{}).ServeHTTP)
+	mu.HandleFunc("/services/{device}/{port}", (&ServiceAdapter{}).ServeHTTP)
+	mu.HandleFunc("/services/{portName}", (&ServiceAdapter{}).ServeHTTPWithPortName)
+	mu.HandleFunc("/services/{portName}/{sTag}/{cTag}/{tpId}", (&ServiceAdapter{}).ServeHTTPWithPortName)
+	*/
 	err := http.ListenAndServe(":8181", mu)
 	logger.Infow(ctx, "Rest Server Started", log.Fields{"Error": err})
 }
