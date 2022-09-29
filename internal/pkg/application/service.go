@@ -42,6 +42,8 @@ import (
 const (
 	// DSLAttrEnabled constant
 	DSLAttrEnabled string = "ENABLED"
+	// DeviceAny constant
+	DeviceAny string = "DEVICE-ANY"
 )
 
 // VoltServiceCfg structure
@@ -95,7 +97,7 @@ type VoltServiceCfg struct {
 	MinDataRateDs              uint32
 	MaxDataRateUs              uint32
 	MaxDataRateDs              uint32
-
+	IsActivated                bool
 	Trigger ServiceTrigger
 }
 
@@ -717,9 +719,10 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		subflow1.SetGoToTable(1)
 		subflow1.SetInPort(inport)
 
+		/*
 		if pbits != PbitMatchNone {
 			subflow1.SetMatchPbit(pbits)
-		}
+		}*/
 		if err := vs.setUSMatchActionVlanT0(subflow1); err != nil {
 			return nil, err
 		}
@@ -2004,4 +2007,125 @@ func (vs *VoltService) JsonMarshal() ([]byte, error) {
 			Metadata:           vs.VoltServiceOper.Metadata,
 		},
 	})
+}
+
+// GetProgrammedSubscribers to get list of programmed subscribers
+func (va *VoltApplication) GetProgrammedSubscribers (cntx context.Context, deviceID, portNo string) ([]*VoltService, error) {
+	var svcList []*VoltService
+	logger.Infow(ctx, "GetProgrammedSubscribers Request ", log.Fields{"Device": deviceID, "Port": portNo})
+	va.ServiceByName.Range(func(key, value interface{}) bool {
+		vs := value.(*VoltService)
+		if (len(deviceID) > 0 ) {
+			if (len(portNo) > 0) {
+				if deviceID == vs.Device && portNo == vs.Port {
+					svcList = append(svcList, vs)
+				}
+			} else {
+				if deviceID == vs.Device {
+					svcList = append(svcList, vs)
+				}
+			}
+		} else {
+			svcList = append(svcList, vs)
+		}
+		return true
+	})
+	return svcList, nil
+}
+
+// ActivateService to activate pre-provisioned service
+func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) {
+	logger.Infow(ctx, "Service Activate Request ", log.Fields{"Device": deviceID, "Port": portNo})
+	va.ServiceByName.Range(func(key, value interface{}) bool {
+		vs := value.(*VoltService)
+		// If device id is not provided check only port number
+		if deviceID == DeviceAny {
+			deviceID = vs.Device
+		}
+		// If svlan if provided, then the tags and tpID of service has to be matching
+		if (sVlan != of.VlanNone && ( sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) ) {
+			return true
+		}
+		if portNo == vs.Port && !vs.IsActivated {
+			d := va.GetDevice(deviceID)
+			if d == nil {
+				logger.Warnw(ctx, "Device Not Found", log.Fields{"Device": deviceID})
+				return true
+			}
+			p := d.GetPort(vs.Port)
+			if p == nil {
+				logger.Warnw(ctx, "Wrong device or port", log.Fields{"Device": deviceID, "Port": portNo})
+				return true
+			}
+			logger.Infow(ctx, "Service Activate", log.Fields{"Name": vs.Name})
+			vs.IsActivated = true
+			va.ServiceByName.Store(vs.Name, vs)
+			vs.WriteToDb(cntx)
+			// If port is already up send indication to vpv
+			if p.State == PortStateUp {
+				if vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan); vpv != nil {
+					// PortUp call initiates flow addition
+					vpv.PortUpInd(cntx, d, portNo)
+				} else {
+					logger.Warnw(ctx, "VPV does not exists!!!", log.Fields{"Device": deviceID, "port": portNo, "SvcName": vs.Name})
+				}
+			}
+		}
+		return true
+	})
+}
+
+// DeactivateService to activate pre-provisioned service
+func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) {
+	logger.Infow(ctx, "Service Deactivate Request ", log.Fields{"Device": deviceID, "Port": portNo})
+	va.ServiceByName.Range(func(key, value interface{}) bool {
+		vs := value.(*VoltService)
+		// If svlan if provided, then the tags and tpID of service has to be matching
+		if (sVlan != of.VlanNone && ( sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) ) {
+			return true
+		}
+		// If device id is not provided check only port number
+		if deviceID == DeviceAny {
+			deviceID = vs.Device
+		}
+		if deviceID == vs.Device && portNo == vs.Port && vs.IsActivated {
+			vs.IsActivated = false
+			va.ServiceByName.Store(vs.Name, vs)
+			vs.WriteToDb(cntx)
+			d := va.GetDevice(deviceID)
+			if d == nil {
+				logger.Warnw(ctx, "Device Not Found", log.Fields{"Device": deviceID})
+				return true
+			}
+			p := d.GetPort(vs.Port)
+			if p != nil && p.State == PortStateUp {
+				if vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan); vpv != nil {
+					// Port down call internally deletes all the flows
+					vpv.PortDownInd(cntx, deviceID, portNo)
+					if vpv.IgmpEnabled {
+						va.ReceiverDownInd(cntx, deviceID, portNo)
+					}
+				} else {
+					logger.Warnw(ctx, "VPV does not exists!!!", log.Fields{"Device": deviceID, "port": portNo, "SvcName": vs.Name})
+				}
+			}
+		}
+		return true
+	})
+}
+
+/* GetServicePbit to get first set bit in the pbit map
+   returns -1 : If configured to match on all pbits
+   returns 8  : If no pbits are configured
+   returns first pbit if specific pbit is configured */
+func (vs *VoltService) GetServicePbit() int {
+	if vs.IsPbitExist(of.PbitMatchAll) {
+		return -1
+	}
+	for pbit:= 0; pbit < int(of.PbitMatchNone); pbit++ {
+		if vs.IsPbitExist(of.PbitType(pbit)) {
+			return pbit
+		}
+	}
+	return int(of.PbitMatchNone)
 }
