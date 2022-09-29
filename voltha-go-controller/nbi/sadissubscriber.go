@@ -67,6 +67,16 @@ type UniTagInformation struct {
 	IsPppoeRequired               bool   `json:"isPppoeRequired"`
 }
 
+
+func init() {
+        // Setup this package so that it's log level can be modified at run time
+        var err error
+        logger, err = log.AddPackageWithDefaultParam()
+        if err != nil {
+                panic(err)
+        }
+}
+
 // SubscriberHandle handle SubscriberInfo Requests
 type SubscriberHandle struct {
 }
@@ -134,13 +144,17 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 		if vs.IgmpEnabled {
 			vs.MvlanProfileName = "mvlan" + strconv.Itoa(uniTagInfo.PonSTag)
 		}
+		if uniTagInfo.UsPonSTagPriority == -1 {
+			vs.Pbits = append(vs.Pbits, of.PbitMatchAll)
 		// Process the p-bits received in the request
-		if uniTagInfo.UsPonSTagPriority < 8 {
-			vs.Pbits = append(vs.Pbits, of.PbitType(uniTagInfo.UsPonCTagPriority))
-		}
+		} else {
+			if uniTagInfo.UsPonSTagPriority < 8 {
+				vs.Pbits = append(vs.Pbits, of.PbitType(uniTagInfo.UsPonCTagPriority))
+			}
 
-		if uniTagInfo.UsPonSTagPriority < 8 && uniTagInfo.UsPonSTagPriority != uniTagInfo.DsPonSTagPriority {
-			vs.Pbits = append(vs.Pbits, of.PbitType(uniTagInfo.DsPonCTagPriority))
+			if uniTagInfo.UsPonSTagPriority < 8 && uniTagInfo.UsPonSTagPriority != uniTagInfo.DsPonSTagPriority {
+				vs.Pbits = append(vs.Pbits, of.PbitType(uniTagInfo.DsPonCTagPriority))
+			}
 		}
 
 		/*
