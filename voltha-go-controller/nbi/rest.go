@@ -22,19 +22,48 @@ import (
 	"github.com/gorilla/mux"
 
 	"voltha-go-controller/log"
+	"voltha-go-controller/voltha-go-controller/onos_nbi"
 )
 
 var logger log.CLogger
 var ctx = context.TODO()
 
+const (
+	SubscribersPath string = "/subscribers/{id}"
+	ProfilesPath    string = "/profiles/{id}"
+	IgmpProxyPath   string = "/igmp-proxy/"
+	MulticastPath   string = "/multicast/"
+	FlowsPath       string = "/flows/"
+	FlowsPerDeviceIDPath string = "/flows/{deviceId}"
+	FlowPerDeviceIDFlowIDPath string = "/flows/{deviceId}/{flowId}"
+	PendingFlowsPath          string = "/flows/pending/"
+	ProgrammedSubscribersPath string = "/programmed-subscribers/"
+	ServiceDevicePortPath     string = "/services/{device}/{port}"
+	ServicePortNamePath       string = "/services/{portName}"
+	ServicePortStagCtagTpIDPath string = "/services/{portName}/{sTag}/{cTag}/{tpId}"
+	AllocationsPath             string = "/allocations/"
+	AllocationsDeviceIDPath     string = "/allocations/{deviceId}"
+)
 // RestStart to execute for API
 func RestStart() {
 	mu := mux.NewRouter()
 	logger.Info(ctx, "Rest Server Starting...")
-	mu.HandleFunc("/subscribers/{id}", (&SubscriberHandle{}).ServeHTTP)
-	mu.HandleFunc("/profiles/{id}", (&ProfileHandle{}).ServeHTTP)
-	mu.HandleFunc("/igmp-proxy/", (&IgmpProxyHandle{}).ServeHTTP)
-	mu.HandleFunc("/multicast/", (&MulticastHandle{}).ServeHTTP)
+	mu.HandleFunc(SubscribersPath, (&SubscriberHandle{}).ServeHTTP)
+	mu.HandleFunc(ProfilesPath, (&ProfileHandle{}).ServeHTTP)
+	mu.HandleFunc(IgmpProxyPath, (&IgmpProxyHandle{}).ServeHTTP)
+	mu.HandleFunc(MulticastPath, (&MulticastHandle{}).ServeHTTP)
+
+        mu.HandleFunc(FlowsPath, (&onos_nbi.FlowHandle{}).ServeHTTP)
+        mu.HandleFunc(FlowsPerDeviceIDPath, (&onos_nbi.FlowHandle{}).ServeHTTP)
+        mu.HandleFunc(FlowPerDeviceIDFlowIDPath, (&onos_nbi.FlowHandle{}).ServeHTTP)
+        mu.HandleFunc(PendingFlowsPath, (&onos_nbi.PendingFlowHandle{}).ServeHTTP)
+        mu.HandleFunc(ProgrammedSubscribersPath, (&onos_nbi.ServiceAdapter{}).ServeHTTP)
+        mu.HandleFunc(ServiceDevicePortPath, (&onos_nbi.ServiceAdapter{}).ServeHTTP)
+        mu.HandleFunc(ServicePortNamePath, (&onos_nbi.ServiceAdapter{}).ServeHTTPWithPortName)
+        mu.HandleFunc(ServicePortStagCtagTpIDPath, (&onos_nbi.ServiceAdapter{}).ServeHTTPWithPortName)
+        mu.HandleFunc(AllocationsPath, (&onos_nbi.DhcpRelayHandle{}).ServeHTTP)
+        mu.HandleFunc(AllocationsDeviceIDPath, (&onos_nbi.DhcpRelayHandle{}).ServeHTTP)
+
 	err := http.ListenAndServe(":8181", mu)
 	logger.Infow(ctx, "Rest Server Started", log.Fields{"Error": err})
 }

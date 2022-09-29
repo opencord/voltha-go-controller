@@ -176,6 +176,18 @@ func (d *Device) GetFlow(cookie uint64) (*of.VoltSubFlow, bool) {
 	return flow, ok
 }
 
+// GetAllFlows - Get the flow from device obj
+func (d *Device) GetAllFlows() ([]*of.VoltSubFlow) {
+	d.flowLock.RLock()
+	defer d.flowLock.RUnlock()
+	var flows []*of.VoltSubFlow
+	logger.Infow(ctx, "Get All Flows", log.Fields{"deviceID": d.ID})
+	for _, f := range d.flows {
+		flows = append(flows, f)
+	}
+	return flows
+}
+
 // AddFlow - Adds the flow to the device and also to the database
 func (d *Device) AddFlow(cntx context.Context, flow *of.VoltSubFlow) error {
 	d.flowLock.Lock()

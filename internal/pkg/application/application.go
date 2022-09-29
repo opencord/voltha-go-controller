@@ -1283,12 +1283,17 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 
 	for _, vpv := range vpvs.([]*VoltPortVnet) {
 		vpv.VpvLock.Lock()
-
-		//Do not trigger indication for the vpv which is already removed from vpv list as
-		// part of service delete (during the lock wait duration)
-		// In that case, the services associated wil be zero
-		if vpv.servicesCount.Load() != 0 {
-			vpv.PortUpInd(cntx, d, port)
+		//If no service is activated drop the portUpInd
+		if vpv.IsServiceActivated(cntx) {
+			//Do not trigger indication for the vpv which is already removed from vpv list as
+			// part of service delete (during the lock wait duration)
+			// In that case, the services associated wil be zero
+			if vpv.servicesCount.Load() != 0 {
+				vpv.PortUpInd(cntx, d, port)
+			}
+		} else {
+			// Service not activated, still attach device to service
+			vpv.setDevice(d.Name)
 		}
 		vpv.VpvLock.Unlock()
 	}
