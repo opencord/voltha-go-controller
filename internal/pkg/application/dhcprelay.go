@@ -21,6 +21,7 @@ import (
 	"errors"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -1341,4 +1342,54 @@ var dhcpNws *DhcpNetworks
 
 func init() {
 	dhcpNws = NewDhcpNetworks()
+}
+
+type DhcpAllocation struct {
+        SubscriberID        string           `json:"subscriberId"`
+        ConnectPoint        string           `json:"connectPoint"`
+        MacAddress          net.HardwareAddr `json:"macAddress"`
+        State               int              `json:"state"`
+        VlanID              int              `json:"vlanId"`
+        CircuitID           []byte           `json:"circuitId"`
+        IpAllocated         net.IP           `json:"ipAllocated"`
+        AllocationTimeStamp time.Time        `json:"allocationTimestamp"`
+}
+
+// GetAllocations returns DhcpAllocation info for all devices or for a device ID
+func (va *VoltApplication) GetAllocations(cntx context.Context, deviceID string) ([]*DhcpAllocation, error) {
+	logger.Debugw(ctx, "GetAllocations", log.Fields{"DeviceID": deviceID})
+	var allocations []*DhcpAllocation
+	for _, drv := range dhcpNws.Networks {
+		drv.sessionLock.RLock()
+		for _, session := range drv.sessions {
+			vpv, ok := session.(*VoltPortVnet)
+			if ok {
+				var subscriber string
+				// return Name of first service
+				vpv.services.Range(func(key, value interface{}) bool {
+					svc := value.(*VoltService)
+					subscriber = svc.Name
+					return false
+				})
+				// If deviceID is not provided, return all allocations
+				// If deviceID exists then filter on deviceID
+				if len(deviceID) == 0 || deviceID == vpv.Device {
+					allocation := &DhcpAllocation {
+							SubscriberID : subscriber,
+							ConnectPoint : vpv.Device,
+							MacAddress : vpv.MacAddr,
+							State : int(vpv.RelayState) ,
+							VlanID : int(vpv.SVlan) ,
+							CircuitID : vpv.CircuitID ,
+							IpAllocated : vpv.Ipv4Addr ,
+							AllocationTimeStamp : vpv.DhcpExpiryTime,
+							}
+					logger.Debugw(ctx, "DHCP Allocation found", log.Fields{"DhcpAlloc": allocation})
+					allocations = append(allocations, allocation)
+				}
+			}
+		}
+		drv.sessionLock.RUnlock()
+	}
+	return allocations, nil
 }
