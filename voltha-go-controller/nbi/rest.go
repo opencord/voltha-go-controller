@@ -11,13 +11,15 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package nbi
 
 import (
 	"context"
 	"net/http"
+
+	"voltha-go-controller/voltha-go-controller/onos_nbi"
 
 	"github.com/gorilla/mux"
 
@@ -35,6 +37,10 @@ func RestStart() {
 	mu.HandleFunc("/profiles/{id}", (&ProfileHandle{}).ServeHTTP)
 	mu.HandleFunc("/igmp-proxy/", (&IgmpProxyHandle{}).ServeHTTP)
 	mu.HandleFunc("/multicast/", (&MulticastHandle{}).ServeHTTP)
+	mu.HandleFunc("/mapping/all", (&onos_nbi.MacLearnerHandle{}).ServeHTTP)
+	mu.HandleFunc("/mapping/{deviceId}/{portNumber}", (&onos_nbi.MacLearnerHandle{}).ServeHTTP)
+	mu.HandleFunc("/mapping/{deviceId}/{portNumber}/{vlanId}", (&onos_nbi.MacLearnerHandle{}).ServeHTTP)
+	mu.HandleFunc("/ports/ignored", (&onos_nbi.MacLearnerHandle{}).PortsIgnoredServeHTTP)
 	err := http.ListenAndServe(":8181", mu)
 	logger.Infow(ctx, "Rest Server Started", log.Fields{"Error": err})
 }
@@ -47,4 +53,3 @@ func init() {
 		panic(err)
 	}
 }
-
