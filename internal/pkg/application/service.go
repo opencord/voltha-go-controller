@@ -11,31 +11,31 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package application
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
-	"context"
 	"net"
 	"reflect"
-	infraerrorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
+	infraerrorCodes "voltha-go-controller/internal/pkg/errorcodes"
 
 	"github.com/google/gopacket/layers"
 
+	"voltha-go-controller/database"
 	"voltha-go-controller/internal/pkg/controller"
 	cntlr "voltha-go-controller/internal/pkg/controller"
-	"voltha-go-controller/database"
+	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/util"
-	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/log"
 )
 
@@ -98,7 +98,7 @@ type VoltServiceCfg struct {
 	MaxDataRateUs              uint32
 	MaxDataRateDs              uint32
 	IsActivated                bool
-	Trigger ServiceTrigger
+	Trigger                    ServiceTrigger
 }
 
 // VoltServiceOper structure
@@ -719,35 +719,42 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		subflow1.SetGoToTable(1)
 		subflow1.SetInPort(inport)
 
-		/*
-		if pbits != PbitMatchNone {
-			subflow1.SetMatchPbit(pbits)
-		}*/
 		if err := vs.setUSMatchActionVlanT0(subflow1); err != nil {
 			return nil, err
 		}
 		subflow1.SetMeterID(vs.UsMeterID)
 
-		/* WriteMetaData 8 Byte(uint64) usage:
-		| Byte8    | Byte7    | Byte6 | Byte5  | Byte4  | Byte3   | Byte2  | Byte1 |
-		| reserved | reserved | TpID  | TpID   | uinID  | uniID   | uniID  | uniID | */
-		metadata := uint64(vs.CVlan)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
-		subflow1.SetWriteMetadata(metadata)
+		if GetApplication().GetVendorID() == Radisys {
+			if pbits != PbitMatchNone {
+				subflow1.SetMatchPbit(pbits)
+			}
+			/* WriteMetaData 8 Byte(uint64) usage:
+			| Byte8    | Byte7    | Byte6 | Byte5  | Byte4  | Byte3   | Byte2  | Byte1 |
+			| reserved | reserved | TpID  | TpID   | uinID  | uniID   | uniID  | uniID | */
+			metadata := uint64(vs.CVlan)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
+			subflow1.SetWriteMetadata(metadata)
+			/* TableMetaData 8 Byte(uint64) usage: (Considering MSB bit as 63rd bit and LSB bit as 0th bit)
+			|                         Byte8                     |  Byte7    |  Byte6    |      Byte5       |  Byte4    | Byte3    | Byte2    | Byte1   |
+			| 000      |    0      |    00     |    0     |  0  |  00000000 |  00000000 |  0000   0000     |  00000000 | 00000000 | 00000000 | 00000000|
+			| reserved | reqBwInfo | svlanTpID |  Buff us |  AT |  schedID  |  schedID  | onteth  vlanCtrl |  unitag   | unitag   | ctag     | ctag    | */
+			metadata = uint64(reqBwInfo)<<60 | uint64(allowTransparent)<<56 | uint64(vs.SchedID)<<40 | uint64(vs.ONTEtherTypeClassification)<<36 | uint64(vs.VlanControl)<<32 | uint64(vs.CVlan)
 
-		/* TableMetaData 8 Byte(uint64) usage: (Considering MSB bit as 63rd bit and LSB bit as 0th bit)
-		|                         Byte8                     |  Byte7    |  Byte6    |      Byte5       |  Byte4    | Byte3    | Byte2    | Byte1   |
-		| 000      |    0      |    00     |    0     |  0  |  00000000 |  00000000 |  0000   0000     |  00000000 | 00000000 | 00000000 | 00000000|
-		| reserved | reqBwInfo | svlanTpID |  Buff us |  AT |  schedID  |  schedID  | onteth  vlanCtrl |  unitag   | unitag   | ctag     | ctag    | */
-		metadata = uint64(reqBwInfo)<<60 | uint64(allowTransparent)<<56 | uint64(vs.SchedID)<<40 | uint64(vs.ONTEtherTypeClassification)<<36 | uint64(vs.VlanControl)<<32 | uint64(vs.CVlan)
-
-		// // In case of MAC Learning enabled voltha will buffer the US flow installation.
-		// if NonZeroMacAddress(vs.MacAddr) {
-		// 	subflow1.SetMatchSrcMac(vs.MacAddr)
-		// } else if vs.MacLearning != MacLearning {
-		// 	metadata |= 1 << 57
-		// 	logger.Infow(ctx, "Buffer us flow at adapter", log.Fields{"metadata": metadata})
-		// }
-		subflow1.SetTableMetadata(metadata)
+			// // In case of MAC Learning enabled voltha will buffer the US flow installation.
+			// if NonZeroMacAddress(vs.MacAddr) {
+			// 	subflow1.SetMatchSrcMac(vs.MacAddr)
+			// } else if vs.MacLearning != MacLearning {
+			// 	metadata |= 1 << 57
+			// 	logger.Infow(ctx, "Buffer us flow at adapter", log.Fields{"metadata": metadata})
+			// }
+			subflow1.SetTableMetadata(metadata)
+		} else {
+			/* WriteMetaData 8 Byte(uint64) usage:
+			| Byte8    | Byte7    | Byte6 | Byte5  | Byte4  | Byte3   | Byte2  | Byte1 |
+			| reserved | reserved | TpID  | TpID   | uinID  | uniID   | uniID  | uniID | */
+			//metadata := uint64(vs.CVlan)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
+			metadata := uint64(vs.TechProfileID)<<32 + uint64(outport)
+			subflow1.SetWriteMetadata(metadata)
+		}
 		if vs.VlanControl == OLTCVlanOLTSVlan {
 			/**
 			 * The new cookie generation is only for OLT_CVLAN_OLT_SVLAN case (TEF residential case) within a UNI.
@@ -773,10 +780,6 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		subflow2.SetTableID(1)
 		subflow2.SetInPort(inport)
 
-		if pbits != PbitMatchNone {
-			subflow2.SetMatchPbit(pbits)
-		}
-
 		if err := vs.setUSMatchActionVlanT1(subflow2); err != nil {
 			return nil, err
 		}
@@ -784,20 +787,29 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		subflow2.SetOutPort(outport)
 		subflow2.SetMeterID(vs.UsMeterID)
 
-		// refer Table-0 flow generation for byte information
-		metadata := uint64(vs.CVlan)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
-		subflow2.SetWriteMetadata(metadata)
+		if GetApplication().GetVendorID() == Radisys {
+			if pbits != PbitMatchNone {
+				subflow2.SetMatchPbit(pbits)
+			}
+			// refer Table-0 flow generation for byte information
+			metadata := uint64(vs.CVlan)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
+			subflow2.SetWriteMetadata(metadata)
+			// refer Table-0 flow generation for byte information
+			metadata = uint64(reqBwInfo)<<60 | uint64(allowTransparent)<<56 | uint64(vs.SchedID)<<40 | uint64(vs.ONTEtherTypeClassification)<<36 | uint64(vs.VlanControl)<<32 | uint64(vs.CVlan)
+			// // In case of MAC Learning enabled voltha will buffer the US flow installation.
+			// if NonZeroMacAddress(vs.MacAddr) {
+			// 	subflow2.SetMatchSrcMac(vs.MacAddr)
+			// } else if vs.MacLearning != MacLearningNone {
+			// 	metadata |= 1 << 57
+			// 	logger.Infow(ctx, "Buffer us flow at adapter", log.Fields{"metadata": metadata})
+			// }
+			subflow2.SetTableMetadata(metadata)
+		} else {
+			// refer Table-0 flow generation for byte information
+			metadata := uint64(vs.TechProfileID)<<32 + uint64(outport)
+			subflow2.SetWriteMetadata(metadata)
 
-		// refer Table-0 flow generation for byte information
-		metadata = uint64(reqBwInfo)<<60 | uint64(allowTransparent)<<56 | uint64(vs.SchedID)<<40 | uint64(vs.ONTEtherTypeClassification)<<36 | uint64(vs.VlanControl)<<32 | uint64(vs.CVlan)
-		// // In case of MAC Learning enabled voltha will buffer the US flow installation.
-		// if NonZeroMacAddress(vs.MacAddr) {
-		// 	subflow2.SetMatchSrcMac(vs.MacAddr)
-		// } else if vs.MacLearning != MacLearningNone {
-		// 	metadata |= 1 << 57
-		// 	logger.Infow(ctx, "Buffer us flow at adapter", log.Fields{"metadata": metadata})
-		// }
-		subflow2.SetTableMetadata(metadata)
+		}
 		if vs.VlanControl == OLTCVlanOLTSVlan {
 			/**
 			 * The new cookie generation is only for OLT_CVLAN_OLT_SVLAN case (TEF residential case) within a UNI.
@@ -1560,7 +1572,7 @@ func (msr *MigrateServicesRequest) WriteToDB(cntx context.Context) {
 	if b, err := json.Marshal(msr); err == nil {
 		if err = db.PutMigrateServicesReq(cntx, msr.DeviceID, msr.GetMsrKey(), string(b)); err != nil {
 			logger.Warnw(ctx, "PutMigrateServicesReq Failed", log.Fields{"OldVnet": msr.OldVnetID, "NewVnet": msr.NewVnetID,
-									"Device": msr.DeviceID, "Error": err})
+				"Device": msr.DeviceID, "Error": err})
 		}
 	}
 }
@@ -2010,13 +2022,13 @@ func (vs *VoltService) JsonMarshal() ([]byte, error) {
 }
 
 // GetProgrammedSubscribers to get list of programmed subscribers
-func (va *VoltApplication) GetProgrammedSubscribers (cntx context.Context, deviceID, portNo string) ([]*VoltService, error) {
+func (va *VoltApplication) GetProgrammedSubscribers(cntx context.Context, deviceID, portNo string) ([]*VoltService, error) {
 	var svcList []*VoltService
 	logger.Infow(ctx, "GetProgrammedSubscribers Request ", log.Fields{"Device": deviceID, "Port": portNo})
 	va.ServiceByName.Range(func(key, value interface{}) bool {
 		vs := value.(*VoltService)
-		if (len(deviceID) > 0 ) {
-			if (len(portNo) > 0) {
+		if len(deviceID) > 0 {
+			if len(portNo) > 0 {
 				if deviceID == vs.Device && portNo == vs.Port {
 					svcList = append(svcList, vs)
 				}
@@ -2043,7 +2055,7 @@ func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portN
 			deviceID = vs.Device
 		}
 		// If svlan if provided, then the tags and tpID of service has to be matching
-		if (sVlan != of.VlanNone && ( sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) ) {
+		if sVlan != of.VlanNone && (sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) {
 			return true
 		}
 		if portNo == vs.Port && !vs.IsActivated {
@@ -2081,7 +2093,9 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 	va.ServiceByName.Range(func(key, value interface{}) bool {
 		vs := value.(*VoltService)
 		// If svlan if provided, then the tags and tpID of service has to be matching
-		if (sVlan != of.VlanNone && ( sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) ) {
+		logger.Infow(ctx, "Service Deactivate Request ", log.Fields{"Device": deviceID, "Port": portNo})
+		if sVlan != of.VlanNone && (sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) {
+			logger.Infow(ctx, "condition not matched", log.Fields{"Device": deviceID, "Port": portNo, "sVlan": sVlan, "cVlan":cVlan, "tpID": tpID})
 			return true
 		}
 		// If device id is not provided check only port number
@@ -2113,7 +2127,6 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 		return true
 	})
 }
-
 /* GetServicePbit to get first set bit in the pbit map
    returns -1 : If configured to match on all pbits
    returns 8  : If no pbits are configured
