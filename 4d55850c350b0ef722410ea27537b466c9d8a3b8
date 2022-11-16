@@ -36,6 +36,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7e22e68d_3453c839",
+        "filename": "voltha-go-controller/nbi/rest.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-16T05:20:34Z",
+      "side": 1,
+      "message": "keeping it as nbi since this is the common file for rest interface",
+      "parentUuid": "7b905761_69cf1b21",
+      "revId": "4d55850c350b0ef722410ea27537b466c9d8a3b8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7841292a_9c2c351c",
@@ -64,6 +82,24 @@
         "id": 1000195
       },
       "writtenOn": "2022-11-16T05:20:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7841292a_9c2c351c",
+      "revId": "4d55850c350b0ef722410ea27537b466c9d8a3b8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "71b7891f_5aec6f62",
+        "filename": "voltha-go-controller/nbi/rest.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-16T05:20:34Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "7841292a_9c2c351c",
@@ -106,6 +142,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bce63f85_bef46b2c",
+        "filename": "voltha-go-controller/onos_nbi/adapter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-16T05:20:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "87fdb42b_834b3fe0",
+      "revId": "4d55850c350b0ef722410ea27537b466c9d8a3b8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "00199359_f3441756",
@@ -134,6 +188,24 @@
         "id": 1000195
       },
       "writtenOn": "2022-11-16T05:20:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "00199359_f3441756",
+      "revId": "4d55850c350b0ef722410ea27537b466c9d8a3b8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e372ad6b_e4f0d88d",
+        "filename": "voltha-go-controller/onos_nbi/flowrestadapter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-16T05:20:34Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "00199359_f3441756",
@@ -176,6 +248,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "514c5333_b9338c86",
+        "filename": "voltha-go-controller/onos_nbi/oltapprestadapter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-16T05:20:34Z",
+      "side": 1,
+      "message": "will be taken care as part of behavioral checks",
+      "parentUuid": "7a5a73a8_30da6285",
+      "revId": "4d55850c350b0ef722410ea27537b466c9d8a3b8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "36796933_bdddbcea",
@@ -204,6 +294,24 @@
         "id": 1000195
       },
       "writtenOn": "2022-11-16T05:20:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "36796933_bdddbcea",
+      "revId": "4d55850c350b0ef722410ea27537b466c9d8a3b8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c414c09c_884c34ce",
+        "filename": "voltha-go-controller/onos_nbi/oltapprestadapter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-16T05:20:34Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "36796933_bdddbcea",
