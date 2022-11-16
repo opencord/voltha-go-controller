@@ -1,0 +1,225 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3046b1a7_8e5b48f8",
+        "filename": "voltha-go-controller/nbi/rest.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "i guess most of these are not handled ? segregate the onos specific ones or put a comment",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "af9d343d_ad20d757",
+        "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "contants ?",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7370c23e_8c3f4022",
+        "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "typo, should be failed to get dhcpallocations",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "03d901f2_ac903240",
+        "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "rephrase the statement to something like \u0027failed to Marshal data\u0027 !",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "24a22f58_f373dbd0",
+        "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "constants ? although they are obvious",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cfb54231_be263b36",
+        "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "rephrase the statement",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "002a5bae_d36ca988",
+        "filename": "voltha-go-controller/onos_nbi/flowrestadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "Rename this file",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "896acbe0_d6a694d1",
+        "filename": "voltha-go-controller/onos_nbi/flowrestadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "rephrase the statement",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "88c4e152_c2813170",
+        "filename": "voltha-go-controller/onos_nbi/flowrestadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "review all the error statements and repharse them",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e8bfffc_43b15158",
+        "filename": "voltha-go-controller/onos_nbi/models.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "All these constansts and structure are what ONOS uses to maintain and display data on GET , correct ?",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3e83364b_7225a8ac",
+        "filename": "voltha-go-controller/onos_nbi/models.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "it should be filled accrodingly , correct ?",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "08f7f97a_34daa232",
+        "filename": "voltha-go-controller/onos_nbi/oltapprestadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "constants",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d1ae84b1_7f006ab9",
+        "filename": "voltha-go-controller/onos_nbi/oltapprestadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-16T05:41:15Z",
+      "side": 1,
+      "message": "Dot see this getting called",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
