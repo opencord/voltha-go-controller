@@ -19,6 +19,7 @@ import (
 	"strconv"
 	"voltha-go-controller/internal/pkg/of"
 	app "voltha-go-controller/internal/pkg/application"
+	"voltha-go-controller/internal/pkg/controller"
 )
 
 const (
@@ -574,3 +575,77 @@ func convertServiceToSubscriberInfo(svcs []*app.VoltService) []*SubscriberInfo {
         return subs
 }
 
+type DeviceEntry struct {
+	Devices []Device `json:"devices"`
+}
+
+type Device struct {
+	ID                      string `json:"id"`
+	Type                    string `json:"type"`
+	Available               bool   `json:"available"`
+	Role                    string `json:"role"`
+	Mfr                     string `json:"mfr"`
+	Hw                      string `json:"hw"`
+	Sw                      string `json:"sw"`
+	Serial                  string `json:"serial"`
+	Driver                  string `json:"driver"`
+	ChassisID               string `json:"chassisId"`
+	LastUpdate              string `json:"lastUpdate"`
+	HumanReadableLastUpdate string `json:"humanReadableLastUpdate"`
+	Annotations             DeviceAnnotations `json:"annotations"`
+}
+type DeviceAnnotations struct {
+	ChannelID         string `json:"channelId"`
+	ManagementAddress string `json:"managementAddress"`
+	Protocol          string `json:"protocol"`
+}
+
+func convertVoltDeviceToDevice(voltDevice *app.VoltDevice) Device {
+	var device Device
+
+	device.ID = voltDevice.Name
+	if voltDevice.State == controller.DeviceStateUP {
+		device.Available = true
+	} else {
+		device.Available = false
+	}
+	device.Serial = voltDevice.SerialNum
+	return device
+}
+type PortEntry struct {
+	Ports []Port `json:"ports"`
+}
+
+type Port struct {
+	Element     string `json:"element"`
+	Port        string `json:"port"`
+	IsEnabled   bool   `json:"isEnabled"`
+	Type        string `json:"type"`
+	PortSpeed   int    `json:"portSpeed"`
+	Annotations PortAnnotations `json:"annotations"`
+}
+type PortAnnotations struct {
+	AdminState string `json:"adminState"`
+	PortMac    string `json:"portMac"`
+	PortName   string `json:"portName"`
+}
+
+func convertVoltPortToPort(voltPort *app.VoltPort) Port {
+	var port Port
+	port.Port = strconv.Itoa(int(voltPort.ID))
+	port.Element = voltPort.Device
+	if voltPort.State == app.PortStateUp {
+		port.IsEnabled = true
+	} else {
+		port.IsEnabled = false
+	}
+	if voltPort.Type == app.VoltPortTypeNni {
+		port.Type = "fiber"
+	} else {
+		port.Type = "copper"
+	}
+	port.Annotations.AdminState = "enabled"
+	port.Annotations.PortName = voltPort.Name
+
+	return port
+}

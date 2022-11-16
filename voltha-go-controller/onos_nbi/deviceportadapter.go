@@ -1,0 +1,119 @@
+/*
+* Copyright 2022-present Open Networking Foundation
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
+package onos_nbi
+
+import (
+        "encoding/json"
+        "net/http"
+
+        app "voltha-go-controller/internal/pkg/application"
+        "voltha-go-controller/log"
+)
+
+// DeviceHandle Handle DeviceIDList Requests
+type DeviceHandle struct {
+}
+
+// DevicePortHandle Handle Ports Requests
+type DevicePortHandle struct {
+}
+
+// ServeHTTP to serve HTTP requests
+func (dh *DeviceHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+        logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
+        switch r.Method {
+        case "GET":
+                dh.GetDeviceList(w, r)
+        default:
+                logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+        }
+}
+
+// GetDeviceList to get device id list
+func (dh *DeviceHandle) GetDeviceList(w http.ResponseWriter, r *http.Request) {
+
+        va := app.GetApplication()
+        var deviceListResp DeviceEntry
+
+        getDeviceList := func(key, value interface{}) bool {
+                voltDevice := value.(*app.VoltDevice)
+		device := convertVoltDeviceToDevice(voltDevice)
+                deviceListResp.Devices = append(deviceListResp.Devices, device)
+                return true
+        }
+        va.DevicesDisc.Range(getDeviceList)
+
+        deviceListJSON, err := json.Marshal(deviceListResp)
+        if err != nil {
+                logger.Errorw(ctx, "Error occurred while marshaling device list response", log.Fields{"Error": err})
+                w.WriteHeader(http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Add("Content-Type", "application/json")
+        _, err = w.Write(deviceListJSON)
+        if err != nil {
+                logger.Errorw(ctx, "error in sending deviceList response", log.Fields{"Error": err})
+                w.WriteHeader(http.StatusInternalServerError)
+        }
+}
+
+// ServeHTTP to serve HTTP requests
+func (dh *DevicePortHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+        logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
+        switch r.Method {
+        case "GET":
+                dh.GetPortList(w, r)
+        default:
+                logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+        }
+}
+
+// GetPortList to get device id list
+func (dh *DevicePortHandle) GetPortList(w http.ResponseWriter, r *http.Request) {
+
+        va := app.GetApplication()
+        var portListResp PortEntry
+
+        getPortList := func(key, value interface{}) bool {
+                voltPort := value.(*app.VoltPort)
+		port := convertVoltPortToPort(voltPort)
+                portListResp.Ports = append(portListResp.Ports, port)
+                return true
+        }
+
+        getDeviceList := func(key, value interface{}) bool {
+                voltDevice := value.(*app.VoltDevice)
+		voltDevice.Ports.Range(getPortList)
+                return true
+        }
+        va.DevicesDisc.Range(getDeviceList)
+
+        portListJSON, err := json.Marshal(portListResp)
+        if err != nil {
+                logger.Errorw(ctx, "Error occurred while marshaling port list response", log.Fields{"Error": err})
+                w.WriteHeader(http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Add("Content-Type", "application/json")
+        _, err = w.Write(portListJSON)
+        if err != nil {
+                logger.Errorw(ctx, "error in sending portList response", log.Fields{"Error": err})
+                w.WriteHeader(http.StatusInternalServerError)
+        }
+}
+

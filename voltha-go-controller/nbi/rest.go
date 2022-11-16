@@ -34,6 +34,8 @@ const (
 	IgmpProxyPath   string = "/igmp-proxy/"
 	MulticastPath   string = "/multicast/"
 	FlowsPath       string = "/flows/"
+	DevicesPath       string = "/devices"
+	PortsPath       string = "/devices/ports"
 	FlowsPerDeviceIDPath string = "/flows/{deviceId}"
 	FlowPerDeviceIDFlowIDPath string = "/flows/{deviceId}/{flowId}"
 	PendingFlowsPath          string = "/flows/pending/"
@@ -63,6 +65,8 @@ func RestStart() {
         mu.HandleFunc(ServicePortStagCtagTpIDPath, (&onos_nbi.ServiceAdapter{}).ServeHTTPWithPortName)
         mu.HandleFunc(AllocationsPath, (&onos_nbi.DhcpRelayHandle{}).ServeHTTP)
         mu.HandleFunc(AllocationsDeviceIDPath, (&onos_nbi.DhcpRelayHandle{}).ServeHTTP)
+        mu.HandleFunc(DevicesPath, (&onos_nbi.DeviceHandle{}).ServeHTTP)
+        mu.HandleFunc(PortsPath, (&onos_nbi.DevicePortHandle{}).ServeHTTP)
 
 	err := http.ListenAndServe(":8181", mu)
 	logger.Infow(ctx, "Rest Server Started", log.Fields{"Error": err})
