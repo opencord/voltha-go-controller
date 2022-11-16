@@ -105,15 +105,25 @@ func (vpa *VPAgent) addVPClient(device *voltha.LogicalDevice) intf.IVPClient {
 	vpa.mapLock.Lock()
 	defer vpa.mapLock.Unlock()
 	var serialNum = "Unknown"
+	var mfrDesc = "Unknown"
+	var hwDesc = "Unknown"
+	var swDesc = "Unknown"
 	if device.Desc != nil {
 		serialNum = device.Desc.SerialNum
+		mfrDesc = device.Desc.MfrDesc
+		hwDesc = device.Desc.HwDesc
+		swDesc = device.Desc.SwDesc
 	}
 	vpc := vpa.clientMap[device.Id]
 	if vpc == nil {
 		vpa.VPClientAgent.AddNewDevice(&intf.VPClientCfg{
 			DeviceID:         device.Id,
 			SerialNum:        serialNum,
+			MfrDesc:          mfrDesc,
+			HwDesc:           hwDesc,
+			SwDesc:           swDesc,
 			SouthBoundID:     device.RootDeviceId,
+			TimeStamp:        time.Now(),
 			VolthaClient:     vpa.volthaClient,
 			PacketOutChannel: vpa.packetOutChannel,
 		})

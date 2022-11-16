@@ -174,7 +174,7 @@ func (ad *AuditDevice) AddMissingPorts(cntx context.Context, mps map[uint32]*ofp
 
 		// Error is ignored as it only drops duplicate ports
 		logger.Infow(ctx, "Calling AddPort", log.Fields{"No": mp.PortNo, "Name": mp.Name})
-		if err := ad.device.AddPort(cntx, mp.PortNo, mp.Name); err != nil {
+		if err := ad.device.AddPort(cntx, mp); err != nil {
 			logger.Warnw(ctx, "AddPort Failed", log.Fields{"No": mp.PortNo, "Name": mp.Name, "Reason": err})
 		}
 		if mp.State == uint32(ofp.OfpPortState_OFPPS_LIVE) {

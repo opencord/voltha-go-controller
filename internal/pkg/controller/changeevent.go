@@ -74,7 +74,7 @@ func (cet *ChangeEventTask) Start(ctx context.Context, taskID uint8) error {
 		state := status.PortStatus.Desc.State
 		logger.Infow(ctx, "Process Port Change Event", log.Fields{"Port No": portNo, "Port Name": portName, "State": state, "Reason": status.PortStatus.Reason})
 		if status.PortStatus.Reason == ofp.OfpPortReason_OFPPR_ADD {
-			_ = cet.device.AddPort(ctx, portNo, portName)
+			_ = cet.device.AddPort(ctx, status.PortStatus.Desc)
 			if state == uint32(ofp.OfpPortState_OFPPS_LIVE) {
 				cet.device.ProcessPortState(ctx, portNo, state)
 			}

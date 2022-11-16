@@ -19,8 +19,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	infraerror "voltha-go-controller/internal/pkg/errorcodes"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -53,18 +55,26 @@ const (
 // DevicePort structure
 type DevicePort struct {
 	tasks.Tasks
-	Name    string
-	ID      uint32
-	State   PortState
-	Version string
+	Name      string
+	ID        uint32
+	State     PortState
+	Version   string
+	HwAddr    string
+	CurrSpeed uint32
+	MaxSpeed  uint32
 }
 
 // NewDevicePort is the constructor for DevicePort
-func NewDevicePort(id uint32, name string) *DevicePort {
+func NewDevicePort(mp *ofp.OfpPort) *DevicePort {
 	var port DevicePort
 
-	port.ID = id
-	port.Name = name
+	port.ID = mp.PortNo
+	port.Name = mp.Name
+
+	//port.HwAddr = strings.Trim(strings.Join(strings.Fields(fmt.Sprint("%02x", mp.HwAddr)), ":"), "[]")
+	port.HwAddr = strings.Trim(strings.ReplaceAll(fmt.Sprintf("%02x", mp.HwAddr), " ", ":"), "[]")
+	port.CurrSpeed = mp.CurrSpeed
+	port.MaxSpeed = mp.MaxSpeed
 	port.State = PortStateDown
 	return &port
 }
@@ -127,10 +137,14 @@ type Device struct {
 	flowQueue             map[uint32]*UniIDFlowQueue // key is hash ID generated and value is UniIDFlowQueue.
 	deviceAuditInProgress bool
 	SouthBoundID          string
+	MfrDesc               string
+	HwDesc                string
+	SwDesc                string
+	TimeStamp             time.Time
 }
 
 // NewDevice is the constructor for Device
-func NewDevice(cntx context.Context, id string, slno string, vclientHldr *holder.VolthaServiceClientHolder, southBoundID string) *Device {
+func NewDevice(cntx context.Context, id string, slno string, vclientHldr *holder.VolthaServiceClientHolder, southBoundID, mfr, hwDesc, swDesc string) *Device {
 	var device Device
 	device.ID = id
 	device.SerialNum = slno
@@ -143,6 +157,10 @@ func NewDevice(cntx context.Context, id string, slno string, vclientHldr *holder
 	device.flowQueue = make(map[uint32]*UniIDFlowQueue)
 	//Get the flowhash from db and update the flowhash variable in the device.
 	device.SouthBoundID = southBoundID
+	device.MfrDesc = mfr
+	device.HwDesc = hwDesc
+	device.SwDesc = swDesc
+	device.TimeStamp = time.Now()
 	flowHash, err := db.GetFlowHash(cntx, id)
 	if err != nil {
 		device.flowHash = DefaultMaxFlowQueues
@@ -446,10 +464,11 @@ func (d *Device) VolthaClient() voltha.VolthaServiceClient {
 
 // AddPort to add the port as requested by the device/VOLTHA
 // Inform the application if the port is successfully added
-func (d *Device) AddPort(cntx context.Context, id uint32, name string) error {
+func (d *Device) AddPort(cntx context.Context, mp *ofp.OfpPort) error {
 	d.portLock.Lock()
 	defer d.portLock.Unlock()
-
+	id := mp.PortNo
+	name := mp.Name
 	if _, ok := d.PortsByID[id]; ok {
 		return errors.New("Duplicate port")
 	}
@@ -457,7 +476,7 @@ func (d *Device) AddPort(cntx context.Context, id uint32, name string) error {
 		return errors.New("Duplicate port")
 	}
 
-	p := NewDevicePort(id, name)
+	p := NewDevicePort(mp)
 	d.PortsByID[id] = p
 	d.PortsByName[name] = p
 	d.WritePortToDb(cntx, p)
@@ -631,6 +650,7 @@ func (d *Device) ConnectInd(ctx context.Context, discType intf.DiscoveryType) {
 
 	logger.Warnw(ctx, "Device State change Ind: UP", log.Fields{"Device": d.ID})
 	d.State = DeviceStateUP
+	d.TimeStamp = time.Now()
 	GetController().DeviceUpInd(d.ID)
 
 	logger.Warnw(ctx, "Device State change Ind: UP, trigger Audit Tasks", log.Fields{"Device": d.ID})
@@ -667,6 +687,7 @@ loop:
 func (d *Device) DeviceUpInd() {
 	logger.Warnw(ctx, "Device State change Ind: UP", log.Fields{"Device": d.ID})
 	d.State = DeviceStateUP
+	d.TimeStamp = time.Now()
 	GetController().DeviceUpInd(d.ID)
 
 	logger.Warnw(ctx, "Device State change Ind: UP, trigger Audit Tasks", log.Fields{"Device": d.ID})
@@ -684,6 +705,7 @@ func (d *Device) DeviceUpInd() {
 func (d *Device) DeviceDownInd() {
 	logger.Warnw(ctx, "Device State change Ind: Down", log.Fields{"Device": d.ID})
 	d.State = DeviceStateDOWN
+	d.TimeStamp = time.Now()
 	GetController().DeviceDownInd(d.ID)
 }
 
@@ -698,6 +720,7 @@ func (d *Device) DeviceRebootInd(cntx context.Context) {
 	}
 
 	d.State = DeviceStateREBOOTED
+	d.TimeStamp = time.Now()
 	GetController().SetRebootInProgressForDevice(d.ID)
 	GetController().DeviceRebootInd(cntx, d.ID, d.SerialNum, d.SouthBoundID)
 	d.ReSetAllPortStates(cntx)
@@ -707,6 +730,7 @@ func (d *Device) DeviceRebootInd(cntx context.Context) {
 func (d *Device) DeviceDisabledInd(cntx context.Context) {
 	logger.Warnw(ctx, "Device State change Ind: Disabled", log.Fields{"Device": d.ID})
 	d.State = DeviceStateDISABLED
+	d.TimeStamp = time.Now()
 	GetController().DeviceDisableInd(cntx, d.ID)
 }
 

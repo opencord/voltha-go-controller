@@ -91,7 +91,7 @@ func NewController(ctx context.Context, app intf.App) intf.IVPClientAgent {
 // AddDevice to add device
 func (v *VoltController) AddDevice(cntx context.Context, config *intf.VPClientCfg) intf.IVPClient {
 
-	d := NewDevice(cntx, config.DeviceID, config.SerialNum, config.VolthaClient, config.SouthBoundID)
+	d := NewDevice(cntx, config.DeviceID, config.SerialNum, config.VolthaClient, config.SouthBoundID, config.MfrDesc, config.HwDesc, config.SwDesc)
 	v.devices[config.DeviceID] = d
 	v.app.AddDevice(cntx, d.ID, d.SerialNum, config.SouthBoundID)
 

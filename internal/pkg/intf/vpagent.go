@@ -17,6 +17,7 @@ package intf
 
 import (
 	"context"
+	"time"
 
 	"voltha-go-controller/internal/pkg/holder"
 
@@ -28,6 +29,10 @@ type VPClientCfg struct {
 	DeviceID         string
 	SerialNum        string
 	SouthBoundID     string
+	MfrDesc          string
+	HwDesc           string
+	SwDesc           string
+	TimeStamp        time.Time
 	VolthaClient     *holder.VolthaServiceClientHolder
 	PacketOutChannel chan *ofp.PacketOut
 }

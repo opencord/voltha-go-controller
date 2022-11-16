@@ -1,4 +1,5 @@
 /*
+
 * Copyright 2022-present Open Networking Foundation
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -19,6 +20,7 @@ import (
 	"strconv"
 	"voltha-go-controller/internal/pkg/of"
 	app "voltha-go-controller/internal/pkg/application"
+	"voltha-go-controller/internal/pkg/controller"
 )
 
 const (
@@ -397,6 +399,7 @@ type FlowEntry struct {
 
 func ConvertFlowToFlowEntry (subFlow *of.VoltSubFlow) FlowEntry {
 	var flowEntry FlowEntry
+	flowEntry.Flows = []Flow{}
 	flow := ConvertVoltSubFlowToOnosFlow(subFlow)
 	flowEntry.Flows = append(flowEntry.Flows, flow)
 	return flowEntry
@@ -404,6 +407,7 @@ func ConvertFlowToFlowEntry (subFlow *of.VoltSubFlow) FlowEntry {
 
 func ConvertFlowsToFlowEntry (subFlows []*of.VoltSubFlow) FlowEntry {
 	var flowEntry FlowEntry
+	flowEntry.Flows = []Flow{}
 	for _, subFlow := range subFlows {
 		flow := ConvertVoltSubFlowToOnosFlow(subFlow)
 		flowEntry.Flows = append(flowEntry.Flows, flow)
@@ -574,3 +578,97 @@ func convertServiceToSubscriberInfo(svcs []*app.VoltService) []*SubscriberInfo {
         return subs
 }
 
+type DeviceEntry struct {
+	Devices []Device `json:"devices"`
+}
+
+type Device struct {
+	ID                      string `json:"id"`
+	Type                    string `json:"type"`
+	Available               bool   `json:"available"`
+	Role                    string `json:"role"`
+	Mfr                     string `json:"mfr"`
+	Hw                      string `json:"hw"`
+	Sw                      string `json:"sw"`
+	Serial                  string `json:"serial"`
+	Driver                  string `json:"driver"`
+	ChassisID               string `json:"chassisId"`
+	LastUpdate              string `json:"lastUpdate"`
+	HumanReadableLastUpdate string `json:"humanReadableLastUpdate"`
+	Annotations             DeviceAnnotations `json:"annotations"`
+}
+type DeviceAnnotations struct {
+	ChannelID         string `json:"channelId"`
+	ManagementAddress string `json:"managementAddress"`
+	Protocol          string `json:"protocol"`
+}
+
+func convertVoltDeviceToDevice(voltDevice *app.VoltDevice) Device {
+	var device Device
+
+	d, err := controller.GetController().GetDevice(voltDevice.Name)
+	if err != nil {
+		device.ID = voltDevice.Name
+		return device
+	}
+	device.ID = d.ID
+	if d.State == controller.DeviceStateUP {
+		device.Available = true
+	} else {
+		device.Available = false
+	}
+	device.Serial = d.SerialNum
+	device.Mfr    = d.MfrDesc
+	device.Hw     = d.HwDesc
+	device.Sw     = d.SwDesc
+	device.LastUpdate = d.TimeStamp.String()
+	device.HumanReadableLastUpdate = d.TimeStamp.String()
+	return device
+}
+type PortEntry struct {
+	Ports []Port `json:"ports"`
+}
+
+type Port struct {
+	Element     string `json:"element"`
+	Port        string `json:"port"`
+	IsEnabled   bool   `json:"isEnabled"`
+	Type        string `json:"type"`
+	PortSpeed   int    `json:"portSpeed"`
+	Annotations PortAnnotations `json:"annotations"`
+}
+type PortAnnotations struct {
+	AdminState string `json:"adminState"`
+	PortMac    string `json:"portMac"`
+	PortName   string `json:"portName"`
+}
+
+func convertVoltPortToPort(voltPort *app.VoltPort) Port {
+	var port Port
+	port.Port = strconv.Itoa(int(voltPort.ID))
+	port.Element = voltPort.Device
+	if voltPort.State == app.PortStateUp {
+		port.IsEnabled = true
+	} else {
+		port.IsEnabled = false
+	}
+	if voltPort.Type == app.VoltPortTypeNni {
+		port.Type = "fiber"
+	} else {
+		port.Type = "copper"
+	}
+	port.Annotations.AdminState = "enabled"
+	port.Annotations.PortName = voltPort.Name
+
+	device, err := controller.GetController().GetDevice(voltPort.Device)
+	if err != nil {
+		return port
+	}
+
+	devicePort := device.GetPortByName(voltPort.Name)
+	if devicePort != nil {
+		port.PortSpeed = int(devicePort.MaxSpeed)
+		port.Annotations.PortMac = devicePort.HwAddr
+	}
+	return port
+}
