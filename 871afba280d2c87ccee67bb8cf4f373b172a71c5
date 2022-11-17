@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "8b899550_2caabe58",
+        "filename": "voltha-go-controller/nbi/rest.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "same API handles flow per deviceID,Flowid etc. all cases are handled",
+      "parentUuid": "3046b1a7_8e5b48f8",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "af9d343d_ad20d757",
         "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
         "patchSetId": 5
@@ -31,6 +49,24 @@
       "writtenOn": "2022-11-16T05:41:15Z",
       "side": 1,
       "message": "contants ?",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ad7bbab8_35cbe6c7",
+        "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af9d343d_ad20d757",
       "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -52,6 +88,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2f8cc265_56eda04d",
+        "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7370c23e_8c3f4022",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "03d901f2_ac903240",
@@ -65,6 +119,24 @@
       "writtenOn": "2022-11-16T05:41:15Z",
       "side": 1,
       "message": "rephrase the statement to something like \u0027failed to Marshal data\u0027 !",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b787e0b_6e6532d7",
+        "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "03d901f2_ac903240",
       "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -88,6 +160,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "c1a1106f_bc46440a",
+        "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "This is the format constant, as discussed keeping it as it is",
+      "parentUuid": "24a22f58_f373dbd0",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "cfb54231_be263b36",
         "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
         "patchSetId": 5
@@ -99,6 +189,24 @@
       "writtenOn": "2022-11-16T05:41:15Z",
       "side": 1,
       "message": "rephrase the statement",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a2ffb3a1_9f4bc531",
+        "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cfb54231_be263b36",
       "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -120,6 +228,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9bdc2787_d4c6995d",
+        "filename": "voltha-go-controller/onos_nbi/flowrestadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "002a5bae_d36ca988",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "896acbe0_d6a694d1",
@@ -137,6 +263,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "54a33f62_221aa54a",
+        "filename": "voltha-go-controller/onos_nbi/flowrestadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "896acbe0_d6a694d1",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "88c4e152_c2813170",
@@ -150,6 +294,24 @@
       "writtenOn": "2022-11-16T05:41:15Z",
       "side": 1,
       "message": "review all the error statements and repharse them",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fc3fd205_d190f684",
+        "filename": "voltha-go-controller/onos_nbi/flowrestadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "88c4e152_c2813170",
       "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -173,6 +335,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "6c6982b0_1e6fe856",
+        "filename": "voltha-go-controller/onos_nbi/models.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "2e8bfffc_43b15158",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "3e83364b_7225a8ac",
         "filename": "voltha-go-controller/onos_nbi/models.go",
         "patchSetId": 5
@@ -184,6 +364,24 @@
       "writtenOn": "2022-11-16T05:41:15Z",
       "side": 1,
       "message": "it should be filled accrodingly , correct ?",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "19037e3a_ab85f5e9",
+        "filename": "voltha-go-controller/onos_nbi/models.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "yes. Changed",
+      "parentUuid": "3e83364b_7225a8ac",
       "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -205,6 +403,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5ebd1afd_71727045",
+        "filename": "voltha-go-controller/onos_nbi/oltapprestadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "08f7f97a_34daa232",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d1ae84b1_7f006ab9",
@@ -218,6 +434,24 @@
       "writtenOn": "2022-11-16T05:41:15Z",
       "side": 1,
       "message": "Dot see this getting called",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d0e358b7_a0ffe3d9",
+        "filename": "voltha-go-controller/onos_nbi/oltapprestadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-11-17T07:20:42Z",
+      "side": 1,
+      "message": "@line 70",
+      "parentUuid": "d1ae84b1_7f006ab9",
       "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
