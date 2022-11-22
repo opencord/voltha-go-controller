@@ -194,6 +194,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1e50567a_2716b636",
+        "filename": "voltha-go-controller/onos_nbi/dhcprelayadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-22T09:27:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c1a1106f_bc46440a",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "cfb54231_be263b36",
