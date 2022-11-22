@@ -36,6 +36,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "eb1970c7_39485af0",
+        "filename": "voltha-go-controller/nbi/rest.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-22T09:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8b899550_2caabe58",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "af9d343d_ad20d757",
@@ -351,6 +369,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a43ce1ff_988b9ec9",
+        "filename": "voltha-go-controller/onos_nbi/models.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-22T09:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6c6982b0_1e6fe856",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3e83364b_7225a8ac",
@@ -382,6 +418,24 @@
       "side": 1,
       "message": "yes. Changed",
       "parentUuid": "3e83364b_7225a8ac",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "64c1c021_26da87de",
+        "filename": "voltha-go-controller/onos_nbi/models.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-22T09:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19037e3a_ab85f5e9",
       "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -452,6 +506,24 @@
       "side": 1,
       "message": "@line 70",
       "parentUuid": "d1ae84b1_7f006ab9",
+      "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b3c38e97_7fbedde7",
+        "filename": "voltha-go-controller/onos_nbi/oltapprestadapter.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-11-22T09:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d0e358b7_a0ffe3d9",
       "revId": "871afba280d2c87ccee67bb8cf4f373b172a71c5",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
