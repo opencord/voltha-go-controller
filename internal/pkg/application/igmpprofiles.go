@@ -405,7 +405,7 @@ func (mvp *MvlanProfile) pushIgmpMcastFlows(cntx context.Context, OLTSerialNum s
                 return
         }
 
-        d := GetApplication().GetDeviceBySerialNo(OLTSerialNum)
+        d, _ := GetApplication().GetDeviceBySerialNo(OLTSerialNum)
         if d == nil {
                 logger.Warnw(ctx, "Skipping Igmp & Mcast Flow processing: Device Not Found", log.Fields{"Device_SrNo": OLTSerialNum, "Mvlan": mvp.Mvlan})
                 return
@@ -437,7 +437,7 @@ func (mvp *MvlanProfile) removeIgmpMcastFlows(cntx context.Context, oltSerialNum
         mvp.mvpLock.RLock()
         defer mvp.mvpLock.RUnlock()
 
-        if d := GetApplication().GetDeviceBySerialNo(oltSerialNum); d != nil {
+        if d, _ := GetApplication().GetDeviceBySerialNo(oltSerialNum); d != nil {
                 p := d.GetPort(d.NniPort)
                 if p != nil {
                         logger.Infow(ctx, "NNI Port Status is: UP", log.Fields{"Device": d, "port": p})
@@ -1028,7 +1028,7 @@ func (mvp *MvlanProfile) UpdateActiveChannelSubscriberAlarm() {
         va := GetApplication()
         logger.Debugw(ctx, "Update of Active Channel Subscriber Alarm", log.Fields{"Mvlan": mvp.Mvlan})
         for srNo := range mvp.DevicesList {
-                d := va.GetDeviceBySerialNo(srNo)
+                d, _ := va.GetDeviceBySerialNo(srNo)
                 if d == nil {
                         logger.Warnw(ctx, "Device info not found", log.Fields{"Device_SrNo": srNo, "Mvlan": mvp.Mvlan})
                         return

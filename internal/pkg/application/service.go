@@ -71,6 +71,10 @@ type VoltServiceCfg struct {
 	SVlanTpid                  layers.EthernetType
 	MacAddr                    net.HardwareAddr
 	Pbits                      []of.PbitType
+	UsPonCTagPriority          of.PbitType
+	UsPonSTagPriority          of.PbitType
+	DsPonCTagPriority          of.PbitType
+	DsPonSTagPriority          of.PbitType
 	DsRemarkPbitsMap           map[int]int // Ex: Remark case {0:0,1:0} and No-remark case {1:1}
 	TechProfileID              uint16
 	CircuitID                  string
@@ -99,6 +103,7 @@ type VoltServiceCfg struct {
 	MaxDataRateDs              uint32
 	IsActivated                bool
 	Trigger                    ServiceTrigger
+	ServiceType                string
 }
 
 // VoltServiceOper structure
@@ -285,6 +290,25 @@ func (vs *VoltService) DelHsiaFlows(cntx context.Context) {
 	}
 }
 
+func (vs *VoltService) AddMeterToDevice(cntx context.Context) error {
+	if vs.DeleteInProgress || vs.UpdateInProgress {
+		logger.Errorw(ctx, "Ignoring Meter Push, Service deleteion In-Progress", log.Fields{"Device": vs.Device, "Service": vs.Name})
+	}
+	va := GetApplication()
+	logger.Infow(ctx, "Configuring Meters for FTTB", log.Fields{"ServiceName": vs.Name})
+	device, err := va.GetDeviceFromPort(vs.Port)
+	if err != nil {
+		logger.Errorw(ctx, "Error Getting Device", log.Fields{"Reason": err.Error()})
+		return errorCodes.ErrDeviceNotFound
+	} else if device.State != controller.DeviceStateUP {
+		logger.Warnw(ctx, "Device state Down. Ignoring Meter Push", log.Fields{"Service": vs.Name, "Port": vs.Port})
+		return nil
+	}
+	va.AddMeterToDevice(vs.Port, device.Name, vs.UsMeterID, 0)
+	va.AddMeterToDevice(vs.Port, device.Name, vs.DsMeterID, vs.AggDsMeterID)
+	return nil
+}
+
 // AddUsHsiaFlows - Add US HSIA Flows for the service
 func (vs *VoltService) AddUsHsiaFlows(cntx context.Context) error {
 
@@ -306,9 +330,11 @@ func (vs *VoltService) AddUsHsiaFlows(cntx context.Context) error {
 		}
 
 		vs.Device = device.Name
-		va.AddMeterToDevice(vs.Port, device.Name, vs.UsMeterID, 0)
-		va.AddMeterToDevice(vs.Port, device.Name, vs.DsMeterID, vs.AggDsMeterID)
-
+		/* In case of DPU_MGMT_TRAFFIC the meters will be configured before US flow creation*/
+		if vs.ServiceType != DPU_MGMT_TRAFFIC {
+			va.AddMeterToDevice(vs.Port, device.Name, vs.UsMeterID, 0)
+			va.AddMeterToDevice(vs.Port, device.Name, vs.DsMeterID, vs.AggDsMeterID)
+		}
 		logger.Infow(ctx, "Adding HSIA flows", log.Fields{"Name": vs.Name})
 		pBits := vs.Pbits
 
@@ -560,7 +586,6 @@ func (vs *VoltService) BuildDsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		if pbits != PbitMatchNone {
 			subflow1.SetMatchPbit(pbits)
 		}
-
 		if remarkExists && (of.PbitType(remarkPbit) != pbits) {
 			subflow1.SetPcp(of.PbitType(remarkPbit))
 			// match & action pbits are different, set remark-pbit action
@@ -703,14 +728,6 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 	// PortName and PortID to be used for validation of port before flow pushing
 	flow.PortID = inport
 	flow.PortName = vs.Port
-	allowTransparent := 0
-	reqBwInfo := 0
-	if vs.AllowTransparent {
-		allowTransparent = 1
-	}
-	if vs.BwAvailInfo == "" {
-		reqBwInfo = 1
-	}
 
 	// Add Table-0 flow that deals with the inner VLAN in ONU
 	{
@@ -719,42 +736,24 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		subflow1.SetGoToTable(1)
 		subflow1.SetInPort(inport)
 
+		if vs.ServiceType == DPU_MGMT_TRAFFIC {
+			subflow1.SetMatchPbit(vs.UsPonCTagPriority)
+			subflow1.SetPcp(vs.UsPonSTagPriority)
+		} else if vs.ServiceType == DPU_ANCP_TRAFFIC {
+			subflow1.SetPcp(vs.UsPonSTagPriority)
+		}
 		if err := vs.setUSMatchActionVlanT0(subflow1); err != nil {
 			return nil, err
 		}
 		subflow1.SetMeterID(vs.UsMeterID)
 
-		if GetApplication().GetVendorID() == Radisys {
-			if pbits != PbitMatchNone {
-				subflow1.SetMatchPbit(pbits)
-			}
-			/* WriteMetaData 8 Byte(uint64) usage:
-			| Byte8    | Byte7    | Byte6 | Byte5  | Byte4  | Byte3   | Byte2  | Byte1 |
-			| reserved | reserved | TpID  | TpID   | uinID  | uniID   | uniID  | uniID | */
-			metadata := uint64(vs.CVlan)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
-			subflow1.SetWriteMetadata(metadata)
-			/* TableMetaData 8 Byte(uint64) usage: (Considering MSB bit as 63rd bit and LSB bit as 0th bit)
-			|                         Byte8                     |  Byte7    |  Byte6    |      Byte5       |  Byte4    | Byte3    | Byte2    | Byte1   |
-			| 000      |    0      |    00     |    0     |  0  |  00000000 |  00000000 |  0000   0000     |  00000000 | 00000000 | 00000000 | 00000000|
-			| reserved | reqBwInfo | svlanTpID |  Buff us |  AT |  schedID  |  schedID  | onteth  vlanCtrl |  unitag   | unitag   | ctag     | ctag    | */
-			metadata = uint64(reqBwInfo)<<60 | uint64(allowTransparent)<<56 | uint64(vs.SchedID)<<40 | uint64(vs.ONTEtherTypeClassification)<<36 | uint64(vs.VlanControl)<<32 | uint64(vs.CVlan)
+		/* WriteMetaData 8 Byte(uint64) usage:
+		| Byte8    | Byte7    | Byte6 | Byte5  | Byte4  | Byte3   | Byte2  | Byte1 |
+		| reserved | reserved | TpID  | TpID   | uinID  | uniID   | uniID  | uniID | */
+		//metadata := uint64(vs.CVlan)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
+		metadata := uint64(vs.TechProfileID)<<32 + uint64(outport)
+		subflow1.SetWriteMetadata(metadata)
 
-			// // In case of MAC Learning enabled voltha will buffer the US flow installation.
-			// if NonZeroMacAddress(vs.MacAddr) {
-			// 	subflow1.SetMatchSrcMac(vs.MacAddr)
-			// } else if vs.MacLearning != MacLearning {
-			// 	metadata |= 1 << 57
-			// 	logger.Infow(ctx, "Buffer us flow at adapter", log.Fields{"metadata": metadata})
-			// }
-			subflow1.SetTableMetadata(metadata)
-		} else {
-			/* WriteMetaData 8 Byte(uint64) usage:
-			| Byte8    | Byte7    | Byte6 | Byte5  | Byte4  | Byte3   | Byte2  | Byte1 |
-			| reserved | reserved | TpID  | TpID   | uinID  | uniID   | uniID  | uniID | */
-			//metadata := uint64(vs.CVlan)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
-			metadata := uint64(vs.TechProfileID)<<32 + uint64(outport)
-			subflow1.SetWriteMetadata(metadata)
-		}
 		if vs.VlanControl == OLTCVlanOLTSVlan {
 			/**
 			 * The new cookie generation is only for OLT_CVLAN_OLT_SVLAN case (TEF residential case) within a UNI.
@@ -783,33 +782,17 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		if err := vs.setUSMatchActionVlanT1(subflow2); err != nil {
 			return nil, err
 		}
+		if vs.ServiceType == DPU_MGMT_TRAFFIC {
+			subflow2.SetMatchSrcMac(vs.MacAddr)
+		}
 		subflow2.SetInPort(inport)
 		subflow2.SetOutPort(outport)
 		subflow2.SetMeterID(vs.UsMeterID)
 
-		if GetApplication().GetVendorID() == Radisys {
-			if pbits != PbitMatchNone {
-				subflow2.SetMatchPbit(pbits)
-			}
-			// refer Table-0 flow generation for byte information
-			metadata := uint64(vs.CVlan)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
-			subflow2.SetWriteMetadata(metadata)
-			// refer Table-0 flow generation for byte information
-			metadata = uint64(reqBwInfo)<<60 | uint64(allowTransparent)<<56 | uint64(vs.SchedID)<<40 | uint64(vs.ONTEtherTypeClassification)<<36 | uint64(vs.VlanControl)<<32 | uint64(vs.CVlan)
-			// // In case of MAC Learning enabled voltha will buffer the US flow installation.
-			// if NonZeroMacAddress(vs.MacAddr) {
-			// 	subflow2.SetMatchSrcMac(vs.MacAddr)
-			// } else if vs.MacLearning != MacLearningNone {
-			// 	metadata |= 1 << 57
-			// 	logger.Infow(ctx, "Buffer us flow at adapter", log.Fields{"metadata": metadata})
-			// }
-			subflow2.SetTableMetadata(metadata)
-		} else {
-			// refer Table-0 flow generation for byte information
-			metadata := uint64(vs.TechProfileID)<<32 + uint64(outport)
-			subflow2.SetWriteMetadata(metadata)
+		// refer Table-0 flow generation for byte information
+		metadata := uint64(vs.TechProfileID)<<32 + uint64(outport)
+		subflow2.SetWriteMetadata(metadata)
 
-		}
 		if vs.VlanControl == OLTCVlanOLTSVlan {
 			/**
 			 * The new cookie generation is only for OLT_CVLAN_OLT_SVLAN case (TEF residential case) within a UNI.
@@ -1083,6 +1066,12 @@ func (va *VoltApplication) AddService(cntx context.Context, cfg VoltServiceCfg, 
 	} else {
 		logger.Errorw(ctx, "VNET-does-not-exist-for-service", log.Fields{"ServiceName": cfg.Name})
 		return errors.New("VNET doesn't exist")
+	}
+
+	// If the device is already discovered, update the device name in service
+	d, err := va.GetDeviceFromPort(vs.Port)
+	if err == nil {
+		vs.Device = d.Name
 	}
 
 	vs.Version = database.PresentVersionMap[database.ServicePath]
@@ -1588,7 +1577,7 @@ func (va *VoltApplication) MigrateServices(cntx context.Context, serialNum strin
 		return errors.New("New Vnet Id not found")
 	}
 
-	d := va.GetDeviceBySerialNo(serialNum)
+	d, _ := va.GetDeviceBySerialNo(serialNum)
 	if d == nil {
 		logger.Errorw(ctx, "Error Getting Device", log.Fields{"SerialNum": serialNum})
 		return errorCodes.ErrDeviceNotFound
@@ -2047,7 +2036,7 @@ func (va *VoltApplication) GetProgrammedSubscribers(cntx context.Context, device
 
 // ActivateService to activate pre-provisioned service
 func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) {
-	logger.Infow(ctx, "Service Activate Request ", log.Fields{"Device": deviceID, "Port": portNo})
+	logger.Infow(ctx, "Service Activate Request ", log.Fields{"Device": deviceID, "Port": portNo, "sVlan": sVlan, "cVlan":cVlan, "tpID": tpID})
 	va.ServiceByName.Range(func(key, value interface{}) bool {
 		vs := value.(*VoltService)
 		// If device id is not provided check only port number
@@ -2056,6 +2045,7 @@ func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portN
 		}
 		// If svlan if provided, then the tags and tpID of service has to be matching
 		if sVlan != of.VlanNone && (sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) {
+			logger.Infow(ctx, "Service Activate Request Does not match", log.Fields{"Device": deviceID, "voltService": vs})
 			return true
 		}
 		if portNo == vs.Port && !vs.IsActivated {
