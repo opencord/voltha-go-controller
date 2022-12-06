@@ -215,6 +215,7 @@ type VoltDevice struct {
 	FlowDelEventMap              *util.ConcurrentMap //map[string]*FlowEvent
 	MigratingServices            *util.ConcurrentMap //<vnetID,<RequestID, MigrateServicesRequest>>
 	GlobalDhcpFlowAdded          bool
+	NniDhcpTrapVid               of.VlanType
 }
 
 // NewVoltDevice : Constructor for the device
@@ -234,6 +235,11 @@ func NewVoltDevice(name string, slno, southBoundID string) *VoltDevice {
 	d.FlowAddEventMap = util.NewConcurrentMap()
 	d.FlowDelEventMap = util.NewConcurrentMap()
 	d.GlobalDhcpFlowAdded = false
+	if config, ok := GetApplication().DevicesConfig.Load(slno); ok {
+		//Update nni dhcp vid
+		deviceConfig := config.(DeviceConfig)
+		d.NniDhcpTrapVid = of.VlanType(deviceConfig.NniDhcpTrapVid)
+	}
 	return &d
 }
 
@@ -429,6 +435,7 @@ type VoltApplication struct {
 	VoltPortVnetsToDelete     map[*VoltPortVnet]bool
 	PortAlarmProfileCache     map[string]map[string]int // [portAlarmID][ThresholdLevelString]ThresholdLevel
 	vendorID                  string
+	DevicesConfig             sync.Map
 }
 
 // PonPortCfg contains NB port config and activeIGMPChannels count
@@ -775,14 +782,16 @@ func (va *VoltApplication) DelDevice(cntx context.Context, device string) {
 
 // GetDeviceBySerialNo to get a device by serial number.
 // TODO - Transform this into a MAP instead
-func (va *VoltApplication) GetDeviceBySerialNo(slno string) *VoltDevice {
+func (va *VoltApplication) GetDeviceBySerialNo(slno string) (*VoltDevice, string) {
 	var device *VoltDevice
+	var deviceID string
 	getserial := func(key interface{}, value interface{}) bool {
 		device = value.(*VoltDevice)
+		deviceID = key.(string)
 		return device.SerialNum != slno
 	}
 	va.DevicesDisc.Range(getserial)
-	return device
+	return device, deviceID
 }
 
 // PortAddInd : This is a PORT add indication coming from the VPAgent, which is essentially
@@ -1711,7 +1720,7 @@ func (va *VoltApplication) GetTaskList(device string) map[int]*TaskInfo {
 // UpdateDeviceSerialNumberList to update the device serial number list after device serial number is updated for vnet and mvlan
 func (va *VoltApplication) UpdateDeviceSerialNumberList(oldOltSlNo string, newOltSlNo string) {
 
-	voltDevice := va.GetDeviceBySerialNo(oldOltSlNo)
+	voltDevice, _ := va.GetDeviceBySerialNo(oldOltSlNo)
 
 	if voltDevice != nil {
 		// Device is present with old serial number ID
@@ -2051,7 +2060,7 @@ func (va *VoltApplication) TriggerPendingVnetDeleteReq(cntx context.Context, dev
 		if vnetIntf, _ := va.VnetsByName.Load(vnetName); vnetIntf != nil {
 			vnet := vnetIntf.(*VoltVnet)
 			logger.Warnw(ctx, "Triggering Pending Vnet flows delete", log.Fields{"Vnet": vnet.Name})
-			if d := va.GetDeviceBySerialNo(vnet.PendingDeviceToDelete); d != nil && d.SerialNum == vnet.PendingDeviceToDelete {
+			if d, _ := va.GetDeviceBySerialNo(vnet.PendingDeviceToDelete); d != nil && d.SerialNum == vnet.PendingDeviceToDelete {
 				va.DeleteDevFlowForVlanFromDevice(cntx, vnet, vnet.PendingDeviceToDelete)
 				va.deleteVnetConfig(vnet)
 			} else {
@@ -2059,4 +2068,36 @@ func (va *VoltApplication) TriggerPendingVnetDeleteReq(cntx context.Context, dev
 			}
 		}
 	}
+}
+
+type DeviceConfig struct {
+	SerialNumber       string
+	UplinkPort         int
+	HardwareIdentifier string
+	IPAddress          net.IP
+	NasID              string
+	NniDhcpTrapVid     int
+}
+
+func (va *VoltApplication) UpdateDeviceConfig(cntx context.Context, sn, mac, nasID string, port, dhcpVid int, ip net.IP) {
+	if d, ok := va.DevicesConfig.Load(sn); ok {
+		logger.Infow(ctx, "Device configuration already exists", log.Fields{"DeviceInfo": d})
+	}
+	d := DeviceConfig {
+		SerialNumber       : sn,
+		UplinkPort         : port,
+		HardwareIdentifier : mac,
+		IPAddress          : ip,
+		NasID              : nasID,
+		NniDhcpTrapVid     : dhcpVid,
+	}
+	logger.Infow(ctx, "Added OLT configurations", log.Fields{"DeviceInfo": d})
+	va.DevicesConfig.Store(sn, d)
+	// If device is already discovered update the VoltDevice structure
+	device, id := va.GetDeviceBySerialNo(sn)
+	if device != nil {
+		device.NniDhcpTrapVid = of.VlanType(dhcpVid)
+		va.DevicesDisc.Store(id, device)
+	}
+
 }

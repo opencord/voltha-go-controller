@@ -42,6 +42,7 @@ type SubscriberDeviceInfo struct {
 	NasID              string              `json:"nasId"`
 	CircuitID          string              `json:"circuitId"`
 	RemoteID           string              `json:"remoteId"`
+	NniDhcpTrapVid     int                 `json:"nniDhcpTrapVid"`
 	UniTagList         []UniTagInformation `json:"uniTagList"`
 }
 
@@ -121,7 +122,12 @@ func (sh *SubscriberHandle) AddSubscriberInfo(cntx context.Context, w http.Respo
 func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 
 	//vsCfgList := getVoltServiceFromSrvInfo(srvInfo)
-
+	va := app.GetApplication()
+	if len(srvInfo.UniTagList) == 0 {
+		logger.Debugw(ctx, "Received OLT configuration", log.Fields{"req": srvInfo})
+		va.UpdateDeviceConfig(cntx, srvInfo.ID, srvInfo.HardwareIdentifier, srvInfo.NasID, srvInfo.UplinkPort, srvInfo.NniDhcpTrapVid, srvInfo.IPAddress)
+		return
+	}
 	for _, uniTagInfo := range srvInfo.UniTagList {
 		var vs application.VoltServiceCfg
 
@@ -136,14 +142,22 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 		vs.SVlan = of.VlanType(uniTagInfo.PonSTag)
 		vs.CVlan = of.VlanType(uniTagInfo.PonCTag)
 		vs.UniVlan = of.VlanType(uniTagInfo.UniTagMatch)
+		vs.UsPonCTagPriority = of.PbitType(uniTagInfo.UsPonCTagPriority)
+		vs.UsPonSTagPriority = of.PbitType(uniTagInfo.UsPonSTagPriority)
+		vs.DsPonCTagPriority = of.PbitType(uniTagInfo.UsPonCTagPriority)
+		vs.DsPonSTagPriority = of.PbitType(uniTagInfo.UsPonSTagPriority)
 		vs.TechProfileID = uint16(uniTagInfo.TechnologyProfileID)
 		vs.UsMeterProfile = uniTagInfo.UpstreamBandwidthProfile
 		vs.DsMeterProfile = uniTagInfo.DownstreamBandwidthProfile
 		vs.IgmpEnabled = uniTagInfo.IsIgmpRequired
-		//vs.McastService = uniTagInfo.IsIgmpRequired
-		if vs.IgmpEnabled {
-			vs.MvlanProfileName = "mvlan" + strconv.Itoa(uniTagInfo.PonSTag)
-		}
+		vs.ServiceType = uniTagInfo.ServiceName
+
+		if uniTagInfo.ServiceName == app.DPU_MGMT_TRAFFIC ||
+		   uniTagInfo.ServiceName == app.DPU_ANCP_TRAFFIC ||
+		   uniTagInfo.ServiceName == app.FTTB_SUBSCRIBER_TRAFFIC {
+			vs.UniVlan = vs.CVlan
+			vs.Pbits = append(vs.Pbits, of.PbitMatchAll)
+		} else {
 		if uniTagInfo.UsPonSTagPriority == -1 {
 			vs.Pbits = append(vs.Pbits, of.PbitMatchAll)
 		// Process the p-bits received in the request
@@ -156,7 +170,11 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 				vs.Pbits = append(vs.Pbits, of.PbitType(uniTagInfo.DsPonCTagPriority))
 			}
 		}
-
+		}
+		//vs.McastService = uniTagInfo.IsIgmpRequired
+		if vs.IgmpEnabled {
+			vs.MvlanProfileName = "mvlan" + strconv.Itoa(uniTagInfo.PonSTag)
+		}
 		/*
 		var err error
 		if vs.MacAddr, err = net.ParseMAC(srvInfo.HardwareIdentifier); err != nil {
@@ -173,22 +191,35 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 		vnetName = vnetName + strconv.FormatUint(uint64(vs.UniVlan), 10)
 
 		vnetcfg := app.VnetConfig{
-			Name:       vnetName,
-			SVlan:      vs.SVlan,
-			CVlan:      vs.CVlan,
-			UniVlan:    vs.UniVlan,
-			SVlanTpid:  layers.EthernetTypeDot1Q,
-			DhcpRelay:  uniTagInfo.IsDhcpRequired,
-			//MacLearning:                req.MacLearning,
+			Name:              vnetName,
+			SVlan:             vs.SVlan,
+			CVlan:             vs.CVlan,
+			UniVlan:           vs.UniVlan,
+			SVlanTpid:         layers.EthernetTypeDot1Q,
+			DhcpRelay:         uniTagInfo.IsDhcpRequired,
+			VnetType:          uniTagInfo.ServiceName,
+			UsPonCTagPriority: vs.UsPonCTagPriority,
+			UsPonSTagPriority: vs.UsPonSTagPriority,
+			DsPonCTagPriority: vs.UsPonCTagPriority,
+			DsPonSTagPriority: vs.UsPonSTagPriority,
 			//ONTEtherTypeClassification: req.ONTEtherTypeClassification,
 			//VlanControl:                app.VlanControl(req.VlanControl), //TODO
+		}
+		if uniTagInfo.EnableMacLearning {
+			vnetcfg.MacLearning = app.Learn
 		}
 		if uniTagInfo.UsPonSTagPriority < 8 {
 			vnetcfg.UsDhcpPbit = append(vnetcfg.UsDhcpPbit, of.PbitType(uniTagInfo.UsPonSTagPriority))
 		}
-
 		if vs.CVlan != of.VlanAny && vs.SVlan != of.VlanAny {
-			vnetcfg.VlanControl = app.ONUCVlanOLTSVlan
+			if uniTagInfo.ServiceName == app.DPU_MGMT_TRAFFIC ||
+			   uniTagInfo.ServiceName == app.DPU_ANCP_TRAFFIC {
+				vnetcfg.VlanControl = app.ONUCVlan
+			} else if uniTagInfo.ServiceName == app.FTTB_SUBSCRIBER_TRAFFIC {
+				vnetcfg.VlanControl = app.OLTSVlan
+			} else {
+				vnetcfg.VlanControl = app.ONUCVlanOLTSVlan
+			}
 		} else if vs.CVlan == of.VlanAny && vs.UniVlan == of.VlanAny {
 			vnetcfg.VlanControl = app.OLTSVlan
 		}
