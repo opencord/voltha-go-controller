@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fd4894ec_14ee58e9",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-12-06T05:41:11Z",
+      "side": 1,
+      "message": "can we rename this ? i see there is one already down",
+      "revId": "d5b4f2f40313d6b59d0d7b81a2da247ae55fbebf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8d0d0b86_a1577bc0",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 790,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-12-06T05:41:11Z",
+      "side": 1,
+      "message": "There shouldnt be something like this,",
+      "revId": "d5b4f2f40313d6b59d0d7b81a2da247ae55fbebf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
