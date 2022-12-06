@@ -44,6 +44,15 @@ const (
 
 	// Radisys vendor id constant
 	Radisys string = "Radisys"
+
+	// DPU_MGMT_TRAFFIC serviceType, vnetType constant
+	DPU_MGMT_TRAFFIC string = "DPU_MGMT_TRAFFIC"
+
+	// DPU_ANCP_TRAFFIC serviceType, vnetType constant
+	DPU_ANCP_TRAFFIC string = "DPU_ANCP_TRAFFIC"
+
+	// FTTB_SUBSCRIBER_TRAFFIC serviceType, vnetType constant
+	FTTB_SUBSCRIBER_TRAFFIC string = "FTTB_SUBSCRIBER_TRAFFIC"
 )
 
 var (
@@ -109,6 +118,11 @@ type VnetConfig struct {
 	DevicesList                []string //List of serial number of devices on which this vnet is applied
 	AllowTransparent           bool
 	CtrlPktPbitRemark          map[of.PbitType]of.PbitType
+	UsPonCTagPriority          of.PbitType
+	UsPonSTagPriority          of.PbitType
+	DsPonCTagPriority          of.PbitType
+	DsPonSTagPriority          of.PbitType
+	VnetType                   string
 }
 
 // VnetOper structure
@@ -438,6 +452,11 @@ type VoltPortVnet struct {
 	DeleteInProgress           bool
 	Blocked                    bool
 	DhcpPbit                   of.PbitType
+	UsPonCTagPriority          of.PbitType
+	UsPonSTagPriority          of.PbitType
+	DsPonCTagPriority          of.PbitType
+	DsPonSTagPriority          of.PbitType
+	VnetType                   string
 }
 
 //VlanControl vlan control type
@@ -490,6 +509,7 @@ func NewVoltPortVnet(vnet *VoltVnet) *VoltPortVnet {
 	vpv.MacAddr, _ = net.ParseMAC("00:00:00:00:00:00")
 	vpv.LearntMacAddr, _ = net.ParseMAC("00:00:00:00:00:00")
 	// for OLTCVLAN SVLAN=CVLAN, UNIVLAN can differ.
+	/*
 	if vpv.VlanControl == ONUCVlan {
 		vpv.CVlan = vpv.SVlan
 	}
@@ -497,11 +517,17 @@ func NewVoltPortVnet(vnet *VoltVnet) *VoltPortVnet {
 	// hence assigning UNIVLAN to CVLAN, so that ONU will transparently forward the packet.
 	if vpv.VlanControl == OLTSVlan {
 		vpv.CVlan = vpv.UniVlan
-	}
+	}*/
 	vpv.servicesCount = atomic.NewUint64(0)
 	vpv.SchedID = 0
 	vpv.PendingDeleteFlow = make(map[string]bool)
 	vpv.DhcpPbit = vnet.UsDhcpPbit[0]
+	vpv.UsPonCTagPriority = vnet.UsPonCTagPriority
+	vpv.UsPonSTagPriority = vnet.UsPonSTagPriority
+	vpv.DsPonCTagPriority = vnet.UsPonCTagPriority
+	vpv.DsPonSTagPriority = vnet.UsPonSTagPriority
+
+	vpv.VnetType = vnet.VnetType
 	return &vpv
 }
 
@@ -766,17 +792,24 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 		// If MAC Learning is true if no MAC is configured, push DS/US DHCP, US HSIA flows without MAC.
 		// DS HSIA flows are installed after learning the MAC.
 		logger.Infow(ctx, "Port Up - Trap Flows", log.Fields{"Device": device.Name, "Port": port})
-		// no HSIA flows for multicast service
-		if !vpv.McastService {
+		// no HSIA flows for multicast service and DPU_MGMT Service
+		if !vpv.McastService && vpv.VnetType != DPU_MGMT_TRAFFIC {
 			vpv.RangeOnServices(cntx, AddUsHsiaFlows)
+		}
+		if vpv.VnetType == DPU_MGMT_TRAFFIC {
+			vpv.RangeOnServices(cntx, AddMeterToDevice)
 		}
 		vpv.AddTrapFlows(cntx)
 		if vpv.MacLearning == MacLearningNone || NonZeroMacAddress(vpv.MacAddr) {
 			logger.Infow(ctx, "Port Up - DS Flows", log.Fields{"Device": device.Name, "Port": port})
+			/*In case of DPU_MGMT_TRAFFIC, need to install both US and DS traffic */
+			if  vpv.VnetType == DPU_MGMT_TRAFFIC {
+				vpv.RangeOnServices(cntx, AddUsHsiaFlows)
+			}
 			// US & DS DHCP, US HSIA flows are already installed
 			// install only DS HSIA flow here.
 			// no HSIA flows for multicast service
-			if !vpv.McastService {
+			if !vpv.McastService  {
 				vpv.RangeOnServices(cntx, AddDsHsiaFlows)
 			}
 		}
@@ -889,6 +922,10 @@ func (vpv *VoltPortVnet) SetMacAddr(cntx context.Context, addr net.HardwareAddr)
 	}
 	// Ds Hsia flows has to be pushed
 	if vpv.FlowsApplied {
+		// In case of DPU_MGMT_TRAFFIC install both US and DS Flows
+		if vpv.VnetType == DPU_MGMT_TRAFFIC {
+			vpv.RangeOnServices(cntx, AddUsHsiaFlows)
+		}
 		// no HSIA flows for multicast service
 		if !vpv.McastService {
 			vpv.RangeOnServices(cntx, AddDsHsiaFlows)
@@ -1002,6 +1039,8 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 	logger.Debugw(ctx, "Added MAC to VPV", log.Fields{"MacLearning": vpv.MacLearning, "VPV": vpv})
 	//Reconfigure Vlans based on Vlan Control type
 	svc.VlanControl = vpv.VlanControl
+	//TODO Is it good to change NB config?? commenting for now
+	/*
 	// for OLTCVLAN SVLAN=CVLAN, UNIVLAN can differ.
 	if vpv.VlanControl == ONUCVlan {
 		svc.CVlan = svc.SVlan
@@ -1010,7 +1049,7 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 	// hence assigning UNIVLAN to CVLAN, so that ONU will transparently forward the packet.
 	if vpv.VlanControl == OLTSVlan {
 		svc.CVlan = svc.UniVlan
-	}
+	}*/
 	if svc.McastService {
 		vpv.McastService = true
 		vpv.McastTechProfileID = svc.TechProfileID
@@ -1168,6 +1207,15 @@ func ClearServiceCounters(cntx context.Context, key, value interface{}) bool {
 	GetApplication().ServiceCounters.Delete(svc.Name)
 	if svc.IgmpEnabled && svc.EnableMulticastKPI {
 		_ = db.DelAllServiceChannelCounter(cntx, svc.Name)
+	}
+	return true
+}
+
+// AddMeterToDevice to add meter config to device, used in FTTB case
+func AddMeterToDevice(cntx context.Context, key, value interface{}) bool {
+	svc := value.(*VoltService)
+	if err:= svc.AddMeterToDevice(cntx); err != nil {
+		logger.Warnw(ctx, "Add Meter failed", log.Fields{"service": svc.Name, "Error": err})
 	}
 	return true
 }
@@ -1331,7 +1379,8 @@ func (vpv *VoltPortVnet) AddDsDhcpFlows(cntx context.Context) error {
 		logger.Errorw(ctx, "DS DHCP Flow Push Failed- Device not found", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan, "device": device})
 		return errorCodes.ErrDeviceNotFound
 	}
-	if GetApplication().GetVendorID() != Radisys && vd.GlobalDhcpFlowAdded {
+	if vd.GlobalDhcpFlowAdded {
+		logger.Info(ctx, "Global Dhcp flow already exists")
 		return nil
 	}
 
@@ -1685,17 +1734,20 @@ func (vpv *VoltPortVnet) BuildUsDhcpFlows() (*of.VoltFlow, error) {
 	subFlow := of.NewVoltSubFlow()
 	subFlow.SetTableID(0)
 
-	if GetApplication().GetVendorID() == Radisys {
-		if err := vpv.setUsMatchVlan(subFlow); err != nil {
-			return nil, err
-		}
+
+	if vpv.VnetType == DPU_MGMT_TRAFFIC {
+		subFlow.SetMatchVlan(vpv.CVlan)
+		subFlow.SetMatchPbit(vpv.UsPonCTagPriority)
+		subFlow.SetPcp(vpv.UsPonSTagPriority)
+		subFlow.SetSetVlan(vpv.SVlan)
 	} else {
 		subFlow.SetMatchVlan(vpv.UniVlan)
 		subFlow.SetSetVlan(vpv.CVlan)
+		subFlow.SetPcp(vpv.DhcpPbit)
 	}
 	subFlow.SetUdpv4Match()
-	subFlow.SrcPort = 68
 	subFlow.DstPort = 67
+	subFlow.SrcPort = 68
 	uniport, err := GetApplication().GetPortID(vpv.Port)
 	if err != nil {
 		logger.Errorw(ctx, "Failed to fetch uni port from vpv", log.Fields{"error": err, "port": vpv.Port})
@@ -1709,23 +1761,28 @@ func (vpv *VoltPortVnet) BuildUsDhcpFlows() (*of.VoltFlow, error) {
 
 	// Set techprofile, meterid of first service
 	vpv.services.Range(func(key, value interface{}) bool {
-		svc := value.(*VoltService)
-		writemetadata := uint64(svc.TechProfileID) << 32
+		vs := value.(*VoltService)
+		var writemetadata uint64
+		if vpv.VnetType == DPU_MGMT_TRAFFIC {
+			writemetadata = uint64(vs.SVlan)<<48 + uint64(vs.TechProfileID)<<32
+		} else {
+			writemetadata = uint64(vs.TechProfileID) << 32
+		}
 		subFlow.SetWriteMetadata(writemetadata)
-		subFlow.SetMeterID(svc.UsMeterID)
+		subFlow.SetMeterID(vs.UsMeterID)
 		return false
 	})
 
-	subFlow.SetPcp(vpv.DhcpPbit)
 	// metadata := uint64(uniport)
 	// subFlow.SetWriteMetadata(metadata)
 	allowTransparent := 0
 	if vpv.AllowTransparent {
 		allowTransparent = 1
 	}
-	metadata := uint64(allowTransparent)<<56 | uint64(vpv.ONTEtherTypeClassification)<<36 | uint64(vpv.VlanControl)<<32 | uint64(vpv.UniVlan)<<16 | uint64(vpv.CVlan)
-	subFlow.SetTableMetadata(metadata)
-
+	if vpv.VnetType != DPU_MGMT_TRAFFIC {
+		metadata := uint64(allowTransparent)<<56 | uint64(vpv.ONTEtherTypeClassification)<<36 | uint64(vpv.VlanControl)<<32 | uint64(vpv.UniVlan)<<16 | uint64(vpv.CVlan)
+		subFlow.SetTableMetadata(metadata)
+	}
 	//| 12-bit cvlan | 4 bits empty | <32-bits uniport>| 16-bits dhcp mask or flow mask |
 	subFlow.Cookie = uint64(vpv.CVlan)<<52 | uint64(uniport)<<16 | of.DhcpArpFlowMask | of.UsFlowMask
 	subFlow.Priority = of.DhcpFlowPriority
@@ -1743,9 +1800,9 @@ func (vpv *VoltPortVnet) BuildDsDhcpFlows() (*of.VoltFlow, error) {
 	flow.SubFlows = make(map[uint64]*of.VoltSubFlow)
 	subFlow := of.NewVoltSubFlow()
 	subFlow.SetTableID(0)
-	// If dhcp trap rule is global rule, No need to match on vlan
-	if GetApplication().GetVendorID() == Radisys {
-		vpv.setDsMatchVlan(subFlow)
+	// match on vlan only for fttb case
+	if vpv.VnetType == DPU_MGMT_TRAFFIC {
+		subFlow.SetMatchVlan(vpv.SVlan)
 	}
 	subFlow.SetUdpv4Match()
 	subFlow.SrcPort = 67
@@ -1769,12 +1826,14 @@ func (vpv *VoltPortVnet) BuildDsDhcpFlows() (*of.VoltFlow, error) {
 	if vpv.AllowTransparent {
 		allowTransparent = 1
 	}
-	metadata := uint64(allowTransparent)<<56 | uint64(vpv.ONTEtherTypeClassification)<<36 | uint64(vpv.VlanControl)<<32 | uint64(vpv.UniVlan)<<16 | uint64(vpv.CVlan)
-	subFlow.SetTableMetadata(metadata)
+	if vpv.VnetType != DPU_MGMT_TRAFFIC {
+		metadata := uint64(allowTransparent)<<56 | uint64(vpv.ONTEtherTypeClassification)<<36 | uint64(vpv.VlanControl)<<32 | uint64(vpv.UniVlan)<<16 | uint64(vpv.CVlan)
+		subFlow.SetTableMetadata(metadata)
+		subFlow.Priority = of.DhcpFlowPriority
+	}
 	subFlow.SetReportToController()
 	//| 12-bit cvlan | 4 bits empty | <32-bits uniport>| 16-bits dhcp mask or flow mask |
 	subFlow.Cookie = uint64(vpv.CVlan)<<52 | uint64(uniport)<<16 | of.DhcpArpFlowMask | of.DsFlowMask
-	subFlow.Priority = of.DhcpFlowPriority
 
 	flow.SubFlows[subFlow.Cookie] = subFlow
 	logger.Infow(ctx, "Built DS DHCP flow ", log.Fields{"cookie": subFlow.Cookie, "Flow": flow})
