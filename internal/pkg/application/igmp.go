@@ -1413,7 +1413,7 @@ func (va *VoltApplication) DelMcastConfig(cntx context.Context, MvlanProfileID s
 	va.delOltFromMvlan(cntx, MvlanProfileID, OltSerialNum)
 	va.deleteMcastConfig(OltSerialNum, MvlanProfileID)
 	_ = db.DelMcastConfig(cntx, McastConfigKey(OltSerialNum, MvlanProfileID))
-	if d := va.GetDeviceBySerialNo(OltSerialNum); d != nil {
+	if d, _ := va.GetDeviceBySerialNo(OltSerialNum); d != nil {
 		if mvp := va.GetMvlanProfileByName(MvlanProfileID); mvp != nil {
 			va.RemoveGroupsFromPendingPool(cntx, d.Name, mvp.Mvlan)
 		}
