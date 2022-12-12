@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "12de9c9b_f3cf04a9",
+        "filename": "voltha-go-controller/onos_nbi/deviceportadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-12-12T12:30:29Z",
+      "side": 1,
+      "message": "check for nil on the devcilistresponse would be needed",
+      "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "982fea83_1872c371",
+        "filename": "voltha-go-controller/onos_nbi/deviceportadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-12-12T12:30:29Z",
+      "side": 1,
+      "message": "Nill check on the portListResp is required,",
+      "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cb000fb7_c338789b",
+        "filename": "voltha-go-controller/onos_nbi/deviceportadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-12-12T12:30:29Z",
+      "side": 1,
+      "message": "the portlist in onos also displays the devices as well, we have to display ports under devices.",
+      "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "52b64c47_53221762",
+        "filename": "voltha-go-controller/onos_nbi/models.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-12-12T12:30:29Z",
+      "side": 1,
+      "message": "if the port is disabled , then this will be updated as well. we have to update accordingly or maintian state in vgc",
+      "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
