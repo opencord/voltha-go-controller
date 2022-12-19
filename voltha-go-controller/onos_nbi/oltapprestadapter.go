@@ -11,21 +11,22 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package onos_nbi
 
 import (
-        "bytes"
-        "context"
-        "encoding/json"
-        "net/http"
+	"bytes"
+	"context"
+	"encoding/json"
+	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/internal/pkg/of"
-        app "voltha-go-controller/internal/pkg/application"
-        "voltha-go-controller/log"
+	"voltha-go-controller/log"
+
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -35,74 +36,75 @@ const (
 	CTAG     string = "cTag"
 	TPID     string = "tpId"
 )
+
 // FlowHandle struct to handle flow related REST calls
 type SubscriberInfo struct {
-	Location string             `json:"location"`
-	TagInfo  UniTagInformation  `json:"tagInfo"`
+	Location string            `json:"location"`
+	TagInfo  UniTagInformation `json:"tagInfo"`
 }
 
 //UniTagInformation - Service information
 type UniTagInformation struct {
-        UniTagMatch                   int    `json:"uniTagMatch"`
-        PonCTag                       int    `json:"ponCTag"`
-        PonSTag                       int    `json:"ponSTag"`
-        UsPonCTagPriority             int    `json:"usPonCTagPriority"`
-        UsPonSTagPriority             int    `json:"usPonSTagPriority"`
-        DsPonCTagPriority             int    `json:"dsPonCTagPriority"`
-        DsPonSTagPriority             int    `json:"dsPonSTagPriority"`
-        TechnologyProfileID           int    `json:"technologyProfileId"`
-        UpstreamBandwidthProfile      string `json:"upstreamBandwidthProfile"`
-        DownstreamBandwidthProfile    string `json:"downstreamBandwidthProfile"`
-        UpstreamOltBandwidthProfile   string `json:"upstreamOltBandwidthProfile"`
-        DownstreamOltBandwidthProfile string `json:"downstreamOltBandwidthProfile"`
-        ServiceName                   string `json:"serviceName"`
-        EnableMacLearning             bool   `json:"enableMacLearning"`
-        ConfiguredMacAddress          string `json:"configuredMacAddress"`
-        IsDhcpRequired                bool   `json:"isDhcpRequired"`
-        IsIgmpRequired                bool   `json:"isIgmpRequired"`
-        IsPppoeRequired               bool   `json:"isPppoeRequired"`
+	UniTagMatch                   int    `json:"uniTagMatch"`
+	PonCTag                       int    `json:"ponCTag"`
+	PonSTag                       int    `json:"ponSTag"`
+	UsPonCTagPriority             int    `json:"usPonCTagPriority"`
+	UsPonSTagPriority             int    `json:"usPonSTagPriority"`
+	DsPonCTagPriority             int    `json:"dsPonCTagPriority"`
+	DsPonSTagPriority             int    `json:"dsPonSTagPriority"`
+	TechnologyProfileID           int    `json:"technologyProfileId"`
+	UpstreamBandwidthProfile      string `json:"upstreamBandwidthProfile"`
+	DownstreamBandwidthProfile    string `json:"downstreamBandwidthProfile"`
+	UpstreamOltBandwidthProfile   string `json:"upstreamOltBandwidthProfile"`
+	DownstreamOltBandwidthProfile string `json:"downstreamOltBandwidthProfile"`
+	ServiceName                   string `json:"serviceName"`
+	EnableMacLearning             bool   `json:"enableMacLearning"`
+	ConfiguredMacAddress          string `json:"configuredMacAddress"`
+	IsDhcpRequired                bool   `json:"isDhcpRequired"`
+	IsIgmpRequired                bool   `json:"isIgmpRequired"`
+	IsPppoeRequired               bool   `json:"isPppoeRequired"`
 }
 
 type ServiceAdapter struct {
 }
 
 func (sa *ServiceAdapter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-        logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
-        switch r.Method {
+	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
+	switch r.Method {
 	case "POST":
 		sa.ActivateService(context.Background(), w, r)
 	case "DELETE":
 		sa.DeactivateService(context.Background(), w, r)
-        case "GET":
+	case "GET":
 		sa.GetProgrammedSubscribers(context.Background(), w, r)
-        default:
-                logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
-        }
+	default:
+		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+	}
 }
 
 func (sa *ServiceAdapter) ServeHTTPWithPortName(w http.ResponseWriter, r *http.Request) {
-        logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
-        switch r.Method {
+	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
+	switch r.Method {
 	case "POST":
 		sa.ActivateServiceWithPortName(context.Background(), w, r)
 	case "DELETE":
 		sa.DeactivateServiceWithPortName(context.Background(), w, r)
-        default:
-                logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
-        }
+	default:
+		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+	}
 }
 
 func (sa *ServiceAdapter) ActivateService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-        vars := mux.Vars(r)
-        deviceID := vars[DEVICE]
-        portNo := vars["port"]
+	vars := mux.Vars(r)
+	deviceID := vars[DEVICE]
+	portNo := vars["port"]
 
-        // Get the payload to process the request
-        d := new(bytes.Buffer)
-        if _, err := d.ReadFrom(r.Body);  err != nil {
-                logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
-                return
-        }
+	// Get the payload to process the request
+	d := new(bytes.Buffer)
+	if _, err := d.ReadFrom(r.Body); err != nil {
+		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		return
+	}
 
 	if len(deviceID) > 0 && len(portNo) > 0 {
 		app.GetApplication().ActivateService(cntx, deviceID, portNo, of.VlanNone, of.VlanNone, 0)
@@ -110,16 +112,16 @@ func (sa *ServiceAdapter) ActivateService(cntx context.Context, w http.ResponseW
 }
 
 func (sa *ServiceAdapter) DeactivateService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-        vars := mux.Vars(r)
-        deviceID := vars[DEVICE]
-        portNo := vars["port"]
+	vars := mux.Vars(r)
+	deviceID := vars[DEVICE]
+	portNo := vars["port"]
 
-        // Get the payload to process the request
-        d := new(bytes.Buffer)
-        if _, err := d.ReadFrom(r.Body);  err != nil {
-                logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
-                return
-        }
+	// Get the payload to process the request
+	d := new(bytes.Buffer)
+	if _, err := d.ReadFrom(r.Body); err != nil {
+		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		return
+	}
 
 	if len(deviceID) > 0 && len(portNo) > 0 {
 		app.GetApplication().DeactivateService(cntx, deviceID, portNo, of.VlanNone, of.VlanNone, 0)
@@ -127,11 +129,11 @@ func (sa *ServiceAdapter) DeactivateService(cntx context.Context, w http.Respons
 }
 
 func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-        vars := mux.Vars(r)
-        portNo := vars[PORTNAME]
-        sTag := vars[STAG]
-        cTag := vars[CTAG]
-        tpID := vars[TPID]
+	vars := mux.Vars(r)
+	portNo := vars[PORTNAME]
+	sTag := vars[STAG]
+	cTag := vars[CTAG]
+	tpID := vars[TPID]
 	sVlan := of.VlanNone
 	cVlan := of.VlanNone
 	techProfile := uint16(0)
@@ -167,11 +169,11 @@ func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w ht
 }
 
 func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-        vars := mux.Vars(r)
-        portNo := vars[PORTNAME]
-        sTag := vars[STAG]
-        cTag := vars[CTAG]
-        tpID := vars[TPID]
+	vars := mux.Vars(r)
+	portNo := vars[PORTNAME]
+	sTag := vars[STAG]
+	cTag := vars[CTAG]
+	tpID := vars[TPID]
 	sVlan := of.VlanNone
 	cVlan := of.VlanNone
 	techProfile := uint16(0)
@@ -201,12 +203,12 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 		techProfile = uint16(tp)
 	}
 
-        // Get the payload to process the request
-        d := new(bytes.Buffer)
-        if _, err := d.ReadFrom(r.Body);  err != nil {
-                logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
-                return
-        }
+	// Get the payload to process the request
+	d := new(bytes.Buffer)
+	if _, err := d.ReadFrom(r.Body); err != nil {
+		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		return
+	}
 
 	if len(portNo) > 0 {
 		app.GetApplication().DeactivateService(cntx, app.DeviceAny, portNo, sVlan, cVlan, techProfile)
@@ -215,15 +217,17 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 
 func (sa *ServiceAdapter) GetProgrammedSubscribers(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-        deviceID := vars[DEVICE]
-        portNo := vars["port"]
-
+	deviceID := vars[DEVICE]
+	portNo := vars["port"]
+	subsbr := SubscribersList{}
+	subsbr.Subscribers = []SubscriberInfo{}
 	svcs, err := app.GetApplication().GetProgrammedSubscribers(cntx, deviceID, portNo)
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get subscribers", log.Fields{"Reason": err.Error()})
 	}
 	subs := convertServiceToSubscriberInfo(svcs)
-	subsJSON, err := json.Marshal(subs)
+	subsbr.Subscribers = subs
+	subsJSON, err := json.Marshal(subsbr)
 	if err != nil {
 		logger.Errorw(ctx, "Error occurred while marshaling subscriber response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
