@@ -562,3 +562,68 @@ func (v *VoltController) GetAllPendingFlows() ([]*of.VoltSubFlow, error) {
 	}
 	return flows, nil
 }
+func (v *VoltController) GetAllMeterInfo() (map[string][]*of.Meter, error) {
+	logger.Info(ctx, "Entering into GetAllMeterInfo method")
+	meters := map[string][]*of.Meter{}
+	for _, device := range v.devices {
+		logger.Infow(ctx, "Inside GetAllMeterInfo method", log.Fields{"deviceId": device.ID})
+		for _, meter := range device.meters {
+			meters[device.ID] = append(meters[device.ID], meter)
+		}
+		logger.Infow(ctx, "Inside GetAllMeterInfo method", log.Fields{"meters": meters})
+	}
+	return meters, nil
+}
+
+func (v *VoltController) GetMeterInfo(cntx context.Context, id uint32) (map[string]*of.Meter, error) {
+	logger.Info(ctx, "Entering into GetMeterInfo method")
+	meters := map[string]*of.Meter{}
+	for _, device := range v.devices {
+		logger.Infow(ctx, "Inside GetMeterInfo method", log.Fields{"deviceId": device.ID})
+		meter, err := device.GetMeter(id)
+		if err != nil {
+			logger.Errorw(ctx, "Failed to fetch the meter", log.Fields{"Reason": err.Error()})
+			return nil, err
+		}
+		meters[device.ID] = meter
+		logger.Infow(ctx, "Inside GetAllMeterInfo method", log.Fields{"Meter": meters})
+	}
+	return meters, nil
+}
+
+func (v *VoltController) GetGroupList() ([]*of.Group, error) {
+	logger.Info(ctx, "Entering into GetGroupList method")
+	groups := []*of.Group{}
+	for _, device := range v.devices {
+		device.groups.Range(func(key, value interface{}) bool {
+			groupID := key.(uint32)
+			logger.Infow(ctx, "Inside GetGroupList method", log.Fields{"groupID": groupID})
+			//Obtain all groups associated with the device
+			grps, ok := device.groups.Load(groupID)
+			if !ok {
+				return true
+			}
+			grp := grps.(*of.Group)
+			groups = append(groups, grp)
+			return true
+		})
+	}
+	logger.Debugw(ctx, "Groups", log.Fields{"groups": groups})
+	return groups, nil
+}
+
+func (v *VoltController) GetGroups(cntx context.Context, id uint32) (*of.Group, error) {
+
+	logger.Info(ctx, "Entering into GetGroupList method")
+	var groups *of.Group
+	for _, device := range v.devices {
+		logger.Infow(ctx, "Inside GetGroupList method", log.Fields{"groupID": id})
+		grps, ok := device.groups.Load(id)
+		if !ok {
+			return nil, errors.New("Group not found")
+		}
+		groups = grps.(*of.Group)
+		logger.Debugw(ctx, "Groups", log.Fields{"groups": groups})
+	}
+	return groups, nil
+}
