@@ -11,14 +11,15 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package of
 
 import (
 	"voltha-go-controller/log"
+
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
-//	"github.com/opencord/voltha-protos/v5/go/voltha"
+	//	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
 
 // The commands on groups avialable. Add is not expected to be used.

@@ -16,8 +16,8 @@
 package application
 
 import (
-	"encoding/hex"
 	"context"
+	"encoding/hex"
 	"errors"
 	"net"
 	"sync"
@@ -57,8 +57,8 @@ type RemoteIDType string
 
 // List of RemoteID types supported
 const (
-        MACAddress      RemoteIDType = "MAC_ADDRESS"
-        CustomRemotedID RemoteIDType = "Custom"
+	MACAddress      RemoteIDType = "MAC_ADDRESS"
+	CustomRemotedID RemoteIDType = "Custom"
 )
 
 // MaxLenDhcpv6DUID constant
@@ -679,7 +679,7 @@ func (va *VoltApplication) ProcessDsDhcpv4Packet(cntx context.Context, device st
 		}
 
 		if err := cntlr.GetController().PacketOutReq(device, vpv.Port, port, buff.Bytes(), false); err != nil {
-			logger.Errorw(ctx, "PacketOutReq Failed",  log.Fields{"Error" : err})
+			logger.Errorw(ctx, "PacketOutReq Failed", log.Fields{"Error": err})
 		}
 	}
 }
@@ -916,7 +916,7 @@ func (va *VoltApplication) ProcessUsDhcpv4Packet(cntx context.Context, device st
 	// Now the packet constructed is output towards the switch to be emitted on
 	// the NNI port
 	if err := cntlr.GetController().PacketOutReq(device, outport, port, buff.Bytes(), false); err != nil {
-		logger.Errorw(ctx, "PacketOutReq Failed",  log.Fields{"Error" : err})
+		logger.Errorw(ctx, "PacketOutReq Failed", log.Fields{"Error": err})
 	}
 	if vpv.DhcpRelay {
 		// Inform dhcp request information to dhcp server handler
@@ -1173,7 +1173,7 @@ func (va *VoltApplication) ProcessUsDhcpv6Packet(cntx context.Context, device st
 	// Now the packet constructed is output towards the switch to be emitted on
 	// the NNI port
 	if err := cntlr.GetController().PacketOutReq(device, outport, port, buff.Bytes(), false); err != nil {
-		logger.Errorw(ctx, "PacketOutReq Failed",  log.Fields{"Error" : err})
+		logger.Errorw(ctx, "PacketOutReq Failed", log.Fields{"Error": err})
 	}
 	if vpv.DhcpRelay {
 		// Inform dhcp request information to dhcp server handler
@@ -1345,14 +1345,14 @@ func init() {
 }
 
 type DhcpAllocation struct {
-        SubscriberID        string           `json:"subscriberId"`
-        ConnectPoint        string           `json:"connectPoint"`
-        MacAddress          net.HardwareAddr `json:"macAddress"`
-        State               int              `json:"state"`
-        VlanID              int              `json:"vlanId"`
-        CircuitID           []byte           `json:"circuitId"`
-        IpAllocated         net.IP           `json:"ipAllocated"`
-        AllocationTimeStamp time.Time        `json:"allocationTimestamp"`
+	SubscriberID        string           `json:"subscriberId"`
+	ConnectPoint        string           `json:"connectPoint"`
+	MacAddress          net.HardwareAddr `json:"macAddress"`
+	State               int              `json:"state"`
+	VlanID              int              `json:"vlanId"`
+	CircuitID           []byte           `json:"circuitId"`
+	IpAllocated         net.IP           `json:"ipAllocated"`
+	AllocationTimeStamp time.Time        `json:"allocationTimestamp"`
 }
 
 // GetAllocations returns DhcpAllocation info for all devices or for a device ID
@@ -1374,16 +1374,16 @@ func (va *VoltApplication) GetAllocations(cntx context.Context, deviceID string)
 				// If deviceID is not provided, return all allocations
 				// If deviceID exists then filter on deviceID
 				if len(deviceID) == 0 || deviceID == vpv.Device {
-					allocation := &DhcpAllocation {
-							SubscriberID : subscriber,
-							ConnectPoint : vpv.Device,
-							MacAddress : vpv.MacAddr,
-							State : int(vpv.RelayState) ,
-							VlanID : int(vpv.SVlan) ,
-							CircuitID : vpv.CircuitID ,
-							IpAllocated : vpv.Ipv4Addr ,
-							AllocationTimeStamp : vpv.DhcpExpiryTime,
-							}
+					allocation := &DhcpAllocation{
+						SubscriberID:        subscriber,
+						ConnectPoint:        vpv.Device,
+						MacAddress:          vpv.MacAddr,
+						State:               int(vpv.RelayState),
+						VlanID:              int(vpv.SVlan),
+						CircuitID:           vpv.CircuitID,
+						IpAllocated:         vpv.Ipv4Addr,
+						AllocationTimeStamp: vpv.DhcpExpiryTime,
+					}
 					logger.Debugw(ctx, "DHCP Allocation found", log.Fields{"DhcpAlloc": allocation})
 					allocations = append(allocations, allocation)
 				}
@@ -1392,4 +1392,98 @@ func (va *VoltApplication) GetAllocations(cntx context.Context, deviceID string)
 		drv.sessionLock.RUnlock()
 	}
 	return allocations, nil
+}
+
+type MacLearnerInfo struct {
+	DeviceId   string `json:"deviceId"`
+	PortNumber string `json:"portNumber"`
+	VlanId     string `json:"vlanId"`
+	MacAddress string `json:"macAddress"`
+}
+
+func (va *VoltApplication) GetAllMacLearnerInfo() ([]*MacLearnerInfo, error) {
+	logger.Info(ctx, "GetMacLearnerInfo")
+	var macLearner []*MacLearnerInfo
+	for _, drv := range dhcpNws.Networks {
+		logger.Debugw(ctx, "drv found", log.Fields{"drv": drv})
+		drv.sessionLock.RLock()
+		for _, session := range drv.sessions {
+			vpv, ok := session.(*VoltPortVnet)
+			if ok {
+				macLearn := &MacLearnerInfo{
+					DeviceId:   vpv.Device,
+					PortNumber: vpv.Port,
+					VlanId:     vpv.SVlan.String(),
+					MacAddress: vpv.MacAddr.String(),
+				}
+				logger.Debugw(ctx, "MacLerner found", log.Fields{"MacLearn": macLearn})
+				macLearner = append(macLearner, macLearn)
+			}
+		}
+		drv.sessionLock.RUnlock()
+	}
+	return macLearner, nil
+}
+
+func (va *VoltApplication) GetMacLearnerInfo(cntx context.Context, deviceId, portNumber, vlanId string) (*MacLearnerInfo, error) {
+	logger.Info(ctx, "GetMecLearnerInfo")
+	var macLearn *MacLearnerInfo
+	for _, drv := range dhcpNws.Networks {
+		logger.Infow(ctx, "drv found", log.Fields{"drv": drv})
+		drv.sessionLock.RLock()
+		for _, session := range drv.sessions {
+			vpv, ok := session.(*VoltPortVnet)
+			if ok {
+				if deviceId == vpv.Device && portNumber == vpv.Port && vlanId == vpv.SVlan.String() {
+					macLearn = &MacLearnerInfo{
+						DeviceId:   vpv.Device,
+						PortNumber: vpv.Port,
+						VlanId:     vpv.SVlan.String(),
+						MacAddress: vpv.MacAddr.String(),
+					}
+					logger.Infow(ctx, "MacLerner found", log.Fields{"MacLearn": macLearn})
+				} else if deviceId == vpv.Device && portNumber == vpv.Port && vlanId == "" {
+					macLearn = &MacLearnerInfo{
+						DeviceId:   vpv.Device,
+						PortNumber: vpv.Port,
+						VlanId:     vpv.SVlan.String(),
+						MacAddress: vpv.MacAddr.String(),
+					}
+					logger.Infow(ctx, "MacLerner found", log.Fields{"MacLearn": macLearn})
+				}
+			}
+		}
+		drv.sessionLock.RUnlock()
+	}
+	return macLearn, nil
+}
+
+func (va *VoltApplication) GetIgnoredPorts() (map[string][]string, error) {
+	logger.Info(ctx, "GetIgnoredPorts")
+	IgnoredPorts := map[string][]string{}
+	portIgnored := func(key, value interface{}) bool {
+		voltDevice := value.(*VoltDevice)
+		logger.Infow(ctx, "Inside GetIgnoredPorts method", log.Fields{"deviceName": voltDevice.Name})
+		voltDevice.Ports.Range(func(key, value interface{}) bool {
+			port := key.(string)
+			logger.Infow(ctx, "Inside GetIgnoredPorts method", log.Fields{"port": port})
+			//Obtain all VPVs associated with the port
+			vnets, ok := GetApplication().VnetsByPort.Load(port)
+			if !ok {
+				return true
+			}
+			for _, vpv := range vnets.([]*VoltPortVnet) {
+
+				if vpv.MacLearning == MacLearningNone {
+					IgnoredPorts[vpv.Device] = append(IgnoredPorts[vpv.Device], vpv.Port)
+				}
+			}
+			logger.Debugw(ctx, "Ignored Port", log.Fields{"Ignored Port": IgnoredPorts})
+			return true
+		})
+		return true
+	}
+	va.DevicesDisc.Range(portIgnored)
+	logger.Info(ctx, "GetIgnoredPorts completed")
+	return IgnoredPorts, nil
 }
