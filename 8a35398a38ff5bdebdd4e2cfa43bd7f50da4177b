@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "7bcbc60b_dbd8cbf1",
+        "filename": "voltha-go-controller/onos_nbi/deviceportadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-12-19T12:59:27Z",
+      "side": 1,
+      "message": "the response will be an empty list if there is no entry, and that is the output onos is returning. Tested the scenario as well.",
+      "parentUuid": "12de9c9b_f3cf04a9",
+      "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "982fea83_1872c371",
         "filename": "voltha-go-controller/onos_nbi/deviceportadapter.go",
         "patchSetId": 1
@@ -31,6 +49,24 @@
       "writtenOn": "2022-12-12T12:30:29Z",
       "side": 1,
       "message": "Nill check on the portListResp is required,",
+      "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bd6dc79b_a02f604c",
+        "filename": "voltha-go-controller/onos_nbi/deviceportadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-12-19T12:59:27Z",
+      "side": 1,
+      "message": "the response will be an empty list if there is no entry, and that is the output onos is returning. Tested the scenario as well.",
+      "parentUuid": "982fea83_1872c371",
       "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -54,6 +90,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "433d5f9b_770071bc",
+        "filename": "voltha-go-controller/onos_nbi/deviceportadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-12-19T12:59:27Z",
+      "side": 1,
+      "message": "portlist has deviceID. it is same as ONOS output",
+      "parentUuid": "cb000fb7_c338789b",
+      "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "52b64c47_53221762",
         "filename": "voltha-go-controller/onos_nbi/models.go",
         "patchSetId": 1
@@ -65,6 +119,24 @@
       "writtenOn": "2022-12-12T12:30:29Z",
       "side": 1,
       "message": "if the port is disabled , then this will be updated as well. we have to update accordingly or maintian state in vgc",
+      "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "25931493_9d54f9c1",
+        "filename": "voltha-go-controller/onos_nbi/models.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2022-12-19T12:59:27Z",
+      "side": 1,
+      "message": "vgc does not keep the admin state as of now. We can take it up as a separate task if it is needed.",
+      "parentUuid": "52b64c47_53221762",
       "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
