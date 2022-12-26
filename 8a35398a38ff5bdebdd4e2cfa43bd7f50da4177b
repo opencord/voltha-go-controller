@@ -36,6 +36,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "91b64046_72d4a471",
+        "filename": "voltha-go-controller/onos_nbi/deviceportadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-12-26T11:01:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7bcbc60b_dbd8cbf1",
+      "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "982fea83_1872c371",
@@ -67,6 +85,24 @@
       "side": 1,
       "message": "the response will be an empty list if there is no entry, and that is the output onos is returning. Tested the scenario as well.",
       "parentUuid": "982fea83_1872c371",
+      "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2c42db56_8adba408",
+        "filename": "voltha-go-controller/onos_nbi/deviceportadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-12-26T11:01:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bd6dc79b_a02f604c",
       "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -106,6 +142,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f0e44e3f_da075944",
+        "filename": "voltha-go-controller/onos_nbi/deviceportadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-12-26T11:01:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "433d5f9b_770071bc",
+      "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "52b64c47_53221762",
@@ -137,6 +191,24 @@
       "side": 1,
       "message": "vgc does not keep the admin state as of now. We can take it up as a separate task if it is needed.",
       "parentUuid": "52b64c47_53221762",
+      "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b25b9b30_cbc9fa1f",
+        "filename": "voltha-go-controller/onos_nbi/models.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-12-26T11:01:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25931493_9d54f9c1",
       "revId": "8a35398a38ff5bdebdd4e2cfa43bd7f50da4177b",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
