@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7761d566_39982b4e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-12-26T12:50:09Z",
+      "side": 1,
+      "message": "please rebase",
+      "revId": "f6c02f0a8047b5031a3b929057342a503672e178",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5478b543_f5aca28e",
+        "filename": "voltha-go-controller/onos_nbi/groups.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-12-26T12:50:09Z",
+      "side": 1,
+      "message": "can we reduce the info logs here , one , along with the input, at the start of the function after validating the parameters",
+      "revId": "f6c02f0a8047b5031a3b929057342a503672e178",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
