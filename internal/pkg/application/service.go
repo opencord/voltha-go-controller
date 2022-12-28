@@ -2048,23 +2048,26 @@ func (va *VoltApplication) GetProgrammedSubscribers(cntx context.Context, device
 // ActivateService to activate pre-provisioned service
 func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) {
 	logger.Infow(ctx, "Service Activate Request ", log.Fields{"Device": deviceID, "Port": portNo})
+	device, err := va.GetDeviceFromPort(portNo)
+	if err != nil {
+		logger.Errorw(ctx, "Error Getting Device", log.Fields{"Reason": err.Error(), "Port": portNo})
+		return
+	}
+	// If device id is not provided check only port number
+	if deviceID == DeviceAny {
+		deviceID = device.Name
+	} else if deviceID != device.Name {
+		logger.Errorw(ctx, "Wrong Device ID", log.Fields{"Device": deviceID, "Port": portNo})
+		return
+	}
 	va.ServiceByName.Range(func(key, value interface{}) bool {
 		vs := value.(*VoltService)
-		// If device id is not provided check only port number
-		if deviceID == DeviceAny {
-			deviceID = vs.Device
-		}
 		// If svlan if provided, then the tags and tpID of service has to be matching
 		if sVlan != of.VlanNone && (sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) {
 			return true
 		}
 		if portNo == vs.Port && !vs.IsActivated {
-			d := va.GetDevice(deviceID)
-			if d == nil {
-				logger.Warnw(ctx, "Device Not Found", log.Fields{"Device": deviceID})
-				return true
-			}
-			p := d.GetPort(vs.Port)
+			p := device.GetPort(vs.Port)
 			if p == nil {
 				logger.Warnw(ctx, "Wrong device or port", log.Fields{"Device": deviceID, "Port": portNo})
 				return true
@@ -2077,7 +2080,7 @@ func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portN
 			if p.State == PortStateUp {
 				if vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan); vpv != nil {
 					// PortUp call initiates flow addition
-					vpv.PortUpInd(cntx, d, portNo)
+					vpv.PortUpInd(cntx, device, portNo)
 				} else {
 					logger.Warnw(ctx, "VPV does not exists!!!", log.Fields{"Device": deviceID, "port": portNo, "SvcName": vs.Name})
 				}
@@ -2090,6 +2093,18 @@ func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portN
 // DeactivateService to activate pre-provisioned service
 func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) {
 	logger.Infow(ctx, "Service Deactivate Request ", log.Fields{"Device": deviceID, "Port": portNo})
+	device, err := va.GetDeviceFromPort(portNo)
+	if err != nil {
+		logger.Errorw(ctx, "Error Getting Device", log.Fields{"Reason": err.Error(), "Port": portNo})
+		return
+	}
+	// If device id is not provided check only port number
+	if deviceID == DeviceAny {
+		deviceID = device.Name
+	} else if deviceID != device.Name {
+		logger.Errorw(ctx, "Wrong Device ID in request", log.Fields{"Device": deviceID, "Port": portNo})
+		return
+	}
 	va.ServiceByName.Range(func(key, value interface{}) bool {
 		vs := value.(*VoltService)
 		// If svlan if provided, then the tags and tpID of service has to be matching
@@ -2098,20 +2113,11 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 			logger.Infow(ctx, "condition not matched", log.Fields{"Device": deviceID, "Port": portNo, "sVlan": sVlan, "cVlan":cVlan, "tpID": tpID})
 			return true
 		}
-		// If device id is not provided check only port number
-		if deviceID == DeviceAny {
-			deviceID = vs.Device
-		}
-		if deviceID == vs.Device && portNo == vs.Port && vs.IsActivated {
+		if portNo == vs.Port && vs.IsActivated {
 			vs.IsActivated = false
 			va.ServiceByName.Store(vs.Name, vs)
 			vs.WriteToDb(cntx)
-			d := va.GetDevice(deviceID)
-			if d == nil {
-				logger.Warnw(ctx, "Device Not Found", log.Fields{"Device": deviceID})
-				return true
-			}
-			p := d.GetPort(vs.Port)
+			p := device.GetPort(vs.Port)
 			if p != nil && p.State == PortStateUp {
 				if vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan); vpv != nil {
 					// Port down call internally deletes all the flows

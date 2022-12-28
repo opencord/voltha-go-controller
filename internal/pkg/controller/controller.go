@@ -48,7 +48,7 @@ func init() {
 
 var db database.DBIntf
 
-var deviceTableSyncDuration = 15 * time.Minute
+var deviceTableSyncDuration = 5 * time.Minute
 
 //SetDeviceTableSyncDuration - sets interval between device table sync up activity
 //  duration - in minutes
