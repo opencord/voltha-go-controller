@@ -48,14 +48,6 @@ func init() {
 
 var db database.DBIntf
 
-var deviceTableSyncDuration = 15 * time.Minute
-
-//SetDeviceTableSyncDuration - sets interval between device table sync up activity
-//  duration - in minutes
-func SetDeviceTableSyncDuration(duration int) {
-	deviceTableSyncDuration = time.Duration(duration) * time.Minute
-}
-
 // VoltController structure
 type VoltController struct {
 	rebootLock              sync.Mutex
@@ -68,6 +60,7 @@ type VoltController struct {
 	RebootFlow              bool
 	BlockedDeviceList       *util.ConcurrentMap
 	deviceTaskQueue         *util.ConcurrentMap
+	deviceTableSyncDuration time.Duration
 }
 
 var vcontroller *VoltController
@@ -86,6 +79,17 @@ func NewController(ctx context.Context, app intf.App) intf.IVPClientAgent {
 	db = database.GetDatabase()
 	vcontroller = &controller
 	return &controller
+}
+
+//SetDeviceTableSyncDuration - sets interval between device table sync up activity
+//  duration - in minutes
+func (v *VoltController) SetDeviceTableSyncDuration(duration int) {
+	v.deviceTableSyncDuration = time.Duration(duration) * time.Second
+}
+
+//GetDeviceTableSyncDuration - returns configured device table sync duration
+func (v *VoltController) GetDeviceTableSyncDuration() time.Duration {
+	return v.deviceTableSyncDuration
 }
 
 // AddDevice to add device

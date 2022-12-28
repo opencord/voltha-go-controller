@@ -31,19 +31,20 @@ var ctx = context.TODO()
 const (
 	SubscribersPath string = "/subscribers/{id}"
 	ProfilesPath    string = "/profiles/{id}"
-	IgmpProxyPath   string = "/igmp-proxy/"
-	MulticastPath   string = "/multicast/"
-	FlowsPath       string = "/flows/"
+	IgmpProxyPath   string = "/igmp-proxy"
+	MulticastPath   string = "/multicast"
+	FlowsPath       string = "/flows"
 	DevicesPath       string = "/devices"
 	PortsPath       string = "/devices/ports"
+	PortsPerDeviceIDPath string = "/devices/{olt_of_id}/ports"
 	FlowsPerDeviceIDPath string = "/flows/{deviceId}"
 	FlowPerDeviceIDFlowIDPath string = "/flows/{deviceId}/{flowId}"
-	PendingFlowsPath          string = "/flows/pending/"
-	ProgrammedSubscribersPath string = "/programmed-subscribers/"
+	PendingFlowsPath          string = "/flows/pending"
+	ProgrammedSubscribersPath string = "/programmed-subscribers"
 	ServiceDevicePortPath     string = "/services/{device}/{port}"
 	ServicePortNamePath       string = "/services/{portName}"
 	ServicePortStagCtagTpIDPath string = "/services/{portName}/{sTag}/{cTag}/{tpId}"
-	AllocationsPath             string = "/allocations/"
+	AllocationsPath             string = "/allocations"
 	AllocationsDeviceIDPath     string = "/allocations/{deviceId}"
 )
 // RestStart to execute for API
@@ -67,6 +68,7 @@ func RestStart() {
         mu.HandleFunc(AllocationsDeviceIDPath, (&onos_nbi.DhcpRelayHandle{}).ServeHTTP)
         mu.HandleFunc(DevicesPath, (&onos_nbi.DeviceHandle{}).ServeHTTP)
         mu.HandleFunc(PortsPath, (&onos_nbi.DevicePortHandle{}).ServeHTTP)
+        mu.HandleFunc(PortsPerDeviceIDPath, (&onos_nbi.DevicePortHandle{}).ServeHTTPWithDeviceID)
 
 	err := http.ListenAndServe(":8181", mu)
 	logger.Infow(ctx, "Rest Server Started", log.Fields{"Error": err})
