@@ -48,12 +48,12 @@ func init() {
 
 var db database.DBIntf
 
-var deviceTableSyncDuration = 15 * time.Minute
+var deviceTableSyncDuration = 15 * time.Second
 
 //SetDeviceTableSyncDuration - sets interval between device table sync up activity
 //  duration - in minutes
 func SetDeviceTableSyncDuration(duration int) {
-	deviceTableSyncDuration = time.Duration(duration) * time.Minute
+	deviceTableSyncDuration = time.Duration(duration) * time.Second
 }
 
 // VoltController structure
