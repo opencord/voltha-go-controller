@@ -195,7 +195,7 @@ func main() {
 	app.GetApplication().InitStaticConfig()
 	app.GetApplication().SetVendorID(config.VendorID)
 	ofca := controller.NewController(ctx, app.GetApplication())
-	controller.SetDeviceTableSyncDuration(config.DeviceSyncDuration)
+	controller.GetController().SetDeviceTableSyncDuration(config.DeviceSyncDuration)
 	vpa, err1 := vpagent.NewVPAgent(&vpagent.VPAgent{
 		VolthaAPIEndPoint:         config.VolthaAPIEndPoint,
 		DeviceListRefreshInterval: time.Duration(config.DeviceListRefreshInterval) * time.Second,
