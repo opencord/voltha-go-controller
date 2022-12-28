@@ -21,10 +21,14 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/log"
 )
 
+type BWEntry struct {
+	Entries []BWProfile `json:"entry"`
+}
 //BWProfile - Sadis BW Profile
 type BWProfile struct {
 	ID                        string `json:"id"`
@@ -96,6 +100,44 @@ func (mh *ProfileHandle) AddProfile(cntx context.Context, w http.ResponseWriter,
 
 // GetProfile to get meter
 func (mh *ProfileHandle) GetProfile(cntx context.Context, w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	profileName := vars["id"]
+
+	var bwEntryResp BWEntry
+	bwEntryResp.Entries = []BWProfile{}
+
+	cfg, ok := app.GetApplication().GetMeterByName(profileName)
+	if !ok {
+		logger.Warnw(ctx, "Meter profile does not exist", log.Fields{"Name": profileName})
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
+	profileResp := BWProfile{
+		ID: cfg.Name,
+		CommittedInformationRate : cfg.Cir,
+		CommittedBurstSize : cfg.Cbs,
+		PeakInformationRate: cfg.Pir,
+		PeakBurstSize: cfg.Pbs,
+		AssuredInformationRate: cfg.Air,
+		GuaranteedInformationRate: cfg.Gir,
+		ExceededInformationRate: cfg.Eir,
+		ExceededBurstSize: cfg.Ebs,
+	}
+	bwEntryResp.Entries = append(bwEntryResp.Entries, profileResp)
+	profileRespJSON, err := json.Marshal(bwEntryResp)
+	if err != nil {
+		logger.Errorw(ctx, "Failed to marshal profile response", log.Fields{"Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	_, err = w.Write(profileRespJSON)
+	if err != nil {
+		logger.Errorw(ctx, "Failed to write profile response", log.Fields{"Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 }
 
 // DelProfile to delete meter

@@ -668,7 +668,7 @@ func (d *Device) ConnectInd(ctx context.Context, discType intf.DiscoveryType) {
 
 func (d *Device) synchronizeDeviceTables() {
 
-	tick := time.NewTicker(deviceTableSyncDuration)
+	tick := time.NewTicker(GetController().GetDeviceTableSyncDuration())
 loop:
 	for {
 		select {
