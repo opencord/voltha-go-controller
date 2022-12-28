@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/log"
 )
@@ -41,7 +42,6 @@ func (dh *DeviceHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
 	}
 }
-
 // GetDeviceList to get device id list
 func (dh *DeviceHandle) GetDeviceList(w http.ResponseWriter, r *http.Request) {
 
@@ -83,6 +83,54 @@ func (dh *DevicePortHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ServeHTTPWithDeviceID to serve HTTP request for ports with deviceID
+func (dh *DevicePortHandle) ServeHTTPWithDeviceID(w http.ResponseWriter, r *http.Request) {
+	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
+	switch r.Method {
+	case "GET":
+		dh.GetPortListPerDevice(w, r)
+	default:
+		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+	}
+}
+
+// GetPortListPerDevice to get port list for a given device
+func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	deviceID := vars["olt_of_id"]
+
+	var portListResp PortEntry
+	portListResp.Ports = []Port{}
+
+	getPortList := func(key, value interface{}) bool {
+		voltPort := value.(*app.VoltPort)
+		port := convertVoltPortToPort(voltPort)
+		portListResp.Ports = append(portListResp.Ports, port)
+		return true
+	}
+	if len(deviceID) > 0 {
+		logger.Infow(ctx, "Recieved Port get request for device", log.Fields{"deviceID": deviceID})
+		voltDevice := app.GetApplication().GetDevice(deviceID)
+		if voltDevice != nil {
+			logger.Infow(ctx, "Found device", log.Fields{"deviceID": deviceID})
+			voltDevice.Ports.Range(getPortList)
+		}
+	}
+	portListJSON, err := json.Marshal(portListResp)
+	if err != nil {
+		logger.Errorw(ctx, "Error occurred while marshaling port list response", log.Fields{"Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	_, err = w.Write(portListJSON)
+	if err != nil {
+		logger.Errorw(ctx, "error in sending portList response", log.Fields{"Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
 // GetPortList to get device id list
 func (dh *DevicePortHandle) GetPortList(w http.ResponseWriter, r *http.Request) {
 
