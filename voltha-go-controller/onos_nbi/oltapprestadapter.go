@@ -99,15 +99,19 @@ func (sa *ServiceAdapter) ActivateService(cntx context.Context, w http.ResponseW
 	deviceID := vars[DEVICE]
 	portNo := vars["port"]
 
-	// Get the payload to process the request
-	d := new(bytes.Buffer)
-	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
-		return
-	}
+        // Get the payload to process the request
+        d := new(bytes.Buffer)
+        if _, err := d.ReadFrom(r.Body);  err != nil {
+                logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
+                return
+        }
 
 	if len(deviceID) > 0 && len(portNo) > 0 {
-		app.GetApplication().ActivateService(cntx, deviceID, portNo, of.VlanNone, of.VlanNone, 0)
+		if err := app.GetApplication().ActivateService(cntx, deviceID, portNo, of.VlanNone, of.VlanNone, 0); err != nil {
+			logger.Warnw(ctx, "ActivateService Failed", log.Fields{ "deviceID": deviceID, "Port": portNo})
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 	}
 }
 
@@ -116,15 +120,19 @@ func (sa *ServiceAdapter) DeactivateService(cntx context.Context, w http.Respons
 	deviceID := vars[DEVICE]
 	portNo := vars["port"]
 
-	// Get the payload to process the request
-	d := new(bytes.Buffer)
-	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
-		return
-	}
+        // Get the payload to process the request
+        d := new(bytes.Buffer)
+        if _, err := d.ReadFrom(r.Body);  err != nil {
+                logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
+                return
+        }
 
 	if len(deviceID) > 0 && len(portNo) > 0 {
-		app.GetApplication().DeactivateService(cntx, deviceID, portNo, of.VlanNone, of.VlanNone, 0)
+		if err := app.GetApplication().DeactivateService(cntx, deviceID, portNo, of.VlanNone, of.VlanNone, 0); err != nil {
+			logger.Warnw(ctx, "DeactivateService Failed", log.Fields{ "deviceID": deviceID, "Port": portNo})
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 	}
 }
 
@@ -142,6 +150,7 @@ func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w ht
 		sv, err := strconv.Atoi(sTag)
 		if err != nil {
 			logger.Warnw(ctx, "Wrong vlan value", log.Fields{"sTag": sTag})
+			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
 		sVlan = of.VlanType(sv)
@@ -150,6 +159,7 @@ func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w ht
 		cv, err := strconv.Atoi(cTag)
 		if err != nil {
 			logger.Warnw(ctx, "Wrong vlan value", log.Fields{"cTag": cTag})
+			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
 		cVlan = of.VlanType(cv)
@@ -158,13 +168,17 @@ func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w ht
 		tp, err := strconv.Atoi(tpID)
 		if err != nil {
 			logger.Warnw(ctx, "Wrong tech profile value", log.Fields{"tpID": tpID})
+			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
 		techProfile = uint16(tp)
 	}
 
 	if len(portNo) > 0 {
-		app.GetApplication().ActivateService(cntx, app.DeviceAny, portNo, sVlan, cVlan, techProfile)
+		if err := app.GetApplication().ActivateService(cntx, app.DeviceAny, portNo, sVlan, cVlan, techProfile); err != nil {
+			logger.Warnw(ctx, "ActivateService Failed", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile})
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 	}
 }
 
@@ -182,6 +196,7 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 		sv, err := strconv.Atoi(sTag)
 		if err != nil {
 			logger.Warnw(ctx, "Wrong vlan value", log.Fields{"sTag": sTag})
+			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
 		sVlan = of.VlanType(sv)
@@ -190,6 +205,7 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 		cv, err := strconv.Atoi(cTag)
 		if err != nil {
 			logger.Warnw(ctx, "Wrong vlan value", log.Fields{"cTag": cTag})
+			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
 		cVlan = of.VlanType(cv)
@@ -198,20 +214,17 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 		tp, err := strconv.Atoi(tpID)
 		if err != nil {
 			logger.Warnw(ctx, "Wrong tech profile value", log.Fields{"tpID": tpID})
+			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
 		techProfile = uint16(tp)
 	}
 
-	// Get the payload to process the request
-	d := new(bytes.Buffer)
-	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
-		return
-	}
-
 	if len(portNo) > 0 {
-		app.GetApplication().DeactivateService(cntx, app.DeviceAny, portNo, sVlan, cVlan, techProfile)
+		if err := app.GetApplication().DeactivateService(cntx, app.DeviceAny, portNo, sVlan, cVlan, techProfile); err != nil {
+			logger.Warnw(ctx, "DeactivateService Failed", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile})
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 	}
 }
 

@@ -34,7 +34,7 @@ const (
 	defaultCPUProfile                = ""
 	defaultMemProfile                = ""
 	defaultDeviceListRefreshInterval = 10
-	defaultDeviceSyncDuration        = 15
+	defaultDeviceSyncDuration        = 5
 	/*
 		FIXME(At RWCORE) Problem: VGC comes up fast by that time RWCORE may not be up and will retry after 10 sec
 		but rwcore could come up before the 10 second expiry and post indications to VGC which can't be consumed by
