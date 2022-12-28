@@ -99,9 +99,13 @@ func (db *Database) DeleteAll(ctx context.Context, fullPath string) error {
 
 // DeleteAllUnderHashKey to delete all values under hash key
 func (db *Database) DeleteAllUnderHashKey(ctx context.Context, hashKeyPrefix string) error {
-	if err := db.kvc.Delete(ctx, hashKeyPrefix); err != nil {
+	kv, err := db.kvc.List(ctx, hashKeyPrefix)
+	if err != nil {
 		logger.Errorw(ctx, "The key path doesn't exist", log.Fields{"key": hashKeyPrefix, "Error": err})
 		return err
+	}
+	for k, _ := range kv {
+		db.kvc.Delete(ctx, k)
 	}
 	return nil
 }
@@ -539,7 +543,7 @@ func (db *Database) DelMeter(ctx context.Context, name string) error {
 
 // DelAllMeter to delete meter info
 func (db *Database) DelAllMeter(ctx context.Context, device string) error {
-	key := GetKeyPath(DevicePath) + device + "/" + MeterPath
+	key := fmt.Sprintf(GetKeyPath(DeviceMeterPath), device)
 	if err := db.DeleteAllUnderHashKey(ctx, key); err != nil {
 		logger.Warnw(ctx, "Delete All failed: The key doesn't exist", log.Fields{"key": key, "Error": err})
 		return err

@@ -1,4 +1,6 @@
 /*
+
+
 * Copyright 2022-present Open Networking Foundation
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -78,7 +80,7 @@ const (
 	CPUProfile                = "CPU_PROFILE"
 	MemProfile                = "MEM_PROFILE"
 	VendorID                  = "VENDOR_ID"
-    DeviceSyncDuration        = "DEVICE_SYNC_DURATION"
+	DeviceSyncDuration        = "DEVICE_SYNC_DURATION"
 	// openonu environment variables
 
 	OmciPacketCapture = "SAVE_OMCI_PACKET_CAPTURE"

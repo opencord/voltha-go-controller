@@ -84,6 +84,12 @@ func (att *AuditTablesTask) Start(ctx context.Context, taskID uint8) error {
 	var errInfo error
 	var err error
 
+	// Audit ports
+	if err = att.AuditPorts(); err != nil {
+		logger.Errorw(ctx, "Audit Ports Failed", log.Fields{"Reason": err.Error()})
+		errInfo = err
+	}
+
 	// Audit the meters
 	if err = att.AuditMeters(); err != nil {
 		logger.Errorw(ctx, "Audit Meters Failed", log.Fields{"Reason": err.Error()})
@@ -530,3 +536,121 @@ func (att *AuditTablesTask) DelExcessGroups(groups map[uint32]*ofp.OfpGroupDesc)
 		}
 	}
 }
+
+func (att *AuditTablesTask) AuditPorts() error {
+
+        if att.stop {
+                return tasks.ErrTaskCancelError
+        }
+
+        var vc voltha.VolthaServiceClient
+        if vc = att.device.VolthaClient(); vc == nil {
+                logger.Error(ctx, "Flow Audit Failed: Voltha Client Unavailable")
+                return nil
+        }
+        ofpps, err := vc.ListLogicalDevicePorts(att.ctx, &common.ID{Id: att.device.ID})
+        if err != nil {
+                return err
+        }
+
+        // Compute the difference between the ports received and ports at VGC
+        // First build a map of all the received ports under missing ports. We
+        // will eliminate the ports that are in the device from the missing ports
+        // so that the elements remaining are missing ports. The ones that are
+        // not in missing ports are added to excess ports which should be deleted
+        // from the VGC.
+        missingPorts := make(map[uint32]*ofp.OfpPort)
+        for _, ofpp := range ofpps.Items {
+                missingPorts[ofpp.OfpPort.PortNo] = ofpp.OfpPort
+        }
+
+        var excessPorts []uint32
+        processPortState := func(id uint32, vgcPort *DevicePort) {
+                logger.Debugw(ctx, "Process Port State Ind", log.Fields{"Port No": vgcPort.ID, "Port Name": vgcPort.Name})
+
+                if ofpPort, ok := missingPorts[id]; ok {
+                        if ((vgcPort.State == PortStateDown) && (ofpPort.State == uint32(ofp.OfpPortState_OFPPS_LIVE))) || ((vgcPort.State == PortStateUp) && (ofpPort.State != uint32(ofp.OfpPortState_OFPPS_LIVE))) {
+                                // This port exists in the received list and the map at
+                                // VGC. This is common so delete it
+                                logger.Infow(ctx, "Port State Mismatch", log.Fields{"Port": vgcPort.ID, "OfpPort": ofpPort.PortNo, "ReceivedState": ofpPort.State, "CurrentState": vgcPort.State})
+                                att.device.ProcessPortState(ctx, ofpPort.PortNo, ofpPort.State)
+                        }
+                        delete(missingPorts, id)
+                } else {
+                        // This port is missing from the received list. This is an
+                        // excess port at VGC. This must be added to excess ports
+                        excessPorts = append(excessPorts, id)
+                }
+                logger.Debugw(ctx, "Processed Port State Ind", log.Fields{"Port No": vgcPort.ID, "Port Name": vgcPort.Name})
+
+        }
+        // 1st process the NNI port before all other ports so that the device state can be updated.
+        if vgcPort, ok := att.device.PortsByID[NNIPortID]; ok {
+                logger.Info(ctx, "Processing NNI port state")
+                processPortState(NNIPortID, vgcPort)
+        }
+
+        for id, vgcPort := range att.device.PortsByID {
+                if id == NNIPortID {
+                        //NNI port already processed
+                        continue
+                }
+                if att.stop {
+                        break
+                }
+                processPortState(id, vgcPort)
+        }
+
+	if att.stop {
+                logger.Errorw(ctx, "Audit Device Task Cancelled", log.Fields{"Context": att.ctx, "Task": att.taskID})
+                return tasks.ErrTaskCancelError
+        }
+        att.AddMissingPorts(ctx, missingPorts)
+        att.DelExcessPorts(ctx, excessPorts)
+	return nil
+}
+
+// AddMissingPorts to add the missing ports
+func (att *AuditTablesTask) AddMissingPorts(cntx context.Context, mps map[uint32]*ofp.OfpPort) {
+        logger.Debugw(ctx, "Device Audit - Add Missing Ports", log.Fields{"NumPorts": len(mps)})
+
+        addMissingPort := func(mp *ofp.OfpPort) {
+                logger.Debugw(ctx, "Process Port Add Ind", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name})
+
+                // Error is ignored as it only drops duplicate ports
+                logger.Infow(ctx, "Calling AddPort", log.Fields{"No": mp.PortNo, "Name": mp.Name})
+                if err := att.device.AddPort(cntx, mp); err != nil {
+                        logger.Warnw(ctx, "AddPort Failed", log.Fields{"No": mp.PortNo, "Name": mp.Name, "Reason": err})
+                }
+                if mp.State == uint32(ofp.OfpPortState_OFPPS_LIVE) {
+                        att.device.ProcessPortState(cntx, mp.PortNo, mp.State)
+                }
+                logger.Debugw(ctx, "Processed Port Add Ind", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name})
+
+        }
+
+        // 1st process the NNI port before all other ports so that the flow provisioning for UNIs can be enabled
+        if mp, ok := mps[NNIPortID]; ok {
+                logger.Info(ctx, "Adding Missing NNI port")
+                addMissingPort(mp)
+        }
+
+        for portNo, mp := range mps {
+                if portNo != NNIPortID {
+                        addMissingPort(mp)
+                }
+        }
+}
+
+// DelExcessPorts to delete the excess ports
+func (att *AuditTablesTask) DelExcessPorts(cntx context.Context, eps []uint32) {
+        logger.Debugw(ctx, "Device Audit - Delete Excess Ports", log.Fields{"NumPorts": len(eps)})
+        for _, id := range eps {
+                // Now delete the port from the device @ VGC
+                logger.Infow(ctx, "Device Audit - Deleting Port", log.Fields{"PortId": id})
+                if err := att.device.DelPort(cntx, id); err != nil {
+                        logger.Warnw(ctx, "DelPort Failed", log.Fields{"PortId": id, "Reason": err})
+                }
+        }
+}
+
