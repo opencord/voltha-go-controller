@@ -29,7 +29,7 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
-
+	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"voltha-go-controller/internal/pkg/controller"
 	cntlr "voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/database"
@@ -39,6 +39,7 @@ import (
 	"voltha-go-controller/internal/pkg/util"
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/log"
+	"github.com/opencord/voltha-lib-go/v7/pkg/kafka"
 )
 
 var logger log.CLogger
@@ -112,6 +113,12 @@ func RegisterPacketHandler(protocol string, callback CallBack) {
 	}
 	PacketHandlers[protocol] = callback
 }
+
+// Const indication used for port-up/down indication
+const (
+	PORT_UP_INDICATION   = "activated"
+	PORT_DOWN_INDICATION = "deactivated"
+)
 
 // ---------------------------------------------------------------------
 // VOLT Ports
@@ -429,6 +436,7 @@ type VoltApplication struct {
 	VoltPortVnetsToDelete     map[*VoltPortVnet]bool
 	PortAlarmProfileCache     map[string]map[string]int // [portAlarmID][ThresholdLevelString]ThresholdLevel
 	vendorID                  string
+	kafkaClient               kafka.Client
 }
 
 // PonPortCfg contains NB port config and activeIGMPChannels count
@@ -712,6 +720,11 @@ func (va *VoltApplication) GetUpgradeFlag() bool {
 // SetUpgradeFlag to set reboot status
 func (va *VoltApplication) SetUpgradeFlag(flag bool) {
 	isUpgradeComplete = flag
+}
+
+// SetkafkaClient to set kafkaClient
+func (va *VoltApplication) SetkafkaClient(kafkaClient kafka.Client) {
+	va.kafkaClient = kafkaClient
 }
 
 // ------------------------------------------------------------
@@ -1247,6 +1260,10 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 	if !ok || nil == vpvs || len(vpvs.([]*VoltPortVnet)) == 0 {
 		logger.Infow(ctx, "No VNETs on port", log.Fields{"Device": device, "Port": port})
 		//msgbus.ProcessPortInd(msgbus.PortUp, d.SerialNum, p.Name, false, getServiceList(port))
+		if err := va.SendOnuEvent(ctx, port, p, PORT_UP_INDICATION, d); err != nil {
+			logger.Errorw(ctx, "failed-to-send-onu-port-down-event", log.Fields{"Error": err})
+			return
+		}
 		return
 	}
 
@@ -1384,6 +1401,10 @@ func (va *VoltApplication) PortDownInd(cntx context.Context, device string, port
 	if !ok || nil == vpvs || len(vpvs.([]*VoltPortVnet)) == 0 {
 		logger.Infow(ctx, "No VNETs on port", log.Fields{"Device": device, "Port": port})
 		//msgbus.ProcessPortInd(msgbus.PortDown, d.SerialNum, p.Name, false, getServiceList(port))
+		if err := va.SendOnuEvent(ctx, port, p, PORT_DOWN_INDICATION, d); err != nil {
+			logger.Errorw(ctx, "failed-to-send-onu-port-down-event", log.Fields{"Error": err})
+			return
+		}
 		return
 	}
 /*
@@ -1401,6 +1422,25 @@ func (va *VoltApplication) PortDownInd(cntx context.Context, device string, port
 		}
 		vpv.VpvLock.Unlock()
 	}
+}
+
+func (va *VoltApplication) SendOnuEvent(cntx context.Context, port string, p *VoltPort, status string, d *VoltDevice) error {
+	time := time.Now().Unix()
+	raisedTs := strconv.FormatInt(time, 10)
+	de := &voltha.OnuEvent{
+		Timestamp:   raisedTs,
+		Status:      status,
+		SerialNo:    port,
+		PortNumber:  p.ID,
+		DeviceId:    d.Name,
+		OltSerialNo: d.SerialNum,
+	}
+	
+	if err := va.kafkaClient.Send(ctx, de, &kafka.Topic{Name: "onu.events"}, ""); err != nil {
+		logger.Errorw(ctx, "kafka msg not send", log.Fields{"Error": err})
+		return err
+	}
+	return nil
 }
 
 // PacketInInd :

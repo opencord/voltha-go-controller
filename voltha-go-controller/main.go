@@ -35,6 +35,7 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 	"voltha-go-controller/log"
+	"github.com/opencord/voltha-lib-go/v7/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v7/pkg/probe"
 )
 
@@ -82,6 +83,22 @@ func newKVClient(storeType, address string, timeout int) (kvstore.Client, error)
 	return nil, errors.New("unsupported-kv-store")
 }
 
+func newKafkaClient(ctx context.Context, clientType, address string) (kafka.Client, error) {
+
+	logger.Infow(ctx, "common-client-type", log.Fields{"client": clientType})
+	switch clientType {
+	case "sarama":
+		return kafka.NewSaramaClient(
+			kafka.Address(address),
+			kafka.ProducerReturnOnErrors(true),
+			kafka.ProducerReturnOnSuccess(true),
+			kafka.ProducerMaxRetries(6),
+			kafka.ProducerRetryBackoff(time.Millisecond*30),
+			kafka.MetadatMaxRetries(15)), nil
+	}
+	return nil, errors.New("unsupported-client-type")
+}
+
 // waitUntilKVStoreReachableOrMaxTries will wait until it can connect to a KV store or until maxtries has been reached
 func waitUntilKVStoreReachableOrMaxTries(ctx context.Context, config *VGCFlags) error {
 	count := 0
@@ -127,6 +144,8 @@ func main() {
 	// Setup default logger - applies for packages that do not have specific logger set
 	var logLevel log.LogLevel
 	var err error
+	var kafkaClient kafka.Client
+
 	if logLevel, err = log.StringToLogLevel(config.LogLevel); err != nil {
 		logLevel = log.DebugLevel
 	}
@@ -149,6 +168,16 @@ func main() {
 		return
 	}
 
+	// Setup Kafka Client
+	if kafkaClient, err = newKafkaClient(ctx, "sarama", config.MsgBusEndPoint); err != nil {
+		logger.Fatalw(ctx, "Unsupported-common-client", log.Fields{"error": err})
+	}
+
+	//  Start kafka communication with the broker
+	if err := kafka.StartAndWaitUntilKafkaConnectionIsUp(ctx, kafkaClient, 20*time.Second, ""); err != nil {
+		logger.Fatal(ctx, "unable-to-connect-to-kafka")
+	}
+	
 	db.SetDatabase(dbHandler)
 	logger.Infow(ctx, "verifying-KV-store-connectivity", log.Fields{"host": config.KVStoreHost,
 		"port": config.KVStorePort, "retries": config.ConnectionMaxRetries,
@@ -190,7 +219,7 @@ func main() {
 	 * objects there can be a single probe end point for the process.
 	 */
 	go p.ListenAndServe(ctx, config.ProbeEndPoint)
-
+	app.GetApplication().SetkafkaClient(kafkaClient)
 	app.GetApplication().ReadAllFromDb(ctx)
 	app.GetApplication().InitStaticConfig()
 	app.GetApplication().SetVendorID(config.VendorID)
@@ -219,6 +248,10 @@ func main() {
 	//go app.StartCollector()
 	waitForExit()
 	app.StopTimer()
+
+	if kafkaClient != nil {
+		kafkaClient.Stop(ctx)
+	}
 	stop(ctx, vgcInfo.kvClient, vpa)
 }
 
