@@ -11,15 +11,16 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package database
 
 import (
-	"net"
 	"context"
+	"net"
 
 	"voltha-go-controller/internal/pkg/of"
+
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 )
 
@@ -115,6 +116,8 @@ type DBIntf interface {
 	GetAllPonChannelCounters(ctx context.Context, device string, ponID string) (map[string]*kvstore.KVPair, error)
 	GetPonChannelCounter(ctx context.Context, device string, ponID string, channel string) (string, error)
 	PutNbDevicePort(ctx context.Context, device string, ponPortID uint32, value string)
+	GetDeviceConfig(ctx context.Context) (map[string]*kvstore.KVPair, error)
+	PutDeviceConfig(ctx context.Context, serialNum string, value string) error
 	PutPonChannelCounter(ctx context.Context, device string, ponID string, channel string, value string) error
 	DelPonChannelCounter(ctx context.Context, device string, ponID string, channel string) error
 	DelAllPONCounters(ctx context.Context, device string) error

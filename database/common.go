@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 // This implementation of database assumes that it is working for
 // Open ONU adapter. Thus, it assumes some base path for all the
 // database operations. For all database operations, the key passed is
@@ -63,6 +63,7 @@ const (
 	PortAlarmDataPath      string = DevicePortPath + "portalarmdata/"
 	SubAlarmDataPath       string = DevicePath + "sub-alarm-data/"
 	ServicesMigrateReqPath string = DevicePath + "migrateServicesReq/"
+	DeviceConfigPath       string = "device-config/"
 )
 
 //PresentVersionMap - map of present version for all database tables
@@ -97,6 +98,7 @@ var PresentVersionMap = map[string]string{
 	PortAlarmDataPath:      "v1",
 	SubAlarmDataPath:       "v1",
 	ServicesMigrateReqPath: "v1",
+	DeviceConfigPath:       "v1",
 }
 
 //PreviousVersionMap - map of previous version for all database tables
@@ -131,6 +133,7 @@ var PreviousVersionMap = map[string]string{
 	PortAlarmDataPath:      "v1",
 	SubAlarmDataPath:       "v1",
 	ServicesMigrateReqPath: "v1",
+	DeviceConfigPath:       "v1",
 }
 
 //DBVersionMap - Version of tables present in DB
