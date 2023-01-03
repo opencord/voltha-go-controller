@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package application
 
@@ -21,16 +21,16 @@ import (
 	"errors"
 	"net"
 	"reflect"
-	"voltha-go-controller/internal/pkg/types"
 	"strings"
 	"sync"
 	"time"
+	common "voltha-go-controller/internal/pkg/types"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 
-	cntlr "voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/database"
+	cntlr "voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/log"
 )
@@ -865,7 +865,7 @@ func (va *VoltApplication) ProcessIgmpv2Pkt(cntx context.Context, device string,
 			vp := vd.GetPort(port)
 			if vp == nil || vp.State != PortStateUp {
 				logger.Warnw(ctx, "Join received from a Port that is DOWN or not present",
-						log.Fields{"Port": port})
+					log.Fields{"Port": port})
 				ig.IgmpGroupLock.Unlock()
 				return
 			}
@@ -882,7 +882,7 @@ func (va *VoltApplication) ProcessIgmpv2Pkt(cntx context.Context, device string,
 				vp := vd.GetPort(port)
 				if vp == nil || vp.State != PortStateUp {
 					logger.Warnw(ctx, "Join received from a Port that is DOWN or not present",
-							log.Fields{"Port": port})
+						log.Fields{"Port": port})
 					ig.IgmpGroupLock.Unlock()
 					return
 				}
@@ -1015,7 +1015,7 @@ func (va *VoltApplication) ProcessIgmpv3Pkt(cntx context.Context, device string,
 					vp := vd.GetPort(port)
 					if vp == nil || vp.State != PortStateUp {
 						logger.Warnw(ctx, "Join received from a Port that is DOWN or not present",
-								log.Fields{"Port": port})
+							log.Fields{"Port": port})
 						ig.IgmpGroupLock.Unlock()
 						return
 					}
@@ -1033,7 +1033,7 @@ func (va *VoltApplication) ProcessIgmpv3Pkt(cntx context.Context, device string,
 						vp := vd.GetPort(port)
 						if vp == nil || vp.State != PortStateUp {
 							logger.Warnw(ctx, "Join received from a Port that is DOWN or not present",
-									log.Fields{"Port": port})
+								log.Fields{"Port": port})
 							ig.IgmpGroupLock.Unlock()
 							return
 						}
@@ -1678,23 +1678,48 @@ func (va *VoltApplication) deleteIgmpProfileMap(name string) {
 	va.IgmpProfilesByName.Delete(name)
 }
 
-//DelIgmpProfile for addition of IGMP Profile
-func (va *VoltApplication) DelIgmpProfile(cntx context.Context, igmpProfileConfig *common.IGMPConfig) error {
+// TODO - DelIgmpProfile for deleting IGMP Profile based on profile Id
+// func (va *VoltApplication) DelIgmpProfile(cntx context.Context, igmpProfileConfig *common.IGMPConfig) error {
+// 	// Deletion of default igmp profile is blocked from submgr. Keeping additional check for safety.
+// 	if igmpProfileConfig.ProfileID == DefaultIgmpProfID {
+// 		logger.Info(ctx, "Resetting default IGMP profile")
+// 		va.resetIgmpProfileToDefault(cntx)
+// 		return nil
+// 	}
+// 	igmpProfile := va.checkIgmpProfileMap(igmpProfileConfig.ProfileID)
+// 	if igmpProfile == nil {
+// 		logger.Warnw(ctx, "Igmp Profile not found. Unable to delete", log.Fields{"Profile ID": igmpProfileConfig.ProfileID})
+// 		return nil
+// 	}
+
+// 	va.deleteIgmpProfileMap(igmpProfileConfig.ProfileID)
+
+// 	_ = db.DelIgmpProfile(cntx, igmpProfileConfig.ProfileID)
+
+// 	return nil
+// }
+
+// DelIgmpProfile for deleting IGMP Profile based on profile Id
+func (va *VoltApplication) DelIgmpProfile(cntx context.Context, profileID string) error {
 	// Deletion of default igmp profile is blocked from submgr. Keeping additional check for safety.
-	if igmpProfileConfig.ProfileID == DefaultIgmpProfID {
+	if profileID == DefaultIgmpProfID {
 		logger.Info(ctx, "Resetting default IGMP profile")
 		va.resetIgmpProfileToDefault(cntx)
 		return nil
 	}
-	igmpProfile := va.checkIgmpProfileMap(igmpProfileConfig.ProfileID)
+	igmpProfile := va.checkIgmpProfileMap(profileID)
 	if igmpProfile == nil {
-		logger.Warnw(ctx, "Igmp Profile not found. Unable to delete", log.Fields{"Profile ID": igmpProfileConfig.ProfileID})
+		logger.Warnw(ctx, "Igmp Profile not found. Unable to delete", log.Fields{"Profile ID": profileID})
 		return nil
 	}
 
-	va.deleteIgmpProfileMap(igmpProfileConfig.ProfileID)
+	va.deleteIgmpProfileMap(profileID)
 
-	_ = db.DelIgmpProfile(cntx, igmpProfileConfig.ProfileID)
+	err := db.DelIgmpProfile(cntx, profileID)
+	if err != nil {
+		logger.Errorw(ctx, "Failed to delete Igmp profile from DB", log.Fields{"Error": err})
+		return err
+	}
 
 	return nil
 }
