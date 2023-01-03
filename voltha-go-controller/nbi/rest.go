@@ -33,7 +33,9 @@ const (
 	SubscribersPath                   string = "/subscribers/{id}"
 	ProfilesPath                      string = "/profiles/{id}"
 	IgmpProxyPath                     string = "/igmp-proxy"
-	MulticastPath                     string = "/multicast"
+	IgmpProxyDeletePath               string = "/igmp-proxy/{outgoingigmpvlanid}"
+	MulticastPath                     string = "/multicast/"
+	MulticastDeletePath               string = "/multicast/{egressvlan}"
 	FlowsPath                         string = "/flows"
 	DevicesPath                       string = "/devices"
 	PortsPath                         string = "/devices/ports"
@@ -55,6 +57,7 @@ const (
 	MetersByIdPath                    string = "/meters/{id}"
 	GroupsPath                        string = "/groups"
 	GroupsByIdPath                    string = "/groups/{id}"
+	NetConfigPath                     string = "/network/configurations"
 )
 
 // RestStart to execute for API
@@ -64,7 +67,9 @@ func RestStart() {
 	mu.HandleFunc(SubscribersPath, (&SubscriberHandle{}).ServeHTTP)
 	mu.HandleFunc(ProfilesPath, (&ProfileHandle{}).ServeHTTP)
 	mu.HandleFunc(IgmpProxyPath, (&IgmpProxyHandle{}).ServeHTTP)
+	mu.HandleFunc(IgmpProxyDeletePath, (&IgmpProxyHandle{}).ServeHTTP)
 	mu.HandleFunc(MulticastPath, (&MulticastHandle{}).ServeHTTP)
+	mu.HandleFunc(MulticastDeletePath, (&MulticastHandle{}).ServeHTTP)
 	mu.HandleFunc(FlowsPath, (&onos_nbi.FlowHandle{}).ServeHTTP)
 	mu.HandleFunc(FlowsPerDeviceIDPath, (&onos_nbi.FlowHandle{}).ServeHTTP)
 	mu.HandleFunc(FlowPerDeviceIDFlowIDPath, (&onos_nbi.FlowHandle{}).ServeHTTP)
@@ -86,7 +91,7 @@ func RestStart() {
 	mu.HandleFunc(MetersByIdPath, (&onos_nbi.MetersHandle{}).MeterServeHTTP)
 	mu.HandleFunc(GroupsPath, (&onos_nbi.GroupsHandle{}).GroupServeHTTP)
 	mu.HandleFunc(GroupsByIdPath, (&onos_nbi.GroupsHandle{}).GroupServeHTTP)
-
+	mu.HandleFunc(NetConfigPath, (&NetConfigHandle{}).NetConfigServeHTTP)
 	err := http.ListenAndServe(":8181", mu)
 	logger.Infow(ctx, "Rest Server Started", log.Fields{"Error": err})
 }
