@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 // This implementation of database assumes that it is working for
 // Open ONU adapter. Thus, it assumes some base path for all the
 // database operations. For all database operations, the key passed is
@@ -22,14 +22,16 @@ package database
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"strconv"
 	"time"
-	"fmt"
 
+	"voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/of"
-	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 	"voltha-go-controller/log"
+
+	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 )
 
 var logger log.CLogger
@@ -39,7 +41,7 @@ type Database struct {
 	storeType string
 	address   string
 	//timeout   uint32
-	kvc       kvstore.Client
+	kvc kvstore.Client
 }
 
 // Initialize the database module. The database module runs as a singleton
@@ -494,7 +496,7 @@ func (db *Database) DelMcastConfig(ctx context.Context, name string) error {
 // GetHealth to get health info
 func (db *Database) GetHealth(ctx context.Context) (string, error) {
 	key := GetKeyPath(HealthPath)
-	return db.Get(ctx,key)
+	return db.Get(ctx, key)
 }
 
 // PutHealth to add health info
@@ -739,6 +741,23 @@ func (db *Database) PutNbDevicePort(ctx context.Context, device string, ponPortI
 	if err := db.kvc.Put(ctx, key, value); err != nil {
 		logger.Warnw(ctx, "Put Device Port failed", log.Fields{"key": key})
 	}
+}
+
+// GetServices to get multiple services info
+func (db *Database) GetDeviceConfig(ctx context.Context) (map[string]*kvstore.KVPair, error) {
+	key := GetKeyPath(DeviceConfigPath)
+	return db.List(ctx, key)
+}
+
+// PutSBDeviceConfig to add device info
+func (db *Database) PutDeviceConfig(ctx context.Context, serialNum string, value string) error {
+	key := GetKeyPath(DeviceConfigPath) + serialNum
+
+	if err := db.kvc.Put(ctx, key, value); err != nil {
+		logger.Warnw(ctx, "Put Device Config failed", log.Fields{"key": key})
+		return errorcodes.ErrFailedToUpdateDB
+	}
+	return nil
 }
 
 // DelNbDevicePort to delete device port
@@ -1059,10 +1078,10 @@ func (db *Database) GetOltFlowService(ctx context.Context) (string, error) {
 	return db.Get(ctx, key)
 }
 func init() {
-        // Setup this package so that it's log level can be modified at run time
-        var err error
-        logger, err = log.AddPackageWithDefaultParam()
-        if err != nil {
-                panic(err)
-        }
+	// Setup this package so that it's log level can be modified at run time
+	var err error
+	logger, err = log.AddPackageWithDefaultParam()
+	if err != nil {
+		panic(err)
+	}
 }

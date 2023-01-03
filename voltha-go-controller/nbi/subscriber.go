@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package nbi
 
@@ -23,12 +23,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/google/gopacket/layers"
-	"github.com/gorilla/mux"
 	"voltha-go-controller/internal/pkg/application"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/log"
+
+	"github.com/google/gopacket/layers"
+	"github.com/gorilla/mux"
 )
 
 //SubscriberDeviceInfo - Subcriber Device Info
@@ -68,14 +69,13 @@ type UniTagInformation struct {
 	IsPppoeRequired               bool   `json:"isPppoeRequired"`
 }
 
-
 func init() {
-        // Setup this package so that it's log level can be modified at run time
-        var err error
-        logger, err = log.AddPackageWithDefaultParam()
-        if err != nil {
-                panic(err)
-        }
+	// Setup this package so that it's log level can be modified at run time
+	var err error
+	logger, err = log.AddPackageWithDefaultParam()
+	if err != nil {
+		panic(err)
+	}
 }
 
 // SubscriberHandle handle SubscriberInfo Requests
@@ -100,7 +100,7 @@ func (sh *SubscriberHandle) AddSubscriberInfo(cntx context.Context, w http.Respo
 
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
-	if _, err := d.ReadFrom(r.Body);  err != nil {
+	if _, err := d.ReadFrom(r.Body); err != nil {
 		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
 		return
 	}
@@ -125,7 +125,10 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 	va := app.GetApplication()
 	if len(srvInfo.UniTagList) == 0 {
 		logger.Debugw(ctx, "Received OLT configuration", log.Fields{"req": srvInfo})
-		va.UpdateDeviceConfig(cntx, srvInfo.ID, srvInfo.HardwareIdentifier, srvInfo.NasID, srvInfo.UplinkPort, srvInfo.NniDhcpTrapVid, srvInfo.IPAddress)
+		err := va.AddDeviceConfig(cntx, srvInfo.ID, srvInfo.HardwareIdentifier, srvInfo.NasID, srvInfo.IPAddress, srvInfo.UplinkPort, srvInfo.NniDhcpTrapVid)
+		if err != nil {
+			logger.Warnw(ctx, "Device config addition failed :", log.Fields{"Reason": err.Error()})
+		}
 		return
 	}
 	for _, uniTagInfo := range srvInfo.UniTagList {
@@ -153,33 +156,33 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 		vs.ServiceType = uniTagInfo.ServiceName
 
 		if uniTagInfo.ServiceName == app.DPU_MGMT_TRAFFIC ||
-		   uniTagInfo.ServiceName == app.DPU_ANCP_TRAFFIC ||
-		   uniTagInfo.ServiceName == app.FTTB_SUBSCRIBER_TRAFFIC {
+			uniTagInfo.ServiceName == app.DPU_ANCP_TRAFFIC ||
+			uniTagInfo.ServiceName == app.FTTB_SUBSCRIBER_TRAFFIC {
 			vs.UniVlan = vs.CVlan
 			vs.Pbits = append(vs.Pbits, of.PbitMatchAll)
 		} else {
-		if uniTagInfo.UsPonSTagPriority == -1 {
-			vs.Pbits = append(vs.Pbits, of.PbitMatchAll)
-		// Process the p-bits received in the request
-		} else {
-			if uniTagInfo.UsPonSTagPriority < 8 {
-				vs.Pbits = append(vs.Pbits, of.PbitType(uniTagInfo.UsPonCTagPriority))
-			}
+			if uniTagInfo.UsPonSTagPriority == -1 {
+				vs.Pbits = append(vs.Pbits, of.PbitMatchAll)
+				// Process the p-bits received in the request
+			} else {
+				if uniTagInfo.UsPonSTagPriority < 8 {
+					vs.Pbits = append(vs.Pbits, of.PbitType(uniTagInfo.UsPonCTagPriority))
+				}
 
-			if uniTagInfo.UsPonSTagPriority < 8 && uniTagInfo.UsPonSTagPriority != uniTagInfo.DsPonSTagPriority {
-				vs.Pbits = append(vs.Pbits, of.PbitType(uniTagInfo.DsPonCTagPriority))
+				if uniTagInfo.UsPonSTagPriority < 8 && uniTagInfo.UsPonSTagPriority != uniTagInfo.DsPonSTagPriority {
+					vs.Pbits = append(vs.Pbits, of.PbitType(uniTagInfo.DsPonCTagPriority))
+				}
 			}
-		}
 		}
 		//vs.McastService = uniTagInfo.IsIgmpRequired
 		if vs.IgmpEnabled {
 			vs.MvlanProfileName = "mvlan" + strconv.Itoa(uniTagInfo.PonSTag)
 		}
 		/*
-		var err error
-		if vs.MacAddr, err = net.ParseMAC(srvInfo.HardwareIdentifier); err != nil {
-			vs.MacAddr, _ = net.ParseMAC("00:00:00:00:00:00")
-		}*/
+			var err error
+			if vs.MacAddr, err = net.ParseMAC(srvInfo.HardwareIdentifier); err != nil {
+				vs.MacAddr, _ = net.ParseMAC("00:00:00:00:00:00")
+			}*/
 
 		vs.MacAddr, _ = net.ParseMAC("00:00:00:00:00:00")
 		if len(vs.Pbits) == 0 {
@@ -213,7 +216,7 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 		}
 		if vs.CVlan != of.VlanAny && vs.SVlan != of.VlanAny {
 			if uniTagInfo.ServiceName == app.DPU_MGMT_TRAFFIC ||
-			   uniTagInfo.ServiceName == app.DPU_ANCP_TRAFFIC {
+				uniTagInfo.ServiceName == app.DPU_ANCP_TRAFFIC {
 				vnetcfg.VlanControl = app.ONUCVlan
 			} else if uniTagInfo.ServiceName == app.FTTB_SUBSCRIBER_TRAFFIC {
 				vnetcfg.VlanControl = app.OLTSVlan

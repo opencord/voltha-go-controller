@@ -544,7 +544,7 @@ func (v *VoltController) GetFlows(deviceID string) ([]*of.VoltSubFlow, error) {
 	d, err := v.GetDevice(deviceID)
 	if err != nil {
 		logger.Errorw(ctx, "Device Not Found", log.Fields{"Device": deviceID, "Error": err})
-		return nil, err
+		return nil, nil
 	}
 	return d.GetAllFlows(), nil
 }
