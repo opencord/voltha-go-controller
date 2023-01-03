@@ -16,25 +16,27 @@
 package application
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"context"
 	"net"
-	infraerrorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"strconv"
 	"sync"
 	"time"
+
+	//errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"go.uber.org/atomic"
 
+	"voltha-go-controller/database"
 	"voltha-go-controller/internal/pkg/controller"
 	cntlr "voltha-go-controller/internal/pkg/controller"
-	"voltha-go-controller/database"
+
+	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/util"
-	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/log"
 )
 
@@ -209,7 +211,7 @@ func (vv *VoltVnet) ForceWriteToDb(cntx context.Context) {
 	vv.Version = database.PresentVersionMap[database.VnetPath]
 	logger.Debugw(ctx, "Updating VNET....", log.Fields{"vnet": vv})
 	if b, err := json.Marshal(vv); err == nil {
-		if err:= db.PutVnet(cntx, vv.Name, string(b)); err != nil {
+		if err := db.PutVnet(cntx, vv.Name, string(b)); err != nil {
 			logger.Warnw(ctx, "Add Vnet to DB failed", log.Fields{"vnet name": vv.Name, "Error": err})
 		}
 	}
@@ -626,7 +628,7 @@ func (vpv *VoltPortVnet) DelService(cntx context.Context, service *VoltService) 
 	// If the only Igmp Enabled service is removed, remove the Igmp trap flow along with it
 	if service.IgmpEnabled {
 		if err := vpv.DelIgmpFlows(cntx); err != nil {
-			statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+			statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 			vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 		}
 
@@ -749,8 +751,18 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 		return
 	}
 
-	if vp := device.GetPort(port); vp != nil {
+	if nniPort := device.GetPort(nni); nniPort != nil {
+		//If NNI port is not mached to nb nni port dont send flows
+		devConfig := GetApplication().GetDeviceConfig(device.SerialNum)
+		if devConfig != nil {
+			if devConfig.UplinkPort != int(nniPort.ID) {
+				logger.Errorw(ctx, "NNI port not configured from NB, not pushing flows", log.Fields{"NNI Port": devConfig.UplinkPort, "NB NNI port": nniPort.ID})
+				return
+			}
+		}
+	}
 
+	if vp := device.GetPort(port); vp != nil {
 		if vpv.PonPort != 0xFF && vpv.PonPort != vp.PonPort {
 			logger.Errorw(ctx, "UNI port discovered on wrong PON Port. Dropping Flow Config for VPV", log.Fields{"Device": device.Name, "Port": port, "DetectedPon": vp.PonPort, "ExpectedPon": vpv.PonPort, "Vnet": vpv.VnetName})
 			return
@@ -802,7 +814,7 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 		logger.Infow(ctx, "Port Up - IGMP Flows", log.Fields{"Device": device.Name, "Port": port})
 		vpv.RangeOnServices(cntx, AddSvcUsMeterToDevice)
 		if err := vpv.AddIgmpFlows(cntx); err != nil {
-			statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+			statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 			vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 		}
 
@@ -883,7 +895,7 @@ func (vpv *VoltPortVnet) SetMacAddr(cntx context.Context, addr net.HardwareAddr)
 	_, err := GetApplication().GetDeviceFromPort(vpv.Port)
 	if err != nil {
 		logger.Warnw(ctx, "Not pushing Service Flows: Error Getting Device", log.Fields{"Reason": err.Error()})
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 		return
 	}
@@ -1033,15 +1045,23 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 		}
 	}
 
-	_, err := GetApplication().GetDeviceFromPort(vpv.Port)
+	voltDevice, err := GetApplication().GetDeviceFromPort(vpv.Port)
 	if err != nil {
 		logger.Warnw(ctx, "Not pushing Service Flows: Error Getting Device", log.Fields{"Reason": err.Error()})
-		//statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+		//statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		//TODO-COMM: 		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 		return
 	}
 	if !svc.IsActivated {
 		logger.Warn(ctx, "Not pushing Service Flows: Service Not activated")
+		return
+	}
+
+	//If NNI port is not mached to nb nni port
+	devConfig := GetApplication().GetDeviceConfig(voltDevice.SerialNum)
+
+	if strconv.Itoa(devConfig.UplinkPort) != voltDevice.NniPort {
+		logger.Errorw(ctx, "NNI port mismatch", log.Fields{"NNI Port": devConfig.UplinkPort, "NB NNI port": voltDevice.NniPort})
 		return
 	}
 	//Push Service Flows if DHCP relay is not configured
@@ -1051,7 +1071,7 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 		if NonZeroMacAddress(vpv.MacAddr) || svc.MacLearning == MacLearningNone {
 			svc.AddHsiaFlows(cntx)
 		} else {
-			if err:= svc.AddUsHsiaFlows(cntx); err != nil {
+			if err := svc.AddUsHsiaFlows(cntx); err != nil {
 				logger.Warnw(ctx, "Add US hsia flow failed", log.Fields{"service": svc.Name, "Error": err})
 			}
 		}
@@ -1063,7 +1083,7 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 	if svc.IgmpEnabled && vpv.FlowsApplied {
 		logger.Infow(ctx, "Add Service - IGMP Flows", log.Fields{"Device": vpv.Device, "Port": vpv.Port})
 		if err := vpv.AddIgmpFlows(cntx); err != nil {
-			statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+			statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 			vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 		}
 
@@ -1110,7 +1130,7 @@ func (vpv *VoltPortVnet) updateIPv6AndProvisionFlows(cntx context.Context, key, 
 // AddUsHsiaFlows to add upstream hsia flows
 func AddUsHsiaFlows(cntx context.Context, key, value interface{}) bool {
 	svc := value.(*VoltService)
-	if err:= svc.AddUsHsiaFlows(cntx); err != nil {
+	if err := svc.AddUsHsiaFlows(cntx); err != nil {
 		logger.Warnw(ctx, "Add US hsia flow failed", log.Fields{"service": svc.Name, "Error": err})
 	}
 	return true
@@ -1119,7 +1139,7 @@ func AddUsHsiaFlows(cntx context.Context, key, value interface{}) bool {
 // AddDsHsiaFlows to add downstream hsia flows
 func AddDsHsiaFlows(cntx context.Context, key, value interface{}) bool {
 	svc := value.(*VoltService)
-	if err:= svc.AddDsHsiaFlows(cntx); err != nil {
+	if err := svc.AddDsHsiaFlows(cntx); err != nil {
 		logger.Warnw(ctx, "Add DS hsia flow failed", log.Fields{"service": svc.Name, "Error": err})
 	}
 	return true
@@ -1146,7 +1166,7 @@ func ClearFlagsInService(cntx context.Context, key, value interface{}) bool {
 // DelDsHsiaFlows to delete hsia flows
 func DelDsHsiaFlows(cntx context.Context, key, value interface{}) bool {
 	svc := value.(*VoltService)
-	if err:= svc.DelDsHsiaFlows(cntx); err != nil {
+	if err := svc.DelDsHsiaFlows(cntx); err != nil {
 		logger.Warnw(ctx, "Delete DS hsia flow failed", log.Fields{"service": svc.Name, "Error": err})
 	}
 	return true
@@ -1155,7 +1175,7 @@ func DelDsHsiaFlows(cntx context.Context, key, value interface{}) bool {
 // DelUsHsiaFlows to delete upstream hsia flows
 func DelUsHsiaFlows(cntx context.Context, key, value interface{}) bool {
 	svc := value.(*VoltService)
-	if err:= svc.DelUsHsiaFlows(cntx); err != nil {
+	if err := svc.DelUsHsiaFlows(cntx); err != nil {
 		logger.Warnw(ctx, "Delete US hsia flow failed", log.Fields{"service": svc.Name, "Error": err})
 	}
 	return true
@@ -1178,11 +1198,11 @@ func (vpv *VoltPortVnet) AddTrapFlows(cntx context.Context) {
 	if !vpv.FlowsApplied || vgcRebooted {
 		if vpv.DhcpRelay {
 			if err := vpv.AddUsDhcpFlows(cntx); err != nil {
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 			}
 			if err := vpv.AddDsDhcpFlows(cntx); err != nil {
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 			}
 			logger.Infow(ctx, "ICMPv6 MC Group modification will not be triggered to rwcore for ",
@@ -1190,18 +1210,18 @@ func (vpv *VoltPortVnet) AddTrapFlows(cntx context.Context) {
 			//vpv.updateICMPv6McGroup(true)
 		} else if vpv.ArpRelay {
 			if err := vpv.AddUsArpFlows(cntx); err != nil {
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 			}
 			logger.Info(ctx, "ARP trap rules not added in downstream direction")
 
 		} else if vpv.PppoeIa {
 			if err := vpv.AddUsPppoeFlows(cntx); err != nil {
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 			}
 			if err := vpv.AddDsPppoeFlows(cntx); err != nil {
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 			}
 		}
@@ -1216,36 +1236,36 @@ func (vpv *VoltPortVnet) DelTrapFlows(cntx context.Context) {
 	// Delete HSIA & DHCP flows before deleting IGMP flows
 	if vpv.FlowsApplied || vgcRebooted {
 		if vpv.DhcpRelay {
-			if err:= vpv.DelUsDhcpFlows(cntx); err != nil {
+			if err := vpv.DelUsDhcpFlows(cntx); err != nil {
 				logger.Warnw(ctx, "Delete US hsia flow failed", log.Fields{"port": vpv.Port, "SVlan": vpv.SVlan, "CVlan": vpv.CVlan,
 					"UniVlan": vpv.UniVlan, "Error": err})
 			}
 			logger.Infow(ctx, "ICMPv6 MC Group modification will not be triggered to rwcore  for ",
 				log.Fields{"port": vpv.Port})
 			if err := vpv.DelDsDhcpFlows(cntx); err != nil {
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 			}
 			//vpv.updateICMPv6McGroup(false)
 		} else if vpv.ArpRelay {
 			if err := vpv.DelUsArpFlows(cntx); err != nil {
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 			}
 		} else if vpv.PppoeIa {
 			if err := vpv.DelUsPppoeFlows(cntx); err != nil {
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 			}
 			if err := vpv.DelDsPppoeFlows(cntx); err != nil {
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 			}
 		}
 		vpv.FlowsApplied = false
 		vpv.WriteToDb(cntx)
 	}
-	if err:= vpv.DelIgmpFlows(cntx); err != nil {
+	if err := vpv.DelIgmpFlows(cntx); err != nil {
 		logger.Warnw(ctx, "Delete igmp flow failed", log.Fields{"port": vpv.Port, "SVlan": vpv.SVlan, "CVlan": vpv.CVlan,
 			"UniVlan": vpv.UniVlan, "Error": err})
 	}
@@ -1286,33 +1306,16 @@ func (vpv *VoltPortVnet) AddUsDhcpFlows(cntx context.Context) error {
 		logger.Debugw(ctx, "Adding US DHCP flows", log.Fields{"Device": device})
 		if err1 := vpv.PushFlows(cntx, vd, flows); err1 != nil {
 			//push ind here ABHI
-			statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err1)
+			statusCode, statusMessage := errorCodes.GetErrorInfo(err1)
 			vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 		}
 	} else {
 		logger.Errorw(ctx, "US DHCP Flow Add Failed", log.Fields{"Reason": err.Error(), "Device": device})
 		//push ind here ABHI
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 
 	}
-	/*
-	flows, err = vpv.BuildUsDhcp6Flows()
-	if err == nil {
-		logger.Debugw(ctx, "Adding US DHCP6 flows", log.Fields{"Device": device})
-		if err1 := vpv.PushFlows(vd, flows); err1 != nil {
-			//pussh ind here ABHI
-			statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err1)
-			vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
-
-		}
-	} else {
-		logger.Errorw(ctx, "US DHCP6 Flow Add Failed", log.Fields{"Reason": err.Error(), "Device": device})
-		//push ind here ABHI
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
-		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
-
-	}*/
 	return nil
 }
 
@@ -1339,33 +1342,17 @@ func (vpv *VoltPortVnet) AddDsDhcpFlows(cntx context.Context) error {
 	if err == nil {
 		if err1 := vpv.PushFlows(cntx, vd, flows); err1 != nil {
 			//push ind here and procced
-			statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err1)
+			statusCode, statusMessage := errorCodes.GetErrorInfo(err1)
 			vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 
 		}
 	} else {
 		logger.Errorw(ctx, "DS DHCP Flow Add Failed", log.Fields{"Reason": err.Error()})
 		//send ind here and proceed
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 
 	}
-	/*
-	flows, err = vpv.BuildDsDhcp6Flows()
-	if err == nil {
-		if err1 := vpv.PushFlows(vd, flows); err1 != nil {
-			//push ind and proceed
-			statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err1)
-			vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
-
-		}
-	} else {
-		logger.Errorw(ctx, "DS DHCP6 Flow Add Failed", log.Fields{"Reason": err.Error()})
-		//Send ind here and proceed
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
-		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
-
-	}*/
 	if GetApplication().GetVendorID() != Radisys {
 		vd.GlobalDhcpFlowAdded = true
 	}
@@ -1375,12 +1362,12 @@ func (vpv *VoltPortVnet) AddDsDhcpFlows(cntx context.Context) error {
 // DelDhcpFlows deletes both US & DS DHCP flows applied for this Vnet instantiated on the port
 func (vpv *VoltPortVnet) DelDhcpFlows(cntx context.Context) {
 	if err := vpv.DelUsDhcpFlows(cntx); err != nil {
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 	}
 
 	if err := vpv.DelDsDhcpFlows(cntx); err != nil {
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 	}
 }
@@ -1396,15 +1383,10 @@ func (vpv *VoltPortVnet) DelUsDhcpFlows(cntx context.Context) error {
 
 	err = vpv.delDhcp4Flows(cntx, device)
 	if err != nil {
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 	}
-	/*
-	err = vpv.delDhcp6Flows(device)
-	if err != nil {
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
-		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
-	}*/
+
 	return nil
 }
 
@@ -1416,16 +1398,6 @@ func (vpv *VoltPortVnet) delDhcp4Flows(cntx context.Context, device *VoltDevice)
 	logger.Errorw(ctx, "US DHCP Flow Delete Failed", log.Fields{"Reason": err.Error()})
 	return err
 }
-/*
-func (vpv *VoltPortVnet) delDhcp6Flows(device *VoltDevice) error {
-	flows, err := vpv.BuildUsDhcp6Flows()
-	if err == nil {
-		return vpv.RemoveFlows(device, flows)
-	}
-	logger.Errorw(ctx, "US DHCP6 Flow Delete Failed", log.Fields{"Reason": err.Error()})
-	return err
-
-}*/
 
 // DelDsDhcpFlows delete the DHCP flows applied for this Vnet instantiated on the port
 // Write the status of the VPV to the DB once the delete is scheduled
@@ -1437,15 +1409,15 @@ func (vpv *VoltPortVnet) DelDsDhcpFlows(cntx context.Context) error {
 	}
 	err = vpv.delDsDhcp4Flows(cntx, device)
 	if err != nil {
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 	}
 	/*
-	err = vpv.delDsDhcp6Flows(device)
-	if err != nil {
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
-		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
-	}*/
+		err = vpv.delDsDhcp6Flows(device)
+		if err != nil {
+			statusCode, statusMessage := errorCodes.GetErrorInfo(err)
+			vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
+		}*/
 	return nil
 }
 
@@ -2067,14 +2039,8 @@ func (vpv *VoltPortVnet) BuildIgmpFlows() (*of.VoltFlow, error) {
 	subFlow := of.NewVoltSubFlow()
 	subFlow.SetTableID(0)
 
-        if GetApplication().GetVendorID() == Radisys {
-                if err := vpv.setUsMatchVlan(subFlow); err != nil {
-                        return nil, err
-                }
-        } else {
-                subFlow.SetMatchVlan(vpv.UniVlan)
-                subFlow.SetSetVlan(vpv.CVlan)
-        }
+	subFlow.SetMatchVlan(vpv.UniVlan)
+	subFlow.SetSetVlan(vpv.CVlan)
 
 	uniport, err := GetApplication().GetPortID(vpv.Port)
 	if err != nil {
@@ -3167,7 +3133,7 @@ func (vv *VoltVnet) TriggerAssociatedFlowDelete(cntx context.Context, device str
 func (vv *VoltVnet) JsonMarshal() ([]byte, error) {
 	return json.Marshal(VoltVnet{
 		VnetConfig: vv.VnetConfig,
-		Version: vv.Version,
+		Version:    vv.Version,
 		VnetOper: VnetOper{
 			PendingDeleteFlow:     vv.VnetOper.PendingDeleteFlow,
 			DeleteInProgress:      vv.VnetOper.DeleteInProgress,
