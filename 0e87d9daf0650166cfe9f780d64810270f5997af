@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9dbc98c1_9647235a",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-10T09:31:13Z",
+      "side": 1,
+      "message": "change the error codes name to errocodes only, check here and everthere in the file and other files",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b0f1180f_d2a6f3c7",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1312,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-10T09:31:13Z",
+      "side": 1,
+      "message": "remove the commented lines",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d461de77_1b1fa599",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1366,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-10T09:31:13Z",
+      "side": 1,
+      "message": "smae here",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "42ef5170_e0ccb282",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2083,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-10T09:31:13Z",
+      "side": 1,
+      "message": "this is not a good idea, please remove the hardcoding here",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
