@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "04482855_27f18b4e",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2060,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-10T09:25:20Z",
+      "side": 1,
+      "message": "shouldnt the error be reported back to the caller here ?",
+      "revId": "1bef5e3e5cab5f5b24120dccc3f9336c303e8bae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "47fead4b_330b3341",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2105,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-10T09:25:20Z",
+      "side": 1,
+      "message": "shouldnt the error be returned here ?",
+      "revId": "1bef5e3e5cab5f5b24120dccc3f9336c303e8bae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bb7f4703_38d67834",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2117,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-10T09:25:20Z",
+      "side": 1,
+      "message": "shouldnt this be done after sending portdown, ?",
+      "revId": "1bef5e3e5cab5f5b24120dccc3f9336c303e8bae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7ccb6dc0_222b79d2",
+        "filename": "internal/pkg/controller/controller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-10T09:25:20Z",
+      "side": 1,
+      "message": "can we have it in the config structure instead of a global variable ?",
+      "revId": "1bef5e3e5cab5f5b24120dccc3f9336c303e8bae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
