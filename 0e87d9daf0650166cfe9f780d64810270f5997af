@@ -67,6 +67,57 @@
       "message": "this is not a good idea, please remove the hardcoding here",
       "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6fe89c3c_69f9ce09",
+        "filename": "voltha-go-controller/nbi/netConfig.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-10T09:34:46Z",
+      "side": 1,
+      "message": "why are mainting the same, we dont have sadis and need not be the same names as onos",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "37173ab0_8c47f6c3",
+        "filename": "voltha-go-controller/nbi/netConfig.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-10T09:34:46Z",
+      "side": 1,
+      "message": "same here, we dont have to exactly align with the onos, only the values and structure , can we remove this OrgOpenCord.Sadis",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "46dfe47d_638a19d9",
+        "filename": "voltha-go-controller/nbi/sadisigmpproxy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-10T09:34:46Z",
+      "side": 1,
+      "message": "please remove the commented lines",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
