@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "134d1ff0_19fe71ea",
+        "filename": "voltha-go-controller/onos_nbi/models.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-10T10:10:51Z",
+      "side": 1,
+      "message": "can we not name as onos anywhere on the structrues or values , here and everywhere in the diff set",
+      "revId": "6107ae49c0b234d1a19808b859638a57bada2f2c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
