@@ -106,6 +106,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "efa9d406_df5aa14f",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2117,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-18T15:07:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "30a16387_20abdc10",
+      "revId": "1bef5e3e5cab5f5b24120dccc3f9336c303e8bae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7ccb6dc0_222b79d2",
