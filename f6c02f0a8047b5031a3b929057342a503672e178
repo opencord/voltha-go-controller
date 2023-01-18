@@ -33,6 +33,24 @@
       "message": "can we reduce the info logs here , one , along with the input, at the start of the function after validating the parameters",
       "revId": "f6c02f0a8047b5031a3b929057342a503672e178",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ed1210e0_6de79f6e",
+        "filename": "voltha-go-controller/onos_nbi/groups.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-18T15:10:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5478b543_f5aca28e",
+      "revId": "f6c02f0a8047b5031a3b929057342a503672e178",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
