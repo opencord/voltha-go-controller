@@ -71,6 +71,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "01ba6e86_a2e9da0b",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2083,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-01-25T09:30:26Z",
+      "side": 1,
+      "message": "i still see the check here for vendor. we have to remove this",
+      "parentUuid": "42ef5170_e0ccb282",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "6fe89c3c_69f9ce09",
         "filename": "voltha-go-controller/nbi/netConfig.go",
         "patchSetId": 1
