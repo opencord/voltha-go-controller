@@ -496,10 +496,11 @@ func (d *Device) DelPort(cntx context.Context, id uint32) error {
 	if p.State == PortStateUp {
 		GetController().PortDownInd(cntx, d.ID, p.Name)
 	}
+	GetController().PortDelInd(cntx, d.ID, p.Name)
+
 	d.portLock.Lock()
 	defer d.portLock.Unlock()
 
-	GetController().PortDelInd(cntx, d.ID, p.Name)
 	delete(d.PortsByID, p.ID)
 	delete(d.PortsByName, p.Name)
 	d.DelPortFromDb(cntx, p.ID)

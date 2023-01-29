@@ -2094,18 +2094,6 @@ func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portN
 // DeactivateService to activate pre-provisioned service
 func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) error {
 	logger.Infow(ctx, "Service Deactivate Request ", log.Fields{"Device": deviceID, "Port": portNo})
-	device, err := va.GetDeviceFromPort(portNo)
-	if err != nil {
-		logger.Errorw(ctx, "Error Getting Device", log.Fields{"Reason": err.Error(), "Port": portNo})
-		return errorCodes.ErrPortNotFound
-	}
-	// If device id is not provided check only port number
-	if deviceID == DeviceAny {
-		deviceID = device.Name
-	} else if deviceID != device.Name {
-		logger.Errorw(ctx, "Wrong Device ID in request", log.Fields{"Device": deviceID, "Port": portNo})
-		return errorCodes.ErrDeviceNotFound
-	}
 	va.ServiceByName.Range(func(key, value interface{}) bool {
 		vs := value.(*VoltService)
 		// If svlan if provided, then the tags and tpID of service has to be matching
@@ -2118,11 +2106,18 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 			vs.IsActivated = false
 			va.ServiceByName.Store(vs.Name, vs)
 			vs.WriteToDb(cntx)
+			device, err := va.GetDeviceFromPort(portNo)
+			if err != nil {
+				// Even if the port/device does not exists at this point in time, the deactivate request is succss.
+				// So no error is returned
+				logger.Infow(ctx, "Error Getting Device", log.Fields{"Reason": err.Error(), "Port": portNo})
+				return true
+			}
 			p := device.GetPort(vs.Port)
-			if p != nil && p.State == PortStateUp {
+			if p != nil && (p.State == PortStateUp || !va.OltFlowServiceConfig.RemoveFlowsOnDisable){
 				if vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan); vpv != nil {
 					// Port down call internally deletes all the flows
-					vpv.PortDownInd(cntx, deviceID, portNo)
+					vpv.PortDownInd(cntx, deviceID, portNo, true)
 					if vpv.IgmpEnabled {
 						va.ReceiverDownInd(cntx, deviceID, portNo)
 					}
@@ -2135,6 +2130,7 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 	})
 	return nil
 }
+
 /* GetServicePbit to get first set bit in the pbit map
    returns -1 : If configured to match on all pbits
    returns 8  : If no pbits are configured

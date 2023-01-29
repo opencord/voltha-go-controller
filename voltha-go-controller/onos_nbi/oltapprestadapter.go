@@ -108,7 +108,26 @@ func (sa *ServiceAdapter) ActivateService(cntx context.Context, w http.ResponseW
         }
 
 	if len(deviceID) > 0 && len(portNo) > 0 {
-		if err := app.GetApplication().ActivateService(cntx, deviceID, portNo, of.VlanNone, of.VlanNone, 0); err != nil {
+		va := app.GetApplication()
+		port, err := strconv.Atoi(portNo)
+		if err != nil {
+			logger.Warnw(ctx, "Wrong port number value", log.Fields{"portNo": portNo})
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+		device := va.GetDevice(deviceID)
+		if device == nil {
+			logger.Warnw(ctx, "Device does not exists", log.Fields{"deviceID": deviceID})
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+		portName := device.GetPortNameFromPortID(uint32(port))
+		if len(portName) == 0 {
+			logger.Warnw(ctx, "Port does not exists", log.Fields{"deviceID": deviceID})
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+		if err := va.ActivateService(cntx, deviceID, portName, of.VlanNone, of.VlanNone, 0); err != nil {
 			logger.Warnw(ctx, "ActivateService Failed", log.Fields{ "deviceID": deviceID, "Port": portNo})
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
@@ -129,7 +148,26 @@ func (sa *ServiceAdapter) DeactivateService(cntx context.Context, w http.Respons
         }
 
 	if len(deviceID) > 0 && len(portNo) > 0 {
-		if err := app.GetApplication().DeactivateService(cntx, deviceID, portNo, of.VlanNone, of.VlanNone, 0); err != nil {
+		va := app.GetApplication()
+		port, err := strconv.Atoi(portNo)
+		if err != nil {
+			logger.Warnw(ctx, "Wrong port number value", log.Fields{"portNo": portNo})
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+		device := va.GetDevice(deviceID)
+		if device == nil {
+			logger.Warnw(ctx, "Device does not exists", log.Fields{"deviceID": deviceID})
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+		portName := device.GetPortNameFromPortID(uint32(port))
+		if len(portName) == 0 {
+			logger.Warnw(ctx, "Port does not exists", log.Fields{"deviceID": deviceID})
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+		if err := va.DeactivateService(cntx, deviceID, portName, of.VlanNone, of.VlanNone, 0); err != nil {
 			logger.Warnw(ctx, "DeactivateService Failed", log.Fields{ "deviceID": deviceID, "Port": portNo})
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}

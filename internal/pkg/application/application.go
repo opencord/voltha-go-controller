@@ -328,6 +328,19 @@ func (d *VoltDevice) GetPort(port string) *VoltPort {
 	return nil
 }
 
+// GetPortByPortID to get port information from the device.
+func (d *VoltDevice) GetPortNameFromPortID(portID uint32) string {
+	portName := ""
+	d.Ports.Range(func(key, value interface{}) bool {
+		vp := value.(*VoltPort)
+		if vp.ID == portID {
+			portName = vp.Name
+		}
+		return true
+	})
+	return portName
+}
+
 // DelPort to delete port from the device
 func (d *VoltDevice) DelPort(port string) {
 	if _, ok := d.Ports.Load(port); ok {
@@ -429,6 +442,7 @@ type VoltApplication struct {
 	VoltPortVnetsToDelete     map[*VoltPortVnet]bool
 	PortAlarmProfileCache     map[string]map[string]int // [portAlarmID][ThresholdLevelString]ThresholdLevel
 	vendorID                  string
+	OltFlowServiceConfig      OltFlowService
 }
 
 // PonPortCfg contains NB port config and activeIGMPChannels count
@@ -681,6 +695,8 @@ func (va *VoltApplication) ReadAllFromDb(cntx context.Context) {
 	va.RestoreIgmpGroupsFromDb(cntx)
 	logger.Info(ctx, "Reading Upgrade status from DB")
 	va.RestoreUpgradeStatus(cntx)
+	logger.Info(ctx, "Reading OltFlowService from DB")
+	va.RestoreOltFlowService(cntx)
 	logger.Info(ctx, "Reconciled from DB")
 }
 
@@ -814,6 +830,19 @@ func (va *VoltApplication) PortDelInd(cntx context.Context, device string, port 
 		if p != nil && p.State == PortStateUp {
 			logger.Infow(ctx, "Port state is UP. Trigerring Port Down Ind before deleting", log.Fields{"Port": p})
 			va.PortDownInd(cntx, device, port)
+		}
+		// if RemoveFlowsOnDisable is flase, then flows will be existing till port delete. Remove the flows now
+		if !va.OltFlowServiceConfig.RemoveFlowsOnDisable {
+		        vpvs, ok := va.VnetsByPort.Load(port)
+		        if !ok || nil == vpvs || len(vpvs.([]*VoltPortVnet)) == 0 {
+				logger.Infow(ctx, "No VNETs on port", log.Fields{"Device": device, "Port": port})
+			} else {
+				for _, vpv := range vpvs.([]*VoltPortVnet) {
+					vpv.VpvLock.Lock()
+					vpv.PortDownInd(cntx, device, port, true)
+					vpv.VpvLock.Unlock()
+				}
+			}
 		}
 		va.portLock.Lock()
 		defer va.portLock.Unlock()
@@ -1264,7 +1293,7 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 		for _, vpv := range vpvs.([]*VoltPortVnet) {
 			vpv.VpvLock.Lock()
 			logger.Warnw(ctx, "Removing existing VPVs/Services flows for for Subscriber: UNI Detected on wrong PON", log.Fields{"Port": vpv.Port, "Vnet": vpv.VnetName})
-			vpv.PortDownInd(cntx, device, port)
+			vpv.PortDownInd(cntx, device, port, false)
 			if vpv.IgmpEnabled {
 				va.ReceiverDownInd(cntx, device, port)
 			}
@@ -1395,7 +1424,7 @@ func (va *VoltApplication) PortDownInd(cntx context.Context, device string, port
 */
 	for _, vpv := range vpvs.([]*VoltPortVnet) {
 		vpv.VpvLock.Lock()
-		vpv.PortDownInd(cntx, device, port)
+		vpv.PortDownInd(cntx, device, port, false)
 		if vpv.IgmpEnabled {
 			va.ReceiverDownInd(cntx, device, port)
 		}
@@ -2059,4 +2088,39 @@ func (va *VoltApplication) TriggerPendingVnetDeleteReq(cntx context.Context, dev
 			}
 		}
 	}
+}
+
+type OltFlowService struct {
+        EnableDhcpOnNni      bool `json:"enableDhcpOnNni"`
+        DefaultTechProfileId int  `json:"defaultTechProfileId"`
+        EnableIgmpOnNni      bool `json:"enableIgmpOnNni"`
+        EnableEapol          bool `json:"enableEapol"`
+        EnableDhcpV6         bool `json:"enableDhcpV6"`
+        EnableDhcpV4         bool `json:"enableDhcpV4"`
+        RemoveFlowsOnDisable bool `json:"removeFlowsOnDisable"`
+}
+
+func (va *VoltApplication) UpdateOltFlowService(cntx context.Context, oltFlowService OltFlowService) {
+	logger.Infow(ctx, "UpdateOltFlowService", log.Fields{"oldValue": va.OltFlowServiceConfig, "newValue": oltFlowService})
+	va.OltFlowServiceConfig = oltFlowService
+	b, err := json.Marshal(va.OltFlowServiceConfig)
+	if err != nil {
+		logger.Warnw(ctx, "Failed to Marshal OltFlowServiceConfig", log.Fields{"OltFlowServiceConfig": va.OltFlowServiceConfig})
+		return
+	}
+	_ = db.PutOltFlowService(cntx, string(b))
+}
+// RestoreOltFlowService to read from the DB and restore olt flow service config
+func (va *VoltApplication) RestoreOltFlowService(cntx context.Context) {
+	oltflowService, err := db.GetOltFlowService(cntx)
+	if err != nil {
+		logger.Warnw(ctx, "Failed to Get OltFlowServiceConfig from DB", log.Fields{"Error": err})
+		return
+	}
+	err = json.Unmarshal([]byte(oltflowService), &va.OltFlowServiceConfig)
+	if err != nil {
+		logger.Warn(ctx, "Unmarshal of oltflowService failed")
+		return
+	}
+	logger.Infow(ctx, "updated OltFlowServiceConfig from DB", log.Fields{"OltFlowServiceConfig": va.OltFlowServiceConfig})
 }

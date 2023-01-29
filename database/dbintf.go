@@ -153,6 +153,8 @@ type DBIntf interface {
 	GetAllMigrateServicesReq(ctx context.Context, deviceID string) (map[string]*kvstore.KVPair, error)
 	DelMigrateServicesReq(ctx context.Context, deviceID string, vlan string) error
 	DelAllMigrateServicesReq(ctx context.Context, deviceID string) error
+	PutOltFlowService(ctx context.Context, value string) error
+	GetOltFlowService(ctx context.Context) (string, error)
 }
 
 //GetDatabase - returns databse operation based on configuration

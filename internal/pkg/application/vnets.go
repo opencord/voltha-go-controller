@@ -817,8 +817,12 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 // PortDownInd : When the port status changes to down, we delete all configured flows
 // The same indication is also passed to the services enqueued for them
 // to take appropriate actions
-func (vpv *VoltPortVnet) PortDownInd(cntx context.Context, device string, port string) {
+func (vpv *VoltPortVnet) PortDownInd(cntx context.Context, device string, port string, nbRequest bool) {
 
+	if !nbRequest && !GetApplication().OltFlowServiceConfig.RemoveFlowsOnDisable {
+		logger.Info(ctx, "VPV Port DOWN Ind, Not deleting flows since RemoveOnDisable is disabled")
+		return
+	}
 	logger.Infow(ctx, "VPV Port DOWN Ind, deleting all flows for services",
 		log.Fields{"service count": vpv.servicesCount.Load()})
 
