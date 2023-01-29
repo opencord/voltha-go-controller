@@ -819,6 +819,10 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 // to take appropriate actions
 func (vpv *VoltPortVnet) PortDownInd(cntx context.Context, device string, port string) {
 
+	if !GetApplication().OltFlowServiceConfig.RemoveFlowsOnDisable {
+		logger.Info(ctx, "VPV Port DOWN Ind, Not deleting flows since RemoveOnDisable is disabled")
+		return
+	}
 	logger.Infow(ctx, "VPV Port DOWN Ind, deleting all flows for services",
 		log.Fields{"service count": vpv.servicesCount.Load()})
 

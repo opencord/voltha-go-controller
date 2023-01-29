@@ -1042,7 +1042,22 @@ func (db *Database) DelAllMigrateServicesReq(ctx context.Context, deviceID strin
 	logger.Infow(ctx, "Deleting all the Update Vnet Requests for device", log.Fields{"device": deviceID})
 	return nil
 }
+// PutOltFlowService to add OltFlowService info
+func (db *Database) PutOltFlowService(ctx context.Context, value string) error {
+	key := GetKeyPath(OltFlowServicePath)
 
+        if err := db.kvc.Put(ctx, key, value); err != nil {
+                logger.Warnw(ctx, "Put OltFlowService failed", log.Fields{"key": key})
+		return err
+        }
+	return nil
+}
+
+// GetOltFlowService to get OltFlowService info
+func (db *Database) GetOltFlowService(ctx context.Context) (string, error) {
+	key := GetKeyPath(OltFlowServicePath)
+	return db.Get(ctx, key)
+}
 func init() {
         // Setup this package so that it's log level can be modified at run time
         var err error
