@@ -63,6 +63,7 @@ const (
 	PortAlarmDataPath      string = DevicePortPath + "portalarmdata/"
 	SubAlarmDataPath       string = DevicePath + "sub-alarm-data/"
 	ServicesMigrateReqPath string = DevicePath + "migrateServicesReq/"
+	OltFlowServicePath     string = "olt-flow-service/"
 )
 
 //PresentVersionMap - map of present version for all database tables
@@ -97,6 +98,7 @@ var PresentVersionMap = map[string]string{
 	PortAlarmDataPath:      "v1",
 	SubAlarmDataPath:       "v1",
 	ServicesMigrateReqPath: "v1",
+	OltFlowServicePath:     "v1",
 }
 
 //PreviousVersionMap - map of previous version for all database tables
@@ -131,6 +133,7 @@ var PreviousVersionMap = map[string]string{
 	PortAlarmDataPath:      "v1",
 	SubAlarmDataPath:       "v1",
 	ServicesMigrateReqPath: "v1",
+	OltFlowServicePath:     "v1",
 }
 
 //DBVersionMap - Version of tables present in DB

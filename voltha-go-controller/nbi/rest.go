@@ -55,6 +55,7 @@ const (
 	MetersByIdPath                    string = "/meters/{id}"
 	GroupsPath                        string = "/groups"
 	GroupsByIdPath                    string = "/groups/{id}"
+	OltFlowServicePath                string = "/oltflowservice"
 )
 
 // RestStart to execute for API
@@ -86,6 +87,7 @@ func RestStart() {
 	mu.HandleFunc(MetersByIdPath, (&onos_nbi.MetersHandle{}).MeterServeHTTP)
 	mu.HandleFunc(GroupsPath, (&onos_nbi.GroupsHandle{}).GroupServeHTTP)
 	mu.HandleFunc(GroupsByIdPath, (&onos_nbi.GroupsHandle{}).GroupServeHTTP)
+	mu.HandleFunc(OltFlowServicePath, (&onos_nbi.OltFlowServiceHandle{}).ServeHTTP)
 
 	err := http.ListenAndServe(":8181", mu)
 	logger.Infow(ctx, "Rest Server Started", log.Fields{"Error": err})
