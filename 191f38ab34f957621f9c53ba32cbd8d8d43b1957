@@ -16,6 +16,24 @@
       "message": "can we rename this file , rest of the changeset looks good",
       "revId": "191f38ab34f957621f9c53ba32cbd8d8d43b1957",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b79fb1f1_a9c626f8",
+        "filename": "voltha-go-controller/nbi/sadissubscriber.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1000940
+      },
+      "writtenOn": "2023-02-07T17:37:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b41369fe_47fab84c",
+      "revId": "191f38ab34f957621f9c53ba32cbd8d8d43b1957",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
