@@ -93,6 +93,7 @@ func (mmt *ModMeterTask) Start(ctx context.Context, taskID uint8) error {
 			// Meter already exists so we dont have to do anything here
 			return nil
 		}
+		logger.Infow(ctx, "Updated meter state to pending", log.Fields{"Meter": mmt.meter.ID})
 	} else {
 		if !mmt.device.DelMeter(ctx, mmt.meter) {
 			// Meter doesn't exist so we dont have to do anything here
@@ -114,6 +115,13 @@ func (mmt *ModMeterTask) Start(ctx context.Context, taskID uint8) error {
 
 		if _, err = vc.UpdateLogicalDeviceMeterTable(mmt.ctx, meterMod); err != nil {
 			logger.Errorw(ctx, "Update Meter Table Failed", log.Fields{"Reason": err.Error()})
+		} else {
+			mmt.meter.State = of.MeterOperSuccess
+			if err := mmt.device.UpdateMeter(ctx, mmt.meter); err != nil {
+				// Meter does not exist, update failed
+				logger.Error(ctx, "Update meter to DB failed")
+			}
+			logger.Infow(ctx, "Updated meter state to success", log.Fields{"Meter": mmt.meter.ID})
 		}
 		//triggerMeterNotification(err)
 		return err
