@@ -393,6 +393,19 @@ func (d *Device) AddMeter(cntx context.Context, meter *of.Meter) error {
 	return nil
 }
 
+// UpdateMeter to update meter
+func (d *Device) UpdateMeter(cntx context.Context, meter *of.Meter) error {
+       d.meterLock.Lock()
+       defer d.meterLock.Unlock()
+       if _, ok := d.meters[meter.ID]; ok {
+               d.meters[meter.ID] = meter
+               go d.AddMeterToDb(cntx, meter)
+       } else {
+               return errors.New("Meter not found for updation")
+       }
+       return nil
+}
+
 // GetMeter to get meter
 func (d *Device) GetMeter(id uint32) (*of.Meter, error) {
 	d.meterLock.RLock()

@@ -1185,47 +1185,39 @@ func (va *VoltApplication) DelService(cntx context.Context, name string, forceDe
 		logger.Warnw(ctx, "Deleted service from DB/Cache successfully", log.Fields{"serviceName": vs.Name})
 	}
 
-	meterProfiles := make(map[*VoltMeter]bool)
-
 	if nil != newSvc {
 		logger.Infow(ctx, "Old Service meter profiles", log.Fields{"AGG": vs.AggDsMeterProfile, "DS": vs.DsMeterProfile, "US": vs.UsMeterProfile})
 		logger.Infow(ctx, "New Service meter profiles", log.Fields{"AGG": newSvc.AggDsMeterProfile, "DS": newSvc.DsMeterProfile, "US": newSvc.UsMeterProfile})
 	}
-	skipMeterDeletion := false
-	if aggMeter, ok := va.MeterMgr.GetMeterByID(vs.AggDsMeterID); ok {
-		if nil != newSvc && aggMeter.Name == newSvc.AggDsMeterProfile {
-			skipMeterDeletion = true
-		}
 
-		meterProfiles[aggMeter] = skipMeterDeletion
-		skipMeterDeletion = false
+	logger.Infow(ctx, "About to mark meter for deletion\n", log.Fields{"serviceName": vs.Name})
+
+	if aggMeter, ok := va.MeterMgr.GetMeterByID(vs.AggDsMeterID); ok {
+		if nil == newSvc || (nil != newSvc && aggMeter.Name != newSvc.AggDsMeterProfile) {
+                       if aggMeter.AssociatedServices > 0 {
+                               aggMeter.AssociatedServices--
+                               logger.Infow(ctx, "Agg Meter assocaited services updated\n", log.Fields{"MeterID": aggMeter})
+                               va.UpdateMeterProf(cntx, *aggMeter)
+                       }
+		}
 	}
 	if dsMeter, ok := va.MeterMgr.GetMeterByID(vs.DsMeterID); ok {
-		if nil != newSvc && dsMeter.Name == newSvc.DsMeterProfile {
-			skipMeterDeletion = true
+	       if nil == newSvc || (nil != newSvc && dsMeter.Name != newSvc.DsMeterProfile) {
+                       if dsMeter.AssociatedServices > 0 {
+                               dsMeter.AssociatedServices--
+                               logger.Infow(ctx, "DS Meter assocaited services updated\n", log.Fields{"MeterID": dsMeter})
+                               va.UpdateMeterProf(cntx, *dsMeter)
+                       }
 		}
-		meterProfiles[dsMeter] = skipMeterDeletion
-		skipMeterDeletion = false
 	}
 	if vs.AggDsMeterID != vs.UsMeterID {
 		if usMeter, ok := va.MeterMgr.GetMeterByID(vs.UsMeterID); ok {
-			if nil != newSvc && usMeter.Name == newSvc.UsMeterProfile {
-				skipMeterDeletion = true
-			}
-			meterProfiles[usMeter] = skipMeterDeletion
-		}
-	}
-
-	for meter, skipMeterDeletion := range meterProfiles {
-		if nil == meter {
-			logger.Debug(ctx, "Null meter found, continuing")
-			continue
-		}
-		if meter.AssociatedServices > 0 {
-			meter.AssociatedServices--
-			if meter.AssociatedServices == 0 && !skipMeterDeletion {
-				logger.Infow(ctx, "Meter should be deleted now\n", log.Fields{"MeterID": meter})
-				va.UpdateMeterProf(cntx, *meter)
+                       if nil == newSvc || (nil != newSvc && usMeter.Name != newSvc.UsMeterProfile) {
+                               if usMeter.AssociatedServices > 0 {
+                                       usMeter.AssociatedServices--
+                                       logger.Infow(ctx, "US Meter assocaited services updated\n", log.Fields{"MeterID": usMeter})
+                                       va.UpdateMeterProf(cntx, *usMeter)
+                               }
 			}
 		}
 	}
