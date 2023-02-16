@@ -688,6 +688,10 @@ type DeviceAnnotations struct {
 	Protocol          string `json:"protocol"`
 }
 
+type OltFlowServiceConfig struct {
+	OltFlowService app.OltFlowService `json:"org.opencord.olt.impl.OltFlowService"`
+}
+
 func convertVoltDeviceToDevice(voltDevice *app.VoltDevice) Device {
 	var device Device
 
