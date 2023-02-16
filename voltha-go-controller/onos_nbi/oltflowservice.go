@@ -11,18 +11,18 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package onos_nbi
 
 import (
 	"bytes"
 	"context"
-        "encoding/json"
-        "net/http"
+	"encoding/json"
+	"net/http"
 
-        app "voltha-go-controller/internal/pkg/application"
-        "voltha-go-controller/log"
+	app "voltha-go-controller/internal/pkg/application"
+	"voltha-go-controller/log"
 )
 
 // OltFlowServiceHandle handles OltFlowService Requests
@@ -31,31 +31,54 @@ type OltFlowServiceHandle struct {
 
 // ServeHTTP to serve HTTP requests
 func (oh *OltFlowServiceHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-        logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
-        switch r.Method {
-        case "POST":
-                oh.configureOltFlowService(context.Background(), w, r)
-        default:
-                logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
-        }
+	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
+	switch r.Method {
+	case "POST":
+		oh.configureOltFlowService(context.Background(), w, r)
+	case "GET":
+		oh.fetchOltFlowService(context.Background(), w, r)
+	default:
+		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+	}
 }
 
 func (oh *OltFlowServiceHandle) configureOltFlowService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 
-        // Get the payload to process the request
-        d := new(bytes.Buffer)
-        if _, err := d.ReadFrom(r.Body);  err != nil {
-                logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
-                return
-        }
+	// Get the payload to process the request
+	d := new(bytes.Buffer)
+	if _, err := d.ReadFrom(r.Body); err != nil {
+		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		return
+	}
 
-        // Unmarshal the request into service configuration structure
-        req := &app.OltFlowService{}
-        if err := json.Unmarshal(d.Bytes(), req); err != nil {
-                logger.Warnw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
-                http.Error(w, err.Error(), http.StatusConflict)
-                return
-        }
+	// Unmarshal the request into service configuration structure
+	req := &app.OltFlowService{}
+	if err := json.Unmarshal(d.Bytes(), req); err != nil {
+		logger.Warnw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
+		return
+	}
 	app.GetApplication().UpdateOltFlowService(cntx, *req)
 }
 
+func (oh *OltFlowServiceHandle) fetchOltFlowService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
+
+	logger.Info(cntx, "Inside fetchOltFlowService method")
+	oltFlowServiceList := OltFlowServiceConfig{}
+	oltFlowServiceList.OltFlowService = app.OltFlowService{}
+	va := app.GetApplication()
+
+	oltFlowServiceList.OltFlowService = va.OltFlowServiceConfig
+	OltFlowRespJSON, err := json.Marshal(oltFlowServiceList)
+	if err != nil {
+		logger.Errorw(ctx, "Error occurred while marshaling oltFlowService response", log.Fields{"Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	_, err = w.Write(OltFlowRespJSON)
+	if err != nil {
+		logger.Errorw(ctx, "error in sending meter response", log.Fields{"Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
