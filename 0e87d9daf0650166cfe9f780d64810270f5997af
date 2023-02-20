@@ -18,6 +18,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "019120ab_e217f6c7",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9dbc98c1_9647235a",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b0f1180f_d2a6f3c7",
@@ -35,6 +53,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4e59f8e7_e20f5325",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1312,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b0f1180f_d2a6f3c7",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d461de77_1b1fa599",
@@ -48,6 +84,24 @@
       "writtenOn": "2023-01-10T09:31:13Z",
       "side": 1,
       "message": "smae here",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "997200ec_a2f06e3d",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1366,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d461de77_1b1fa599",
       "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -87,6 +141,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d12fa647_b212c224",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2083,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "01ba6e86_a2e9da0b",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6fe89c3c_69f9ce09",
@@ -100,6 +172,24 @@
       "writtenOn": "2023-01-10T09:34:46Z",
       "side": 1,
       "message": "why are mainting the same, we dont have sadis and need not be the same names as onos",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5d25436f_bb7a23bb",
+        "filename": "voltha-go-controller/nbi/netConfig.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6fe89c3c_69f9ce09",
       "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -121,6 +211,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6ad7f46b_929b89e5",
+        "filename": "voltha-go-controller/nbi/netConfig.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37173ab0_8c47f6c3",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "46dfe47d_638a19d9",
@@ -134,6 +242,24 @@
       "writtenOn": "2023-01-10T09:34:46Z",
       "side": 1,
       "message": "please remove the commented lines",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c6738f50_b7ec0798",
+        "filename": "voltha-go-controller/nbi/sadisigmpproxy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "46dfe47d_638a19d9",
       "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }

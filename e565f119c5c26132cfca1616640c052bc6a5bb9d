@@ -16,6 +16,24 @@
       "message": "remove sadis from the filenames as well",
       "revId": "e565f119c5c26132cfca1616640c052bc6a5bb9d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bc5fa2b8_4a50ebc6",
+        "filename": "voltha-go-controller/nbi/sadismvlan.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "036342aa_4b571adc",
+      "revId": "e565f119c5c26132cfca1616640c052bc6a5bb9d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }

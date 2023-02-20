@@ -18,6 +18,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2bcc536c_7e3d3b42",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 435,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bdffa12_b99a679a",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4ccf329b_d7945e6b",
@@ -31,6 +49,24 @@
       "writtenOn": "2023-01-25T09:30:26Z",
       "side": 1,
       "message": "are we not checking for errors here, if any errors a proper error has to be reported back, Here and everywhere in the patch set",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2ff62bd7_29ea92b1",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 549,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ccf329b_d7945e6b",
       "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -52,6 +88,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ac2d00d6_596375b6",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1352,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb3aa811_3051c1fc",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e160da7b_8bf52ccf",
@@ -65,6 +119,24 @@
       "writtenOn": "2023-01-25T09:30:26Z",
       "side": 1,
       "message": "same here",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d70a43ad_a281c502",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1465,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e160da7b_8bf52ccf",
       "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -86,6 +158,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6bca3ad5_f7a60189",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1711,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc5a302d_d6371837",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a95e8089_7a949da2",
@@ -99,6 +189,24 @@
       "writtenOn": "2023-01-25T09:30:26Z",
       "side": 1,
       "message": "remove commented line, here and everywhere in the diff",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "46ebd141_c2d51abf",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2084,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a95e8089_7a949da2",
       "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -120,6 +228,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "41ceb076_de6c6b6e",
+        "filename": "voltha-go-controller/nbi/netConfig.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "11e9633a_ac9155a8",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e1d4d2af_af6879b9",
@@ -133,6 +259,24 @@
       "writtenOn": "2023-01-25T09:30:26Z",
       "side": 1,
       "message": "change the file name, we have to remove sadis from everywhere",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9fac6237_909c56f7",
+        "filename": "voltha-go-controller/nbi/sadisigmpproxy.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e1d4d2af_af6879b9",
       "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
