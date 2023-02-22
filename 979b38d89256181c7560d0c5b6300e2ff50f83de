@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e9ad06fc_7c8ef808",
+        "filename": "voltha-go-controller/onos_nbi/models.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 692,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-22T09:53:34Z",
+      "side": 1,
+      "message": "the json need not be the same, it is what onos had used. can we change this to something appropriate",
+      "revId": "979b38d89256181c7560d0c5b6300e2ff50f83de",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2a2fd838_13405e6a",
+        "filename": "voltha-go-controller/onos_nbi/oltflowservice.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-22T09:53:34Z",
+      "side": 1,
+      "message": "correct the error string",
+      "revId": "979b38d89256181c7560d0c5b6300e2ff50f83de",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
