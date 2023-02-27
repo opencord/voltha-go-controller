@@ -39,7 +39,7 @@ type SubscriberDeviceInfo struct {
 	UplinkPort         int                 `json:"uplinkPort"`
 	Slot               int                 `json:"slot"`
 	HardwareIdentifier string              `json:"hardwareIdentifier"`
-	IPAddress          net.IP              `json:"ipAddress"`
+	IPAddress          string              `json:"ipAddress"`
 	NasID              string              `json:"nasId"`
 	CircuitID          string              `json:"circuitId"`
 	RemoteID           string              `json:"remoteId"`
