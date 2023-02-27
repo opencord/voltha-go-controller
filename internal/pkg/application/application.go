@@ -454,7 +454,7 @@ type VoltApplication struct {
 type DeviceConfig struct {
 	SerialNumber       string `json:"id"`
 	HardwareIdentifier string `json:"hardwareIdentifier"`
-	IPAddress          net.IP `json:"ipAddress"`
+	IPAddress          string `json:"ipAddress"`
 	UplinkPort         int    `json:"uplinkPort"`
 	NasID              string `json:"nasId"`
 	NniDhcpTrapVid     int    `json:"nniDhcpTrapVid"`
@@ -573,7 +573,7 @@ func (dc *DeviceConfig) WriteDeviceConfigToDb(cntx context.Context, serialNum st
 	return nil
 }
 
-func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID string, ipAddress net.IP, uplinkPort, nniDhcpTrapId int) error {
+func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress string, uplinkPort, nniDhcpTrapId int) error {
 	var dc *DeviceConfig
 
 	d := va.GetDeviceConfig(serialNum)
@@ -592,10 +592,18 @@ func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hard
 			logger.Errorw(ctx, "DB update for device config failed", log.Fields{"err": err})
 			return err
 		}
+
+		// If device is already discovered update the VoltDevice structure
+		device, id := va.GetDeviceBySerialNo(serialNum)
+		if device != nil {
+			device.NniDhcpTrapVid = of.VlanType(nniDhcpTrapId)
+			va.DevicesDisc.Store(id, device)
+		}
 	} else {
-		logger.Errorw(ctx, "Device config already exist", log.Fields{"DeviceID": serialNum})
+		logger.Errorw(ctx, "Device config already exist", log.Fields{"serialNum": serialNum})
 		return errors.New("Device config already exist")
 	}
+
 	return nil
 }
 
@@ -2145,24 +2153,22 @@ func (va *VoltApplication) RestoreOltFlowService(cntx context.Context) {
 	logger.Infow(ctx, "updated OltFlowServiceConfig from DB", log.Fields{"OltFlowServiceConfig": va.OltFlowServiceConfig})
 }
 
-func (va *VoltApplication) UpdateDeviceConfig(cntx context.Context, sn, mac, nasID string, port, dhcpVid int, ip net.IP) {
-	if d, ok := va.DevicesConfig.Load(sn); ok {
+func (va *VoltApplication) UpdateDeviceConfig(cntx context.Context, deviceConfig *DeviceConfig) {
+	var dc *DeviceConfig
+	if d, ok := va.DevicesConfig.Load(deviceConfig.SerialNumber); ok {
 		logger.Infow(ctx, "Device configuration already exists", log.Fields{"DeviceInfo": d})
+		return
 	}
-	d := DeviceConfig{
-		SerialNumber:       sn,
-		UplinkPort:         port,
-		HardwareIdentifier: mac,
-		IPAddress:          ip,
-		NasID:              nasID,
-		NniDhcpTrapVid:     dhcpVid,
+	va.DevicesConfig.Store(deviceConfig.SerialNumber, deviceConfig)
+	err := dc.WriteDeviceConfigToDb(cntx, deviceConfig.SerialNumber, deviceConfig)
+	if err != nil {
+		logger.Errorw(ctx, "DB update for device config failed", log.Fields{"err": err})
 	}
-	logger.Infow(ctx, "Added OLT configurations", log.Fields{"DeviceInfo": d})
-	va.DevicesConfig.Store(sn, d)
+	logger.Infow(ctx, "Added OLT configurations", log.Fields{"DeviceInfo": deviceConfig})
 	// If device is already discovered update the VoltDevice structure
-	device, id := va.GetDeviceBySerialNo(sn)
+	device, id := va.GetDeviceBySerialNo(deviceConfig.SerialNumber)
 	if device != nil {
-		device.NniDhcpTrapVid = of.VlanType(dhcpVid)
+		device.NniDhcpTrapVid = of.VlanType(deviceConfig.NniDhcpTrapVid)
 		va.DevicesDisc.Store(id, device)
 	}
 }

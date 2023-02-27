@@ -482,6 +482,14 @@ type SubscribersList struct {
 	Subscribers []SubscriberInfo `json:"subscribers"`
 }
 
+type OltFlowServiceConfig struct {
+	OltFlowService app.OltFlowService `json:"oltFlowService"`
+}
+
+type DeviceConfigPayload struct {
+	DeviceConfig *app.DeviceConfig `json:"deviceConfig"`
+}
+
 func ConvertFlowToFlowEntry(subFlow *of.VoltSubFlow) FlowEntry {
 	var flowEntry FlowEntry
 	flowEntry.Flows = []Flow{}
@@ -686,10 +694,6 @@ type DeviceAnnotations struct {
 	ChannelID         string `json:"channelId"`
 	ManagementAddress string `json:"managementAddress"`
 	Protocol          string `json:"protocol"`
-}
-
-type OltFlowServiceConfig struct {
-	OltFlowService app.OltFlowService `json:"oltflowservice"`
 }
 
 func convertVoltDeviceToDevice(voltDevice *app.VoltDevice) Device {
