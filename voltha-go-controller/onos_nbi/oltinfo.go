@@ -23,26 +23,28 @@ import (
 
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/log"
+
+	"github.com/gorilla/mux"
 )
 
 // OltFlowServiceHandle handles OltFlowService Requests
-type OltFlowServiceHandle struct {
+type OltInfoHandle struct {
 }
 
 // ServeHTTP to serve HTTP requests
-func (oh *OltFlowServiceHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (oh *OltInfoHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
 	case "POST":
-		oh.configureOltFlowService(context.Background(), w, r)
+		oh.AddOltInfo(context.Background(), w, r)
 	case "GET":
-		oh.fetchOltFlowService(context.Background(), w, r)
+		oh.FetchOltInfo(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
 	}
 }
 
-func (oh *OltFlowServiceHandle) configureOltFlowService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
+func (oh *OltInfoHandle) AddOltInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
@@ -50,35 +52,38 @@ func (oh *OltFlowServiceHandle) configureOltFlowService(cntx context.Context, w 
 		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
 		return
 	}
-
 	// Unmarshal the request into service configuration structure
-	req := &app.OltFlowService{}
+	req := &app.DeviceConfig{}
 	if err := json.Unmarshal(d.Bytes(), req); err != nil {
 		logger.Warnw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
-	app.GetApplication().UpdateOltFlowService(cntx, *req)
+	app.GetApplication().UpdateDeviceConfig(cntx, req)
 }
 
-func (oh *OltFlowServiceHandle) fetchOltFlowService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
+func (oh *OltInfoHandle) FetchOltInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
+	logger.Info(cntx, "Inside FetchOltInfo method")
+	vars := mux.Vars(r)
+	serialNum := vars["serialNumber"]
+	oltInfo := OltInfoPayload{}
+	oltInfo.OltInfoPayload = &app.DeviceConfig{}
 
-	logger.Info(cntx, "Inside fetchOltFlowService method")
-	oltFlowSer := OltFlowServiceConfig{}
-	oltFlowSer.OltFlowService = app.OltFlowService{}
-	va := app.GetApplication()
-
-	oltFlowSer.OltFlowService = va.OltFlowServiceConfig
-	OltFlowRespJSON, err := json.Marshal(oltFlowSer)
+	dc := app.GetApplication().GetDeviceConfig(serialNum)
+	oltInfo.OltInfoPayload = dc
+	logger.Infow(cntx, "Fetched value of dc", log.Fields{"dc": dc, "oltInfo.OltInfoPayload": oltInfo.OltInfoPayload})
+	oltInfoJSON, err := json.Marshal(oltInfo)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling oltFlowService response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Failed to marshal olt payload response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Add("Content-Type", "application/json")
-	_, err = w.Write(OltFlowRespJSON)
+	_, err = w.Write(oltInfoJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending olt flow service response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Failed to write olt payload response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+
 }

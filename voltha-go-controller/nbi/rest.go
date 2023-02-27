@@ -30,35 +30,36 @@ var logger log.CLogger
 var ctx = context.TODO()
 
 const (
-	SubscribersPath                   string = "/subscribers/{id}"
-	ProfilesPath                      string = "/profiles/{id}"
-	IgmpProxyPath                     string = "/igmp-proxy"
-	IgmpProxyDeletePath               string = "/igmp-proxy/{outgoingigmpvlanid}"
-	MulticastPath                     string = "/multicast/"
-	MulticastDeletePath               string = "/multicast/{egressvlan}"
-	FlowsPath                         string = "/flows"
-	DevicesPath                       string = "/devices"
-	PortsPath                         string = "/devices/ports"
-	PortsPerDeviceIDPath              string = "/devices/{olt_of_id}/ports"
-	FlowsPerDeviceIDPath              string = "/flows/{deviceId}"
-	FlowPerDeviceIDFlowIDPath         string = "/flows/{deviceId}/{flowId}"
-	PendingFlowsPath                  string = "/flows/pending"
-	ProgrammedSubscribersPath         string = "/programmed-subscribers"
-	ServiceDevicePortPath             string = "/services/{device}/{port}"
-	ServicePortNamePath               string = "/services/{portName}"
-	ServicePortStagCtagTpIDPath       string = "/services/{portName}/{sTag}/{cTag}/{tpId}"
-	AllocationsPath                   string = "/allocations"
-	AllocationsDeviceIDPath           string = "/allocations/{deviceId}"
-	MecLearnerPath                    string = "/mapping/all"
-	MecLearnerDeviceIdAndPortNoPath   string = "/mapping/{deviceId}/{portNumber}"
-	MecLearnerDevicePortAndVlanIdPath string = "/mapping/{deviceId}/{portNumber}/{vlanId}"
-	PortIgnoredPath                   string = "/ports/ignored"
-	MetersParh                        string = "/meters"
-	MetersByIdPath                    string = "/meters/{id}"
-	GroupsPath                        string = "/groups"
-	GroupsByIdPath                    string = "/groups/{id}"
-	OltFlowServicePath                string = "/oltflowservice"
-	NetConfigPath                     string = "/network/configurations"
+	SubscribersPath                   string = "/vgc/v1/subscribers/{id}"
+	ProfilesPath                      string = "/vgc/v1/profiles/{id}"
+	IgmpProxyPath                     string = "/vgc/v1/igmp-proxy"
+	IgmpProxyDeletePath               string = "/vgc/v1/igmp-proxy/{outgoingigmpvlanid}"
+	MulticastPath                     string = "/vgc/v1/multicast/"
+	MulticastDeletePath               string = "/vgc/v1/multicast/{egressvlan}"
+	FlowsPath                         string = "/vgc/v1/flows"
+	DevicesPath                       string = "/vgc/v1/devices"
+	PortsPath                         string = "/vgc/v1/devices/ports"
+	PortsPerDeviceIDPath              string = "/vgc/v1/devices/{olt_of_id}/ports"
+	FlowsPerDeviceIDPath              string = "/vgc/v1/flows/{deviceId}"
+	FlowPerDeviceIDFlowIDPath         string = "/vgc/v1/flows/{deviceId}/{flowId}"
+	PendingFlowsPath                  string = "/vgc/v1/flows/pending"
+	ProgrammedSubscribersPath         string = "/vgc/v1/programmed-subscribers"
+	ServiceDevicePortPath             string = "/vgc/v1/services/{device}/{port}"
+	ServicePortNamePath               string = "/vgc/v1/services/{portName}"
+	ServicePortStagCtagTpIDPath       string = "/vgc/v1/services/{portName}/{sTag}/{cTag}/{tpId}"
+	AllocationsPath                   string = "/vgc/v1/allocations"
+	AllocationsDeviceIDPath           string = "/vgc/v1/allocations/{deviceId}"
+	MecLearnerPath                    string = "/vgc/v1/mapping/all"
+	MecLearnerDeviceIdAndPortNoPath   string = "/vgc/v1/mapping/{deviceId}/{portNumber}"
+	MecLearnerDevicePortAndVlanIdPath string = "/vgc/v1/mapping/{deviceId}/{portNumber}/{vlanId}"
+	PortIgnoredPath                   string = "/vgc/v1/ports/ignored"
+	MetersParh                        string = "/vgc/v1/meters"
+	MetersByIdPath                    string = "/vgc/v1/meters/{id}"
+	GroupsPath                        string = "/vgc/v1/groups"
+	GroupsByIdPath                    string = "/vgc/v1/groups/{id}"
+	OltFlowServicePath                string = "/vgc/v1/oltflowservice"
+	NetConfigPath                     string = "/vgc/v1/network/configurations"
+	OltInfoPath                       string = "/vgc/v1/olt/{serialNumber}"
 )
 
 // RestStart to execute for API
@@ -94,6 +95,8 @@ func RestStart() {
 	mu.HandleFunc(GroupsByIdPath, (&onos_nbi.GroupsHandle{}).GroupServeHTTP)
 	mu.HandleFunc(OltFlowServicePath, (&onos_nbi.OltFlowServiceHandle{}).ServeHTTP)
 	mu.HandleFunc(NetConfigPath, (&NetConfigHandle{}).NetConfigServeHTTP)
+	mu.HandleFunc(OltInfoPath, (&onos_nbi.OltInfoHandle{}).ServeHTTP)
+
 	err := http.ListenAndServe(":8181", mu)
 	logger.Infow(ctx, "Rest Server Started", log.Fields{"Error": err})
 }
