@@ -3,6 +3,63 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a0a0a155_b1c21c2a",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2156,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-02-28T08:16:22Z",
+      "side": 1,
+      "message": "What is the use of these 4 lines, why check if the config already exists, we anyways are going to overwrite it?",
+      "revId": "08a29c55cb0347d8c44c9aac430ed177388c1210",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "415f0a39_7ab578b0",
+        "filename": "voltha-go-controller/nbi/rest.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-02-28T08:16:22Z",
+      "side": 1,
+      "message": "Please put the base path \"/vgc/v1\" in a const string and use it here or even better to have the base path in the RestStart function",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 67
+      },
+      "revId": "08a29c55cb0347d8c44c9aac430ed177388c1210",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6e257870_14676933",
+        "filename": "voltha-go-controller/onos_nbi/oltflowservice.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-02-28T08:16:22Z",
+      "side": 1,
+      "message": "you are overwriting this in line 71, why is this line needed?",
+      "revId": "08a29c55cb0347d8c44c9aac430ed177388c1210",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d2506a0f_5407e69c",
         "filename": "voltha-go-controller/onos_nbi/oltinfo.go",
         "patchSetId": 1
