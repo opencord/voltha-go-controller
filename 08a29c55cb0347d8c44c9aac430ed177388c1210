@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d2506a0f_5407e69c",
+        "filename": "voltha-go-controller/onos_nbi/oltinfo.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-02-28T06:43:06Z",
+      "side": 1,
+      "message": "rename this to device instead of OLT, same here and everywhere for the rest calls",
+      "revId": "08a29c55cb0347d8c44c9aac430ed177388c1210",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
