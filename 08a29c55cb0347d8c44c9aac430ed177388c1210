@@ -18,6 +18,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6bfc18b1_30ebc530",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2156,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-03-02T12:21:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0a0a155_b1c21c2a",
+      "revId": "08a29c55cb0347d8c44c9aac430ed177388c1210",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "415f0a39_7ab578b0",
@@ -41,6 +59,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6064f293_6ae9d30b",
+        "filename": "voltha-go-controller/nbi/rest.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-03-02T12:21:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "415f0a39_7ab578b0",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 67
+      },
+      "revId": "08a29c55cb0347d8c44c9aac430ed177388c1210",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6e257870_14676933",
@@ -54,6 +96,24 @@
       "writtenOn": "2023-02-28T08:16:22Z",
       "side": 1,
       "message": "you are overwriting this in line 71, why is this line needed?",
+      "revId": "08a29c55cb0347d8c44c9aac430ed177388c1210",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e0fbecba_64fddd3a",
+        "filename": "voltha-go-controller/onos_nbi/oltflowservice.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-03-02T12:21:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6e257870_14676933",
       "revId": "08a29c55cb0347d8c44c9aac430ed177388c1210",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
