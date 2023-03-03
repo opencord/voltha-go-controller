@@ -33,8 +33,9 @@ import (
 	"voltha-go-controller/internal/pkg/vpagent"
 	"voltha-go-controller/voltha-go-controller/nbi"
 
-	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 	"voltha-go-controller/log"
+
+	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 	"github.com/opencord/voltha-lib-go/v7/pkg/probe"
 )
 
@@ -73,11 +74,13 @@ func stop(ctx context.Context, kvClient kvstore.Client, vpa *vpagent.VPAgent) {
 
 }
 
-func newKVClient(storeType, address string, timeout int) (kvstore.Client, error) {
+func newKVClient(ctx context.Context, storeType, address string, timeout int) (kvstore.Client, error) {
 	logger.Infow(ctx, "kv-store-type", log.Fields{"store": storeType})
 	switch storeType {
 	case "redis":
 		return kvstore.NewRedisClient(address, time.Duration(timeout), false)
+	case "etcd":
+		return kvstore.NewEtcdClient(ctx, address, time.Duration(timeout), log.ErrorLevel)
 	}
 	return nil, errors.New("unsupported-kv-store")
 }
@@ -119,7 +122,6 @@ func main() {
 	p := &probe.Probe{}
 	ctx := context.WithValue(context.Background(), probe.ProbeContextKey, p)
 
-
 	pc.Init()
 
 	// Setup logging for the program
@@ -130,9 +132,9 @@ func main() {
 	if logLevel, err = log.StringToLogLevel(config.LogLevel); err != nil {
 		logLevel = log.DebugLevel
 	}
-        if err := log.SetDefaultLogger(ctx, int(logLevel), log.Fields{"instanceId": config.InstanceID}); err != nil {
-                logger.With(ctx, log.Fields{"error": err}, "Cannot setup logging")
-        }
+	if err := log.SetDefaultLogger(ctx, int(logLevel), log.Fields{"instanceId": config.InstanceID}); err != nil {
+		logger.With(ctx, log.Fields{"error": err}, "Cannot setup logging")
+	}
 
 	// Update all loggers (provisionned via init) with a common field
 	if err := log.UpdateAllLoggers(log.Fields{"instanceId": config.InstanceID}); err != nil {
@@ -140,7 +142,7 @@ func main() {
 	}
 	log.SetAllLogLevel(int(logLevel))
 
-	if vgcInfo.kvClient, err = newKVClient(config.KVStoreType, config.KVStoreEndPoint, config.KVStoreTimeout); err != nil {
+	if vgcInfo.kvClient, err = newKVClient(ctx, config.KVStoreType, config.KVStoreEndPoint, config.KVStoreTimeout); err != nil {
 		logger.Errorw(ctx, "KVClient Establishment Failure", log.Fields{"Reason": err})
 	}
 

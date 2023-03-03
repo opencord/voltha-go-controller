@@ -56,6 +56,9 @@ func Initialize(ctx context.Context, storeType string, address string, timeout i
 	case "redis":
 		database.kvc, err = kvstore.NewRedisClient(address, time.Duration(timeout), false)
 		return &database, err
+	case "etcd":
+		database.kvc, err = kvstore.NewEtcdClient(ctx, address, time.Duration(timeout), log.ErrorLevel)
+		return &database, err
 	}
 	return &database, errors.New("unsupported-kv-store")
 }
@@ -1061,14 +1064,15 @@ func (db *Database) DelAllMigrateServicesReq(ctx context.Context, deviceID strin
 	logger.Infow(ctx, "Deleting all the Update Vnet Requests for device", log.Fields{"device": deviceID})
 	return nil
 }
+
 // PutOltFlowService to add OltFlowService info
 func (db *Database) PutOltFlowService(ctx context.Context, value string) error {
 	key := GetKeyPath(OltFlowServicePath)
 
-        if err := db.kvc.Put(ctx, key, value); err != nil {
-                logger.Warnw(ctx, "Put OltFlowService failed", log.Fields{"key": key})
+	if err := db.kvc.Put(ctx, key, value); err != nil {
+		logger.Warnw(ctx, "Put OltFlowService failed", log.Fields{"key": key})
 		return err
-        }
+	}
 	return nil
 }
 

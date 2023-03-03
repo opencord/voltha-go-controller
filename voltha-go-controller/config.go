@@ -44,10 +44,10 @@ const (
 	*/
 	defaultConnectionRetryDelay = 1
 	defaultConnectionMaxRetries = 120
-	defaultKVStoreType          = "redis"
+	defaultKVStoreType          = "etcd"
 	defaultKVStoreHost          = "127.0.0.1"
-	defaultKVStorePort          = 6379
-	defaultKVStoreTimeout       = 5
+	defaultKVStorePort          = 2379
+	defaultKVStoreTimeout       = 5000000000
 	defaultKafkaAdapterHost     = "127.0.0.1"
 	defaultKafkaAdapterPort     = 9092
 	defaultInstanceID           = "VGC-01"
