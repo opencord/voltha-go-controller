@@ -237,7 +237,7 @@ func NewVoltDevice(name string, slno, southBoundID string) *VoltDevice {
 	d.GlobalDhcpFlowAdded = false
 	if config, ok := GetApplication().DevicesConfig.Load(slno); ok {
 		//Update nni dhcp vid
-		deviceConfig := config.(DeviceConfig)
+		deviceConfig := config.(*DeviceConfig)
 		d.NniDhcpTrapVid = of.VlanType(deviceConfig.NniDhcpTrapVid)
 	}
 	return &d
@@ -455,7 +455,7 @@ type DeviceConfig struct {
 	SerialNumber       string `json:"id"`
 	HardwareIdentifier string `json:"hardwareIdentifier"`
 	IPAddress          string `json:"ipAddress"`
-	UplinkPort         int    `json:"uplinkPort"`
+	UplinkPort         string `json:"uplinkPort"`
 	NasID              string `json:"nasId"`
 	NniDhcpTrapVid     int    `json:"nniDhcpTrapVid"`
 }
@@ -573,7 +573,7 @@ func (dc *DeviceConfig) WriteDeviceConfigToDb(cntx context.Context, serialNum st
 	return nil
 }
 
-func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress string, uplinkPort, nniDhcpTrapId int) error {
+func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapId int) error {
 	var dc *DeviceConfig
 
 	deviceConfig := &DeviceConfig{
@@ -832,7 +832,7 @@ func (va *VoltApplication) SetUpgradeFlag(flag bool) {
 // protection mechanism (LAG, ERPS, etc.). The aggregate of the such protection
 // is represented by a single NNI port
 func (va *VoltApplication) AddDevice(cntx context.Context, device string, slno, southBoundID string) {
-	logger.Warnw(ctx, "Received Device Ind: Add", log.Fields{"Device": device, "SrNo": slno})
+	logger.Warnw(ctx, "Received Device Ind: Add", log.Fields{"Device": device, "SrNo": slno, "southBoundID": southBoundID})
 	if _, ok := va.DevicesDisc.Load(device); ok {
 		logger.Warnw(ctx, "Device Exists", log.Fields{"Device": device})
 	}
