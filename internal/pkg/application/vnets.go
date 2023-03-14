@@ -512,14 +512,14 @@ func NewVoltPortVnet(vnet *VoltVnet) *VoltPortVnet {
 	vpv.LearntMacAddr, _ = net.ParseMAC("00:00:00:00:00:00")
 	// for OLTCVLAN SVLAN=CVLAN, UNIVLAN can differ.
 	/*
-	if vpv.VlanControl == ONUCVlan {
-		vpv.CVlan = vpv.SVlan
-	}
-	// for OLTSVLAN  CVLAN=UNIVLAN , SVLAN can differ,
-	// hence assigning UNIVLAN to CVLAN, so that ONU will transparently forward the packet.
-	if vpv.VlanControl == OLTSVlan {
-		vpv.CVlan = vpv.UniVlan
-	}*/
+		if vpv.VlanControl == ONUCVlan {
+			vpv.CVlan = vpv.SVlan
+		}
+		// for OLTSVLAN  CVLAN=UNIVLAN , SVLAN can differ,
+		// hence assigning UNIVLAN to CVLAN, so that ONU will transparently forward the packet.
+		if vpv.VlanControl == OLTSVlan {
+			vpv.CVlan = vpv.UniVlan
+		}*/
 	vpv.servicesCount = atomic.NewUint64(0)
 	vpv.SchedID = 0
 	vpv.PendingDeleteFlow = make(map[string]bool)
@@ -781,19 +781,19 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 		//If NNI port is not mached to nb nni port dont send flows
 		devConfig := GetApplication().GetDeviceConfig(device.SerialNum)
 		if devConfig != nil {
-			if devConfig.UplinkPort != int(nniPort.ID) {
-				logger.Errorw(ctx, "NNI port not configured from NB, not pushing flows", log.Fields{"NNI Port": devConfig.UplinkPort, "NB NNI port": nniPort.ID})
+			if devConfig.UplinkPort != strconv.Itoa(int(nniPort.ID)) {
+				logger.Errorw(ctx, "NNI port not configured from NB, not pushing flows", log.Fields{"NB NNI Port": devConfig.UplinkPort, "SB NNI port": nniPort.ID})
 				return
 			}
 		}
 	}
 
-	if vp := device.GetPort(port); vp != nil {
-		if vpv.PonPort != 0xFF && vpv.PonPort != vp.PonPort {
-			logger.Errorw(ctx, "UNI port discovered on wrong PON Port. Dropping Flow Config for VPV", log.Fields{"Device": device.Name, "Port": port, "DetectedPon": vp.PonPort, "ExpectedPon": vpv.PonPort, "Vnet": vpv.VnetName})
-			return
-		}
-	}
+	// if vp := device.GetPort(port); vp != nil {
+	// 	if vpv.PonPort != 0xFF && vpv.PonPort != vp.PonPort {
+	// 		logger.Errorw(ctx, "UNI port discovered on wrong PON Port. Dropping Flow Config for VPV", log.Fields{"Device": device.Name, "Port": port, "DetectedPon": vp.PonPort, "ExpectedPon": vpv.PonPort, "Vnet": vpv.VnetName})
+	// 		return
+	// 	}
+	// }
 
 	if vpv.Blocked {
 		logger.Errorw(ctx, "VPV Bocked for Processing. Ignoring flow push request", log.Fields{"Port": vpv.Port, "Vnet": vpv.VnetName})
@@ -815,13 +815,13 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 		if vpv.MacLearning == MacLearningNone || NonZeroMacAddress(vpv.MacAddr) {
 			logger.Infow(ctx, "Port Up - DS Flows", log.Fields{"Device": device.Name, "Port": port})
 			/*In case of DPU_MGMT_TRAFFIC, need to install both US and DS traffic */
-			if  vpv.VnetType == DPU_MGMT_TRAFFIC {
+			if vpv.VnetType == DPU_MGMT_TRAFFIC {
 				vpv.RangeOnServices(cntx, AddUsHsiaFlows)
 			}
 			// US & DS DHCP, US HSIA flows are already installed
 			// install only DS HSIA flow here.
 			// no HSIA flows for multicast service
-			if !vpv.McastService  {
+			if !vpv.McastService {
 				vpv.RangeOnServices(cntx, AddDsHsiaFlows)
 			}
 		}
@@ -1053,15 +1053,15 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 	svc.VlanControl = vpv.VlanControl
 	//TODO Is it good to change NB config?? commenting for now
 	/*
-	// for OLTCVLAN SVLAN=CVLAN, UNIVLAN can differ.
-	if vpv.VlanControl == ONUCVlan {
-		svc.CVlan = svc.SVlan
-	}
-	// for OLTSVLAN  CVLAN=UNIVLAN , SVLAN can differ,
-	// hence assigning UNIVLAN to CVLAN, so that ONU will transparently forward the packet.
-	if vpv.VlanControl == OLTSVlan {
-		svc.CVlan = svc.UniVlan
-	}*/
+		// for OLTCVLAN SVLAN=CVLAN, UNIVLAN can differ.
+		if vpv.VlanControl == ONUCVlan {
+			svc.CVlan = svc.SVlan
+		}
+		// for OLTSVLAN  CVLAN=UNIVLAN , SVLAN can differ,
+		// hence assigning UNIVLAN to CVLAN, so that ONU will transparently forward the packet.
+		if vpv.VlanControl == OLTSVlan {
+			svc.CVlan = svc.UniVlan
+		}*/
 	if svc.McastService {
 		vpv.McastService = true
 		vpv.McastTechProfileID = svc.TechProfileID
@@ -1099,8 +1099,8 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 	//If NNI port is not mached to nb nni port
 	devConfig := GetApplication().GetDeviceConfig(voltDevice.SerialNum)
 
-	if strconv.Itoa(devConfig.UplinkPort) != voltDevice.NniPort {
-		logger.Errorw(ctx, "NNI port mismatch", log.Fields{"NNI Port": devConfig.UplinkPort, "NB NNI port": voltDevice.NniPort})
+	if devConfig.UplinkPort != voltDevice.NniPort {
+		logger.Errorw(ctx, "NNI port mismatch", log.Fields{"NB NNI Port": devConfig.UplinkPort, "SB NNI port": voltDevice.NniPort})
 		return
 	}
 	//Push Service Flows if DHCP relay is not configured
@@ -1234,7 +1234,7 @@ func ClearServiceCounters(cntx context.Context, key, value interface{}) bool {
 // AddMeterToDevice to add meter config to device, used in FTTB case
 func AddMeterToDevice(cntx context.Context, key, value interface{}) bool {
 	svc := value.(*VoltService)
-	if err:= svc.AddMeterToDevice(cntx); err != nil {
+	if err := svc.AddMeterToDevice(cntx); err != nil {
 		logger.Warnw(ctx, "Add Meter failed", log.Fields{"service": svc.Name, "Error": err})
 	}
 	return true
@@ -1705,7 +1705,6 @@ func (vpv *VoltPortVnet) BuildUsDhcpFlows() (*of.VoltFlow, error) {
 	logger.Infow(ctx, "Building US DHCP flow", log.Fields{"Port": vpv.Port})
 	subFlow := of.NewVoltSubFlow()
 	subFlow.SetTableID(0)
-
 
 	if vpv.VnetType == DPU_MGMT_TRAFFIC {
 		subFlow.SetMatchVlan(vpv.CVlan)
