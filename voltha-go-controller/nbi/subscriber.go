@@ -36,7 +36,7 @@ import (
 type SubscriberDeviceInfo struct {
 	ID                 string              `json:"id"`
 	NasPortID          string              `json:"nasPortId"`
-	UplinkPort         int                 `json:"uplinkPort"`
+	UplinkPort         string              `json:"uplinkPort"`
 	Slot               int                 `json:"slot"`
 	HardwareIdentifier string              `json:"hardwareIdentifier"`
 	IPAddress          string              `json:"ipAddress"`
@@ -116,7 +116,7 @@ func (sh *SubscriberHandle) AddSubscriberInfo(cntx context.Context, w http.Respo
 
 	//vsCfgList := getVoltServiceFromSrvInfo(req)
 
-	go addAllService(cntx, req)
+	addAllService(cntx, req)
 }
 
 func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
@@ -249,5 +249,5 @@ func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.Respo
 	w.WriteHeader(http.StatusAccepted)
 
 	logger.Warnw(ctx, "northbound-del-service-req", log.Fields{"ServiceName": id})
-	go app.GetApplication().DelServiceWithPrefix(cntx, id)
+	app.GetApplication().DelServiceWithPrefix(cntx, id)
 }
