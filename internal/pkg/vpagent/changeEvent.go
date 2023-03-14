@@ -19,8 +19,9 @@ import (
 	"context"
 	"io"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"voltha-go-controller/log"
+
+	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 )
 
@@ -60,7 +61,7 @@ top:
 		default:
 			ce, err := stream.Recv()
 			if err == io.EOF {
-				logger.Infow(ctx, "EOF for receiveChangeEvents stream, reconnecting", log.Fields{"err": err})
+				logger.Warnw(ctx, "EOF for receiveChangeEvents stream, reconnecting", log.Fields{"err": err})
 				stream, err = vServiceClient.ReceiveChangeEvents(streamCtx, &empty.Empty{}, opt)
 				if err != nil {
 					logger.Errorw(ctx, "Unable to establish Receive Change Event Stream",
@@ -95,7 +96,7 @@ top:
 		case changeEvent := <-vpa.changeEventChannel:
 			logger.Debugw(ctx, "Change Event", log.Fields{"Device": changeEvent.Id})
 			if vpc := vpa.getVPClient(changeEvent.Id); vpc != nil {
-				if err:= vpc.ChangeEvent(changeEvent); err != nil {
+				if err := vpc.ChangeEvent(changeEvent); err != nil {
 					logger.Errorw(ctx, "error handling Change Event", log.Fields{"Error": err, "Device": changeEvent.Id})
 				}
 			}

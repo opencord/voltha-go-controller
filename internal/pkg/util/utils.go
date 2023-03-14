@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package util
 
@@ -89,7 +89,7 @@ func IsPbitSliceSame(ref, rcvd []of.PbitType) bool {
 
 // IsNniPort is to check if given port is Nni Port.
 func IsNniPort(id uint32) bool {
-	return (id >= 0x100000)
+	return (id >= 0x1000000)
 }
 
 // Uint32ToByte to convert uint32 to byte

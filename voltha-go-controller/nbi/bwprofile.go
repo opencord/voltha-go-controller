@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package nbi
 
@@ -21,14 +21,16 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/log"
+
+	"github.com/gorilla/mux"
 )
 
 type BWEntry struct {
 	Entries []BWProfile `json:"entry"`
 }
+
 //BWProfile - Sadis BW Profile
 type BWProfile struct {
 	ID                        string `json:"id"`
@@ -68,9 +70,12 @@ func (mh *ProfileHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // AddProfile to add meter
 func (mh *ProfileHandle) AddProfile(cntx context.Context, w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	profileName := vars["id"]
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
-	if _, err := d.ReadFrom(r.Body);  err != nil {
+	if _, err := d.ReadFrom(r.Body); err != nil {
 		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
 		return
 	}
@@ -84,7 +89,7 @@ func (mh *ProfileHandle) AddProfile(cntx context.Context, w http.ResponseWriter,
 	}
 	logger.Debugw(ctx, "Received-northbound-add-meter-request", log.Fields{"req": req, "d": d.String()})
 	metercfg := app.VoltMeter{
-		Name: req.ID,
+		Name: profileName,
 		Cir:  req.CommittedInformationRate,
 		Cbs:  req.CommittedBurstSize,
 		Pir:  req.PeakInformationRate,
@@ -113,15 +118,15 @@ func (mh *ProfileHandle) GetProfile(cntx context.Context, w http.ResponseWriter,
 		return
 	}
 	profileResp := BWProfile{
-		ID: cfg.Name,
-		CommittedInformationRate : cfg.Cir,
-		CommittedBurstSize : cfg.Cbs,
-		PeakInformationRate: cfg.Pir,
-		PeakBurstSize: cfg.Pbs,
-		AssuredInformationRate: cfg.Air,
+		ID:                        cfg.Name,
+		CommittedInformationRate:  cfg.Cir,
+		CommittedBurstSize:        cfg.Cbs,
+		PeakInformationRate:       cfg.Pir,
+		PeakBurstSize:             cfg.Pbs,
+		AssuredInformationRate:    cfg.Air,
 		GuaranteedInformationRate: cfg.Gir,
-		ExceededInformationRate: cfg.Eir,
-		ExceededBurstSize: cfg.Ebs,
+		ExceededInformationRate:   cfg.Eir,
+		ExceededBurstSize:         cfg.Ebs,
 	}
 	bwEntryResp.Entries = append(bwEntryResp.Entries, profileResp)
 	profileRespJSON, err := json.Marshal(bwEntryResp)
@@ -142,9 +147,11 @@ func (mh *ProfileHandle) GetProfile(cntx context.Context, w http.ResponseWriter,
 
 // DelProfile to delete meter
 func (mh *ProfileHandle) DelProfile(cntx context.Context, w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	profileName := vars["id"]
 	//TODO : Change the URL and Mux to fetch meter id from the request
 	d := new(bytes.Buffer)
-	if _, err := d.ReadFrom(r.Body);  err != nil {
+	if _, err := d.ReadFrom(r.Body); err != nil {
 		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
 		return
 	}
@@ -157,7 +164,7 @@ func (mh *ProfileHandle) DelProfile(cntx context.Context, w http.ResponseWriter,
 	}
 	logger.Debugw(ctx, "Received-northbound-del-meter-request", log.Fields{"req": req})
 
-	meterName := req.ID
+	meterName := profileName
 	if err := app.GetApplication().DelMeterProf(cntx, meterName); err != nil {
 		logger.Errorw(ctx, "northbound-del-meter-failed", log.Fields{"req": req})
 		http.Error(w, err.Error(), http.StatusConflict)
