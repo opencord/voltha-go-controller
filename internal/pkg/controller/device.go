@@ -399,7 +399,7 @@ func (d *Device) UpdateMeter(cntx context.Context, meter *of.Meter) error {
        defer d.meterLock.Unlock()
        if _, ok := d.meters[meter.ID]; ok {
                d.meters[meter.ID] = meter
-               go d.AddMeterToDb(cntx, meter)
+               d.AddMeterToDb(cntx, meter)
        } else {
                return errors.New("Meter not found for updation")
        }
