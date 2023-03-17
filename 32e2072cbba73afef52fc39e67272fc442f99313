@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2b4e7ba4_45aabec5",
+        "filename": "internal/pkg/controller/device.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-03-17T12:33:51Z",
+      "side": 1,
+      "message": "we need not spawn a go routine here",
+      "revId": "32e2072cbba73afef52fc39e67272fc442f99313",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "367201ca_2c61f477",
+        "filename": "internal/pkg/controller/modmeter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-03-17T12:33:51Z",
+      "side": 1,
+      "message": "why is this an error",
+      "revId": "32e2072cbba73afef52fc39e67272fc442f99313",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cc99849e_f25be805",
+        "filename": "internal/pkg/controller/modmeter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-03-17T12:33:51Z",
+      "side": 1,
+      "message": "why is this an error",
+      "revId": "32e2072cbba73afef52fc39e67272fc442f99313",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
