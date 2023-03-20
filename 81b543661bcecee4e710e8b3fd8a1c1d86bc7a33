@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "63054af7_a4e4da75",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-03-20T09:12:21Z",
+      "side": 1,
+      "message": "why string ?",
+      "revId": "81b543661bcecee4e710e8b3fd8a1c1d86bc7a33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "172c6a25_5fb74ec6",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 515,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-03-20T09:12:21Z",
+      "side": 1,
+      "message": "remove this change set",
+      "revId": "81b543661bcecee4e710e8b3fd8a1c1d86bc7a33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bc162cef_9f7a8bd0",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 791,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-03-20T09:12:21Z",
+      "side": 1,
+      "message": "We need this check",
+      "revId": "81b543661bcecee4e710e8b3fd8a1c1d86bc7a33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6a408fbd_38259cae",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1056,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-03-20T09:12:21Z",
+      "side": 1,
+      "message": "remove the commented lines",
+      "revId": "81b543661bcecee4e710e8b3fd8a1c1d86bc7a33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
