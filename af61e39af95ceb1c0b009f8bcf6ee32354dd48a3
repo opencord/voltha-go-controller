@@ -16,6 +16,24 @@
       "message": "we can log a warning here",
       "revId": "af61e39af95ceb1c0b009f8bcf6ee32354dd48a3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "063a9472_d246f688",
+        "filename": "internal/pkg/vpagent/changeEvent.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-03-21T09:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b55b3fb6_bb9d778a",
+      "revId": "af61e39af95ceb1c0b009f8bcf6ee32354dd48a3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
