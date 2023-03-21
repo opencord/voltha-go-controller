@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b55b3fb6_bb9d778a",
+        "filename": "internal/pkg/vpagent/changeEvent.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-03-21T07:22:17Z",
+      "side": 1,
+      "message": "we can log a warning here",
+      "revId": "af61e39af95ceb1c0b009f8bcf6ee32354dd48a3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
