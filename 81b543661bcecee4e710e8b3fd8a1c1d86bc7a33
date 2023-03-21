@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "5438c455_6a15152f",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-03-21T07:19:42Z",
+      "side": 1,
+      "message": "Because north bound is sending it as a string so we need to read it as string in VGC.",
+      "parentUuid": "63054af7_a4e4da75",
+      "revId": "81b543661bcecee4e710e8b3fd8a1c1d86bc7a33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "172c6a25_5fb74ec6",
         "filename": "internal/pkg/application/vnets.go",
         "patchSetId": 2
@@ -31,6 +49,24 @@
       "writtenOn": "2023-03-20T09:12:21Z",
       "side": 1,
       "message": "remove this change set",
+      "revId": "81b543661bcecee4e710e8b3fd8a1c1d86bc7a33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b4bd0e69_fb2b15c2",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 515,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-03-21T07:19:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "172c6a25_5fb74ec6",
       "revId": "81b543661bcecee4e710e8b3fd8a1c1d86bc7a33",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -54,6 +90,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a8cb560b_407e14df",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 791,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-03-21T07:19:42Z",
+      "side": 1,
+      "message": "This check is not required since we are not passing \"vpv.PonPort\" this parameter as part of subscriber info",
+      "parentUuid": "bc162cef_9f7a8bd0",
+      "revId": "81b543661bcecee4e710e8b3fd8a1c1d86bc7a33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "6a408fbd_38259cae",
         "filename": "internal/pkg/application/vnets.go",
         "patchSetId": 2
@@ -65,6 +119,24 @@
       "writtenOn": "2023-03-20T09:12:21Z",
       "side": 1,
       "message": "remove the commented lines",
+      "revId": "81b543661bcecee4e710e8b3fd8a1c1d86bc7a33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "977e13ed_d87d77af",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1056,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-03-21T07:19:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6a408fbd_38259cae",
       "revId": "81b543661bcecee4e710e8b3fd8a1c1d86bc7a33",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
