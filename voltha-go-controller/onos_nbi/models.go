@@ -248,6 +248,12 @@ const (
 	FAILED string = "FAILED"
 
 	PENDING string = "PENDING"
+
+	FAILED_ADD string = "FAILED_ADD"
+
+	PENDING_ADD string = "PENDING_ADD"
+
+	PENDING_REMOVE string = "PENDING_REMOVE"
 )
 
 // Selector Critrtion structs
@@ -508,13 +514,27 @@ func ConvertFlowsToFlowEntry(subFlows []*of.VoltSubFlow) FlowEntry {
 	return flowEntry
 }
 
+func FlowStateMapping(state uint8) string {
+	var flowState string
+	if state == of.FlowAddSuccess {
+		flowState = ADDED
+	} else if state == of.FlowAddFailure {
+		flowState = FAILED_ADD
+	} else if state == of.FlowAddPending {
+		flowState = PENDING_ADD
+	} else if state == of.FlowDelPending {
+		flowState = PENDING_REMOVE
+	}
+	return flowState
+}
+
 func ConvertVoltSubFlowToOnosFlow(subFlow *of.VoltSubFlow) Flow {
 	var flow Flow
 	flow.ID = strconv.FormatUint(subFlow.Cookie, 10)
 	flow.TableID = int(subFlow.TableID)
 	flow.Priority = int(subFlow.Priority)
-	//flow.State = subFlow.State
-
+	state := FlowStateMapping(subFlow.State)
+	flow.State = state
 	// Fill Match criteria
 	if subFlow.InPort != 0 {
 		portSelector := PortSelector{
@@ -721,6 +741,11 @@ func convertVoltDeviceToDevice(voltDevice *app.VoltDevice) Device {
 
 type PortEntry struct {
 	Ports []Port `json:"ports"`
+}
+
+type DevicePortEntry struct {
+	Device Device `json:"device"`
+	Ports  []Port `json:"ports"`
 }
 
 type Port struct {
