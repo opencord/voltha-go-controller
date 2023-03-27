@@ -723,6 +723,11 @@ type PortEntry struct {
 	Ports []Port `json:"ports"`
 }
 
+type DevicePortEntry struct {
+	Device Device `json:"device"`
+	Ports  []Port `json:"ports"`
+}
+
 type Port struct {
 	Element     string          `json:"element"`
 	Port        string          `json:"port"`

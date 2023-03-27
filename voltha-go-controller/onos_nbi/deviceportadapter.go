@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package onos_nbi
 
@@ -19,9 +19,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/log"
+
+	"github.com/gorilla/mux"
 )
 
 // DeviceHandle Handle DeviceIDList Requests
@@ -42,6 +43,7 @@ func (dh *DeviceHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
 	}
 }
+
 // GetDeviceList to get device id list
 func (dh *DeviceHandle) GetDeviceList(w http.ResponseWriter, r *http.Request) {
 
@@ -100,13 +102,14 @@ func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	deviceID := vars["olt_of_id"]
 
-	var portListResp PortEntry
-	portListResp.Ports = []Port{}
+	var devicePortListResp DevicePortEntry
+	devicePortListResp.Device = Device{}
+	devicePortListResp.Ports = []Port{}
 
 	getPortList := func(key, value interface{}) bool {
 		voltPort := value.(*app.VoltPort)
 		port := convertVoltPortToPort(voltPort)
-		portListResp.Ports = append(portListResp.Ports, port)
+		devicePortListResp.Ports = append(devicePortListResp.Ports, port)
 		return true
 	}
 	if len(deviceID) > 0 {
@@ -114,10 +117,12 @@ func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.
 		voltDevice := app.GetApplication().GetDevice(deviceID)
 		if voltDevice != nil {
 			logger.Infow(ctx, "Found device", log.Fields{"deviceID": deviceID})
+			devicePortListResp.Device = convertVoltDeviceToDevice(voltDevice)
 			voltDevice.Ports.Range(getPortList)
 		}
+
 	}
-	portListJSON, err := json.Marshal(portListResp)
+	portListJSON, err := json.Marshal(devicePortListResp)
 	if err != nil {
 		logger.Errorw(ctx, "Error occurred while marshaling port list response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
@@ -131,6 +136,7 @@ func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
+
 // GetPortList to get device id list
 func (dh *DevicePortHandle) GetPortList(w http.ResponseWriter, r *http.Request) {
 
@@ -166,4 +172,3 @@ func (dh *DevicePortHandle) GetPortList(w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
-
