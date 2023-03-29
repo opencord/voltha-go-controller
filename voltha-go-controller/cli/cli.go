@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package main
 
@@ -20,10 +20,11 @@ import (
 	"log"
 	"os"
 
-	flags "github.com/jessevdk/go-flags"
 	"voltha-go-controller/voltha-go-controller/cli/commands"
 	"voltha-go-controller/voltha-go-controller/cli/config"
 	"voltha-go-controller/voltha-go-controller/cli/database"
+
+	flags "github.com/jessevdk/go-flags"
 )
 
 func registerCommands(parser *flags.Parser) {

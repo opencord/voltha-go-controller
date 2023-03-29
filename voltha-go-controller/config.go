@@ -39,7 +39,7 @@ const (
 		FIXME(At RWCORE) Problem: VGC comes up fast by that time RWCORE may not be up and will retry after 10 sec
 		but rwcore could come up before the 10 second expiry and post indications to VGC which can't be consumed by
 		VGC. Proper workaround is heml to sping VGC only when RWCORE reports via prope when the grpc server is up
-		OR maintain a event/indiction queue similiar to that in openolt-agent(which too is a GRPC SERVER)
+		OR maintain a event/indiction queue similar to that in openolt-agent(which too is a GRPC SERVER)
 		WorkAround: Reduce retry interval to 1 second from existing 10 seconds to that chances of indications getting missed is rare
 	*/
 	defaultConnectionRetryDelay = 1
@@ -82,39 +82,38 @@ func newVGCFlags() *VGCFlags {
 	return &vgcConfig
 }
 
-//VGCFlags represents the set of configurations used by the VGC service
+// VGCFlags represents the set of configurations used by the VGC service
 type VGCFlags struct {
-	OFControllerEndPoints     multiFlag
 	LogLevel                  string
 	VolthaHost                string
-	VolthaPort                int
-	KVStoreType               string
-	KVStoreTimeout            int // in seconds
-	KVStoreHost               string
-	KVStorePort               int
-	KafkaAdapterHost          string
-	KafkaAdapterPort          int
-	ProbeHost                 string
-	ProbePort                 int
-	Banner                    bool
-	DisplayVersion            bool
-	CPUProfile                string
-	MemProfile                string
-	DeviceListRefreshInterval int // in seconds
-	ConnectionRetryDelay      int // in seconds
-	ConnectionMaxRetries      int
 	InstanceID                string
 	KVStoreEndPoint           string
 	MsgBusEndPoint            string
 	ProbeEndPoint             string
 	VolthaAPIEndPoint         string
 	VendorID                  string
+	KVStoreType               string
+	KVStoreHost               string
+	KafkaAdapterHost          string
+	ProbeHost                 string
+	CPUProfile                string
+	MemProfile                string
+	OFControllerEndPoints     multiFlag
+	KafkaAdapterPort          int
+	KVStoreTimeout            int // in seconds
+	KVStorePort               int
+	VolthaPort                int
+	ProbePort                 int
+	DeviceListRefreshInterval int // in seconds
+	ConnectionRetryDelay      int // in seconds
+	ConnectionMaxRetries      int
 	DeviceSyncDuration        int
+	Banner                    bool
+	DisplayVersion            bool
 }
 
 // parseEnvironmentVariables parses the arguments when running read-write VGC service
 func (cf *VGCFlags) parseEnvironmentVariables() {
-
 	cf.LogLevel = envutils.ParseStringEnvVariable(envutils.LogLevel, defaultLogLevel)
 	cf.VolthaHost = envutils.ParseStringEnvVariable(envutils.VolthaHost, defaultVolthaHost)
 	cf.VolthaPort = int(envutils.ParseIntEnvVariable(envutils.VolthaPort, defaultVolthaPort))

@@ -23,17 +23,17 @@ import (
 )
 
 const (
-	//EtherType8100 - EtherType dot1q
+	// EtherType8100 - EtherType dot1q
 	EtherType8100 uint8 = 0
-	//EtherType88a8 - EtherType dot1ad
+	// EtherType88a8 - EtherType dot1ad
 	EtherType88a8 uint8 = 1
-	//EtherType9100 - EtherType dot1ad doubleTag
+	// EtherType9100 - EtherType dot1ad doubleTag
 	EtherType9100 uint8 = 2
-	//EtherType9200 - EtherType dot1q doubleTag
+	// EtherType9200 - EtherType dot1q doubleTag
 	EtherType9200 uint8 = 3
 )
 
-//GetMetadataForL2Protocol - returns metadata value for provide ethertype
+// GetMetadataForL2Protocol - returns metadata value for provide ethertype
 func GetMetadataForL2Protocol(etherType layers.EthernetType) (uint8, error) {
 	switch etherType {
 	case layers.EthernetTypeDot1Q:
@@ -50,11 +50,9 @@ func GetMetadataForL2Protocol(etherType layers.EthernetType) (uint8, error) {
 }
 
 func convertToUInt64(data string) uint64 {
-
 	value, err := strconv.ParseUint(data, 10, 64)
 	if err != nil {
 		return 0
 	}
 	return value
-
 }

@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package commands
 
@@ -19,20 +19,19 @@ import (
 	"fmt"
 	"log"
 
-	flags "github.com/jessevdk/go-flags"
+	db "voltha-go-controller/database"
 	"voltha-go-controller/voltha-go-controller/cli/database"
 	"voltha-go-controller/voltha-go-controller/cli/format"
 	"voltha-go-controller/voltha-go-controller/cli/models"
-	db "voltha-go-controller/database"
+
+	flags "github.com/jessevdk/go-flags"
 )
 
 // RegisterVpvsCommands to register vpvs command
 func RegisterVpvsCommands(parser *flags.Parser) {
-
 	if _, err := parser.AddCommand("vpvs", "Lists configured vpvs", "Commands to display vpvs information", &vpvsCommand); err != nil {
 		log.Fatalf("Unexpected error while attempting to register service commands : %s", err)
 	}
-
 }
 
 // VpvsCommand structure

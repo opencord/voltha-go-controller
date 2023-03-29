@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package format
 
@@ -33,15 +33,14 @@ func parseAndAppendRowNew(t *tablewriter.Table, key string, value interface{}, t
 			parseAndAppendRowNew(t, pl[i].Key, pl[i].Value, tab+" ", row)
 		}
 	default:
-		switch (value).(type) {
+		switch value := value.(type) {
 		case float64:
-			t.Append([]string{tab + key, fmt.Sprintf("%d", int(value.(float64)))})
+			t.Append([]string{tab + key, fmt.Sprint(float64(value))})
 		case uint64, uint32:
 			t.Append([]string{tab + key, fmt.Sprintf("%d", value)})
 		default:
 			t.Append([]string{tab + key, fmt.Sprintf("%v", value)})
 		}
-
 	}
 }
 

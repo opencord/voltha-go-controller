@@ -11,17 +11,18 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
-package onos_nbi
+package onosnbi
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/log"
+
+	"github.com/gorilla/mux"
 )
 
 // DeviceHandle Handle DeviceIDList Requests
@@ -36,15 +37,15 @@ type DevicePortHandle struct {
 func (dh *DeviceHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "GET":
+	case cGet:
 		dh.GetDeviceList(w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
 	}
 }
+
 // GetDeviceList to get device id list
 func (dh *DeviceHandle) GetDeviceList(w http.ResponseWriter, r *http.Request) {
-
 	va := app.GetApplication()
 	var deviceListResp DeviceEntry
 	deviceListResp.Devices = []Device{}
@@ -76,7 +77,7 @@ func (dh *DeviceHandle) GetDeviceList(w http.ResponseWriter, r *http.Request) {
 func (dh *DevicePortHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "GET":
+	case cGet:
 		dh.GetPortList(w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -87,7 +88,7 @@ func (dh *DevicePortHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (dh *DevicePortHandle) ServeHTTPWithDeviceID(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "GET":
+	case cGet:
 		dh.GetPortListPerDevice(w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -96,7 +97,6 @@ func (dh *DevicePortHandle) ServeHTTPWithDeviceID(w http.ResponseWriter, r *http
 
 // GetPortListPerDevice to get port list for a given device
 func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
 	deviceID := vars["olt_of_id"]
 
@@ -110,7 +110,7 @@ func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.
 		return true
 	}
 	if len(deviceID) > 0 {
-		logger.Infow(ctx, "Recieved Port get request for device", log.Fields{"deviceID": deviceID})
+		logger.Infow(ctx, "Received Port get request for device", log.Fields{"deviceID": deviceID})
 		voltDevice := app.GetApplication().GetDevice(deviceID)
 		if voltDevice != nil {
 			logger.Infow(ctx, "Found device", log.Fields{"deviceID": deviceID})
@@ -131,9 +131,9 @@ func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
+
 // GetPortList to get device id list
 func (dh *DevicePortHandle) GetPortList(w http.ResponseWriter, r *http.Request) {
-
 	va := app.GetApplication()
 	var portListResp PortEntry
 	portListResp.Ports = []Port{}
@@ -166,4 +166,3 @@ func (dh *DevicePortHandle) GetPortList(w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
-

@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package nbi
 
@@ -21,9 +21,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	cntlr "voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/log"
+
+	"github.com/gorilla/mux"
 )
 
 // FlowHashHandle Handle flowhash Requests
@@ -58,5 +59,4 @@ func (fh *FlowHashHandle) PutFlowHash(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.Debugw(ctx, "flowhash data is ", log.Fields{"vars": vars, "value": string(reqBody)})
-
 }

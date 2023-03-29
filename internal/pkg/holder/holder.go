@@ -26,8 +26,8 @@ import (
 // point for a mutable value that represents a GRPC service interface to
 // VOLTHA
 type VolthaServiceClientHolder struct {
-	mutex           sync.RWMutex
 	volthaSvcClient voltha.VolthaServiceClient
+	mutex           sync.RWMutex
 }
 
 // VolthaServiceClientReference structure

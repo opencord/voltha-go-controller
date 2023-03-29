@@ -19,7 +19,7 @@ import (
 	"context"
 	"net/http"
 
-	"voltha-go-controller/voltha-go-controller/onos_nbi"
+	onosnbi "voltha-go-controller/voltha-go-controller/onos_nbi"
 
 	"github.com/gorilla/mux"
 
@@ -51,13 +51,13 @@ const (
 	AllocationsPath                   string = "/allocations"
 	AllocationsDeviceIDPath           string = "/allocations/{deviceId}"
 	MecLearnerPath                    string = "/mapping/all"
-	MecLearnerDeviceIdAndPortNoPath   string = "/mapping/{deviceId}/{portNumber}"
-	MecLearnerDevicePortAndVlanIdPath string = "/mapping/{deviceId}/{portNumber}/{vlanId}"
+	MecLearnerDeviceIDAndPortNoPath   string = "/mapping/{deviceId}/{portNumber}"
+	MecLearnerDevicePortAndVlanIDPath string = "/mapping/{deviceId}/{portNumber}/{vlanId}"
 	PortIgnoredPath                   string = "/ports/ignored"
 	MetersParh                        string = "/meters"
-	MetersByIdPath                    string = "/meters/{id}"
+	MetersByIDPath                    string = "/meters/{id}"
 	GroupsPath                        string = "/groups"
-	GroupsByIdPath                    string = "/groups/{id}"
+	GroupsByIDPath                    string = "/groups/{id}"
 	OltFlowServicePath                string = "/oltflowservice"
 	NetConfigPath                     string = "/network/configurations"
 	DeviceConfigPath                  string = "/olt/{serialNumber}"
@@ -73,30 +73,30 @@ func RestStart() {
 	mu.HandleFunc(BasePath+IgmpProxyDeletePath, (&IgmpProxyHandle{}).ServeHTTP)
 	mu.HandleFunc(BasePath+MulticastPath, (&MulticastHandle{}).ServeHTTP)
 	mu.HandleFunc(BasePath+MulticastDeletePath, (&MulticastHandle{}).ServeHTTP)
-	mu.HandleFunc(BasePath+FlowsPath, (&onos_nbi.FlowHandle{}).ServeHTTP)
-	mu.HandleFunc(BasePath+FlowsPerDeviceIDPath, (&onos_nbi.FlowHandle{}).ServeHTTP)
-	mu.HandleFunc(BasePath+FlowPerDeviceIDFlowIDPath, (&onos_nbi.FlowHandle{}).ServeHTTP)
-	mu.HandleFunc(BasePath+PendingFlowsPath, (&onos_nbi.PendingFlowHandle{}).ServeHTTP)
-	mu.HandleFunc(BasePath+ProgrammedSubscribersPath, (&onos_nbi.ServiceAdapter{}).ServeHTTP)
-	mu.HandleFunc(BasePath+ServiceDevicePortPath, (&onos_nbi.ServiceAdapter{}).ServeHTTP)
-	mu.HandleFunc(BasePath+ServicePortNamePath, (&onos_nbi.ServiceAdapter{}).ServeHTTPWithPortName)
-	mu.HandleFunc(BasePath+ServicePortStagCtagTpIDPath, (&onos_nbi.ServiceAdapter{}).ServeHTTPWithPortName)
-	mu.HandleFunc(BasePath+AllocationsPath, (&onos_nbi.DhcpRelayHandle{}).ServeHTTP)
-	mu.HandleFunc(BasePath+AllocationsDeviceIDPath, (&onos_nbi.DhcpRelayHandle{}).ServeHTTP)
-	mu.HandleFunc(BasePath+DevicesPath, (&onos_nbi.DeviceHandle{}).ServeHTTP)
-	mu.HandleFunc(BasePath+PortsPath, (&onos_nbi.DevicePortHandle{}).ServeHTTP)
-	mu.HandleFunc(BasePath+PortsPerDeviceIDPath, (&onos_nbi.DevicePortHandle{}).ServeHTTPWithDeviceID)
-	mu.HandleFunc(BasePath+MecLearnerPath, (&onos_nbi.MacLearnerHandle{}).ServeHTTP)
-	mu.HandleFunc(BasePath+MecLearnerDeviceIdAndPortNoPath, (&onos_nbi.MacLearnerHandle{}).ServeHTTP)
-	mu.HandleFunc(BasePath+MecLearnerDevicePortAndVlanIdPath, (&onos_nbi.MacLearnerHandle{}).ServeHTTP)
-	mu.HandleFunc(BasePath+PortIgnoredPath, (&onos_nbi.PortIgnoredHandle{}).PortsIgnoredServeHTTP)
-	mu.HandleFunc(BasePath+MetersParh, (&onos_nbi.MetersHandle{}).MeterServeHTTP)
-	mu.HandleFunc(BasePath+MetersByIdPath, (&onos_nbi.MetersHandle{}).MeterServeHTTP)
-	mu.HandleFunc(BasePath+GroupsPath, (&onos_nbi.GroupsHandle{}).GroupServeHTTP)
-	mu.HandleFunc(BasePath+GroupsByIdPath, (&onos_nbi.GroupsHandle{}).GroupServeHTTP)
-	mu.HandleFunc(BasePath+OltFlowServicePath, (&onos_nbi.OltFlowServiceHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+FlowsPath, (&onosnbi.FlowHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+FlowsPerDeviceIDPath, (&onosnbi.FlowHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+FlowPerDeviceIDFlowIDPath, (&onosnbi.FlowHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+PendingFlowsPath, (&onosnbi.PendingFlowHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+ProgrammedSubscribersPath, (&onosnbi.ServiceAdapter{}).ServeHTTP)
+	mu.HandleFunc(BasePath+ServiceDevicePortPath, (&onosnbi.ServiceAdapter{}).ServeHTTP)
+	mu.HandleFunc(BasePath+ServicePortNamePath, (&onosnbi.ServiceAdapter{}).ServeHTTPWithPortName)
+	mu.HandleFunc(BasePath+ServicePortStagCtagTpIDPath, (&onosnbi.ServiceAdapter{}).ServeHTTPWithPortName)
+	mu.HandleFunc(BasePath+AllocationsPath, (&onosnbi.DhcpRelayHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+AllocationsDeviceIDPath, (&onosnbi.DhcpRelayHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+DevicesPath, (&onosnbi.DeviceHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+PortsPath, (&onosnbi.DevicePortHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+PortsPerDeviceIDPath, (&onosnbi.DevicePortHandle{}).ServeHTTPWithDeviceID)
+	mu.HandleFunc(BasePath+MecLearnerPath, (&onosnbi.MacLearnerHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+MecLearnerDeviceIDAndPortNoPath, (&onosnbi.MacLearnerHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+MecLearnerDevicePortAndVlanIDPath, (&onosnbi.MacLearnerHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+PortIgnoredPath, (&onosnbi.PortIgnoredHandle{}).PortsIgnoredServeHTTP)
+	mu.HandleFunc(BasePath+MetersParh, (&onosnbi.MetersHandle{}).MeterServeHTTP)
+	mu.HandleFunc(BasePath+MetersByIDPath, (&onosnbi.MetersHandle{}).MeterServeHTTP)
+	mu.HandleFunc(BasePath+GroupsPath, (&onosnbi.GroupsHandle{}).GroupServeHTTP)
+	mu.HandleFunc(BasePath+GroupsByIDPath, (&onosnbi.GroupsHandle{}).GroupServeHTTP)
+	mu.HandleFunc(BasePath+OltFlowServicePath, (&onosnbi.OltFlowServiceHandle{}).ServeHTTP)
 	mu.HandleFunc(BasePath+NetConfigPath, (&NetConfigHandle{}).NetConfigServeHTTP)
-	mu.HandleFunc(BasePath+DeviceConfigPath, (&onos_nbi.DeviceConfigHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+DeviceConfigPath, (&onosnbi.DeviceConfigHandle{}).ServeHTTP)
 
 	err := http.ListenAndServe(":8181", mu)
 	logger.Infow(ctx, "Rest Server Started", log.Fields{"Error": err})

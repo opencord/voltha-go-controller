@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package tasks
 
@@ -28,9 +28,9 @@ var logger log.CLogger
 
 var (
 	// ErrCxtCancelError error
-	ErrCxtCancelError = errors.New("Context Cancelled")
+	ErrCxtCancelError = errors.New("Context Canceled")
 	// ErrTaskCancelError error
-	ErrTaskCancelError = errors.New("Task Cancelled")
+	ErrTaskCancelError = errors.New("Task Canceled")
 
 	ctx = context.TODO()
 )
@@ -42,9 +42,9 @@ var (
 // TaskSet structure
 type TaskSet struct {
 	name      string
-	taskID    uint8
 	timestamp string
 	queued    []Task
+	taskID    uint8
 }
 
 // NewTaskSet is constructor for TaskSet
@@ -130,13 +130,13 @@ func (ts *TaskSet) Stop() {
 
 // Tasks structure
 type Tasks struct {
+	ctx         context.Context
 	queued      []Task
-	taskID      uint8
-	stop        bool
+	lock        sync.RWMutex
 	totalTasks  uint16
 	failedTasks uint16
-	lock        sync.RWMutex
-	ctx         context.Context
+	taskID      uint8
+	stop        bool
 }
 
 // NewTasks is constructor for Tasks
@@ -154,7 +154,6 @@ func NewTasks(ctx context.Context) *Tasks {
 // Initialize is used to initialize the embedded tasks structure within
 // each ONU.
 func (ts *Tasks) Initialize(ctx context.Context) {
-
 	//Send signal to stop any task which are being executed
 	ts.StopAll()
 	ts.taskID = 0xff
@@ -164,7 +163,6 @@ func (ts *Tasks) Initialize(ctx context.Context) {
 // CheckAndInitialize is used to initialize the embedded tasks structure within
 // NNI and resets taskID only when there are no pending tasks
 func (ts *Tasks) CheckAndInitialize(ctx context.Context) {
-
 	ts.lock.Lock()
 	logger.Infow(ctx, "Queued Tasks", log.Fields{"Count": len(ts.queued)})
 	if len(ts.queued) == 0 {
@@ -189,7 +187,7 @@ func (ts *Tasks) GetContext() context.Context {
 }
 
 // AddTask adds a task and executes it if there is no task
-// pending execution. The execution happens on a seperate thread.
+// pending execution. The execution happens on a separate thread.
 // The tasks are maintained per ONU. This structure is instantiated
 // one per ONU
 func (ts *Tasks) AddTask(task Task) {
@@ -259,7 +257,7 @@ func (ts *Tasks) GetTaskList() []Task {
 }
 
 // CurrentTask returns the task that is currently running. This can be
-// used for verifying upon unforseen failures for debugging from
+// used for verifying upon unforeseen failures for debugging from
 // with the code
 func (ts *Tasks) CurrentTask() Task {
 	return ts.queued[0]
@@ -278,7 +276,7 @@ func (ts *Tasks) executeTasks() {
 
 		err := task.Start(ts.ctx, taskID)
 		if err == ErrTaskCancelError {
-			logger.Warnw(ctx, "Previous task cancelled. Exiting current task queue execution thread", log.Fields{"TaskCount": len(ts.queued)})
+			logger.Warnw(ctx, "Previous task canceled. Exiting current task queue execution thread", log.Fields{"TaskCount": len(ts.queued)})
 			return
 		}
 		_, pending := ts.popTask()

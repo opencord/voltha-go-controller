@@ -17,10 +17,22 @@ package common
 
 // IGMPConfig identifies the IGMP Configuration parameters.
 type IGMPConfig struct {
+	FastLeave *bool `json:"FastLeave"`
+	// PeriodicQuery represents IGMP period query interval.
+	PeriodicQuery *bool `json:"PeriodicQuery"`
+	// WithRAUpLink represents IGMP RA uplink.
+	WithRAUpLink *bool `json:"withRAUpLink"`
+	// WithRADownLink represents IGMP RA downlink.
+	WithRADownLink *bool `json:"withRADownLink"`
 	// ProfileID represents IGMP profile ID
 	ProfileID string `json:"ProfileID"`
 	// ProfileName represents IGMP profile Name
 	ProfileName string `json:"ProfileName"`
+	// IgmpVerToServer represents IGMP version.
+	IgmpVerToServer string `json:"igmpVerToServer"`
+	// IgmpSourceIP represents IGMP src ip.
+	IgmpSourceIP string `json:"igmpSourceIp"`
+	// FastLeave represents IGMP fast leave enabled or not.
 	// UnsolicitedTimeOut represents unsolicited timeout.
 	UnsolicitedTimeOut int `json:"UnsolicitedTimeOut"`
 	// MaxResp represents IGMP max response time.
@@ -33,23 +45,11 @@ type IGMPConfig struct {
 	LastQueryInterval int `json:"LastQueryInterval"`
 	// LastQueryCount represents IGMP last query count.
 	LastQueryCount int `json:"LastQueryCount"`
-	// FastLeave represents IGMP fast leave enabled or not.
-	FastLeave *bool `json:"FastLeave"`
-	// PeriodicQuery represents IGMP period query interval.
-	PeriodicQuery *bool `json:"PeriodicQuery"`
 	// IgmpCos represents IGMP COS value(0-7).
 	IgmpCos int `json:"IgmpCos"`
-	// WithRAUpLink represents IGMP RA uplink.
-	WithRAUpLink *bool `json:"withRAUpLink"`
-	// WithRADownLink represents IGMP RA downlink.
-	WithRADownLink *bool `json:"withRADownLink"`
-	// IgmpVerToServer represents IGMP version.
-	IgmpVerToServer string `json:"igmpVerToServer"`
-	// IgmpSourceIP represents IGMP src ip.
-	IgmpSourceIP string `json:"igmpSourceIp"`
 }
 
-//MulticastSrcListMode represents mode of source list
+// MulticastSrcListMode represents mode of source list
 type MulticastSrcListMode string
 
 const (
@@ -69,31 +69,31 @@ const (
 type MulticastGroupProxy struct {
 	// Mode represents source list include/exclude
 	Mode MulticastSrcListMode `json:"Mode"`
-	// SourceList represents list of multicast server IP addresses.
-	SourceList []string `json:"SourceList"`
 	// IsStatic flag indicating if the group is a "static" group
 	IsStatic string `json:"IsStatic,omitempty"`
+	// SourceList represents list of multicast server IP addresses.
+	SourceList []string `json:"SourceList"`
 }
 
 // MVLANProfile identifies the MVLAN profile.
 type MVLANProfile struct {
-	// VLANID represents the Multicast VLAN ID.
-	VLANID int `json:"VLANID"`
-	// ProfileID represents Multicast profile ID
-	ProfileID string `json:"ProfileID"`
-	// ProfileName represents Multicast profile Name
-	ProfileName string `json:"ProfileName"`
-	// PonVLAN represents the vlan, where mcast traffic will be translated at OLT
-	PonVLAN int `json:"PonVLAN"`
 	// Groups represents the MVLAN group information. Key will be group name and value as array of multicast channel IPs.
 	Groups map[string][]string `json:"Groups"`
 	// Proxy represents multicast group proxy info. Key will be group name and value as proxy info
 	Proxy map[string]MulticastGroupProxy `json:"Proxy"`
-	//IsChannelBasedGroup represents if the group is channel based
-	IsChannelBasedGroup bool `json:"IsChannelBasedGroup"`
+	// ProfileID represents Multicast profile ID
+	ProfileID string `json:"ProfileID"`
+	// ProfileName represents Multicast profile Name
+	ProfileName string `json:"ProfileName"`
 	// ActiveIgmpChannelsPerSubscriber represents maximum igmp channels per subscriber can use
 	// Default : 3
 	ActiveIgmpChannelsPerSubscriber int `json:"ActiveIgmpChannelsPerSubscriber"`
+	// VLANID represents the Multicast VLAN ID.
+	VLANID int `json:"VLANID"`
+	// PonVLAN represents the vlan, where mcast traffic will be translated at OLT
+	PonVLAN int `json:"PonVLAN"`
+	//IsChannelBasedGroup represents if the group is channel based
+	IsChannelBasedGroup bool `json:"IsChannelBasedGroup"`
 }
 
 // McastConfig the structure for multicast config

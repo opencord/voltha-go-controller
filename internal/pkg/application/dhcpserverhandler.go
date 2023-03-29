@@ -40,7 +40,7 @@ var mux sync.Mutex
 
 // StartDhcpServerHandler starts go routine periodically(every second) to verify DHCP server reachability.
 func StartDhcpServerHandler() {
-	// Intialize global dhcp map and ticker as one second
+	// Initialize global dhcp map and ticker as one second
 	dhcpServerInfo = make(map[dhcpServerTag]dhcpTransactionInfo)
 	ticker := time.NewTicker(1 * time.Second)
 
@@ -55,7 +55,6 @@ func StartDhcpServerHandler() {
 				mux.Lock()
 				checkDhcpTimeout()
 				mux.Unlock()
-
 			}
 		}
 	}()
@@ -168,11 +167,11 @@ func newDhcpServerTag(cTag, sTag uint16) dhcpServerTag {
 
 // dhcpTransactionInfo contains DHCP request response transaction information.
 type dhcpTransactionInfo struct {
-	timer                 uint8
+	smac                  string
 	pendingRequestCount   uint32
 	receivedResponseCount uint32
 	previousRequestCount  uint32
-	smac                  string
+	timer                 uint8
 }
 
 func newDhcpTransactionInfo(timer uint8, smac string) dhcpTransactionInfo {

@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package config
 
@@ -28,12 +28,12 @@ const (
 // Config represents the set of configurations used by the VGC-cli
 type Config struct {
 	KVStoreHost    string
-	KVStorePort    int
 	KVStoreType    string
+	KVStorePort    int
 	KVStoreTimeout int
 }
 
-// ParseEnvironmentVariables parses the enviornment variables passed to VGC-cli
+// ParseEnvironmentVariables parses the environment variables passed to VGC-cli
 func (cf *Config) ParseEnvironmentVariables() {
 	cf.KVStoreHost = envutils.ParseStringEnvVariable(envutils.KvStoreHost, defaultKVStoreHost)
 	cf.KVStorePort = int(envutils.ParseIntEnvVariable(envutils.KvStorePort, defaultKVStorePort))
