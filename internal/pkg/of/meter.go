@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package of
 
@@ -49,10 +49,10 @@ type Band struct {
 
 // Meter structure
 type Meter struct {
-	ID          uint32
-	Bands       []Band
-	State       uint8
 	ErrorReason string
+	Bands       []Band
+	ID          uint32
+	State       uint8
 }
 
 // NewMeter is constructor for Meter

@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package format
 
@@ -19,8 +19,8 @@ import "sort"
 
 // Pair structure
 type Pair struct {
-	Key   string
 	Value interface{}
+	Key   string
 }
 
 // PairList type
@@ -34,7 +34,7 @@ func sortData(data map[string]interface{}) PairList {
 	pl := make(PairList, len(data))
 	i := 0
 	for k, v := range data {
-		pl[i] = Pair{k, v}
+		pl[i] = Pair{v, k}
 		i++
 	}
 	sort.Sort(pl)

@@ -31,18 +31,18 @@ import (
 // IgmpProxy - configurations
 type IgmpProxy struct {
 	FastLeave               string `json:"fastleave"`
-	LastQueryInterval       int    `json:"lastqueryinterval"`
-	MaxResp                 int    `json:"maxresp"`
 	EnableIgmpProvisioning  string `json:"enableigmpprovisioning"`
 	GlobalConnectPointMode  string `json:"globalconnectpointmode"`
 	GlobalConnectPoint      string `json:"globalconnectpoint"`
 	SourceDeviceAndPort     string `json:"sourcedeviceandport"`
+	OutgoingIgmpWithV3      string `json:"outgoingigmpwithv3"`
+	PeriodicQuery           string `json:"periodicquery"`
+	LastQueryInterval       int    `json:"lastqueryinterval"`
+	MaxResp                 int    `json:"maxresp"`
 	OutgoingIgmpVlanID      int    `json:"outgoingigmpvlanid"`
 	OutgoingIgmpInnerVlanID int    `json:"outgoingigmpinnervlanid"`
-	OutgoingIgmpWithV3      string `json:"outgoingigmpwithv3"`
 	IgmpCos                 int    `json:"igmpcos"`
 	IgmpUniCos              int    `json:"igmpunicos"`
-	PeriodicQuery           string `json:"periodicquery"`
 	KeepAliveInterval       int    `json:"keepaliveinterval"`
 	KeepAliveCount          int    `json:"keepalivecount"`
 	RequestDsIgmpPackets    bool   `json:"requestdsigmppackets"`
@@ -56,9 +56,9 @@ type IgmpProxyHandle struct {
 func (iph *IgmpProxyHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "POST":
+	case cPost:
 		iph.AddIgmpProxyInfo(context.Background(), w, r)
-	case "DELETE":
+	case cDelete:
 		iph.DelIgmpProxyInfo(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -67,7 +67,6 @@ func (iph *IgmpProxyHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // AddIgmpProxyInfo to add igmp proxy info
 func (iph *IgmpProxyHandle) AddIgmpProxyInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
@@ -112,5 +111,4 @@ func (iph *IgmpProxyHandle) addIgmpProxy(cntx context.Context, w http.ResponseWr
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
-
 }

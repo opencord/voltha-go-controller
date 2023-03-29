@@ -13,7 +13,7 @@
 * limitations under the License.
  */
 
-package onos_nbi
+package onosnbi
 
 import (
 	"context"
@@ -43,13 +43,13 @@ func (mlh *MacLearnerHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	deviceID := vars["deviceId"]
 	portNum := vars["portNumber"]
-	vlanId := vars["vlanId"]
+	vlanID := vars["vlanId"]
 	switch r.Method {
-	case "GET":
-		if deviceID == "" && portNum == "" && vlanId == "" {
+	case cGet:
+		if deviceID == "" && portNum == "" && vlanID == "" {
 			mlh.GetAllMacLearnerInfo(context.Background(), w, r)
 		} else {
-			mlh.GetMacLearnerInfo(context.Background(), deviceID, portNum, vlanId, w, r)
+			mlh.GetMacLearnerInfo(context.Background(), deviceID, portNum, vlanID, w, r)
 		}
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -57,7 +57,6 @@ func (mlh *MacLearnerHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mlh *MacLearnerHandle) GetAllMacLearnerInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	logger.Info(cntx, "Inside GetAllMacLearnerInfo method")
 	MacLearnerInfo, err := app.GetApplication().GetAllMacLearnerInfo()
 	if err != nil {
@@ -79,13 +78,11 @@ func (mlh *MacLearnerHandle) GetAllMacLearnerInfo(cntx context.Context, w http.R
 		logger.Errorw(ctx, "error in sending mac learner response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }
 
-func (mlh *MacLearnerHandle) GetMacLearnerInfo(cntx context.Context, deviceID, portNum, vlanId string, w http.ResponseWriter, r *http.Request) {
-
-	logger.Infow(cntx, "Inside GetMacLearnerInfo method", log.Fields{"deviceID": deviceID, "portNum": portNum, "vlanId": vlanId})
-	MacLearnerInfo, err := app.GetApplication().GetMacLearnerInfo(cntx, deviceID, portNum, vlanId)
+func (mlh *MacLearnerHandle) GetMacLearnerInfo(cntx context.Context, deviceID, portNum, vlanID string, w http.ResponseWriter, r *http.Request) {
+	logger.Infow(cntx, "Inside GetMacLearnerInfo method", log.Fields{"deviceID": deviceID, "portNum": portNum, "vlanId": vlanID})
+	MacLearnerInfo, err := app.GetApplication().GetMacLearnerInfo(cntx, deviceID, portNum, vlanID)
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get mac learning info", log.Fields{"Reason": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
@@ -105,5 +102,4 @@ func (mlh *MacLearnerHandle) GetMacLearnerInfo(cntx context.Context, deviceID, p
 		logger.Errorw(ctx, "error in sending mac learner response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }

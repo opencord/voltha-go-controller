@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package database
 
@@ -35,10 +35,10 @@ const redisSentinelPort int = 26379
 
 // Database structure
 type Database struct {
+	kvc       Client
 	storeType string
 	address   string
 	//timeout   int
-	kvc       Client
 }
 
 // Client represents the set of APIs a KV Client must implement
@@ -130,7 +130,6 @@ func (rc *RedisClient) GetAll(key interface{}) (map[string]*Data, error) {
 
 // Get to fetch single value
 func (rc *RedisClient) Get(basePath, key interface{}) (*Data, error) {
-
 	var err error
 	bPath := basePath.(string)
 	argKey := key.(string)
@@ -160,9 +159,9 @@ func SplitHashKey(keyPath string) (string, string) {
 func GetPath(path interface{}) string {
 	switch reflect.ValueOf(path).Kind() {
 	default:
-		switch (path).(type) {
+		switch path := path.(type) {
 		case string:
-			return path.(string)
+			return fmt.Sprint(path)
 		default:
 			return (string(path.(KVPath)))
 		}
@@ -171,7 +170,6 @@ func GetPath(path interface{}) string {
 
 // GetValue to fetch single value
 func (rc *RedisClient) GetValue(basePath interface{}) (*Data, error) {
-
 	var err error
 	path := GetPath(basePath)
 	hash, keyStr := SplitHashKey(path)

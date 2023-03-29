@@ -13,7 +13,7 @@
 * limitations under the License.
  */
 
-package onos_nbi
+package onosnbi
 
 import (
 	"bytes"
@@ -33,9 +33,9 @@ type OltFlowServiceHandle struct {
 func (oh *OltFlowServiceHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "POST":
+	case cPost:
 		oh.configureOltFlowService(context.Background(), w, r)
-	case "GET":
+	case cGet:
 		oh.fetchOltFlowService(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -43,7 +43,6 @@ func (oh *OltFlowServiceHandle) ServeHTTP(w http.ResponseWriter, r *http.Request
 }
 
 func (oh *OltFlowServiceHandle) configureOltFlowService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
@@ -62,7 +61,6 @@ func (oh *OltFlowServiceHandle) configureOltFlowService(cntx context.Context, w 
 }
 
 func (oh *OltFlowServiceHandle) fetchOltFlowService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	logger.Info(cntx, "Inside fetchOltFlowService method")
 	oltFlowSer := OltFlowServiceConfig{}
 	va := app.GetApplication()

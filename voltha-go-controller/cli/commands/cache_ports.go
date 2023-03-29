@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package commands
 
@@ -20,20 +20,19 @@ import (
 	"fmt"
 	"log"
 
-	flags "github.com/jessevdk/go-flags"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/voltha-go-controller/cli/database"
 	"voltha-go-controller/voltha-go-controller/cli/format"
 	"voltha-go-controller/voltha-go-controller/cli/models"
+
+	flags "github.com/jessevdk/go-flags"
 )
 
 // RegisterCachePortCommands to register cache port command
 func RegisterCachePortCommands(parser *flags.Parser) {
-
 	if _, err := parser.AddCommand("cacheport", "Lists Cache Port", "Commands to display Cache Port", &cacheportCommand); err != nil {
 		log.Fatalf("Unexpected error while attempting to register cache port commands : %s", err)
 	}
-
 }
 
 // CachePortCommand structure

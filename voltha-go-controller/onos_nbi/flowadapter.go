@@ -11,20 +11,21 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
-package onos_nbi
+package onosnbi
 
 import (
-        "context"
+	"context"
 	"encoding/json"
-        "net/http"
+	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
-        "voltha-go-controller/internal/pkg/of"
-        "voltha-go-controller/log"
 	cntlr "voltha-go-controller/internal/pkg/controller"
+	"voltha-go-controller/internal/pkg/of"
+	"voltha-go-controller/log"
+
+	"github.com/gorilla/mux"
 )
 
 // FlowHandle struct to handle flow related REST calls
@@ -36,11 +37,9 @@ type PendingFlowHandle struct {
 }
 
 type TrafficSelector struct {
-
 }
 
 type TrafficTreatment struct {
-
 }
 
 /*
@@ -57,23 +56,23 @@ type FlowEntry struct {
 }*/
 
 func (fh *FlowHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-        logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
-        switch r.Method {
-        case "GET":
-                fh.GetFlows(context.Background(), w, r)
-        default:
-                logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
-        }
+	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
+	switch r.Method {
+	case cGet:
+		fh.GetFlows(context.Background(), w, r)
+	default:
+		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+	}
 }
 
 func (pfh *PendingFlowHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-        logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
-        switch r.Method {
-        case "GET":
-                pfh.GetPendingFlows(context.Background(), w, r)
-        default:
-                logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
-        }
+	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
+	switch r.Method {
+	case cGet:
+		pfh.GetPendingFlows(context.Background(), w, r)
+	default:
+		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+	}
 }
 
 func (pfh *PendingFlowHandle) GetPendingFlows(cntx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -96,13 +95,12 @@ func (pfh *PendingFlowHandle) GetPendingFlows(cntx context.Context, w http.Respo
 		logger.Errorw(ctx, "Failed to write Pending Flow response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }
 
 func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-        vars := mux.Vars(r)
-        deviceID := vars["deviceId"]
-        flowIDStr := vars["flowId"]
+	vars := mux.Vars(r)
+	deviceID := vars["deviceId"]
+	flowIDStr := vars["flowId"]
 	flowID, _ := strconv.ParseUint(flowIDStr, 10, 64)
 	var flowResp FlowEntry
 	if len(deviceID) > 0 && len(flowIDStr) > 0 {
@@ -112,7 +110,7 @@ func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *h
 			return
 		}
 		flowResp = ConvertFlowToFlowEntry(flow)
-		//flowResp = append(flowResp, flow)
+		// flowResp = append(flowResp, flow)
 	} else {
 		flows, err := fh.getAllFlows(deviceID)
 		if err != nil {
@@ -120,7 +118,7 @@ func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *h
 			return
 		}
 		flowResp = ConvertFlowsToFlowEntry(flows)
-		//..flowResp = append(flowResp, flows...)
+		// ..flowResp = append(flowResp, flows...)
 	}
 	FlowRespJSON, err := json.Marshal(flowResp)
 	if err != nil {

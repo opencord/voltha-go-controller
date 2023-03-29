@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package controller
 
@@ -20,20 +20,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	infraerror "voltha-go-controller/internal/pkg/errorcodes"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+	infraerror "voltha-go-controller/internal/pkg/errorcodes"
 
 	"voltha-go-controller/database"
 	"voltha-go-controller/internal/pkg/holder"
 	"voltha-go-controller/internal/pkg/intf"
 	"voltha-go-controller/internal/pkg/of"
+
 	//"voltha-go-controller/internal/pkg/vpagent"
 	"voltha-go-controller/internal/pkg/tasks"
 	"voltha-go-controller/internal/pkg/util"
 	"voltha-go-controller/log"
+
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
@@ -54,14 +56,14 @@ const (
 
 // DevicePort structure
 type DevicePort struct {
+	Name    string
+	State   PortState
+	Version string
+	HwAddr  string
 	tasks.Tasks
-	Name      string
-	ID        uint32
-	State     PortState
-	Version   string
-	HwAddr    string
 	CurrSpeed uint32
 	MaxSpeed  uint32
+	ID        uint32
 }
 
 // NewDevicePort is the constructor for DevicePort
@@ -115,32 +117,32 @@ const (
 
 // Device structure
 type Device struct {
+	ctx              context.Context
+	cancel           context.CancelFunc
+	vclientHolder    *holder.VolthaServiceClientHolder
+	packetOutChannel chan *ofp.PacketOut
+	PortsByName      map[string]*DevicePort
+	flows            map[uint64]*of.VoltSubFlow
+	PortsByID        map[uint32]*DevicePort
+	meters           map[uint32]*of.Meter
+	flowQueue        map[uint32]*UniIDFlowQueue // key is hash ID generated and value is UniIDFlowQueue.
+	SouthBoundID     string
+	MfrDesc          string
+	HwDesc           string
+	SwDesc           string
+	ID               string
+	SerialNum        string
+	State            DeviceState
+	TimeStamp        time.Time
+	groups           sync.Map //map[uint32]*of.Group -> [GroupId : Group]
 	tasks.Tasks
-	ID                    string
-	SerialNum             string
-	State                 DeviceState
-	PortsByID             map[uint32]*DevicePort
-	PortsByName           map[string]*DevicePort
 	portLock              sync.RWMutex
-	vclientHolder         *holder.VolthaServiceClientHolder
-	ctx                   context.Context
-	cancel                context.CancelFunc
-	packetOutChannel      chan *ofp.PacketOut
-	flows                 map[uint64]*of.VoltSubFlow
 	flowLock              sync.RWMutex
-	meters                map[uint32]*of.Meter
 	meterLock             sync.RWMutex
-	groups                sync.Map //map[uint32]*of.Group -> [GroupId : Group]
-	auditInProgress       bool
 	flowQueueLock         sync.RWMutex
 	flowHash              uint32
-	flowQueue             map[uint32]*UniIDFlowQueue // key is hash ID generated and value is UniIDFlowQueue.
+	auditInProgress       bool
 	deviceAuditInProgress bool
-	SouthBoundID          string
-	MfrDesc               string
-	HwDesc                string
-	SwDesc                string
-	TimeStamp             time.Time
 }
 
 // NewDevice is the constructor for Device
@@ -155,7 +157,7 @@ func NewDevice(cntx context.Context, id string, slno string, vclientHldr *holder
 	device.flows = make(map[uint64]*of.VoltSubFlow)
 	device.meters = make(map[uint32]*of.Meter)
 	device.flowQueue = make(map[uint32]*UniIDFlowQueue)
-	//Get the flowhash from db and update the flowhash variable in the device.
+	// Get the flowhash from db and update the flowhash variable in the device.
 	device.SouthBoundID = southBoundID
 	device.MfrDesc = mfr
 	device.HwDesc = hwDesc
@@ -195,7 +197,7 @@ func (d *Device) GetFlow(cookie uint64) (*of.VoltSubFlow, bool) {
 }
 
 // GetAllFlows - Get the flow from device obj
-func (d *Device) GetAllFlows() ([]*of.VoltSubFlow) {
+func (d *Device) GetAllFlows() []*of.VoltSubFlow {
 	d.flowLock.RLock()
 	defer d.flowLock.RUnlock()
 	var flows []*of.VoltSubFlow
@@ -207,7 +209,7 @@ func (d *Device) GetAllFlows() ([]*of.VoltSubFlow) {
 }
 
 // GetAllPendingFlows - Get the flow from device obj
-func (d *Device) GetAllPendingFlows() ([]*of.VoltSubFlow) {
+func (d *Device) GetAllPendingFlows() []*of.VoltSubFlow {
 	d.flowLock.RLock()
 	defer d.flowLock.RUnlock()
 	var flows []*of.VoltSubFlow
@@ -322,7 +324,6 @@ func (d *Device) CreateFlowFromString(b []byte) {
 
 // UpdateGroupEntry - Adds/Updates the group to the device and also to the database
 func (d *Device) UpdateGroupEntry(cntx context.Context, group *of.Group) {
-
 	logger.Infow(ctx, "Update Group to device", log.Fields{"ID": group.GroupID})
 	d.groups.Store(group.GroupID, group)
 	d.AddGroupToDb(cntx, group)
@@ -340,7 +341,6 @@ func (d *Device) AddGroupToDb(cntx context.Context, group *of.Group) {
 
 // DelGroupEntry - Deletes the group from the device and the database
 func (d *Device) DelGroupEntry(cntx context.Context, group *of.Group) {
-
 	if _, ok := d.groups.Load(group.GroupID); ok {
 		d.groups.Delete(group.GroupID)
 		d.DelGroupFromDb(cntx, group.GroupID)
@@ -352,7 +352,7 @@ func (d *Device) DelGroupFromDb(cntx context.Context, groupID uint32) {
 	_ = db.DelGroup(cntx, d.ID, groupID)
 }
 
-//RestoreGroupsFromDb - restores all groups from DB
+// RestoreGroupsFromDb - restores all groups from DB
 func (d *Device) RestoreGroupsFromDb(cntx context.Context) {
 	logger.Info(ctx, "Restoring Groups")
 	groups, _ := db.GetGroups(cntx, d.ID)
@@ -366,7 +366,7 @@ func (d *Device) RestoreGroupsFromDb(cntx context.Context) {
 	}
 }
 
-//CreateGroupFromString - Forms group struct from json string
+// CreateGroupFromString - Forms group struct from json string
 func (d *Device) CreateGroupFromString(b []byte) {
 	var group of.Group
 	if err := json.Unmarshal(b, &group); err == nil {
@@ -395,15 +395,15 @@ func (d *Device) AddMeter(cntx context.Context, meter *of.Meter) error {
 
 // UpdateMeter to update meter
 func (d *Device) UpdateMeter(cntx context.Context, meter *of.Meter) error {
-       d.meterLock.Lock()
-       defer d.meterLock.Unlock()
-       if _, ok := d.meters[meter.ID]; ok {
-               d.meters[meter.ID] = meter
-               d.AddMeterToDb(cntx, meter)
-       } else {
-               return errors.New("Meter not found for updation")
-       }
-       return nil
+	d.meterLock.Lock()
+	defer d.meterLock.Unlock()
+	if _, ok := d.meters[meter.ID]; ok {
+		d.meters[meter.ID] = meter
+		d.AddMeterToDb(cntx, meter)
+	} else {
+		return errors.New("Meter not found for updation")
+	}
+	return nil
 }
 
 // GetMeter to get meter
@@ -501,7 +501,6 @@ func (d *Device) AddPort(cntx context.Context, mp *ofp.OfpPort) error {
 // DelPort to delete the port as requested by the device/VOLTHA
 // Inform the application if the port is successfully deleted
 func (d *Device) DelPort(cntx context.Context, id uint32) error {
-
 	p := d.GetPortByID(id)
 	if p == nil {
 		return errors.New("Unknown Port")
@@ -594,7 +593,6 @@ func (d *Device) GetPortID(name string) (uint32, error) {
 		return p.ID, nil
 	}
 	return 0, errors.New("Unknown Port ID")
-
 }
 
 // WritePortToDb to add the port to the database
@@ -681,13 +679,12 @@ func (d *Device) ConnectInd(ctx context.Context, discType intf.DiscoveryType) {
 }
 
 func (d *Device) synchronizeDeviceTables() {
-
 	tick := time.NewTicker(GetController().GetDeviceTableSyncDuration())
 loop:
 	for {
 		select {
 		case <-d.ctx.Done():
-			logger.Warnw(d.ctx, "Context Done. Cancelling Periodic Audit", log.Fields{"Context": ctx, "Device": d.ID, "DeviceSerialNum": d.SerialNum})
+			logger.Warnw(d.ctx, "Context Done. Canceling Periodic Audit", log.Fields{"Context": ctx, "Device": d.ID, "DeviceSerialNum": d.SerialNum})
 			break loop
 		case <-tick.C:
 			t1 := NewAuditTablesTask(d)
@@ -748,7 +745,7 @@ func (d *Device) DeviceDisabledInd(cntx context.Context) {
 	GetController().DeviceDisableInd(cntx, d.ID)
 }
 
-//ReSetAllPortStates - Set all logical device port status to DOWN
+// ReSetAllPortStates - Set all logical device port status to DOWN
 func (d *Device) ReSetAllPortStates(cntx context.Context) {
 	logger.Warnw(ctx, "Resetting all Ports State to DOWN", log.Fields{"Device": d.ID, "State": d.State})
 
@@ -765,7 +762,7 @@ func (d *Device) ReSetAllPortStates(cntx context.Context) {
 	}
 }
 
-//ReSetAllPortStatesInDb - Set all logical device port status to DOWN in DB and skip indication to application
+// ReSetAllPortStatesInDb - Set all logical device port status to DOWN in DB and skip indication to application
 func (d *Device) ReSetAllPortStatesInDb(cntx context.Context) {
 	logger.Warnw(ctx, "Resetting all Ports State to DOWN In DB", log.Fields{"Device": d.ID, "State": d.State})
 
@@ -990,7 +987,7 @@ func (d *Device) ModMeter(command of.MeterCommand, meter *of.Meter, devPort *Dev
 
 func (d *Device) getAndAddFlowQueueForUniID(id uint32) *UniIDFlowQueue {
 	d.flowQueueLock.RLock()
-	//If flowhash is 0 that means flowhash throttling is disabled, return nil
+	// If flowhash is 0 that means flowhash throttling is disabled, return nil
 	if d.flowHash == 0 {
 		d.flowQueueLock.RUnlock()
 		return nil
@@ -1007,7 +1004,6 @@ func (d *Device) getAndAddFlowQueueForUniID(id uint32) *UniIDFlowQueue {
 }
 
 func (d *Device) addFlowQueueForUniID(id uint32) *UniIDFlowQueue {
-
 	d.flowQueueLock.Lock()
 	defer d.flowQueueLock.Unlock()
 	flowHashID := id % uint32(d.flowHash)
@@ -1037,9 +1033,8 @@ func (d *Device) writeFlowHashToDB(cntx context.Context) {
 	}
 }
 
-//isSBOperAllowed - determins if the SB operation is allowed based on device state & force flag
+// isSBOperAllowed - determines if the SB operation is allowed based on device state & force flag
 func (d *Device) isSBOperAllowed(forceAction bool) bool {
-
 	if d.State == DeviceStateUP {
 		return true
 	}
@@ -1057,7 +1052,6 @@ func (d *Device) triggerFlowNotification(cntx context.Context, cookie uint64, op
 }
 
 func (d *Device) triggerFlowResultNotification(cntx context.Context, cookie uint64, flow *of.VoltSubFlow, oper of.Command, bwDetails of.BwAvailDetails, err error) {
-
 	statusCode, statusMsg := infraerror.GetErrorInfo(err)
 	success := isFlowOperSuccess(statusCode, oper)
 
@@ -1069,7 +1063,7 @@ func (d *Device) triggerFlowResultNotification(cntx context.Context, cookie uint
 		}
 	}
 
-	//Update flow results
+	// Update flow results
 	// Add - Update Success or Failure status with reason
 	// Del - Delete entry from DB on success else update error reason
 	if oper == of.CommandAdd {

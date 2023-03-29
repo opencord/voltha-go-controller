@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package controller
 
@@ -21,6 +21,7 @@ import (
 
 	"voltha-go-controller/internal/pkg/tasks"
 	"voltha-go-controller/log"
+
 	"github.com/opencord/voltha-protos/v5/go/common"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 )
@@ -42,12 +43,12 @@ const (
 
 // AuditDevice structure
 type AuditDevice struct {
-	taskID    uint8
 	ctx       context.Context
 	device    *Device
-	stop      bool
 	timestamp string
 	event     AuditEventType
+	taskID    uint8
+	stop      bool
 }
 
 // NewAuditDevice is constructor for AuditDevice
@@ -88,7 +89,7 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 	ad.ctx = ctx
 
 	if ad.stop {
-		logger.Errorw(ctx, "Audit Device Task Cancelled", log.Fields{"Context": ad.ctx, "Task": ad.taskID})
+		logger.Errorw(ctx, "Audit Device Task Canceled", log.Fields{"Context": ad.ctx, "Task": ad.taskID})
 		return tasks.ErrTaskCancelError
 	}
 
@@ -133,7 +134,6 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 			excessPorts = append(excessPorts, id)
 		}
 		logger.Debugw(ctx, "Processed Port State Ind", log.Fields{"Port No": vgcPort.ID, "Port Name": vgcPort.Name})
-
 	}
 
 	// 1st process the NNI port before all other ports so that the device state can be updated.
@@ -155,7 +155,7 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 	GetController().ResetAuditFlags(ad.device)
 
 	if ad.stop {
-		logger.Errorw(ctx, "Audit Device Task Cancelled", log.Fields{"Context": ad.ctx, "Task": ad.taskID})
+		logger.Errorw(ctx, "Audit Device Task Canceled", log.Fields{"Context": ad.ctx, "Task": ad.taskID})
 		return tasks.ErrTaskCancelError
 	}
 	ad.AddMissingPorts(ctx, missingPorts)
@@ -181,7 +181,6 @@ func (ad *AuditDevice) AddMissingPorts(cntx context.Context, mps map[uint32]*ofp
 			ad.device.ProcessPortState(cntx, mp.PortNo, mp.State)
 		}
 		logger.Debugw(ctx, "Processed Port Add Ind", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name})
-
 	}
 
 	// 1st process the NNI port before all other ports so that the flow provisioning for UNIs can be enabled
