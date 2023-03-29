@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package format
 
@@ -21,16 +21,17 @@ import (
 	"io"
 	"log"
 
-	"github.com/guumaster/tablewriter"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/voltha-go-controller/cli/database"
 	"voltha-go-controller/voltha-go-controller/cli/models"
 	"voltha-go-controller/voltha-go-controller/nbi"
+
+	"github.com/guumaster/tablewriter"
 )
 
 type horizontalTable struct {
-	title  models.TableTitle
 	writer *tablewriter.Table
+	title  models.TableTitle
 }
 
 func newHorizontalTable(title models.TableTitle, outputBuffer io.Writer) Table {

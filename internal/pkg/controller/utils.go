@@ -51,13 +51,9 @@ func extractAction(action ofp.IAction) *openflow_13.OfpAction {
 		loxiOutputAction := action.(*ofp.ActionOutput)
 		var output openflow_13.OfpActionOutput
 		output.Port = uint32(loxiOutputAction.GetPort())
-		/*
 			var maxLen uint16
 			maxLen = loxiOutputAction.GetMaxLen()
 			output.MaxLen = uint32(maxLen)
-
-		*/
-/*
 		output.MaxLen = 0
 		outputAction.Output = &output
 		ofpAction.Action = &outputAction

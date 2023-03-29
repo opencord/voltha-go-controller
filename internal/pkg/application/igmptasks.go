@@ -40,8 +40,8 @@ import (
 // TickTask structure
 type TickTask struct {
 	ctx    context.Context
-	taskID uint8
 	ts     string
+	taskID uint8
 }
 
 // NewTickTask is constructor for TickTask
@@ -84,11 +84,11 @@ func (tt *TickTask) Start(ctx context.Context, taskID uint8) error {
 // IgmpPacketTask structure
 type IgmpPacketTask struct {
 	ctx    context.Context
-	taskID uint8
+	Pkt    gopacket.Packet
 	Device string
 	Port   string
-	Pkt    gopacket.Packet
 	ts     string
+	taskID uint8
 }
 
 // NewIgmpPacketTask is the constructor for IgmpPacketTask
@@ -131,10 +131,10 @@ func (pt *IgmpPacketTask) Start(ctx context.Context, taskID uint8) error {
 // UpdateMvlanTask structure
 type UpdateMvlanTask struct {
 	ctx      context.Context
-	taskID   uint8
-	DeviceID string
 	mvp      *MvlanProfile
+	DeviceID string
 	ts       string
+	taskID   uint8
 }
 
 // NewUpdateMvlanTask is the constructor for UpdateMvlanTask

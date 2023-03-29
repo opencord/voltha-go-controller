@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package nbi
 
@@ -19,9 +19,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/log"
+
+	"github.com/gorilla/mux"
 )
 
 // TaskListHandle handle TaskList Requests
@@ -32,7 +33,7 @@ type TaskListHandle struct {
 func (dh *TaskListHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "GET":
+	case cGet:
 		dh.GetTaskList(w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -49,7 +50,7 @@ func (dh *TaskListHandle) GetTaskList(w http.ResponseWriter, r *http.Request) {
 	taskListResp := map[string]map[int]*app.TaskInfo{}
 
 	if len(id) > 0 {
-		//If Get for single Device
+		// If Get for single Device
 		deviceID = id
 		voltDevice := va.GetDevice(deviceID)
 		if voltDevice != nil {
@@ -60,7 +61,7 @@ func (dh *TaskListHandle) GetTaskList(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		//Else If GetAll
+		// Else If GetAll
 		getDeviceTaskList := func(key, value interface{}) bool {
 			voltDevice := value.(*app.VoltDevice)
 			deviceID = voltDevice.Name

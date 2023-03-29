@@ -28,47 +28,47 @@ const (
 // ErrorCode is Enum of error type
 type ErrorCode int
 
-//ErrorAction is Enum for error action
+// ErrorAction is Enum for error action
 type ErrorAction int
 
 const (
-	//ErrOk is returned when request is successful
+	// ErrOk is returned when request is successful
 	ErrOk ErrorCode = 0
-	//ErrInProgress is returned when operation is in progress
+	// ErrInProgress is returned when operation is in progress
 	ErrInProgress ErrorCode = iota + errorCodeStartRange
-	//ErrInvalidParm is returned when parameter is wrong
+	// ErrInvalidParm is returned when parameter is wrong
 	ErrInvalidParm
-	//ErrResourceUnavailable is returned when no free resources are available
+	// ErrResourceUnavailable is returned when no free resources are available
 	ErrResourceUnavailable
-	//ErrAlreadyExists is returned when entry already exists
+	// ErrAlreadyExists is returned when entry already exists
 	ErrAlreadyExists
-	//ErrNotExists is returned when entry does not exists
+	// ErrNotExists is returned when entry does not exists
 	ErrNotExists
-	//ErrInvalidOperation is returned when invalid operation is performed
+	// ErrInvalidOperation is returned when invalid operation is performed
 	ErrInvalidOperation
-	//ErrDeviceNotConnected is returned when there is no connection with the target system
+	// ErrDeviceNotConnected is returned when there is no connection with the target system
 	ErrDeviceNotConnected
-	//ErrTimeout is returned when operation times out
+	// ErrTimeout is returned when operation times out
 	ErrTimeout
-	//ErrResourceBusy is returned when resource is busy
+	// ErrResourceBusy is returned when resource is busy
 	ErrResourceBusy
-	//ErrInternal is returned when Errors happened internally
+	// ErrInternal is returned when Errors happened internally
 	ErrInternal
-	//ErrIo is returned when there is I/O error
+	// ErrIo is returned when there is I/O error
 	ErrIo
-	//ErrMandatoryParmIsMissing is returned when mandatory parameter is missing
+	// ErrMandatoryParmIsMissing is returned when mandatory parameter is missing
 	ErrMandatoryParmIsMissing
-	//ErrBadState is returned when object is in bad state
+	// ErrBadState is returned when object is in bad state
 	ErrBadState
-	//ErrOnuInternal is returned when ONT internal failure occurs
+	// ErrOnuInternal is returned when ONT internal failure occurs
 	ErrOnuInternal
-	//ErrElanNotCreated is returned when ELAN is not created
+	// ErrElanNotCreated is returned when ELAN is not created
 	ErrElanNotCreated
-	//ErrOltInternal is returned when OLT internal failure occurs
+	// ErrOltInternal is returned when OLT internal failure occurs
 	ErrOltInternal
 )
 
-//ErrorCodeMap converts error code to error description string
+// ErrorCodeMap converts error code to error description string
 var ErrorCodeMap = map[ErrorCode]string{
 	ErrOk:                     "Success",
 	ErrInProgress:             "Operation is in progress",
@@ -90,17 +90,17 @@ var ErrorCodeMap = map[ErrorCode]string{
 }
 
 const (
-	//Retry is returned if subservice reactivation is required
+	// Retry is returned if subservice reactivation is required
 	Retry ErrorAction = iota
-	//Quiet is returned if no action has to be taken
+	// Quiet is returned if no action has to be taken
 	Quiet
-	//Deactivate is returned if subservice has to be deactivated
+	// Deactivate is returned if subservice has to be deactivated
 	Deactivate
-	//Invalid is returned when invalid error is received from vgc
+	// Invalid is returned when invalid error is received from vgc
 	Invalid
 )
 
-//RetryErrorCodeMap consists of errors that requires service activation retry
+// RetryErrorCodeMap consists of errors that requires service activation retry
 var RetryErrorCodeMap = map[ErrorCode]ErrorAction{
 	ErrOk:                     Quiet,
 	ErrInProgress:             Deactivate,

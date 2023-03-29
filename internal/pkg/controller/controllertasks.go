@@ -27,10 +27,10 @@ import (
 
 // AddDeviceTask structure
 type AddDeviceTask struct {
-	taskID    uint8
 	ctx       context.Context
 	config    *intf.VPClientCfg
 	timestamp string
+	taskID    uint8
 }
 
 // NewAddDeviceTask is the constructor for AddDeviceTask

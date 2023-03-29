@@ -26,15 +26,15 @@ import (
 
 // VPClientCfg structure
 type VPClientCfg struct {
+	VolthaClient     *holder.VolthaServiceClientHolder
+	PacketOutChannel chan *ofp.PacketOut
+	TimeStamp        time.Time
 	DeviceID         string
 	SerialNum        string
 	SouthBoundID     string
 	MfrDesc          string
 	HwDesc           string
 	SwDesc           string
-	TimeStamp        time.Time
-	VolthaClient     *holder.VolthaServiceClientHolder
-	PacketOutChannel chan *ofp.PacketOut
 }
 
 // DiscoveryType type

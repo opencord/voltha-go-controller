@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package commands
 
@@ -20,19 +20,18 @@ import (
 	"fmt"
 	"log"
 
-	flags "github.com/jessevdk/go-flags"
 	"voltha-go-controller/voltha-go-controller/cli/database"
 	"voltha-go-controller/voltha-go-controller/cli/format"
 	"voltha-go-controller/voltha-go-controller/cli/models"
+
+	flags "github.com/jessevdk/go-flags"
 )
 
 // RegisterCacheIcmpCommands to register cache icmp command
 func RegisterCacheIcmpCommands(parser *flags.Parser) {
-
 	if _, err := parser.AddCommand("cacheicmp", "Lists Cache ICMPs", "Commands to display Cache ICMPs", &cacheicmpCommand); err != nil {
 		log.Fatalf("Unexpected error while attempting to register cache icmp commands : %s", err)
 	}
-
 }
 
 // CacheIcmpCommand structure

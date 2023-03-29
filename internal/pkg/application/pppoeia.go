@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package application
 
@@ -87,9 +87,9 @@ type IPppoeIaSession interface {
 // to the network. It supports two VLANs as its identify. If a single VLAN or
 // no VLAN is to be used, those two should be passed as 4096 (VlanNone)
 type PppoeIaRelayVnet struct {
+	sessions  *util.ConcurrentMap //map[[6]byte]IPppoeIaSession
 	OuterVlan uint16
 	InnerVlan uint16
-	sessions  *util.ConcurrentMap //map[[6]byte]IPppoeIaSession
 }
 
 // PppoeIaNetworks : PppoeIa Networks hosts different PppoeIa networks that in turn hold the PppoeIa
@@ -154,7 +154,6 @@ func (dn *PppoeIaNetworks) DelPppoeIaSession(pkt gopacket.Packet, session IPppoe
 
 // delPppoeIaSessions to delete pppoeia sessions
 func delPppoeIaSessions(addr net.HardwareAddr, outervlan of.VlanType, innervlan of.VlanType) {
-
 	var key [6]byte
 	if addr == nil || !NonZeroMacAddress(addr) {
 		logger.Warnw(ctx, "Invalid MAC address", log.Fields{"Addr": addr})
@@ -184,7 +183,6 @@ func (dn *PppoeIaNetworks) GetPppoeIaSession(outerVlan uint16, innerVlan uint16,
 
 // GetVnetForNni to get vnet for nni port
 func GetVnetForNni(addr net.HardwareAddr, cvlan of.VlanType, svlan of.VlanType, pbit uint8) (*VoltPortVnet, error) {
-
 	var err error
 	var session IPppoeIaSession
 	logger.Infow(ctx, "Mac Obtained MAC: ", log.Fields{"Addr": addr})
@@ -217,7 +215,6 @@ func GetVnetForNni(addr net.HardwareAddr, cvlan of.VlanType, svlan of.VlanType, 
 // into the packet. This happens as the request is relayed to the
 // PppoeIa servers on the NNI
 func AddIaOption(svc *VoltService, pppoe *layers.PPPoE) {
-
 	//NOTE : both cID and rID should not be empty if this function is called
 	var data []byte
 	cID := svc.GetCircuitID()
@@ -281,7 +278,6 @@ func DelIaOption(pppoe *layers.PPPoE) {
 // common map. The key for retrieval includes the VLAN tags in the
 // the packet and the MAC address of the client.
 func (va *VoltApplication) ProcessDsPppoeIaPacket(cntx context.Context, device string, port string, pkt gopacket.Packet) {
-
 	// Retrieve the layers to build the outgoing packet. It is not
 	// possible to add/remove layers to the existing packet and thus
 	// the lyayers are extracted to build the outgoing packet
@@ -433,7 +429,7 @@ func (va *VoltApplication) ProcessUsPppoeIaPacket(cntx context.Context, device s
 	}
 
 	if vpv.PppoeIa {
-		//Maintain the session MAC as learnt MAC, since MAC is required for deletion of PPPoE session
+		// Maintain the session MAC as learnt MAC, since MAC is required for deletion of PPPoE session
 		if msgType == layers.PPPoECodePADI || msgType == layers.PPPoECodePADR {
 			if !util.MacAddrsMatch(vpv.MacAddr, eth.SrcMAC) {
 				expectedPort := va.GetMacInPortMap(eth.SrcMAC)
@@ -517,7 +513,6 @@ func (va *VoltApplication) ProcessUsPppoeIaPacket(cntx context.Context, device s
 	if err := cntlr.GetController().PacketOutReq(device, outport, port, buff.Bytes(), false); err != nil {
 		logger.Warnw(ctx, "PacketOutReq Failed", log.Fields{"Device": device, "Error": err})
 	}
-
 }
 
 // ProcessPPPoEIaPacket to process Pppoeia packet
@@ -572,12 +567,12 @@ func ProcessPPPoEPacket(cntx context.Context, device string, port string, pkt go
 
 // PppoeIaPacketTask : Task to add or delete flows of a service
 type PppoeIaPacketTask struct {
-	taskID    uint8
 	ctx       context.Context
 	pkt       gopacket.Packet
 	device    string
 	port      string
 	timestamp string
+	taskID    uint8
 }
 
 // NewPppoeIaPacketTask constructor for PppoeIaPacketTask
