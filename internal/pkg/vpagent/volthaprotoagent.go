@@ -25,6 +25,7 @@ import (
 	"voltha-go-controller/internal/pkg/intf"
 
 	"voltha-go-controller/log"
+
 	"github.com/opencord/voltha-lib-go/v7/pkg/probe"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
@@ -63,21 +64,19 @@ var vpAgent *VPAgent
 
 // VPAgent structure
 type VPAgent struct {
+	VPClientAgent             intf.IVPClientAgent
+	clientMap                 map[string]intf.IVPClient
+	packetInChannel           chan *ofp.PacketIn
+	packetOutChannel          chan *ofp.PacketOut
+	changeEventChannel        chan *ofp.ChangeEvent
+	volthaClient              *holder.VolthaServiceClientHolder
+	volthaConnection          *grpc.ClientConn
+	events                    chan vpaEvent
 	VolthaAPIEndPoint         string
+	mapLock                   sync.Mutex
 	DeviceListRefreshInterval time.Duration
-	ConnectionMaxRetries      int
 	ConnectionRetryDelay      time.Duration
-
-	volthaConnection *grpc.ClientConn
-	volthaClient     *holder.VolthaServiceClientHolder
-	mapLock          sync.Mutex
-	clientMap        map[string]intf.IVPClient
-	events           chan vpaEvent
-
-	packetInChannel    chan *ofp.PacketIn
-	packetOutChannel   chan *ofp.PacketOut
-	changeEventChannel chan *ofp.ChangeEvent
-	VPClientAgent      intf.IVPClientAgent
+	ConnectionMaxRetries      int
 }
 
 // NewVPAgent is constructor for VPAgent
@@ -122,7 +121,7 @@ func NewVPAgent(config *VPAgent) (*VPAgent, error) {
 	return &vpa, nil
 }
 
-//GetVPAgent - returns vpAgent object
+// GetVPAgent - returns vpAgent object
 func GetVPAgent() *VPAgent {
 	return vpAgent
 }
@@ -132,9 +131,8 @@ func (vpa *VPAgent) VolthaSvcClient() voltha.VolthaServiceClient {
 	return vpa.volthaClient.Get()
 }
 
-// Run - make the inital connection to voltha and kicks off io streams
+// Run - make the initial connection to voltha and kicks off io streams
 func (vpa *VPAgent) Run(ctx context.Context) {
-
 	logger.Debugw(ctx, "Starting GRPC - VOLTHA client",
 		log.Fields{
 			"voltha-endpoint": vpa.VolthaAPIEndPoint})

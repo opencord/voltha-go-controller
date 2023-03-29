@@ -38,10 +38,10 @@ var logger log.CLogger
 
 // Database structure
 type Database struct {
+	kvc       kvstore.Client
 	storeType string
 	address   string
 	//timeout   uint32
-	kvc kvstore.Client
 }
 
 // Initialize the database module. The database module runs as a singleton
@@ -931,7 +931,6 @@ func (db *Database) OltExists(ctx context.Context, deviceID string) bool {
 		return false
 	}
 	return true
-
 }
 
 // PutFlowHash to add flowhash for the device

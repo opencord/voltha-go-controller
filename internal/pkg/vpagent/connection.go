@@ -20,14 +20,15 @@ import (
 	"errors"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"voltha-go-controller/log"
+
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/opencord/voltha-lib-go/v7/pkg/probe"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc"
 )
 
-//GrpcMaxSize Max size of grpc message
+// GrpcMaxSize Max size of grpc message
 const GrpcMaxSize int = 17455678
 
 func (vpa *VPAgent) establishConnectionToVoltha(ctx context.Context, p *probe.Probe) error {
@@ -82,7 +83,7 @@ func (vpa *VPAgent) establishConnectionToVoltha(ctx context.Context, p *probe.Pr
 
 // CloseConnectionToVoltha closes the grpc connection to VOLTHA
 func (vpa *VPAgent) CloseConnectionToVoltha() {
-	//Close the grpc connection to voltha
+	// Close the grpc connection to voltha
 	logger.Debug(ctx, "Closing voltha grpc connection")
 	vpa.volthaConnection.Close()
 }

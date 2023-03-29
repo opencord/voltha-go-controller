@@ -15,7 +15,7 @@
  */
 
 // The implementation of the open flow agent (vpagent) uses a GRPC connection
-// to VOLTHA accross several implementaton packages including the vpagent and
+// to VOLTHA across several implementaton packages including the vpagent and
 // openflow packages. This GRPC connection is shared through packages and type
 // instances via injection.
 //
@@ -26,7 +26,7 @@
 //
 // To help simply the re-injection or value change scenario a holder for the
 // GRPC connection is established so that the reference to the holder can
-// stay [sic] consistant over the lifetime of the vpagent while the underlying
+// stay [sic] consistent over the lifetime of the vpagent while the underlying
 // GRPC connection can change without walking the entire runtime structure.
 
 package holder

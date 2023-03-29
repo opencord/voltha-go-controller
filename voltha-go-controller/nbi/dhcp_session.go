@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package nbi
 
@@ -22,12 +22,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/log"
+
+	"github.com/gorilla/mux"
 )
 
-//DHCPSessionInfoHandle handle dhcp session Requests
+// DHCPSessionInfoHandle handle dhcp session Requests
 type DHCPSessionInfoHandle struct {
 }
 
@@ -59,7 +60,7 @@ func getDhcpSessionFields(id string, port string, svlan string, cvlan string, un
 	return dInfo
 }
 
-// validateArgs validate the arguements
+// validateArgs validate the arguments
 func validateArgs(sv string, cv string, macAddr string, svlan string, cvlan string, mac string) bool {
 	var vlanFlag bool
 	var macFlag bool
@@ -82,7 +83,7 @@ func validateArgs(sv string, cv string, macAddr string, svlan string, cvlan stri
 func (dh *DHCPSessionInfoHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "GET":
+	case cGet:
 		dh.getDhcpSessionInfo(w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -106,19 +107,19 @@ func (dh *DHCPSessionInfoHandle) getDhcpSessionInfo(w http.ResponseWriter, r *ht
 		port := key.(string)
 		vp := value.(*app.VoltPort)
 
-		//Ignore if UNI port is not UP
+		// Ignore if UNI port is not UP
 		if vp.State != app.PortStateUp {
 			return true
 		}
 
-		//Obtain all VPVs associated with the port
+		// Obtain all VPVs associated with the port
 		vnets, ok := va.VnetsByPort.Load(port)
 		if !ok {
 			return true
 		}
 
 		for _, vpv := range vnets.([]*app.VoltPortVnet) {
-			// When only device id is provided as arguement
+			// When only device id is provided as argument
 			sv := strconv.Itoa(int(vpv.SVlan))
 			cv := strconv.Itoa(int(vpv.CVlan))
 			uv := strconv.Itoa(int(vpv.UniVlan))
@@ -156,5 +157,4 @@ func (dh *DHCPSessionInfoHandle) getDhcpSessionInfo(w http.ResponseWriter, r *ht
 		logger.Errorw(ctx, "error in sending dhcp session info response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }

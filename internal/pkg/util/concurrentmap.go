@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package util
 
@@ -23,8 +23,8 @@ import (
 
 // ConcurrentMap implements a wrapper on top of SyncMap so that the count is also maintained
 type ConcurrentMap struct {
-	syncMap sync.Map
 	count   *atomic.Uint64
+	syncMap sync.Map
 	MapLock sync.RWMutex
 }
 
@@ -36,7 +36,7 @@ func NewConcurrentMap() *ConcurrentMap {
 }
 
 // Get - Gets return the value store in the sync map
-//If value is present, the result will be true else false
+// If value is present, the result will be true else false
 func (cm *ConcurrentMap) Get(key interface{}) (value interface{}, result bool) {
 	return cm.syncMap.Load(key)
 }
@@ -55,7 +55,6 @@ func (cm *ConcurrentMap) Set(key, value interface{}) {
 
 // Remove - Removes the key-value pair from the sync map
 func (cm *ConcurrentMap) Remove(key interface{}) bool {
-
 	if _, ok := cm.syncMap.Load(key); ok {
 		cm.syncMap.Delete(key)
 		cm.count.Dec()

@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-//TimerType - type of timer used
+// TimerType - type of timer used
 type TimerType string
 
 const (
@@ -57,7 +57,7 @@ func (va *VoltApplication) Start(cntx context.Context, cfg TimerCfg, timerType T
 			case pendingPoolTimer:
 				va.removeExpiredGroups(cntx)
 			}
-		case <- timerChannels[timerType]:
+		case <-timerChannels[timerType]:
 			return
 		}
 	}

@@ -20,6 +20,7 @@ SHELL = bash -e -o pipefail
 VERSION                  ?= $(shell head -n 1 ./VERSION)
 # DOCKER_TAG               ?= ${VERSION}
 IMAGENAME                ?= ${DOCKER_NAME}:${DOCKER_TAG}
+GOLANGCI_LINT_BIN_PATH   ?= bin/golangci-lint
 
 COVERAGE_DIR = ./tests/results
 COVERAGE_PROFILE = $(COVERAGE_DIR)/profile.out
@@ -125,4 +126,3 @@ test: ## Run unit tests
 	${GO_JUNIT_REPORT} < ./tests/results/go-test-results.out > ./tests/results/go-test-results.xml ;\
 	${GOCOVER_COBERTURA} < ./tests/results/go-test-coverage.out > ./tests/results/go-test-coverage.xml ;\
 	exit $$RETURN
-

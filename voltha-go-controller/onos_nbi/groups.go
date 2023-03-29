@@ -13,7 +13,7 @@
 * limitations under the License.
  */
 
-package onos_nbi
+package onosnbi
 
 import (
 	"context"
@@ -45,7 +45,7 @@ func (gh *GroupsHandle) GroupServeHTTP(w http.ResponseWriter, r *http.Request) {
 	groupID := vars["id"]
 
 	switch r.Method {
-	case "GET":
+	case cGet:
 		if groupID != "" {
 			gh.GetGroupInfo(context.Background(), groupID, w, r)
 		} else {
@@ -57,15 +57,14 @@ func (gh *GroupsHandle) GroupServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (gh *GroupsHandle) GetGroupInfo(cntx context.Context, groupId string, w http.ResponseWriter, r *http.Request) {
-
+func (gh *GroupsHandle) GetGroupInfo(cntx context.Context, groupID string, w http.ResponseWriter, r *http.Request) {
 	groupResp := GroupList{}
 	groupResp.Groups = []*GroupsInfo{}
-	grpId, err := strconv.ParseUint(groupId, 10, 32)
+	grpID, err := strconv.ParseUint(groupID, 10, 32)
 	if err != nil {
 		logger.Errorw(ctx, "Failed to parse string to uint32", log.Fields{"Reason": err.Error()})
 	}
-	id := uint32(grpId)
+	id := uint32(grpID)
 
 	logger.Infow(ctx, "Inside GetGroupInfo method", log.Fields{"groupId": id})
 
@@ -92,11 +91,9 @@ func (gh *GroupsHandle) GetGroupInfo(cntx context.Context, groupId string, w htt
 		logger.Errorw(ctx, "error in sending group response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }
 
 func (gh *GroupsHandle) GetAllGroups(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	logger.Info(cntx, "Inside GetAllGroups method")
 	groupListResp := GroupList{}
 	groupListResp.Groups = []*GroupsInfo{}
@@ -126,5 +123,4 @@ func (gh *GroupsHandle) GetAllGroups(cntx context.Context, w http.ResponseWriter
 		logger.Errorw(ctx, "error in sending meter response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }

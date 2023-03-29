@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package controller
 
@@ -25,12 +25,12 @@ import (
 
 // ModMeterTask structure
 type ModMeterTask struct {
-	taskID    uint8
 	ctx       context.Context
-	command   of.MeterCommand
 	meter     *of.Meter
 	device    *Device
 	timestamp string
+	command   of.MeterCommand
+	taskID    uint8
 }
 
 // NewModMeterTask is the constructor for ModMeterTask
@@ -69,7 +69,7 @@ func (mmt *ModMeterTask) Start(ctx context.Context, taskID uint8) error {
 	mmt.taskID = taskID
 	mmt.ctx = ctx
 
-	//Temp commenting Sync response handling
+	// Temp commenting Sync response handling
 	//triggerMeterNotification := func(err error) {
 
 	// 	statusCode, statusMsg := infraerror.GetErrorInfo(err)
@@ -112,12 +112,11 @@ func (mmt *ModMeterTask) Start(ctx context.Context, taskID uint8) error {
 	}
 
 	if vc := mmt.device.VolthaClient(); vc != nil {
-
 		if _, err = vc.UpdateLogicalDeviceMeterTable(mmt.ctx, meterMod); err != nil {
 			logger.Errorw(ctx, "Update Meter Table Failed", log.Fields{"Reason": err.Error()})
 		} else {
 			mmt.meter.State = of.MeterOperSuccess
-			if err := mmt.device.UpdateMeter(ctx, mmt.meter); err != nil {
+			if err = mmt.device.UpdateMeter(ctx, mmt.meter); err != nil {
 				// Meter does not exist, update failed
 				logger.Error(ctx, "Update meter to DB failed")
 			}

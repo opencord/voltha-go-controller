@@ -22,7 +22,7 @@ import (
 	//	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
 
-// The commands on groups avialable. Add is not expected to be used.
+// The commands on groups available. Add is not expected to be used.
 // The mod is used for both create and update. The delete is used to
 // delete the group
 
@@ -54,13 +54,13 @@ const (
 // Group structure
 type Group struct {
 	Device           string
-	Command          GroupCommand `json:"-"`
-	GroupID          uint32
-	Buckets          []uint32
-	SetVlan          VlanType
-	IsPonVlanPresent bool
-	State            uint8
 	ErrorReason      string
+	Buckets          []uint32
+	GroupID          uint32
+	SetVlan          VlanType
+	Command          GroupCommand `json:"-"`
+	State            uint8
+	IsPonVlanPresent bool
 	ForceAction      bool
 }
 

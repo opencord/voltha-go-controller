@@ -11,32 +11,32 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package controller
 
 import (
 	"context"
+	"time"
 	infraerror "voltha-go-controller/internal/pkg/errorcodes"
 	infraerrorcode "voltha-go-controller/internal/pkg/errorcodes/service"
-	"time"
 
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/log"
 )
 
 const (
-	//MaxRetryCount - Maximum retry attempts on failure
+	// MaxRetryCount - Maximum retry attempts on failure
 	MaxRetryCount int = 1
 )
 
 // AddFlowsTask structure
 type AddFlowsTask struct {
-	taskID    uint8
 	ctx       context.Context
 	flow      *of.VoltFlow
 	device    *Device
 	timestamp string
+	taskID    uint8
 }
 
 // NewAddFlowsTask is constructor for AddFlowsTask
@@ -84,7 +84,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 		logger.Infow(ctx, "Flow Mod Request", log.Fields{"Cookie": flow.Cookie, "Oper": aft.flow.Command, "Port": aft.flow.PortID})
 		if aft.flow.Command == of.CommandAdd {
 			flow.State = of.FlowAddPending
-			if err := aft.device.AddFlow(ctx, flow); err != nil {
+			if err = aft.device.AddFlow(ctx, flow); err != nil {
 				logger.Warnw(ctx, "Add Flow Error", log.Fields{"Cookie": flow.Cookie, "Reason": err.Error()})
 
 				// If flow already exists in cache, check for flow state
@@ -161,7 +161,6 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 				break
 			}
 			aft.device.triggerFlowNotification(ctx, flow.FlowMod.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
-
 		} else {
 			logger.Errorw(ctx, "Update Flow Table Failed: Voltha Client Unavailable", log.Fields{"Flow": flow})
 		}
@@ -178,7 +177,6 @@ func isFlowOperSuccess(statusCode uint32, oper of.Command) bool {
 
 	if oper == of.CommandAdd && volthaErrorCode == infraerrorcode.ErrAlreadyExists {
 		return true
-
 	} else if oper == of.CommandDel && volthaErrorCode == infraerrorcode.ErrNotExists {
 		return true
 	}

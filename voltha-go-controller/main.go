@@ -41,9 +41,9 @@ import (
 
 // VgcInfo structure
 type VgcInfo struct {
+	kvClient kvstore.Client
 	Name     string
 	Version  string
-	kvClient kvstore.Client
 }
 
 var vgcInfo = VgcInfo{Name: "VGC"}
@@ -71,7 +71,6 @@ func stop(ctx context.Context, kvClient kvstore.Client, vpa *vpagent.VPAgent) {
 	}
 	//Closet voltha connection
 	vpa.CloseConnectionToVoltha()
-
 }
 
 func newKVClient(ctx context.Context, storeType, address string, timeout int) (kvstore.Client, error) {
@@ -102,7 +101,6 @@ func waitUntilKVStoreReachableOrMaxTries(ctx context.Context, config *VGCFlags) 
 			time.Sleep(time.Duration(config.ConnectionRetryDelay) * time.Second)
 			logger.Infow(ctx, "retry-KV-store-connectivity", log.Fields{"retryCount": count,
 				"maxRetries": config.ConnectionMaxRetries, "retryInterval": config.ConnectionRetryDelay})
-
 		} else {
 			break
 		}
@@ -111,7 +109,7 @@ func waitUntilKVStoreReachableOrMaxTries(ctx context.Context, config *VGCFlags) 
 }
 
 func main() {
-	// Enviornment variables processing
+	// Environment variables processing
 	config := newVGCFlags()
 	config.parseEnvironmentVariables()
 
@@ -120,24 +118,25 @@ func main() {
 	}
 	// Create a context adding the status update channel
 	p := &probe.Probe{}
-	ctx := context.WithValue(context.Background(), probe.ProbeContextKey, p)
+	ctx = context.WithValue(context.Background(), probe.ProbeContextKey, p)
 
 	pc.Init()
 
 	// Setup logging for the program
 	// Read the loglevel configured first
 	// Setup default logger - applies for packages that do not have specific logger set
-	var logLevel log.LogLevel
+	var logLevel log.LevelLog
 	var err error
+	var dblogLevel string
 	if logLevel, err = log.StringToLogLevel(config.LogLevel); err != nil {
 		logLevel = log.DebugLevel
 	}
-	if err := log.SetDefaultLogger(ctx, int(logLevel), log.Fields{"instanceId": config.InstanceID}); err != nil {
+	if err = log.SetDefaultLogger(ctx, int(logLevel), log.Fields{"instanceId": config.InstanceID}); err != nil {
 		logger.With(ctx, log.Fields{"error": err}, "Cannot setup logging")
 	}
 
 	// Update all loggers (provisionned via init) with a common field
-	if err := log.UpdateAllLoggers(log.Fields{"instanceId": config.InstanceID}); err != nil {
+	if err = log.UpdateAllLoggers(log.Fields{"instanceId": config.InstanceID}); err != nil {
 		logger.With(ctx, log.Fields{"error": err}, "Cannot setup logging")
 	}
 	log.SetAllLogLevel(int(logLevel))
@@ -163,9 +162,9 @@ func main() {
 
 	logger.Info(ctx, "KV-store-reachable")
 	//Read if log-level is stored in DB
-	if logLevel, err := dbHandler.Get(ctx, db.GetKeyPath(db.LogLevelPath)); err == nil {
+	if dblogLevel, err = dbHandler.Get(ctx, db.GetKeyPath(db.LogLevelPath)); err == nil {
 		logger.Infow(ctx, "Read log-level from db", log.Fields{"logLevel": logLevel})
-		storedLogLevel, _ := log.StringToLogLevel(logLevel)
+		storedLogLevel, _ := log.StringToLogLevel(dblogLevel)
 		log.SetAllLogLevel(int(storedLogLevel))
 		log.SetDefaultLogLevel(int(storedLogLevel))
 	}
@@ -178,7 +177,7 @@ func main() {
 	}
 
 	defer func() {
-		err := log.CleanUp()
+		err = log.CleanUp()
 		if err != nil {
 			logger.Errorw(ctx, "unable-to-flush-any-buffered-log-entries", log.Fields{"error": err})
 		}

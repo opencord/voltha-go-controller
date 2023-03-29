@@ -50,17 +50,17 @@ var db database.DBIntf
 
 // VoltController structure
 type VoltController struct {
-	rebootLock              sync.Mutex
-	rebootInProgressDevices map[string]string
-	devices                 map[string]*Device
-	deviceLock              sync.RWMutex
-	vagent                  map[string]*vpagent.VPAgent
 	ctx                     context.Context
 	app                     intf.App
-	RebootFlow              bool
 	BlockedDeviceList       *util.ConcurrentMap
 	deviceTaskQueue         *util.ConcurrentMap
+	vagent                  map[string]*vpagent.VPAgent
+	devices                 map[string]*Device
+	rebootInProgressDevices map[string]string
+	deviceLock              sync.RWMutex
+	rebootLock              sync.Mutex
 	deviceTableSyncDuration time.Duration
+	RebootFlow              bool
 }
 
 var vcontroller *VoltController
@@ -81,20 +81,19 @@ func NewController(ctx context.Context, app intf.App) intf.IVPClientAgent {
 	return &controller
 }
 
-//SetDeviceTableSyncDuration - sets interval between device table sync up activity
-//  duration - in minutes
+// SetDeviceTableSyncDuration - sets interval between device table sync up activity
+// duration - in minutes
 func (v *VoltController) SetDeviceTableSyncDuration(duration int) {
 	v.deviceTableSyncDuration = time.Duration(duration) * time.Second
 }
 
-//GetDeviceTableSyncDuration - returns configured device table sync duration
+// GetDeviceTableSyncDuration - returns configured device table sync duration
 func (v *VoltController) GetDeviceTableSyncDuration() time.Duration {
 	return v.deviceTableSyncDuration
 }
 
 // AddDevice to add device
 func (v *VoltController) AddDevice(cntx context.Context, config *intf.VPClientCfg) intf.IVPClient {
-
 	d := NewDevice(cntx, config.DeviceID, config.SerialNum, config.VolthaClient, config.SouthBoundID, config.MfrDesc, config.HwDesc, config.SwDesc)
 	v.devices[config.DeviceID] = d
 	v.app.AddDevice(cntx, d.ID, d.SerialNum, config.SouthBoundID)
@@ -123,7 +122,7 @@ func (v *VoltController) DelDevice(cntx context.Context, id string) {
 	logger.Warnw(ctx, "Deleted device", log.Fields{"Device": id})
 }
 
-//AddControllerTask - add task to controller queue
+// AddControllerTask - add task to controller queue
 func (v *VoltController) AddControllerTask(device string, task tasks.Task) {
 	var taskQueueIntf interface{}
 	var taskQueue *tasks.Tasks
@@ -138,8 +137,8 @@ func (v *VoltController) AddControllerTask(device string, task tasks.Task) {
 	logger.Warnw(ctx, "Task Added to Controller Task List", log.Fields{"Len": taskQueue.NumPendingTasks(), "Total": taskQueue.TotalTasks()})
 }
 
-//AddNewDevice - called when new device is discovered. This will be
-//processed as part of controller queue
+// AddNewDevice - called when new device is discovered. This will be
+// processed as part of controller queue
 func (v *VoltController) AddNewDevice(config *intf.VPClientCfg) {
 	adt := NewAddDeviceTask(config)
 	v.AddControllerTask(config.DeviceID, adt)
@@ -210,12 +209,12 @@ func (v *VoltController) DeviceDisableInd(cntx context.Context, dID string) {
 	v.app.DeviceDisableInd(cntx, dID)
 }
 
-//TriggerPendingProfileDeleteReq - trigger pending profile delete requests
+// TriggerPendingProfileDeleteReq - trigger pending profile delete requests
 func (v *VoltController) TriggerPendingProfileDeleteReq(cntx context.Context, device string) {
 	v.app.TriggerPendingProfileDeleteReq(cntx, device)
 }
 
-//TriggerPendingMigrateServicesReq - trigger pending services migration requests
+// TriggerPendingMigrateServicesReq - trigger pending services migration requests
 func (v *VoltController) TriggerPendingMigrateServicesReq(cntx context.Context, device string) {
 	v.app.TriggerPendingMigrateServicesReq(cntx, device)
 }
@@ -232,7 +231,7 @@ func (v *VoltController) ResetAuditFlags(device *Device) {
 	device.auditInProgress = false
 }
 
-//ProcessFlowModResultIndication - send flow mod result notification
+// ProcessFlowModResultIndication - send flow mod result notification
 func (v *VoltController) ProcessFlowModResultIndication(cntx context.Context, flowStatus intf.FlowStatus) {
 	v.app.ProcessFlowModResultIndication(cntx, flowStatus)
 }
@@ -275,7 +274,7 @@ func (v *VoltController) AddFlows(cntx context.Context, port string, device stri
 		return errorCodes.ErrPortNotFound
 	}
 	if d.ctx == nil {
-		//FIXME: Application should know the context before it could submit task. Handle at application level
+		// FIXME: Application should know the context before it could submit task. Handle at application level
 		logger.Errorw(ctx, "Context is missing. AddFlow Operation Not added to Task", log.Fields{"Device": device})
 		return errorCodes.ErrInvalidParamInRequest
 	}
@@ -326,7 +325,7 @@ func (v *VoltController) DelFlows(cntx context.Context, port string, device stri
 		return errorCodes.ErrPortNotFound
 	}
 	if d.ctx == nil {
-		//FIXME: Application should know the context before it could submit task. Handle at application level
+		// FIXME: Application should know the context before it could submit task. Handle at application level
 		logger.Errorw(ctx, "Context is missing. DelFlow Operation Not added to Task", log.Fields{"Device": device})
 		return errorCodes.ErrInvalidParamInRequest
 	}
@@ -376,7 +375,7 @@ func (v *VoltController) GroupUpdate(port string, device string, group *of.Group
 	}
 
 	if d.ctx == nil {
-		//FIXME: Application should know the context before it could submit task. Handle at application level
+		// FIXME: Application should know the context before it could submit task. Handle at application level
 		logger.Errorw(ctx, "Context is missing. GroupMod Operation Not added to task", log.Fields{"Device": device})
 		return errorCodes.ErrInvalidParamInRequest
 	}
@@ -507,7 +506,6 @@ func (v *VoltController) GetTaskList(device string) []tasks.Task {
 		return []tasks.Task{}
 	}
 	return d.GetTaskList()
-
 }
 
 // AddBlockedDevices to add devices to blocked devices list
@@ -617,7 +615,6 @@ func (v *VoltController) GetGroupList() ([]*of.Group, error) {
 }
 
 func (v *VoltController) GetGroups(cntx context.Context, id uint32) (*of.Group, error) {
-
 	logger.Info(ctx, "Entering into GetGroupList method")
 	var groups *of.Group
 	for _, device := range v.devices {

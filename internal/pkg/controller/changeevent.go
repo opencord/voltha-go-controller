@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package controller
 
@@ -21,16 +21,17 @@ import (
 	"time"
 
 	"voltha-go-controller/log"
+
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 )
 
 // ChangeEventTask structure
 type ChangeEventTask struct {
-	taskID    uint8
 	ctx       context.Context
 	event     *ofp.ChangeEvent
 	device    *Device
 	timestamp string
+	taskID    uint8
 }
 
 // NewChangeEventTask is constructor for ChangeEventTask

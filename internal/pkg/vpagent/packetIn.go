@@ -19,8 +19,9 @@ import (
 	"context"
 	"io"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"voltha-go-controller/log"
+
+	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 )
 

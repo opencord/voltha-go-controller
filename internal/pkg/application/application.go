@@ -146,13 +146,13 @@ const (
 // as the identity. The SB is abstracted by VPAgent and the VPAgent transacts
 // using name as identity
 type VoltPort struct {
-	ID                       uint32
 	Name                     string
 	Device                   string
 	PonPort                  uint32
+	ActiveChannels           uint32
+	ID                       uint32
 	Type                     VoltPortType
 	State                    PortState
-	ActiveChannels           uint32
 	ChannelPerSubAlarmRaised bool
 }
 
@@ -191,31 +191,31 @@ func (vp *VoltPort) SetPortID(id uint32) {
 
 // VoltDevice fields :
 // Name:         This is the name presented by the device/VOLTHA. This doesn't
-//               have any relation to the physical device
+// have any relation to the physical device
 // SerialNum:    This is the serial number of the device and can be used to
-//               correlate the devices
+// correlate the devices
 // NniPort:      The identity of the NNI port
 // Ports:        List of all ports added to the device
 type VoltDevice struct {
-	Name                         string
-	SerialNum                    string
-	State                        controller.DeviceState
-	SouthBoundID                 string
-	NniPort                      string
-	Ports                        sync.Map
-	VlanPortStatus               sync.Map
-	VpvsBySvlan                  *util.ConcurrentMap // map[svlan]map[vnet_port]*VoltPortVnet
-	IgmpDsFlowAppliedForMvlan    map[uint16]bool
-	ConfiguredVlanForDeviceFlows *util.ConcurrentMap //map[string]map[string]bool
-	icmpv6GroupAdded             bool
-	ActiveChannelsPerPon         sync.Map            // [PonPortID]*PonPortCfg
-	ActiveChannelCountLock       sync.Mutex          // This lock is used to update ActiveIGMPChannels
-	PonPortList                  sync.Map            // [PonPortID]map[string]string
 	FlowAddEventMap              *util.ConcurrentMap //map[string]*FlowEvent
 	FlowDelEventMap              *util.ConcurrentMap //map[string]*FlowEvent
 	MigratingServices            *util.ConcurrentMap //<vnetID,<RequestID, MigrateServicesRequest>>
-	GlobalDhcpFlowAdded          bool
+	VpvsBySvlan                  *util.ConcurrentMap // map[svlan]map[vnet_port]*VoltPortVnet
+	ConfiguredVlanForDeviceFlows *util.ConcurrentMap //map[string]map[string]bool
+	IgmpDsFlowAppliedForMvlan    map[uint16]bool
+	State                        controller.DeviceState
+	SouthBoundID                 string
+	NniPort                      string
+	Name                         string
+	SerialNum                    string
+	Ports                        sync.Map
+	VlanPortStatus               sync.Map
+	ActiveChannelsPerPon         sync.Map   // [PonPortID]*PonPortCfg
+	PonPortList                  sync.Map   // [PonPortID]map[string]string
+	ActiveChannelCountLock       sync.Mutex // This lock is used to update ActiveIGMPChannels
 	NniDhcpTrapVid               of.VlanType
+	GlobalDhcpFlowAdded          bool
+	icmpv6GroupAdded             bool
 }
 
 // NewVoltDevice : Constructor for the device
@@ -243,7 +243,7 @@ func NewVoltDevice(name string, slno, southBoundID string) *VoltDevice {
 	return &d
 }
 
-//GetAssociatedVpvsForDevice - return the associated VPVs for given device & svlan
+// GetAssociatedVpvsForDevice - return the associated VPVs for given device & svlan
 func (va *VoltApplication) GetAssociatedVpvsForDevice(device string, svlan of.VlanType) *util.ConcurrentMap {
 	if d := va.GetDevice(device); d != nil {
 		return d.GetAssociatedVpvs(svlan)
@@ -251,10 +251,9 @@ func (va *VoltApplication) GetAssociatedVpvsForDevice(device string, svlan of.Vl
 	return nil
 }
 
-//AssociateVpvsToDevice - updates the associated VPVs for given device & svlan
+// AssociateVpvsToDevice - updates the associated VPVs for given device & svlan
 func (va *VoltApplication) AssociateVpvsToDevice(device string, vpv *VoltPortVnet) {
 	if d := va.GetDevice(device); d != nil {
-
 		vpvMap := d.GetAssociatedVpvs(vpv.SVlan)
 		vpvMap.Set(vpv, true)
 		d.VpvsBySvlan.Set(vpv.SVlan, vpvMap)
@@ -264,7 +263,7 @@ func (va *VoltApplication) AssociateVpvsToDevice(device string, vpv *VoltPortVne
 	logger.Errorw(ctx, "Set VPVMap failed: Device Not Found", log.Fields{"Svlan": vpv.SVlan, "Device": device})
 }
 
-//DisassociateVpvsFromDevice - disassociated VPVs from given device & svlan
+// DisassociateVpvsFromDevice - disassociated VPVs from given device & svlan
 func (va *VoltApplication) DisassociateVpvsFromDevice(device string, vpv *VoltPortVnet) {
 	if d := va.GetDevice(device); d != nil {
 		vpvMap := d.GetAssociatedVpvs(vpv.SVlan)
@@ -276,9 +275,8 @@ func (va *VoltApplication) DisassociateVpvsFromDevice(device string, vpv *VoltPo
 	logger.Errorw(ctx, "Remove VPVMap failed: Device Not Found", log.Fields{"Svlan": vpv.SVlan, "Device": device})
 }
 
-//GetAssociatedVpvs - returns the associated VPVs for the given Svlan
+// GetAssociatedVpvs - returns the associated VPVs for the given Svlan
 func (d *VoltDevice) GetAssociatedVpvs(svlan of.VlanType) *util.ConcurrentMap {
-
 	var vpvMap *util.ConcurrentMap
 	var mapIntf interface{}
 	var ok bool
@@ -358,7 +356,6 @@ func (d *VoltDevice) DelPort(port string) {
 
 // pushFlowsForUnis to send port-up-indication for uni ports.
 func (d *VoltDevice) pushFlowsForUnis(cntx context.Context) {
-
 	logger.Info(ctx, "NNI Discovered, Sending Port UP Ind for UNIs")
 	d.Ports.Range(func(key, value interface{}) bool {
 		port := key.(string)
@@ -380,7 +377,6 @@ func (d *VoltDevice) pushFlowsForUnis(cntx context.Context) {
 			vpv.VpvLock.Lock()
 			vpv.PortUpInd(cntx, d, port)
 			vpv.VpvLock.Unlock()
-
 		}
 		return true
 	})
@@ -398,57 +394,56 @@ var vapplication *VoltApplication
 
 // VoltApplication fields :
 // ServiceByName - Stores the services by the name as key
-//                 A record of NB configuration.
+// A record of NB configuration.
 // VnetsByPort   - Stores the VNETs by the ports configured
-//                 from NB. A record of NB configuration.
+// from NB. A record of NB configuration.
 // VnetsByTag    - Stores the VNETs by the VLANS configured
-//                 from NB. A record of NB configuration.
+// from NB. A record of NB configuration.
 // VnetsByName   - Stores the VNETs by the name configured
-//                 from NB. A record of NB configuration.
+// from NB. A record of NB configuration.
 // DevicesDisc   - Stores the devices discovered from SB.
-//                 Should be updated only by events from SB
+// Should be updated only by events from SB
 // PortsDisc     - Stores the ports discovered from SB.
-//                 Should be updated only by events from SB
+// Should be updated only by events from SB
 type VoltApplication struct {
-	ServiceByName       sync.Map // [serName]*VoltService
-	VnetsByPort         sync.Map // [portName][]*VoltPortVnet
-	VnetsByTag          sync.Map // [svlan-cvlan-uvlan]*VoltVnet
-	VnetsByName         sync.Map // [vnetName]*VoltVnet
-	VnetsBySvlan        *util.ConcurrentMap
-	DevicesDisc         sync.Map
-	PortsDisc           sync.Map
-	IgmpGroups          sync.Map // [grpKey]*IgmpGroup
-	IgmpGroupIds        []*IgmpGroup
-	MvlanProfilesByTag  sync.Map
-	MvlanProfilesByName sync.Map
-	Icmpv6Receivers     sync.Map
 	MeterMgr
-	IgmpTasks           tasks.Tasks
-	IndicationsTasks    tasks.Tasks
-	MulticastAlarmTasks tasks.Tasks
-	portLock            sync.Mutex
-	DataMigrationInfo   DataMigration
-	DeviceCounters      sync.Map //[logicalDeviceId]*DeviceCounters
-	ServiceCounters     sync.Map //[serviceName]*ServiceCounters
-	NbDevice            sync.Map // [OLTSouthBoundID]*NbDevice
-	IgmpKPIsTasks       tasks.Tasks
-	pppoeTasks          tasks.Tasks
-	IgmpProfilesByName  sync.Map
-	OltIgmpInfoBySerial sync.Map
-	McastConfigMap      sync.Map //[OltSerialNo_MvlanProfileID]*McastConfig
-	// MacAddress-Port MAP to avoid swap of mac accross ports.
-	macPortLock sync.RWMutex
-	macPortMap  map[string]string
-
+	DataMigrationInfo     DataMigration
+	VnetsBySvlan          *util.ConcurrentMap
+	IgmpGroupIds          []*IgmpGroup
+	VoltPortVnetsToDelete map[*VoltPortVnet]bool
 	IgmpPendingPool       map[string]map[*IgmpGroup]bool //[grpkey, map[groupObj]bool]  //mvlan_grpName/IP
-	PendingPoolLock       sync.RWMutex
+	macPortMap            map[string]string
 	VnetsToDelete         map[string]bool
 	ServicesToDelete      map[string]bool
-	VoltPortVnetsToDelete map[*VoltPortVnet]bool
 	PortAlarmProfileCache map[string]map[string]int // [portAlarmID][ThresholdLevelString]ThresholdLevel
 	vendorID              string
-	OltFlowServiceConfig  OltFlowService
+	ServiceByName         sync.Map // [serName]*VoltService
+	VnetsByPort           sync.Map // [portName][]*VoltPortVnet
+	VnetsByTag            sync.Map // [svlan-cvlan-uvlan]*VoltVnet
+	VnetsByName           sync.Map // [vnetName]*VoltVnet
+	DevicesDisc           sync.Map
+	PortsDisc             sync.Map
+	IgmpGroups            sync.Map // [grpKey]*IgmpGroup
+	MvlanProfilesByTag    sync.Map
+	MvlanProfilesByName   sync.Map
+	Icmpv6Receivers       sync.Map
+	DeviceCounters        sync.Map //[logicalDeviceId]*DeviceCounters
+	ServiceCounters       sync.Map //[serviceName]*ServiceCounters
+	NbDevice              sync.Map // [OLTSouthBoundID]*NbDevice
+	OltIgmpInfoBySerial   sync.Map
+	McastConfigMap        sync.Map //[OltSerialNo_MvlanProfileID]*McastConfig
 	DevicesConfig         sync.Map //[serialNumber]*DeviceConfig
+	IgmpProfilesByName    sync.Map
+	IgmpTasks             tasks.Tasks
+	IndicationsTasks      tasks.Tasks
+	MulticastAlarmTasks   tasks.Tasks
+	IgmpKPIsTasks         tasks.Tasks
+	pppoeTasks            tasks.Tasks
+	OltFlowServiceConfig  OltFlowService
+	PendingPoolLock       sync.RWMutex
+	// MacAddress-Port MAP to avoid swap of mac across ports.
+	macPortLock sync.RWMutex
+	portLock    sync.Mutex
 }
 
 type DeviceConfig struct {
@@ -462,11 +457,11 @@ type DeviceConfig struct {
 
 // PonPortCfg contains NB port config and activeIGMPChannels count
 type PonPortCfg struct {
+	PortAlarmProfileID string
 	PortID             uint32
 	MaxActiveChannels  uint32
 	ActiveIGMPChannels uint32
 	EnableMulticastKPI bool
-	PortAlarmProfileID string
 }
 
 // NbDevice OLT Device info
@@ -477,7 +472,6 @@ type NbDevice struct {
 
 // RestoreNbDeviceFromDb restores the NB Device in case of VGC pod restart.
 func (va *VoltApplication) RestoreNbDeviceFromDb(cntx context.Context, deviceID string) *NbDevice {
-
 	nbDevice := NewNbDevice()
 	nbDevice.SouthBoundID = deviceID
 
@@ -522,7 +516,6 @@ func (nbd *NbDevice) WriteToDb(cntx context.Context, portID uint32, ponPort *Pon
 // AddPortToNbDevice Adds pon port to NB Device and DB
 func (nbd *NbDevice) AddPortToNbDevice(cntx context.Context, portID, allowedChannels uint32,
 	enableMulticastKPI bool, portAlarmProfileID string) *PonPortCfg {
-
 	ponPort := &PonPortCfg{
 		PortID:             portID,
 		MaxActiveChannels:  allowedChannels,
@@ -554,7 +547,6 @@ func (va *VoltApplication) RestoreDeviceConfigFromDb(cntx context.Context) {
 		if err := va.AddDeviceConfig(cntx, devConfig.SerialNumber, devConfig.HardwareIdentifier, devConfig.NasID, devConfig.IPAddress, devConfig.UplinkPort, devConfig.NniDhcpTrapVid); err != nil {
 			logger.Warnw(ctx, "Add device config failed", log.Fields{"DeviceConfig": devConfig, "Error": err})
 		}
-
 	}
 }
 
@@ -573,7 +565,7 @@ func (dc *DeviceConfig) WriteDeviceConfigToDb(cntx context.Context, serialNum st
 	return nil
 }
 
-func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapId int) error {
+func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID int) error {
 	var dc *DeviceConfig
 
 	deviceConfig := &DeviceConfig{
@@ -582,7 +574,7 @@ func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hard
 		NasID:              nasID,
 		UplinkPort:         uplinkPort,
 		IPAddress:          ipAddress,
-		NniDhcpTrapVid:     nniDhcpTrapId,
+		NniDhcpTrapVid:     nniDhcpTrapID,
 	}
 	va.DevicesConfig.Store(serialNum, deviceConfig)
 	err := dc.WriteDeviceConfigToDb(cntx, serialNum, deviceConfig)
@@ -594,7 +586,7 @@ func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hard
 	// If device is already discovered update the VoltDevice structure
 	device, id := va.GetDeviceBySerialNo(serialNum)
 	if device != nil {
-		device.NniDhcpTrapVid = of.VlanType(nniDhcpTrapId)
+		device.NniDhcpTrapVid = of.VlanType(nniDhcpTrapID)
 		va.DevicesDisc.Store(id, device)
 	}
 
@@ -611,7 +603,6 @@ func (va *VoltApplication) GetDeviceConfig(serNum string) *DeviceConfig {
 
 // UpdatePortToNbDevice Adds pon port to NB Device and DB
 func (nbd *NbDevice) UpdatePortToNbDevice(cntx context.Context, portID, allowedChannels uint32, enableMulticastKPI bool, portAlarmProfileID string) *PonPortCfg {
-
 	p, exists := nbd.PonPorts.Load(portID)
 	if !exists {
 		logger.Errorw(ctx, "PON port not exists in nb-device", log.Fields{"portID": portID})
@@ -631,7 +622,6 @@ func (nbd *NbDevice) UpdatePortToNbDevice(cntx context.Context, portID, allowedC
 
 // DeletePortFromNbDevice Deletes pon port from NB Device and DB
 func (nbd *NbDevice) DeletePortFromNbDevice(cntx context.Context, portID uint32) {
-
 	if _, ok := nbd.PonPorts.Load(portID); ok {
 		nbd.PonPorts.Delete(portID)
 	}
@@ -670,9 +660,8 @@ func newVoltApplication() *VoltApplication {
 	return &va
 }
 
-//GetFlowEventRegister - returs the register based on flow mod type
+// GetFlowEventRegister - returs the register based on flow mod type
 func (d *VoltDevice) GetFlowEventRegister(flowModType of.Command) (*util.ConcurrentMap, error) {
-
 	switch flowModType {
 	case of.CommandDel:
 		return d.FlowDelEventMap, nil
@@ -750,7 +739,7 @@ func (va *VoltApplication) PutIgmpGroupID(ig *IgmpGroup) {
 	va.IgmpGroupIds = append([]*IgmpGroup{ig}, va.IgmpGroupIds[0:]...)
 }
 
-//RestoreUpgradeStatus - gets upgrade/migration status from DB and updates local flags
+// RestoreUpgradeStatus - gets upgrade/migration status from DB and updates local flags
 func (va *VoltApplication) RestoreUpgradeStatus(cntx context.Context) {
 	Migrate := new(DataMigration)
 	if err := GetMigrationInfo(cntx, Migrate); err == nil {
@@ -792,7 +781,7 @@ func (va *VoltApplication) ReadAllFromDb(cntx context.Context) {
 	logger.Info(ctx, "Reconciled from DB")
 }
 
-// InitStaticConfig to initialise static config.
+// InitStaticConfig to initialize static config.
 func (va *VoltApplication) InitStaticConfig() {
 	va.InitIgmpSrcMac()
 }
@@ -949,7 +938,7 @@ func (va *VoltApplication) PortDelInd(cntx context.Context, device string, port 
 	}
 }
 
-//PortUpdateInd Updates port Id incase of ONU movement
+// PortUpdateInd Updates port Id incase of ONU movement
 func (va *VoltApplication) PortUpdateInd(device string, portName string, id uint32) {
 	logger.Infow(ctx, "Received Port Ind: Update", log.Fields{"Device": device, "Port": portName})
 	va.portLock.Lock()
@@ -965,7 +954,6 @@ func (va *VoltApplication) PortUpdateInd(device string, portName string, id uint
 // AddNbPonPort Add pon port to nbDevice
 func (va *VoltApplication) AddNbPonPort(cntx context.Context, oltSbID string, portID, maxAllowedChannels uint32,
 	enableMulticastKPI bool, portAlarmProfileID string) error {
-
 	var nbd *NbDevice
 	nbDevice, ok := va.NbDevice.Load(oltSbID)
 
@@ -996,7 +984,6 @@ func (va *VoltApplication) AddNbPonPort(cntx context.Context, oltSbID string, po
 
 // UpdateNbPonPort update pon port to nbDevice
 func (va *VoltApplication) UpdateNbPonPort(cntx context.Context, oltSbID string, portID, maxAllowedChannels uint32, enableMulticastKPI bool, portAlarmProfileID string) error {
-
 	var nbd *NbDevice
 	nbDevice, ok := va.NbDevice.Load(oltSbID)
 
@@ -1078,7 +1065,6 @@ func (va *VoltApplication) GetNniPort(device string) (string, error) {
 
 // NniDownInd process for Nni down indication.
 func (va *VoltApplication) NniDownInd(cntx context.Context, deviceID string, devSrNo string) {
-
 	logger.Debugw(ctx, "NNI Down Ind", log.Fields{"device": devSrNo})
 
 	handleIgmpDsFlows := func(key interface{}, value interface{}) bool {
@@ -1124,7 +1110,6 @@ func (va *VoltApplication) DeviceRebootInd(cntx context.Context, device string, 
 		d.State = controller.DeviceStateREBOOTED
 	}
 	va.HandleFlowClearFlag(cntx, device, serialNum, southBoundID)
-
 }
 
 // DeviceDisableInd handles device deactivation process
@@ -1143,7 +1128,6 @@ func (va *VoltApplication) DeviceDisableInd(cntx context.Context, device string)
 
 // ProcessIgmpDSFlowForMvlan for processing Igmp DS flow for device
 func (va *VoltApplication) ProcessIgmpDSFlowForMvlan(cntx context.Context, d *VoltDevice, mvp *MvlanProfile, addFlow bool) {
-
 	logger.Debugw(ctx, "Process IGMP DS Flows for MVlan", log.Fields{"device": d.Name, "Mvlan": mvp.Mvlan, "addFlow": addFlow})
 	portState := false
 	p := d.GetPort(d.NniPort)
@@ -1299,13 +1283,12 @@ func (va *VoltApplication) ProcessDevFlowForDevice(cntx context.Context, device 
 	}
 }
 
-//NniVlanIndToIgmp - Trigger receiver up indication to all ports with igmp enabled
-//and has the provided mvlan
+// NniVlanIndToIgmp - Trigger receiver up indication to all ports with igmp enabled
+// and has the provided mvlan
 func (va *VoltApplication) NniVlanIndToIgmp(device *VoltDevice, mvp *MvlanProfile) {
-
 	logger.Infow(ctx, "Sending Igmp Receiver UP indication for all Services", log.Fields{"Vlan": mvp.Mvlan})
 
-	//Trigger nni indication for receiver only for first time
+	// Trigger nni indication for receiver only for first time
 	if device.IgmpDsFlowAppliedForMvlan[uint16(mvp.Mvlan)] {
 		return
 	}
@@ -1318,7 +1301,7 @@ func (va *VoltApplication) NniVlanIndToIgmp(device *VoltDevice, mvp *MvlanProfil
 				return true
 			}
 			for _, vpv := range vpvs.([]*VoltPortVnet) {
-				//Send indication only for subscribers with the received mvlan profile
+				// Send indication only for subscribers with the received mvlan profile
 				if vpv.IgmpEnabled && vpv.MvlanProfileName == mvp.Name {
 					vpv.services.Range(ReceiverUpInd)
 				}
@@ -1343,7 +1326,7 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 		return
 	}
 
-	//Fixme: If Port Update Comes in large numbers, this will result in slow update per device
+	// Fixme: If Port Update Comes in large numbers, this will result in slow update per device
 	va.portLock.Lock()
 	// Do not defer the port mutex unlock here
 	// Some of the following func calls needs the port lock, so defering the lock here
@@ -1360,7 +1343,6 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 
 	logger.Infow(ctx, "Received SouthBound Port Ind: UP", log.Fields{"Device": device, "PortName": port, "PortId": p.ID})
 	if p.Type == VoltPortTypeNni {
-
 		logger.Warnw(ctx, "Received NNI Port Ind: UP", log.Fields{"Device": device, "PortName": port, "PortId": p.ID})
 		//va.PushDevFlowForDevice(d)
 		//Build Igmp TrapFlowRule
@@ -1373,7 +1355,7 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 		return
 	}
 
-	//If NNI port is not UP, do not push Flows
+	// If NNI port is not UP, do not push Flows
 	if d.NniPort == "" {
 		logger.Warnw(ctx, "NNI port not UP. Not sending Port UP Ind for VPVs", log.Fields{"NNI": d.NniPort})
 		return
@@ -1383,7 +1365,7 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 	if vpvList[0].PonPort != 0xFF && vpvList[0].PonPort != p.PonPort {
 		logger.Errorw(ctx, "UNI port discovered on wrong PON Port. Dropping Port Indication", log.Fields{"Device": device, "Port": port, "DetectedPon": p.PonPort, "ExpectedPon": vpvList[0].PonPort})
 
-		//Remove the flow (if any) which are already installed - Valid for PON switching when VGC pod is DOWN
+		// Remove the flow (if any) which are already installed - Valid for PON switching when VGC pod is DOWN
 		for _, vpv := range vpvs.([]*VoltPortVnet) {
 			vpv.VpvLock.Lock()
 			logger.Warnw(ctx, "Removing existing VPVs/Services flows for for Subscriber: UNI Detected on wrong PON", log.Fields{"Port": vpv.Port, "Vnet": vpv.VnetName})
@@ -1398,9 +1380,9 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 
 	for _, vpv := range vpvs.([]*VoltPortVnet) {
 		vpv.VpvLock.Lock()
-		//If no service is activated drop the portUpInd
+		// If no service is activated drop the portUpInd
 		if vpv.IsServiceActivated(cntx) {
-			//Do not trigger indication for the vpv which is already removed from vpv list as
+			// Do not trigger indication for the vpv which is already removed from vpv list as
 			// part of service delete (during the lock wait duration)
 			// In that case, the services associated wil be zero
 			if vpv.servicesCount.Load() != 0 {
@@ -1435,7 +1417,7 @@ func getServiceList(port string) map[string]bool {
 
 }*/
 
-//ReceiverUpInd - Send receiver up indication for service with Igmp enabled
+// ReceiverUpInd - Send receiver up indication for service with Igmp enabled
 func ReceiverUpInd(key, value interface{}) bool {
 	svc := value.(*VoltService)
 	var vlan of.VlanType
@@ -1445,7 +1427,7 @@ func ReceiverUpInd(key, value interface{}) bool {
 		return false
 	}
 
-	//Send port up indication to igmp only for service with igmp enabled
+	// Send port up indication to igmp only for service with igmp enabled
 	if svc.IgmpEnabled {
 		if svc.VlanControl == ONUCVlan || svc.VlanControl == ONUCVlanOLTSVlan {
 			vlan = svc.CVlan
@@ -1470,7 +1452,7 @@ func (va *VoltApplication) PortDownInd(cntx context.Context, device string, port
 		logger.Warnw(ctx, "Device Not Found - Dropping Port Ind: DOWN", log.Fields{"Device": device, "Port": port})
 		return
 	}
-	//Fixme: If Port Update Comes in large numbers, this will result in slow update per device
+	// Fixme: If Port Update Comes in large numbers, this will result in slow update per device
 	va.portLock.Lock()
 	// Do not defer the port mutex unlock here
 	// Some of the following func calls needs the port lock, so defering the lock here
@@ -1656,7 +1638,7 @@ func (va *VoltApplication) HandleFlowClearFlag(cntx context.Context, deviceID st
 		for k := range dev.(*VoltDevice).IgmpDsFlowAppliedForMvlan {
 			delete(dev.(*VoltDevice).IgmpDsFlowAppliedForMvlan, k)
 		}
-		//Delete group 1 - ICMPv6/ARP group
+		// Delete group 1 - ICMPv6/ARP group
 		if err := ProcessIcmpv6McGroup(deviceID, true); err != nil {
 			logger.Errorw(ctx, "ProcessIcmpv6McGroup failed", log.Fields{"Device": deviceID, "Error": err})
 		}
@@ -1676,7 +1658,7 @@ func (va *VoltApplication) HandleFlowClearFlag(cntx context.Context, deviceID st
 
 				if vpv.IgmpEnabled {
 					va.ReceiverDownInd(cntx, vpv.Device, vpv.Port)
-					//Also clear service igmp stats
+					// Also clear service igmp stats
 					vpv.ClearServiceCounters(cntx)
 				}
 			}
@@ -1685,15 +1667,15 @@ func (va *VoltApplication) HandleFlowClearFlag(cntx context.Context, deviceID st
 	}
 	va.VnetsByPort.Range(getVpvs)
 
-	//Clear Static Group
+	// Clear Static Group
 	va.ReceiverDownInd(cntx, deviceID, StaticPort)
 
 	logger.Warnw(ctx, "All flags cleared for device", log.Fields{"Device": deviceID})
 
-	//Reset pending group pool
+	// Reset pending group pool
 	va.RemovePendingGroups(cntx, deviceID, true)
 
-	//Process all Migrate Service Request - force udpate all profiles since resources are already cleaned up
+	// Process all Migrate Service Request - force udpate all profiles since resources are already cleaned up
 	if dev != nil {
 		triggerForceUpdate := func(key, value interface{}) bool {
 			msrList := value.(*util.ConcurrentMap)
@@ -1711,15 +1693,14 @@ func (va *VoltApplication) HandleFlowClearFlag(cntx context.Context, deviceID st
 	}
 }
 
-//GetPonPortIDFromUNIPort to get pon port id from uni port
+// GetPonPortIDFromUNIPort to get pon port id from uni port
 func GetPonPortIDFromUNIPort(uniPortID uint32) uint32 {
 	ponPortID := (uniPortID & 0x0FF00000) >> 20
 	return ponPortID
 }
 
-//ProcessFlowModResultIndication - Processes Flow mod operation indications from controller
+// ProcessFlowModResultIndication - Processes Flow mod operation indications from controller
 func (va *VoltApplication) ProcessFlowModResultIndication(cntx context.Context, flowStatus intf.FlowStatus) {
-
 	d := va.GetDevice(flowStatus.Device)
 	if d == nil {
 		logger.Errorw(ctx, "Dropping Flow Mod Indication. Device not found", log.Fields{"Cookie": flowStatus.Cookie, "Device": flowStatus.Device})
@@ -1743,9 +1724,8 @@ func pushFlowFailureNotif(flowStatus intf.FlowStatus) {
 	logger.Errorw(ctx, "Flow Failure Notification", log.Fields{"uniPort": uniPort, "Cookie": cookie})
 }
 
-//UpdateMvlanProfilesForDevice to update mvlan profile for device
+// UpdateMvlanProfilesForDevice to update mvlan profile for device
 func (va *VoltApplication) UpdateMvlanProfilesForDevice(cntx context.Context, device string) {
-
 	checkAndAddMvlanUpdateTask := func(key, value interface{}) bool {
 		mvp := value.(*MvlanProfile)
 		if mvp.IsUpdateInProgressForDevice(device) {
@@ -1779,16 +1759,13 @@ func (va *VoltApplication) GetTaskList(device string) map[int]*TaskInfo {
 
 // UpdateDeviceSerialNumberList to update the device serial number list after device serial number is updated for vnet and mvlan
 func (va *VoltApplication) UpdateDeviceSerialNumberList(oldOltSlNo string, newOltSlNo string) {
-
 	voltDevice, _ := va.GetDeviceBySerialNo(oldOltSlNo)
 
 	if voltDevice != nil {
 		// Device is present with old serial number ID
 		logger.Errorw(ctx, "OLT Migration cannot be completed as there are dangling devices", log.Fields{"Serial Number": oldOltSlNo})
-
 	} else {
 		logger.Infow(ctx, "No device present with old serial number", log.Fields{"Serial Number": oldOltSlNo})
-
 		// Add Serial Number to Blocked Devices List.
 		cntlr.GetController().AddBlockedDevices(oldOltSlNo)
 		cntlr.GetController().AddBlockedDevices(newOltSlNo)
@@ -1824,14 +1801,12 @@ func (va *VoltApplication) UpdateDeviceSerialNumberList(oldOltSlNo string, newOl
 		// Clear the serial number from Blocked Devices List
 		cntlr.GetController().DelBlockedDevices(oldOltSlNo)
 		cntlr.GetController().DelBlockedDevices(newOltSlNo)
-
 	}
 }
 
 // GetVpvsForDsPkt to get vpv for downstream packets
 func (va *VoltApplication) GetVpvsForDsPkt(cvlan of.VlanType, svlan of.VlanType, clientMAC net.HardwareAddr,
 	pbit uint8) ([]*VoltPortVnet, error) {
-
 	var matchVPVs []*VoltPortVnet
 	findVpv := func(key, value interface{}) bool {
 		vpvs := value.([]*VoltPortVnet)
@@ -1899,7 +1874,7 @@ func (va *VoltApplication) DeleteMacInPortMap(macAddr net.HardwareAddr) {
 	}
 }
 
-//AddGroupToPendingPool - adds the IgmpGroup with active group table entry to global pending pool
+// AddGroupToPendingPool - adds the IgmpGroup with active group table entry to global pending pool
 func (va *VoltApplication) AddGroupToPendingPool(ig *IgmpGroup) {
 	var grpMap map[*IgmpGroup]bool
 	var ok bool
@@ -1925,7 +1900,7 @@ func (va *VoltApplication) AddGroupToPendingPool(ig *IgmpGroup) {
 	}
 }
 
-//RemoveGroupFromPendingPool - removes the group from global pending group pool
+// RemoveGroupFromPendingPool - removes the group from global pending group pool
 func (va *VoltApplication) RemoveGroupFromPendingPool(device string, ig *IgmpGroup) bool {
 	GetApplication().PendingPoolLock.Lock()
 	defer GetApplication().PendingPoolLock.Unlock()
@@ -1940,7 +1915,7 @@ func (va *VoltApplication) RemoveGroupFromPendingPool(device string, ig *IgmpGro
 	return false
 }
 
-//RemoveGroupsFromPendingPool - removes the group from global pending group pool
+// RemoveGroupsFromPendingPool - removes the group from global pending group pool
 func (va *VoltApplication) RemoveGroupsFromPendingPool(cntx context.Context, device string, mvlan of.VlanType) {
 	GetApplication().PendingPoolLock.Lock()
 	defer GetApplication().PendingPoolLock.Unlock()
@@ -1951,7 +1926,7 @@ func (va *VoltApplication) RemoveGroupsFromPendingPool(cntx context.Context, dev
 	va.RemoveGroupListFromPendingPool(cntx, key)
 }
 
-//RemoveGroupListFromPendingPool - removes the groups for provided key
+// RemoveGroupListFromPendingPool - removes the groups for provided key
 // 1. Deletes the group from device
 // 2. Delete the IgmpGroup obj and release the group ID to pool
 // Note: Make sure to obtain PendingPoolLock lock before calling this func
@@ -1966,18 +1941,16 @@ func (va *VoltApplication) RemoveGroupListFromPendingPool(cntx context.Context, 
 	}
 }
 
-//RemoveGroupDevicesFromPendingPool - removes the group from global pending group pool
+// RemoveGroupDevicesFromPendingPool - removes the group from global pending group pool
 func (va *VoltApplication) RemoveGroupDevicesFromPendingPool(ig *IgmpGroup) {
-
 	logger.Infow(ctx, "Removing IgmpGroup for all devices from Global Pending Pool", log.Fields{"GroupID": ig.GroupID, "GroupName": ig.GroupName, "GroupAddr": ig.GroupAddr, "PendingDevices": len(ig.Devices)})
 	for device := range ig.PendingGroupForDevice {
 		va.RemoveGroupFromPendingPool(device, ig)
 	}
 }
 
-//GetGroupFromPendingPool - Returns IgmpGroup obj from global pending pool
+// GetGroupFromPendingPool - Returns IgmpGroup obj from global pending pool
 func (va *VoltApplication) GetGroupFromPendingPool(mvlan of.VlanType, device string) *IgmpGroup {
-
 	var ig *IgmpGroup
 
 	va.PendingPoolLock.Lock()
@@ -1986,43 +1959,42 @@ func (va *VoltApplication) GetGroupFromPendingPool(mvlan of.VlanType, device str
 	key := getPendingPoolKey(mvlan, device)
 	logger.Infow(ctx, "Getting IgmpGroup from Global Pending Pool", log.Fields{"Device": device, "Mvlan": mvlan.String(), "Key": key})
 
-	//Gets all IgmpGrp Obj for the device
+	// Gets all IgmpGrp Obj for the device
 	grpMap, ok := va.IgmpPendingPool[key]
 	if !ok || len(grpMap) == 0 {
 		logger.Infow(ctx, "Matching IgmpGroup not found in Global Pending Pool", log.Fields{"Device": device, "Mvlan": mvlan.String()})
 		return nil
 	}
 
-	//Gets a random obj from available grps
+	// Gets a random obj from available grps
 	for ig = range grpMap {
-
-		//Remove grp obj reference from all devices associated in pending pool
+		// Remove grp obj reference from all devices associated in pending pool
 		for dev := range ig.Devices {
 			key := getPendingPoolKey(mvlan, dev)
 			delete(va.IgmpPendingPool[key], ig)
 		}
 
-		//Safety check to avoid re-allocating group already in use
+		// Safety check to avoid re-allocating group already in use
 		if ig.NumDevicesActive() == 0 {
 			return ig
 		}
 
-		//Iteration will continue only if IG is not allocated
+		// Iteration will continue only if IG is not allocated
 	}
 	return nil
 }
 
-//RemovePendingGroups - removes all pending groups for provided reference from global pending pool
+// RemovePendingGroups - removes all pending groups for provided reference from global pending pool
 // reference - mvlan/device ID
 // isRefDevice - true  - Device as reference
-//               false - Mvlan as reference
+// false - Mvlan as reference
 func (va *VoltApplication) RemovePendingGroups(cntx context.Context, reference string, isRefDevice bool) {
 	va.PendingPoolLock.Lock()
 	defer va.PendingPoolLock.Unlock()
 
 	logger.Infow(ctx, "Removing IgmpGroups from Global Pending Pool", log.Fields{"Reference": reference, "isRefDevice": isRefDevice})
 
-	//Pending Pool key: "<mvlan>_<DeviceID>""
+	// Pending Pool key: "<mvlan>_<DeviceID>""
 	paramPosition := 0
 	if isRefDevice {
 		paramPosition = 1
@@ -2053,7 +2025,7 @@ func (va *VoltApplication) removeExpiredGroups(cntx context.Context) {
 	va.IgmpGroups.Range(removeExpiredGroups)
 }
 
-//TriggerPendingProfileDeleteReq - trigger pending profile delete request
+// TriggerPendingProfileDeleteReq - trigger pending profile delete request
 func (va *VoltApplication) TriggerPendingProfileDeleteReq(cntx context.Context, device string) {
 	va.TriggerPendingServiceDeleteReq(cntx, device)
 	va.TriggerPendingVpvDeleteReq(cntx, device)
@@ -2061,9 +2033,8 @@ func (va *VoltApplication) TriggerPendingProfileDeleteReq(cntx context.Context, 
 	logger.Warnw(ctx, "All Pending Profile Delete triggered for device", log.Fields{"Device": device})
 }
 
-//TriggerPendingServiceDeleteReq - trigger pending service delete request
+// TriggerPendingServiceDeleteReq - trigger pending service delete request
 func (va *VoltApplication) TriggerPendingServiceDeleteReq(cntx context.Context, device string) {
-
 	logger.Warnw(ctx, "Pending Services to be deleted", log.Fields{"Count": len(va.ServicesToDelete)})
 	for serviceName := range va.ServicesToDelete {
 		logger.Debugw(ctx, "Trigger Service Delete", log.Fields{"Service": serviceName})
@@ -2081,9 +2052,8 @@ func (va *VoltApplication) TriggerPendingServiceDeleteReq(cntx context.Context, 
 	}
 }
 
-//TriggerPendingVpvDeleteReq - trigger pending VPV delete request
+// TriggerPendingVpvDeleteReq - trigger pending VPV delete request
 func (va *VoltApplication) TriggerPendingVpvDeleteReq(cntx context.Context, device string) {
-
 	logger.Warnw(ctx, "Pending VPVs to be deleted", log.Fields{"Count": len(va.VoltPortVnetsToDelete)})
 	for vpv := range va.VoltPortVnetsToDelete {
 		if vpv.Device == device {
@@ -2093,9 +2063,8 @@ func (va *VoltApplication) TriggerPendingVpvDeleteReq(cntx context.Context, devi
 	}
 }
 
-//TriggerPendingVnetDeleteReq - trigger pending vnet delete request
+// TriggerPendingVnetDeleteReq - trigger pending vnet delete request
 func (va *VoltApplication) TriggerPendingVnetDeleteReq(cntx context.Context, device string) {
-
 	logger.Warnw(ctx, "Pending Vnets to be deleted", log.Fields{"Count": len(va.VnetsToDelete)})
 	for vnetName := range va.VnetsToDelete {
 		if vnetIntf, _ := va.VnetsByName.Load(vnetName); vnetIntf != nil {
@@ -2112,8 +2081,8 @@ func (va *VoltApplication) TriggerPendingVnetDeleteReq(cntx context.Context, dev
 }
 
 type OltFlowService struct {
+	DefaultTechProfileID int  `json:"defaultTechProfileId"`
 	EnableDhcpOnNni      bool `json:"enableDhcpOnNni"`
-	DefaultTechProfileId int  `json:"defaultTechProfileId"`
 	EnableIgmpOnNni      bool `json:"enableIgmpOnNni"`
 	EnableEapol          bool `json:"enableEapol"`
 	EnableDhcpV6         bool `json:"enableDhcpV6"`
