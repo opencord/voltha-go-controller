@@ -14,7 +14,7 @@
 * limitations under the License.
  */
 
-package onos_nbi
+package onosnbi
 
 import (
 	"fmt"
@@ -27,227 +27,227 @@ import (
 
 const (
 	/** Switch input port. */
-	IN_PORT string = "IN_PORT"
+	InPort string = "IN_PORT"
 
 	/** Switch physical input port. */
-	IN_PHY_PORT string = "IN_PHY_PORT"
+	InPhyPort string = "IN_PHY_PORT"
 
 	/** Metadata passed between tables. */
-	METADATA string = "METADATA"
+	MetaData string = "METADATA"
 
 	/** Ethernet destination address. */
-	ETH_DST string = "ETH_DST"
+	EthDst string = "ETH_DST"
 
 	/** Ethernet destination address with masking. */
-	ETH_DST_MASKED = "ETH_DST_MASKED"
+	EthDstMasked = "ETH_DST_MASKED"
 
 	/** Ethernet source address. */
-	ETH_SRC string = "ETH_SRC"
+	EthSrc string = "ETH_SRC"
 
 	/** Ethernet source address with masking. */
-	ETH_SRC_MASKED string = "ETH_SRC_MASKED"
+	EthSrcMasked string = "ETH_SRC_MASKED"
 
 	/** Ethernet frame type. */
-	ETH_TYPE string = "ETH_TYPE"
+	EthType string = "ETH_TYPE"
 
 	/** VLAN id. */
-	VLAN_VID string = "VLAN_VID"
+	VlanVID string = "VLAN_VID"
 
 	/** VLAN priority. */
-	VLAN_PCP string = "VLAN_PCP"
+	VlanPcp string = "VLAN_PCP"
 	/**
 	 * Inner VLAN id.
 	 *
 	 * Note: Some drivers may not support this.
 	 */
-	INNER_VLAN_VID string = "INNER_VLAN_VID"
+	InnerVlanVID string = "INNER_VLAN_VID"
 
 	/**
 	 * Inner VLAN pcp.
 	 *
 	 * Note: Some drivers may not support this.
 	 */
-	INNER_VLAN_PCP string = "INNER_VLAN_PCP"
+	InnerVlanPcp string = "INNER_VLAN_PCP"
 
 	/** IP DSCP (6 bits in ToS field). */
-	IP_DSCP string = "IP_DSCP"
+	IPDscp string = "IP_DSCP"
 
 	/** IP ECN (2 bits in ToS field). */
-	IP_ECN string = "IP_ECN"
+	IPEcn string = "IP_ECN"
 
 	/** IP protocol. */
-	IP_PROTO string = "IP_PROTO"
+	IPProto string = "IP_PROTO"
 
 	/** IPv4 source address. */
-	IPV4_SRC string = "IPV4_SRC"
+	Ipv4Src string = "IPV4_SRC"
 
 	/** IPv4 destination address. */
-	IPV4_DST string = "IPV4_DST"
+	Ipv4Dst string = "IPV4_DST"
 
 	/** TCP source port. */
-	TCP_SRC string = "TCP_SRC"
+	TCPSrc string = "TCP_SRC"
 
 	/** TCP source port with masking. */
-	TCP_SRC_MASKED string = "TCP_SRC_MASKED"
+	TCPSrcMasked string = "TCP_SRC_MASKED"
 
 	/** TCP destination port. */
-	TCP_DST string = "TCP_DST"
+	TCPDst string = "TCP_DST"
 
 	/** TCP destination port with masking. */
-	TCP_DST_MASKED string = "TCP_DST"
+	TCPDstMasked string = "TCP_DST"
 
 	/** UDP source port. */
-	UDP_SRC string = "UDP_SRC"
+	UDPSrc string = "UDP_SRC"
 
 	/** UDP source port with masking. */
-	UDP_SRC_MASKED string = "UDP_SRC_MASKED"
+	UDPSrcMasked string = "UDP_SRC_MASKED"
 
 	/** UDP destination port. */
-	UDP_DST string = "UDP_DST"
+	UDPDst string = "UDP_DST"
 
 	/** UDP destination port with masking. */
-	UDP_DST_MASKED string = "UDP_DST_MASKED"
+	UDPDstMasked string = "UDP_DST_MASKED"
 
 	/** SCTP source port. */
-	SCTP_SRC string = "SCTP_SRC"
+	SctpSrc string = "SCTP_SRC"
 
 	/** SCTP source port with masking. */
-	SCTP_SRC_MASKED string = "SCTP_SRC_MASKED"
+	SctpSrcMasked string = "SCTP_SRC_MASKED"
 
 	/** SCTP destination port. */
-	SCTP_DST string = "SCTP_DST"
+	SctpDst string = "SCTP_DST"
 
 	/** SCTP destination port with masking. */
-	SCTP_DST_MASKED string = "SCTP_DST_MASKED"
+	SctpDstMasked string = "SCTP_DST_MASKED"
 
 	/** ICMP type. */
-	ICMPV4_TYPE string = "ICMPV4_TYPE"
+	Icmpv4Type string = "ICMPV4_TYPE"
 
 	/** ICMP code. */
-	ICMPV4_CODE string = "ICMPV4_CODE"
+	Icmpv4Code string = "ICMPV4_CODE"
 
 	/** ARP opcode. */
-	ARP_OP string = "ARP_OP"
+	ArpOp string = "ARP_OP"
 
 	/** ARP source IPv4 address. */
-	ARP_SPA string = "ARP_SPA"
+	ArpSpa string = "ARP_SPA"
 
 	/** ARP target IPv4 address. */
-	ARP_TPA string = "ARP_TPA"
+	ArpTpa string = "ARP_TPA"
 
 	/** ARP source hardware address. */
-	ARP_THA string = "ARP_THA"
+	ArpTha string = "ARP_THA"
 
 	/** IPv6 source address. */
-	IPV6_SRC string = "IPV6_SRC"
+	Ipv6Src string = "IPV6_SRC"
 
 	/** IPv6 destination address. */
-	IPV6_DST string = "IPV6_DST"
+	Ipv6Dst string = "IPV6_DST"
 
 	/** IPv6 Flow Label. */
-	IPV6_FLABEL string = "IPV6_FLABEL"
+	Ipv6Flabel string = "IPV6_FLABEL"
 
 	/** ICMPv6 type. */
-	ICMPV6_TYPE string = "ICMPV6_TYPE"
+	Icmpv6Type string = "ICMPV6_TYPE"
 
 	/** ICMPv6 code. */
-	ICMPV6_CODE string = "ICMPV6_CODE"
+	Icmpv6Code string = "ICMPV6_CODE"
 
 	/** Target address for ND. */
-	IPV6_ND_TARGET string = "IPV6_ND_TARGET"
+	Ipv6NdTarget string = "IPV6_ND_TARGET"
 
 	/** Source link-layer for ND. */
-	IPV6_ND_SLL string = "IPV6_ND_SLL"
+	Ipv6NdSll string = "IPV6_ND_SLL"
 
 	/** Target link-layer for ND. */
-	IPV6_ND_TLL string = "IPV6_ND_TLL"
+	Ipv6NdTll string = "IPV6_ND_TLL"
 
 	/** MPLS label. */
-	MPLS_LABEL string = "MPLS_LABEL"
+	MplsLabel string = "MPLS_LABEL"
 
 	/** MPLS TC. */
-	MPLS_TC string = "MPLS_TC"
+	MplsTc string = "MPLS_TC"
 
 	/**  MPLS BoS bit. */
-	MPLS_BOS string = "MPLS_BOS"
+	MplsBos string = "MPLS_BOS"
 
 	/** PBB I-SID. */
-	PBB_ISID string = "PBB_ISID"
+	PbbIsID string = "PBB_ISID"
 
 	/** Logical Port Metadata. */
-	TUNNEL_ID string = "TUNNEL_ID"
+	TunnelID string = "TUNNEL_ID"
 
 	/** IPv6 Extension Header pseudo-field. */
-	IPV6_EXTHDR string = "IPV6_EXTHDR"
+	Ipv6Exthdr string = "IPV6_EXTHDR"
 
 	/** Unassigned value: 40. */
-	UNASSIGNED_40 string = "UNASSIGNED_40"
+	Unassigned40 string = "UNASSIGNED_40"
 
 	/** PBB UCA header field. */
-	PBB_UCA string = "PBB_UCA"
+	PbbUca string = "PBB_UCA"
 
 	/** TCP flags. */
-	TCP_FLAGS string = "TCP_FLAGS"
+	TCPFlags string = "TCP_FLAGS"
 
 	/** Output port from action set metadata. */
-	ACTSET_OUTPUT string = "ACTSET_OUTPUT"
+	ActsetOutput string = "ACTSET_OUTPUT"
 
 	/** Packet type value. */
-	PACKET_TYPE string = "PACKET_TYPE"
+	PacketType string = "PACKET_TYPE"
 
 	//
 	// NOTE: Everything below is defined elsewhere: ONOS-specific,
 	// extensions, etc.
 	//
 	/** Optical channel signal ID (lambda). */
-	OCH_SIGID string = "OCH_SIGID"
+	OchSigID string = "OCH_SIGID"
 
 	/** Optical channel signal type (fixed or flexible). */
-	OCH_SIGTYPE string = "OCH_SIGTYPE"
+	OchSigType string = "OCH_SIGTYPE"
 
 	/** ODU (Optical channel Data Unit) signal ID. */
-	ODU_SIGID string = "ODU_SIGID"
+	OduSigID string = "ODU_SIGID"
 
 	/** ODU (Optical channel Data Unit) signal type. */
-	ODU_SIGTYPE string = "ODU_SIGTYPE"
+	OduSigType string = "ODU_SIGTYPE"
 
 	/** Protocol-independent. */
-	PROTOCOL_INDEPENDENT string = "PROTOCOL_INDEPENDENT"
+	ProtocolIndependent string = "PROTOCOL_INDEPENDENT"
 
 	/** Extension criterion. */
-	EXTENSION string = "EXTENSION"
+	Extension string = "EXTENSION"
 
 	/** An empty criterion. */
-	DUMMY string = "DUMMY"
+	Dummy string = "DUMMY"
 
 	/* OUTPUT instruction */
-	OUTPUT string = "OUTPUT"
+	Output string = "OUTPUT"
 
 	/* METER instruction */
-	METER string = "METER"
+	Meter string = "METER"
 
 	/* L2MODIFICATION instruction type */
-	L2MODIFICATION string = "L2MODIFICATION"
+	L2Modification string = "L2MODIFICATION"
 
 	/* VLAN_PUSH operation */
-	VLAN_PUSH string = "VLAN_PUSH"
+	VlanPush string = "VLAN_PUSH"
 
 	/* VLAN_ID instruction */
-	VLAN_ID string = "VLAN_ID"
+	VlanID string = "VLAN_ID"
 
 	/* VLAN_POP operation */
-	VLAN_POP string = "VLAN_POP"
+	VlanPop string = "VLAN_POP"
 
 	/* VLAN_SET operation */
-	VLAN_SET string = "VLAN_SET"
+	VlanSet string = "VLAN_SET"
 
-	ALL string = "ALL"
+	All string = "ALL"
 
-	ADDED string = "ADDED"
+	Added string = "ADDED"
 
-	FAILED string = "FAILED"
+	Failed string = "FAILED"
 
-	PENDING string = "PENDING"
+	Pending string = "PENDING"
 )
 
 // Selector Critrtion structs
@@ -390,42 +390,42 @@ type TreatmentInfo struct {
 	Deferred     []interface{} `json:"deferred"`
 }
 type Flow struct {
-	GroupID     int           `json:"groupId"`
 	State       string        `json:"state"`
-	Life        int           `json:"life"`
 	LiveType    string        `json:"liveType"`
-	LastSeen    int64         `json:"lastSeen"`
-	Packets     int           `json:"packets"`
-	Bytes       int           `json:"bytes"`
 	ID          string        `json:"id"`
 	AppID       string        `json:"appId"`
-	Priority    int           `json:"priority"`
-	Timeout     int           `json:"timeout"`
-	IsPermanent bool          `json:"isPermanent"`
 	DeviceID    string        `json:"deviceId"`
-	TableID     int           `json:"tableId"`
 	TableName   string        `json:"tableName"`
 	Treatment   TreatmentInfo `json:"treatment"`
 	Selector    SelectorInfo  `json:"selector"`
+	LastSeen    int64         `json:"lastSeen"`
+	TableID     int           `json:"tableId"`
+	Priority    int           `json:"priority"`
+	Timeout     int           `json:"timeout"`
+	GroupID     int           `json:"groupId"`
+	Life        int           `json:"life"`
+	Packets     int           `json:"packets"`
+	Bytes       int           `json:"bytes"`
+	IsPermanent bool          `json:"isPermanent"`
 }
 
 type FlowEntry struct {
 	Flows []Flow `json:"flows"`
 }
 
-//Meter struct
+// Meter struct
 type Meters struct {
 	ID             string  `json:"id"`
-	Life           int     `json:"life"`
-	Packets        int     `json:"packets"`
-	Bytes          int     `json:"bytes"`
-	ReferenceCount int     `json:"referenceCount"`
 	Unit           string  `json:"unit"`
-	Burst          bool    `json:"burst"`
 	DeviceID       string  `json:"deviceId"`
 	AppID          string  `json:"appId"`
 	State          string  `json:"state"`
 	MeterBands     []Bands `json:"bands"`
+	Life           int     `json:"life"`
+	Packets        int     `json:"packets"`
+	Bytes          int     `json:"bytes"`
+	ReferenceCount int     `json:"referenceCount"`
+	Burst          bool    `json:"burst"`
 }
 
 type Bands struct {
@@ -438,26 +438,26 @@ type Bands struct {
 }
 
 type GroupsInfo struct {
-	ID             int      `json:"id"`
-	State          string   `json:"state"`
-	Life           int      `json:"life"`
-	Packets        int      `json:"packets"`
-	Bytes          int      `json:"bytes"`
-	ReferenceCount int      `json:"referenceCount"`
 	Type           string   `json:"type"`
 	DeviceID       string   `json:"deviceId"`
 	AppID          string   `json:"appId"`
 	AppCookie      string   `json:"appCookie"`
+	State          string   `json:"state"`
 	Buckets        []Bucket `json:"buckets"`
+	ID             int      `json:"id"`
+	Life           int      `json:"life"`
+	Packets        int      `json:"packets"`
+	Bytes          int      `json:"bytes"`
+	ReferenceCount int      `json:"referenceCount"`
 }
 
 type Bucket struct {
 	Type      string    `json:"type"`
+	Treatment Treatment `json:"treatment"`
 	Weight    int       `json:"weight"`
 	Packets   int       `json:"packets"`
 	Bytes     int       `json:"bytes"`
 	BucketID  int       `json:"bucketId"`
-	Treatment Treatment `json:"treatment"`
 }
 
 type Treatment struct {
@@ -518,63 +518,63 @@ func ConvertVoltSubFlowToOnosFlow(subFlow *of.VoltSubFlow) Flow {
 	// Fill Match criteria
 	if subFlow.InPort != 0 {
 		portSelector := PortSelector{
-			Type: IN_PORT,
+			Type: InPort,
 			Port: int(subFlow.InPort),
 		}
 		flow.Selector.Criteria = append(flow.Selector.Criteria, Criterion(portSelector))
 	}
 	if subFlow.MatchVlan != of.VlanNone {
 		vlanSelector := VlanSelector{
-			Type:   VLAN_VID,
+			Type:   VlanVID,
 			VlanID: int(subFlow.MatchVlan),
 		}
 		flow.Selector.Criteria = append(flow.Selector.Criteria, Criterion(vlanSelector))
 	}
 	if subFlow.SrcMacMatch {
 		ethSrcSelector := EthSrcSelector{
-			Type:   ETH_SRC,
+			Type:   EthSrc,
 			EthSrc: subFlow.SrcMacAddr.String(),
 		}
 		flow.Selector.Criteria = append(flow.Selector.Criteria, Criterion(ethSrcSelector))
 	}
 	if subFlow.DstMacMatch {
 		ethDstSelector := EthDstSelector{
-			Type:   ETH_DST,
+			Type:   EthDst,
 			DstSrc: subFlow.DstMacAddr.String(),
 		}
 		flow.Selector.Criteria = append(flow.Selector.Criteria, Criterion(ethDstSelector))
 	}
 	if subFlow.L3Protocol != of.EtherTypeAny {
 		ethTypeSelector := EthTypeSelector{
-			Type:    ETH_TYPE,
+			Type:    EthType,
 			EthType: strconv.FormatUint(uint64(subFlow.L3Protocol), 16),
 		}
 		flow.Selector.Criteria = append(flow.Selector.Criteria, Criterion(ethTypeSelector))
 	}
 	if subFlow.L4Protocol != of.IPProtocolIgnore {
 		protocolSelector := ProtocolSelector{
-			Type:     IP_PROTO,
+			Type:     IPProto,
 			Protocol: int(subFlow.L4Protocol),
 		}
 		flow.Selector.Criteria = append(flow.Selector.Criteria, Criterion(protocolSelector))
 	}
 	if subFlow.SrcPort != 0 {
 		udpPortSelector := UDPPortSelector{
-			Type:    UDP_SRC,
+			Type:    UDPSrc,
 			UDPPort: int(subFlow.SrcPort),
 		}
 		flow.Selector.Criteria = append(flow.Selector.Criteria, Criterion(udpPortSelector))
 	}
 	if subFlow.DstPort != 0 {
 		udpPortSelector := UDPPortSelector{
-			Type:    UDP_DST,
+			Type:    UDPDst,
 			UDPPort: int(subFlow.DstPort),
 		}
 		flow.Selector.Criteria = append(flow.Selector.Criteria, Criterion(udpPortSelector))
 	}
 	if subFlow.TableMetadata != 0 {
 		metaDataSelector := MetaDataSelector{
-			Type:     METADATA,
+			Type:     MetaData,
 			Metadata: subFlow.TableMetadata,
 		}
 		flow.Selector.Criteria = append(flow.Selector.Criteria, Criterion(metaDataSelector))
@@ -583,7 +583,7 @@ func ConvertVoltSubFlowToOnosFlow(subFlow *of.VoltSubFlow) Flow {
 	// Fill actions
 	if subFlow.Output != 0 {
 		portInstruction := PortInstruction{
-			Type: OUTPUT,
+			Type: Output,
 		}
 		switch subFlow.Output {
 		case of.OutputTypeToController:
@@ -601,14 +601,14 @@ func ConvertVoltSubFlowToOnosFlow(subFlow *of.VoltSubFlow) Flow {
 				continue
 			}
 			pushVlanInstruction := PushVlanInstruction{
-				Type:         L2MODIFICATION,
-				SubType:      VLAN_PUSH,
+				Type:         L2Modification,
+				SubType:      VlanPush,
 				EthernetType: "0x8100",
 			}
 			flow.Treatment.Instructions = append(flow.Treatment.Instructions, Instruction(pushVlanInstruction))
 			vlanInstruction := VlanInstruction{
-				Type:    L2MODIFICATION,
-				SubType: VLAN_ID,
+				Type:    L2Modification,
+				SubType: VlanID,
 				VlanID:  int(vlan),
 			}
 			flow.Treatment.Instructions = append(flow.Treatment.Instructions, Instruction(vlanInstruction))
@@ -616,22 +616,22 @@ func ConvertVoltSubFlowToOnosFlow(subFlow *of.VoltSubFlow) Flow {
 	}
 	if subFlow.SetVlan != of.VlanNone {
 		vlanInstruction := VlanInstruction{
-			Type:    L2MODIFICATION,
-			SubType: VLAN_SET,
+			Type:    L2Modification,
+			SubType: VlanSet,
 			VlanID:  int(subFlow.SetVlan),
 		}
 		flow.Treatment.Instructions = append(flow.Treatment.Instructions, Instruction(vlanInstruction))
 	}
 	if subFlow.RemoveVlan != 0 {
 		popVlanInstruction := PopVlanInstruction{
-			Type:    L2MODIFICATION,
-			SubType: VLAN_POP,
+			Type:    L2Modification,
+			SubType: VlanPop,
 		}
 		flow.Treatment.Instructions = append(flow.Treatment.Instructions, Instruction(popVlanInstruction))
 	}
 	if subFlow.MeterID != 0 {
 		meterInstruction := MeterInstruction{
-			Type:    METER,
+			Type:    Meter,
 			MeterID: strconv.FormatUint(uint64(subFlow.MeterID), 10),
 		}
 		flow.Treatment.Instructions = append(flow.Treatment.Instructions, Instruction(meterInstruction))
@@ -678,7 +678,6 @@ type DeviceEntry struct {
 type Device struct {
 	ID                      string            `json:"id"`
 	Type                    string            `json:"type"`
-	Available               bool              `json:"available"`
 	Role                    string            `json:"role"`
 	Mfr                     string            `json:"mfr"`
 	Hw                      string            `json:"hw"`
@@ -689,6 +688,7 @@ type Device struct {
 	LastUpdate              string            `json:"lastUpdate"`
 	HumanReadableLastUpdate string            `json:"humanReadableLastUpdate"`
 	Annotations             DeviceAnnotations `json:"annotations"`
+	Available               bool              `json:"available"`
 }
 type DeviceAnnotations struct {
 	ChannelID         string `json:"channelId"`
@@ -726,10 +726,10 @@ type PortEntry struct {
 type Port struct {
 	Element     string          `json:"element"`
 	Port        string          `json:"port"`
-	IsEnabled   bool            `json:"isEnabled"`
 	Type        string          `json:"type"`
-	PortSpeed   int             `json:"portSpeed"`
 	Annotations PortAnnotations `json:"annotations"`
+	PortSpeed   int             `json:"portSpeed"`
+	IsEnabled   bool            `json:"isEnabled"`
 }
 type PortAnnotations struct {
 	AdminState string `json:"adminState"`
@@ -774,7 +774,7 @@ func (gh *GroupsHandle) convertGroupsToOnosGroup(groupsInfo *of.Group) *GroupsIn
 	if groupsInfo != nil {
 		for _, buckets := range groupsInfo.Buckets {
 			inst := Instructions{
-				Type: ALL,
+				Type: All,
 				Port: fmt.Sprint(buckets),
 			}
 			Instruction = append(Instruction, inst)
@@ -782,30 +782,30 @@ func (gh *GroupsHandle) convertGroupsToOnosGroup(groupsInfo *of.Group) *GroupsIn
 				Instructions: Instruction,
 			}
 			bkt := Bucket{
-				Type:      ALL,
+				Type:      All,
 				Treatment: trtmt,
 			}
 			bucket = append(bucket, bkt)
 		}
 		if groupsInfo.State == of.GroupOperSuccess {
-			groups.State = ADDED
+			groups.State = Added
 		} else if groupsInfo.State == of.GroupOperFailure {
-			groups.State = FAILED
+			groups.State = Failed
 		} else if groupsInfo.State == of.GroupOperPending {
-			groups.State = PENDING
+			groups.State = Pending
 		}
 		groups = &GroupsInfo{
 			DeviceID: groupsInfo.Device,
 			ID:       int(groupsInfo.GroupID),
 			State:    groups.State,
-			Type:     ALL,
+			Type:     All,
 			Buckets:  bucket,
 		}
 	}
 	return groups
 }
 
-func (mh *MetersHandle) MeterObjectMapping(meterInfo *of.Meter, deviceId string) Meters {
+func (mh *MetersHandle) MeterObjectMapping(meterInfo *of.Meter, deviceID string) Meters {
 	var meter Meters
 	var bd []Bands
 	for _, band := range meterInfo.Bands {
@@ -817,18 +817,17 @@ func (mh *MetersHandle) MeterObjectMapping(meterInfo *of.Meter, deviceId string)
 		bd = append(bd, bnd)
 	}
 	if meterInfo.State == of.MeterOperSuccess {
-		meter.State = ADDED
+		meter.State = Added
 	} else if meterInfo.State == of.MeterOperFailure {
-		meter.State = FAILED
+		meter.State = Failed
 	} else if meterInfo.State == of.MeterOperPending {
-		meter.State = PENDING
+		meter.State = Pending
 	}
 	meter = Meters{
 		ID:         fmt.Sprint(meterInfo.ID),
 		State:      meter.State,
-		DeviceID:   deviceId,
+		DeviceID:   deviceID,
 		MeterBands: bd,
 	}
 	return meter
-
 }

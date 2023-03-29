@@ -27,11 +27,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const (
+	cPost   = "POST"
+	cGet    = "GET"
+	cDelete = "DELETE"
+)
+
 type BWEntry struct {
 	Entries []BWProfile `json:"entry"`
 }
 
-//BWProfile - Sadis BW Profile
+// BWProfile - Sadis BW Profile
 type BWProfile struct {
 	ID                        string `json:"id"`
 	PeakInformationRate       uint32 `json:"pir"`
@@ -57,11 +63,11 @@ type ProfileHandle struct {
 func (mh *ProfileHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "GET":
+	case cGet:
 		mh.GetProfile(context.Background(), w, r)
-	case "POST":
+	case cPost:
 		mh.AddProfile(context.Background(), w, r)
-	case "DELETE":
+	case cDelete:
 		mh.DelProfile(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -70,7 +76,6 @@ func (mh *ProfileHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // AddProfile to add meter
 func (mh *ProfileHandle) AddProfile(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
 	profileName := vars["id"]
 	// Get the payload to process the request
@@ -142,14 +147,13 @@ func (mh *ProfileHandle) GetProfile(cntx context.Context, w http.ResponseWriter,
 		logger.Errorw(ctx, "Failed to write profile response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }
 
 // DelProfile to delete meter
 func (mh *ProfileHandle) DelProfile(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	profileName := vars["id"]
-	//TODO : Change the URL and Mux to fetch meter id from the request
+	// TODO : Change the URL and Mux to fetch meter id from the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
 		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})

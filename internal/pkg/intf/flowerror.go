@@ -23,9 +23,9 @@ import (
 type FlowStatus struct {
 	Device         string
 	Cookie         string
-	FlowModType    of.Command
-	Flow           *of.VoltSubFlow
-	Status         uint32
 	Reason         string
+	Flow           *of.VoltSubFlow
 	AdditionalData of.BwAvailDetails
+	Status         uint32
+	FlowModType    of.Command
 }

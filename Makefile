@@ -20,6 +20,7 @@ SHELL = bash -e -o pipefail
 VERSION                  ?= $(shell head -n 1 ./VERSION)
 # DOCKER_TAG               ?= ${VERSION}
 IMAGENAME                ?= ${DOCKER_NAME}:${DOCKER_TAG}
+GOLANGCI_LINT_BIN_PATH   ?= bin/golangci-lint
 
 COVERAGE_DIR = ./tests/results
 COVERAGE_PROFILE = $(COVERAGE_DIR)/profile.out
@@ -126,3 +127,6 @@ test: ## Run unit tests
 	${GOCOVER_COBERTURA} < ./tests/results/go-test-coverage.out > ./tests/results/go-test-coverage.xml ;\
 	exit $$RETURN
 
+local-sca:
+	test -f ${GOLANGCI_LINT_BIN_PATH} || wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.50.1 || true
+		bin/golangci-lint -v run

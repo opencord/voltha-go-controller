@@ -13,7 +13,7 @@
 * limitations under the License.
  */
 
-package onos_nbi
+package onosnbi
 
 import (
 	"bytes"
@@ -27,6 +27,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const (
+	cPost   = "POST"
+	cGet    = "GET"
+	cDelete = "DELETE"
+)
+
 // DeviceConfigHandle handles DeviceConfig Requests
 type DeviceConfigHandle struct {
 }
@@ -35,9 +41,9 @@ type DeviceConfigHandle struct {
 func (oh *DeviceConfigHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "POST":
+	case cPost:
 		oh.AddDeviceConfig(context.Background(), w, r)
-	case "GET":
+	case cGet:
 		oh.FetchDeviceConfig(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -82,5 +88,4 @@ func (oh *DeviceConfigHandle) FetchDeviceConfig(cntx context.Context, w http.Res
 		logger.Errorw(ctx, "Failed to write olt payload response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }

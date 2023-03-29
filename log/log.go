@@ -23,15 +23,15 @@ import (
 
 const skipLevel = 2
 
-//Fields - struct to update log params
+// Fields - struct to update log params
 type Fields log.Fields
 
-//CLogger - CLogger  wrapper
+// CLogger - CLogger  wrapper
 type CLogger struct {
 	clogger log.CLogger
 }
 
-type LogLevel int8
+type LevelLog int8
 
 // constants defining the Log Level
 const (
@@ -69,13 +69,13 @@ func AddPackage(level int) (*CLogger, error) {
 	return cLogger, err
 }
 
-//StringToLogLevel - converts the log level  from string to defined uint8
-func StringToLogLevel(l string) (LogLevel, error) {
+// StringToLogLevel - converts the log level  from string to defined uint8
+func StringToLogLevel(l string) (LevelLog, error) {
 	ll, err := log.StringToLogLevel(l)
 	if err != nil {
 		return 0, err
 	}
-	return LogLevel(ll), nil
+	return LevelLog(ll), nil
 }
 
 // With initializes logger with the key-value pairs
@@ -121,7 +121,6 @@ func (cl CLogger) Fatal(ctx context.Context, args string) {
 // pairs are treated as they are in With.
 func (cl CLogger) Fatalw(ctx context.Context, msg string, keysAndValues Fields) {
 	cl.clogger.Fatalw(ctx, msg, log.Fields(keysAndValues))
-
 }
 
 // Error logs a message at level Error on the standard logger.

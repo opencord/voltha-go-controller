@@ -32,23 +32,29 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//SubscriberDeviceInfo - Subcriber Device Info
+// SubscriberDeviceInfo - Subcriber Device Info
 type SubscriberDeviceInfo struct {
 	ID                 string              `json:"id"`
 	NasPortID          string              `json:"nasPortId"`
 	UplinkPort         string              `json:"uplinkPort"`
-	Slot               int                 `json:"slot"`
 	HardwareIdentifier string              `json:"hardwareIdentifier"`
 	IPAddress          string              `json:"ipAddress"`
 	NasID              string              `json:"nasId"`
 	CircuitID          string              `json:"circuitId"`
 	RemoteID           string              `json:"remoteId"`
-	NniDhcpTrapVid     int                 `json:"nniDhcpTrapVid"`
 	UniTagList         []UniTagInformation `json:"uniTagList"`
+	NniDhcpTrapVid     int                 `json:"nniDhcpTrapVid"`
+	Slot               int                 `json:"slot"`
 }
 
-//UniTagInformation - Service information
+// UniTagInformation - Service information
 type UniTagInformation struct {
+	UpstreamBandwidthProfile      string `json:"upstreamBandwidthProfile"`
+	DownstreamBandwidthProfile    string `json:"downstreamBandwidthProfile"`
+	UpstreamOltBandwidthProfile   string `json:"upstreamOltBandwidthProfile"`
+	DownstreamOltBandwidthProfile string `json:"downstreamOltBandwidthProfile"`
+	ServiceName                   string `json:"serviceName"`
+	ConfiguredMacAddress          string `json:"configuredMacAddress"`
 	UniTagMatch                   int    `json:"uniTagMatch"`
 	PonCTag                       int    `json:"ponCTag"`
 	PonSTag                       int    `json:"ponSTag"`
@@ -57,13 +63,7 @@ type UniTagInformation struct {
 	DsPonCTagPriority             int    `json:"dsPonCTagPriority"`
 	DsPonSTagPriority             int    `json:"dsPonSTagPriority"`
 	TechnologyProfileID           int    `json:"technologyProfileId"`
-	UpstreamBandwidthProfile      string `json:"upstreamBandwidthProfile"`
-	DownstreamBandwidthProfile    string `json:"downstreamBandwidthProfile"`
-	UpstreamOltBandwidthProfile   string `json:"upstreamOltBandwidthProfile"`
-	DownstreamOltBandwidthProfile string `json:"downstreamOltBandwidthProfile"`
-	ServiceName                   string `json:"serviceName"`
 	EnableMacLearning             bool   `json:"enableMacLearning"`
-	ConfiguredMacAddress          string `json:"configuredMacAddress"`
 	IsDhcpRequired                bool   `json:"isDhcpRequired"`
 	IsIgmpRequired                bool   `json:"isIgmpRequired"`
 	IsPppoeRequired               bool   `json:"isPppoeRequired"`
@@ -86,9 +86,9 @@ type SubscriberHandle struct {
 func (sh *SubscriberHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "POST":
+	case cPost:
 		sh.AddSubscriberInfo(context.Background(), w, r)
-	case "DELETE":
+	case cDelete:
 		sh.DelSubscriberInfo(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -97,7 +97,6 @@ func (sh *SubscriberHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // AddSubscriberInfo to add service
 func (sh *SubscriberHandle) AddSubscriberInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
@@ -120,7 +119,6 @@ func (sh *SubscriberHandle) AddSubscriberInfo(cntx context.Context, w http.Respo
 }
 
 func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
-
 	//vsCfgList := getVoltServiceFromSrvInfo(srvInfo)
 	va := app.GetApplication()
 	if len(srvInfo.UniTagList) == 0 {
@@ -155,9 +153,9 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 		vs.IgmpEnabled = uniTagInfo.IsIgmpRequired
 		vs.ServiceType = uniTagInfo.ServiceName
 
-		if uniTagInfo.ServiceName == app.DPU_MGMT_TRAFFIC ||
-			uniTagInfo.ServiceName == app.DPU_ANCP_TRAFFIC ||
-			uniTagInfo.ServiceName == app.FTTB_SUBSCRIBER_TRAFFIC {
+		if uniTagInfo.ServiceName == app.DpuMgmtTraffic ||
+			uniTagInfo.ServiceName == app.DpuAncpTraffic ||
+			uniTagInfo.ServiceName == app.FttbSubscriberTraffic {
 			vs.UniVlan = vs.CVlan
 			vs.Pbits = append(vs.Pbits, of.PbitMatchAll)
 		} else {
@@ -215,10 +213,10 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 			vnetcfg.UsDhcpPbit = append(vnetcfg.UsDhcpPbit, of.PbitType(uniTagInfo.UsPonSTagPriority))
 		}
 		if vs.CVlan != of.VlanAny && vs.SVlan != of.VlanAny {
-			if uniTagInfo.ServiceName == app.DPU_MGMT_TRAFFIC ||
-				uniTagInfo.ServiceName == app.DPU_ANCP_TRAFFIC {
+			if uniTagInfo.ServiceName == app.DpuMgmtTraffic ||
+				uniTagInfo.ServiceName == app.DpuAncpTraffic {
 				vnetcfg.VlanControl = app.ONUCVlan
-			} else if uniTagInfo.ServiceName == app.FTTB_SUBSCRIBER_TRAFFIC {
+			} else if uniTagInfo.ServiceName == app.FttbSubscriberTraffic {
 				vnetcfg.VlanControl = app.OLTSVlan
 			} else {
 				vnetcfg.VlanControl = app.ONUCVlanOLTSVlan
@@ -233,13 +231,11 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 		if err := app.GetApplication().AddService(cntx, vs, nil); err != nil {
 			logger.Errorw(ctx, "AddService Failed", log.Fields{"Service": vs.Name, "Error": err})
 		}
-
 	}
 }
 
 // DelSubscriberInfo to delete service
 func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
 	id := vars["id"]
 

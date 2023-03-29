@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package of
 
@@ -22,8 +22,9 @@ import (
 
 	"github.com/google/gopacket/layers"
 
-	"github.com/opencord/voltha-lib-go/v7/pkg/flows"
 	"voltha-go-controller/log"
+
+	"github.com/opencord/voltha-lib-go/v7/pkg/flows"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	//"github.com/opencord/voltha-protos/v5/go/voltha"
 )
@@ -175,25 +176,25 @@ const (
 
 // Match structure
 type Match struct {
-	InPort        uint32
-	MatchVlan     VlanType
-	SrcMacMatch   bool
 	SrcMacAddr    net.HardwareAddr
 	SrcMacMask    net.HardwareAddr
-	DstMacMatch   bool
 	DstMacAddr    net.HardwareAddr
 	DstMacMask    net.HardwareAddr
-	MatchPbits    bool
+	SrcIpv4Addr   net.IP
+	DstIpv4Addr   net.IP
+	TableMetadata uint64
+	InPort        uint32
+	MatchVlan     VlanType
 	Pbits         PbitType
 	L3Protocol    EtherType
-	SrcIpv4Match  bool
-	SrcIpv4Addr   net.IP
-	DstIpv4Match  bool
-	DstIpv4Addr   net.IP
-	L4Protocol    IPProtocol
 	SrcPort       uint16
 	DstPort       uint16
-	TableMetadata uint64
+	L4Protocol    IPProtocol
+	DstIpv4Match  bool
+	SrcIpv4Match  bool
+	SrcMacMatch   bool
+	DstMacMatch   bool
+	MatchPbits    bool
 }
 
 // Reset to be used when a Match is created. It sets the values to
@@ -327,16 +328,16 @@ const (
 
 // Action structure
 type Action struct {
-	Output      OutputType
 	PushVlan    []VlanType
-	EtherType   layers.EthernetType
-	SetVlan     VlanType
+	Metadata    uint64
 	RemoveVlan  int
 	OutPort     uint32
 	GoToTableID uint32
-	Metadata    uint64
 	MeterID     uint32
+	EtherType   layers.EthernetType
+	SetVlan     VlanType
 	Pcp         PbitType
+	Output      OutputType
 }
 
 const (
@@ -417,16 +418,16 @@ func (a *Action) SetGoToTable(table uint32) {
 
 // VoltSubFlow structure
 type VoltSubFlow struct {
-	Cookie     uint64
-	CookieMask uint64
-	// OldCookie is used in vgc upgrade when there is cookie generation logic change.
-	OldCookie   uint64
-	TableID     uint32
-	Priority    uint32
-	State       uint8
 	ErrorReason string
 	Match
 	Action
+	Cookie     uint64
+	CookieMask uint64
+	// OldCookie is used in vgc upgrade when there is cookie generation logic change.
+	OldCookie uint64
+	TableID   uint32
+	Priority  uint32
+	State     uint8
 }
 
 // NewVoltSubFlow is constructor for VoltSubFlow
@@ -454,13 +455,13 @@ const (
 
 // VoltFlow : Definition of a flow
 type VoltFlow struct {
+	SubFlows map[uint64]*VoltSubFlow
+	// PortName and PortID to be used for validation of port before flow pushing
+	PortName      string
+	PortID        uint32
 	Command       Command
-	SubFlows      map[uint64]*VoltSubFlow
 	ForceAction   bool
 	MigrateCookie bool
-	// PortName and PortID to be used for validation of port before flow pushing
-	PortName string
-	PortID   uint32
 }
 
 const (

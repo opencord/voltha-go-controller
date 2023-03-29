@@ -107,11 +107,11 @@ type IDhcpRelaySession interface {
 // to the network. It supports two VLANs as its identify. If a single VLAN or
 // no VLAN is to be used, those two should be passed as 4096 (VlanNone)
 type DhcpRelayVnet struct {
-	OuterVlan   uint16
-	InnerVlan   uint16
 	sessions    map[[6]byte]IDhcpRelaySession
 	sessionsv6  map[[MaxLenDhcpv6DUID]byte]IDhcpRelaySession
 	sessionLock sync.RWMutex
+	OuterVlan   uint16
+	InnerVlan   uint16
 }
 
 // DhcpNetworks hosts different DHCP networks that in turn hold the DHCP
@@ -270,7 +270,6 @@ func (dn *DhcpNetworks) GetDhcp6Session(outerVlan uint16, innerVlan uint16, key 
 
 // GetVlansFromPacket to get vlans from the packet
 func GetVlansFromPacket(pkt gopacket.Packet) (innerVlan of.VlanType, outerVlan of.VlanType) {
-
 	vlans := GetVlans(pkt)
 	if len(vlans) == 1 {
 		outerVlan = vlans[0]
@@ -375,7 +374,6 @@ func getDhcpv6ClientMacAddr(dhcpv6 *layers.DHCPv6) net.HardwareAddr {
 
 // getDhcpv6ClientDUID to get Dhcpv6 client DUID
 func getDhcpv6ClientDUID(dhcpv6 *layers.DHCPv6) ([]byte, *layers.DHCPv6DUID) {
-
 	for _, option := range dhcpv6.Options {
 		logger.Debugw(ctx, "DHCPv6 Options", log.Fields{"option": option.Code})
 		if option.Code == layers.DHCPv6OptClientID {
@@ -475,7 +473,7 @@ func GetIpv4Addr(dhcp *layers.DHCPv4) (net.IP, int64) {
 	return dhcp.YourClientIP, int64(leaseTime)
 }
 
-//GetIPv4LeaseTime get ip lease time
+// GetIPv4LeaseTime get ip lease time
 func GetIPv4LeaseTime(opt layers.DHCPOption) uint32 {
 	return uint32(opt.Data[0])<<24 | uint32(opt.Data[1])<<16 | uint32(opt.Data[2])<<8 | uint32(opt.Data[3])
 }
@@ -502,7 +500,6 @@ func GetIANAAddress(dhcp6 *layers.DHCPv6) (net.IP, uint32) {
 	if dhcp6.MsgType == layers.DHCPv6MsgTypeReply {
 		for _, o := range dhcp6.Options {
 			if o.Code == layers.DHCPv6OptIANA {
-
 				iana := &layers.DHCPv6IANA{}
 				err := iana.DecodeFromBytes(o.Data)
 				if err == nil {
@@ -526,7 +523,6 @@ func GetIAPDAddress(dhcp6 *layers.DHCPv6) (net.IP, uint32) {
 	if dhcp6.MsgType == layers.DHCPv6MsgTypeReply {
 		for _, o := range dhcp6.Options {
 			if o.Code == layers.DHCPv6OptIAPD {
-
 				iapd := &layers.DHCPv6IAPD{}
 				if err := iapd.DecodeFromBytes(o.Data); err == nil {
 					ipv6Addr = iapd.PD.Prefix
@@ -550,7 +546,6 @@ func GetIAPDAddress(dhcp6 *layers.DHCPv6) (net.IP, uint32) {
 // common map. The key for retrieval includes the VLAN tags in the
 // the packet and the MAC address of the client.
 func (va *VoltApplication) ProcessDsDhcpv4Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) {
-
 	// Retrieve the layers to build the outgoing packet. It is not
 	// possible to add/remove layers to the existing packet and thus
 	// the lyayers are extracted to build the outgoing packet
@@ -605,7 +600,6 @@ func (va *VoltApplication) ProcessDsDhcpv4Packet(cntx context.Context, device st
 					go vpv.SetMacAddr(cntx, dhcp4.ClientHWAddr)
 				}
 				vpv.DhcpResultInd(cntx, dhcp4)
-
 			}
 			raiseDHCPv4Indication(msgType, vpv, dhcp4.ClientHWAddr, ipAddr, dsPbit, device, leaseTime)
 		}
@@ -687,7 +681,6 @@ func (va *VoltApplication) ProcessDsDhcpv4Packet(cntx context.Context, device st
 // raiseDHCPv4Indication process DHCPv4 packet and raise indication
 func raiseDHCPv4Indication(msgType layers.DHCPMsgType, vpv *VoltPortVnet, smac net.HardwareAddr,
 	ip net.IP, pktPbit uint8, device string, leaseTime int64) {
-
 	logger.Debugw(ctx, "Processing Dhcpv4 packet", log.Fields{"ethsrcMac": smac.String(),
 		"MacLearningInVPV": vpv.MacLearning, "MacConfigured": vpv.MacAddr, "dhcpType": msgType,
 		"vlanPriority": pktPbit, "VPVLearntMac": vpv.LearntMacAddr})
@@ -731,7 +724,6 @@ func raiseDHCPv4Indication(msgType layers.DHCPMsgType, vpv *VoltPortVnet, smac n
 // raiseDHCPv6Indication process DHCPv6 packet and raise indication
 func raiseDHCPv6Indication(msgType layers.DHCPv6MsgType, vpv *VoltPortVnet,
 	smac net.HardwareAddr, ip net.IP, pktPbit uint8, device string, leaseTime uint32) {
-
 	logger.Debugw(ctx, "Processing DHCPv6 packet", log.Fields{"dhcpType": msgType,
 		"vlanPriority": pktPbit, "dhcpClientMac": smac.String(),
 		"MacLearningInVPV": vpv.MacLearning, "MacConfigured": vpv.MacAddr,
@@ -933,7 +925,7 @@ func ProcessUDP4Packet(cntx context.Context, device string, port string, pkt gop
 // We determine the packet direction and process it based on the direction
 func (va *VoltApplication) ProcessUDP4Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	// Currently DHCP is the only application supported by the application
-	// We check for DHCP before proceeding futher. In future, this could be
+	// We check for DHCP before proceeding further. In future, this could be
 	// based on registration and the callbacks
 	dhcpl := pkt.Layer(layers.LayerTypeDHCPv4)
 	if dhcpl == nil {
@@ -950,7 +942,6 @@ func (va *VoltApplication) ProcessUDP4Packet(cntx context.Context, device string
 		// This is a downstream packet
 		va.ProcessDsDhcpv4Packet(cntx, device, port, pkt)
 	}
-
 }
 
 // ProcessUDP6Packet : CallBack function registered with application to handle DHCPv6 packetIn
@@ -1144,7 +1135,6 @@ func (va *VoltApplication) ProcessUsDhcpv6Packet(cntx context.Context, device st
 			qdot1q := &layers.Dot1Q{Priority: priority, VLANIdentifier: vlan, DropEligible: dropEligible, Type: nxtLayer}
 			qVlanLayers = append(qVlanLayers, qdot1q)
 		}
-
 	}
 	switch vpv.VlanControl {
 	case ONUCVlanOLTSVlan,
@@ -1240,7 +1230,6 @@ func (va *VoltApplication) ProcessDsDhcpv6Packet(cntx context.Context, device st
 	ipv6Addr, leaseTime := GetIpv6Addr(dhcp6)
 
 	for _, vpv := range vpvList {
-
 		dsPbit = vpv.GetRemarkedPriority(priority)
 		// Raise DHCPv6 Reply indication
 		if vpv.DhcpRelay {
@@ -1303,7 +1292,6 @@ func (va *VoltApplication) ProcessDsDhcpv6Packet(cntx context.Context, device st
 				qdot1q := &layers.Dot1Q{Priority: priority, VLANIdentifier: vlan, DropEligible: dropEligible, Type: nxtLayer}
 				qVlanLayers = append(qVlanLayers, qdot1q)
 			}
-
 		}
 		switch vpv.VlanControl {
 		case ONUCVlanOLTSVlan:
@@ -1347,12 +1335,12 @@ func init() {
 type DhcpAllocation struct {
 	SubscriberID        string           `json:"subscriberId"`
 	ConnectPoint        string           `json:"connectPoint"`
+	AllocationTimeStamp time.Time        `json:"allocationTimestamp"`
 	MacAddress          net.HardwareAddr `json:"macAddress"`
+	CircuitID           []byte           `json:"circuitId"`
+	IPAllocated         net.IP           `json:"ipAllocated"`
 	State               int              `json:"state"`
 	VlanID              int              `json:"vlanId"`
-	CircuitID           []byte           `json:"circuitId"`
-	IpAllocated         net.IP           `json:"ipAllocated"`
-	AllocationTimeStamp time.Time        `json:"allocationTimestamp"`
 }
 
 // GetAllocations returns DhcpAllocation info for all devices or for a device ID
@@ -1381,7 +1369,7 @@ func (va *VoltApplication) GetAllocations(cntx context.Context, deviceID string)
 						State:               int(vpv.RelayState),
 						VlanID:              int(vpv.SVlan),
 						CircuitID:           vpv.CircuitID,
-						IpAllocated:         vpv.Ipv4Addr,
+						IPAllocated:         vpv.Ipv4Addr,
 						AllocationTimeStamp: vpv.DhcpExpiryTime,
 					}
 					logger.Debugw(ctx, "DHCP Allocation found", log.Fields{"DhcpAlloc": allocation})
@@ -1395,9 +1383,9 @@ func (va *VoltApplication) GetAllocations(cntx context.Context, deviceID string)
 }
 
 type MacLearnerInfo struct {
-	DeviceId   string `json:"deviceId"`
+	DeviceID   string `json:"deviceId"`
 	PortNumber string `json:"portNumber"`
-	VlanId     string `json:"vlanId"`
+	VlanID     string `json:"vlanId"`
 	MacAddress string `json:"macAddress"`
 }
 
@@ -1411,9 +1399,9 @@ func (va *VoltApplication) GetAllMacLearnerInfo() ([]MacLearnerInfo, error) {
 			vpv, ok := session.(*VoltPortVnet)
 			if ok {
 				macLearn := MacLearnerInfo{
-					DeviceId:   vpv.Device,
+					DeviceID:   vpv.Device,
 					PortNumber: vpv.Port,
-					VlanId:     vpv.SVlan.String(),
+					VlanID:     vpv.SVlan.String(),
 					MacAddress: vpv.MacAddr.String(),
 				}
 				logger.Debugw(ctx, "MacLerner found", log.Fields{"MacLearn": macLearn})
@@ -1425,7 +1413,7 @@ func (va *VoltApplication) GetAllMacLearnerInfo() ([]MacLearnerInfo, error) {
 	return macLearner, nil
 }
 
-func (va *VoltApplication) GetMacLearnerInfo(cntx context.Context, deviceId, portNumber, vlanId string) (MacLearnerInfo, error) {
+func (va *VoltApplication) GetMacLearnerInfo(cntx context.Context, deviceID, portNumber, vlanID string) (MacLearnerInfo, error) {
 	logger.Info(ctx, "GetMecLearnerInfo")
 	macLearn := MacLearnerInfo{}
 	for _, drv := range dhcpNws.Networks {
@@ -1434,19 +1422,19 @@ func (va *VoltApplication) GetMacLearnerInfo(cntx context.Context, deviceId, por
 		for _, session := range drv.sessions {
 			vpv, ok := session.(*VoltPortVnet)
 			if ok {
-				if deviceId == vpv.Device && portNumber == vpv.Port && vlanId == vpv.SVlan.String() {
+				if deviceID == vpv.Device && portNumber == vpv.Port && vlanID == vpv.SVlan.String() {
 					macLearn = MacLearnerInfo{
-						DeviceId:   vpv.Device,
+						DeviceID:   vpv.Device,
 						PortNumber: vpv.Port,
-						VlanId:     vpv.SVlan.String(),
+						VlanID:     vpv.SVlan.String(),
 						MacAddress: vpv.MacAddr.String(),
 					}
 					logger.Infow(ctx, "MacLerner found", log.Fields{"MacLearn": macLearn})
-				} else if deviceId == vpv.Device && portNumber == vpv.Port && vlanId == "" {
+				} else if deviceID == vpv.Device && portNumber == vpv.Port && vlanID == "" {
 					macLearn = MacLearnerInfo{
-						DeviceId:   vpv.Device,
+						DeviceID:   vpv.Device,
 						PortNumber: vpv.Port,
-						VlanId:     vpv.SVlan.String(),
+						VlanID:     vpv.SVlan.String(),
 						MacAddress: vpv.MacAddr.String(),
 					}
 					logger.Infow(ctx, "MacLerner found", log.Fields{"MacLearn": macLearn})
@@ -1473,7 +1461,6 @@ func (va *VoltApplication) GetIgnoredPorts() (map[string][]string, error) {
 				return true
 			}
 			for _, vpv := range vnets.([]*VoltPortVnet) {
-
 				if vpv.MacLearning == MacLearningNone {
 					IgnoredPorts[vpv.Device] = append(IgnoredPorts[vpv.Device], vpv.Port)
 				}
