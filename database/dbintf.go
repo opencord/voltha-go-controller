@@ -160,12 +160,12 @@ type DBIntf interface {
 	GetOltFlowService(ctx context.Context) (string, error)
 }
 
-//GetDatabase - returns databse operation based on configuration
+// GetDatabase - returns databse operation based on configuration
 func GetDatabase() DBIntf {
 	return dbObj
 }
 
-//SetDatabase - sets the DB object based on the type
+// SetDatabase - sets the DB object based on the type
 func SetDatabase(df DBIntf) {
 	dbObj = df
 }

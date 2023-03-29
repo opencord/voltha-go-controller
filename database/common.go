@@ -29,8 +29,8 @@ const (
 	PreviousVersion = "v1"
 )
 
-//These are present path where different database elements are store in database
-//In case any of these paths change, update the present and previous version
+// These are present path where different database elements are store in database
+// In case any of these paths change, update the present and previous version
 const (
 	BasePath               string = "service/vgc/%s/"
 	ServicePath            string = "services/"
@@ -67,7 +67,7 @@ const (
 	DeviceConfigPath       string = "device-config/"
 )
 
-//PresentVersionMap - map of present version for all database tables
+// PresentVersionMap - map of present version for all database tables
 var PresentVersionMap = map[string]string{
 	ServicePath:            "v3",
 	DevicePath:             "v1",
@@ -103,7 +103,7 @@ var PresentVersionMap = map[string]string{
 	DeviceConfigPath:       "v1",
 }
 
-//PreviousVersionMap - map of previous version for all database tables
+// PreviousVersionMap - map of previous version for all database tables
 var PreviousVersionMap = map[string]string{
 	ServicePath:            "v2",
 	DevicePath:             "v1",
@@ -139,7 +139,7 @@ var PreviousVersionMap = map[string]string{
 	DeviceConfigPath:       "v1",
 }
 
-//DBVersionMap - Version of tables present in DB
+// DBVersionMap - Version of tables present in DB
 var DBVersionMap = PreviousVersionMap
 
 // GetModuleKeypath returns the DB keypath for particular module along with version

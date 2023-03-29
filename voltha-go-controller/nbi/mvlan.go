@@ -53,13 +53,13 @@ type Mvlan struct {
 // MvlanProfile structure
 type MvlanProfile struct {
 	Name                 string                                `json:"name"`
-	Mvlan                of.VlanType                           `json:"mvlan"`
-	PonVlan              of.VlanType                           `json:"ponVlan"`
 	Groups               map[string][]string                   `json:"groups"`
 	Proxy                map[string]common.MulticastGroupProxy `json:"proxy"`
-	IsChannelBasedGroup  bool                                  `json:"isChannelBasedGroup"`
 	OLTSerialNum         []string                              `json:"oltserialnum"`
 	ActiveChannelsPerSub int                                   `json:"ActiveChannelsPerSub"`
+	Mvlan                of.VlanType                           `json:"mvlan"`
+	PonVlan              of.VlanType                           `json:"ponVlan"`
+	IsChannelBasedGroup  bool                                  `json:"isChannelBasedGroup"`
 }
 
 // IGMPCfg structure
@@ -79,9 +79,9 @@ type MulticastHandle struct {
 func (iph *MulticastHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "POST":
+	case cPost:
 		iph.AddMvlanInfo(context.Background(), w, r)
-	case "DELETE":
+	case cDelete:
 		iph.DelMvlanInfo(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -90,7 +90,6 @@ func (iph *MulticastHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // AddMvlanInfo to add igmp proxy info
 func (iph *MulticastHandle) AddMvlanInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {

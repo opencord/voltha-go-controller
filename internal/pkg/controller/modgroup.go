@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package controller
 
@@ -24,19 +24,20 @@ import (
 
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/log"
+
 	"google.golang.org/grpc/codes"
 )
 
-//ModGroupTask - Group Modification Task
+// ModGroupTask - Group Modification Task
 type ModGroupTask struct {
-	taskID    uint8
 	ctx       context.Context
 	group     *of.Group
 	device    *Device
 	timestamp string
+	taskID    uint8
 }
 
-//NewModGroupTask - Initializes new group task
+// NewModGroupTask - Initializes new group task
 func NewModGroupTask(ctx context.Context, group *of.Group, device *Device) *ModGroupTask {
 	var grp ModGroupTask
 	grp.device = device
@@ -47,12 +48,12 @@ func NewModGroupTask(ctx context.Context, group *of.Group, device *Device) *ModG
 	return &grp
 }
 
-//Name - Name of task
+// Name - Name of task
 func (grp *ModGroupTask) Name() string {
 	return "Group Mod Task"
 }
 
-//TaskID - Task id
+// TaskID - Task id
 func (grp *ModGroupTask) TaskID() uint8 {
 	return grp.taskID
 }
@@ -62,11 +63,11 @@ func (grp *ModGroupTask) Timestamp() string {
 	return grp.timestamp
 }
 
-//Stop - task stop
+// Stop - task stop
 func (grp *ModGroupTask) Stop() {
 }
 
-//Start - task start
+// Start - task start
 func (grp *ModGroupTask) Start(ctx context.Context, taskID uint8) error {
 	var err error
 	grp.taskID = taskID
@@ -74,11 +75,9 @@ func (grp *ModGroupTask) Start(ctx context.Context, taskID uint8) error {
 	i := 0
 
 	processGroupModResult := func(err error) bool {
-
 		statusCode, statusMsg := infraerror.GetErrorInfo(err)
 
 		if infraerrorcode.ErrorCode(statusCode) != infraerrorcode.ErrOk {
-
 			if grp.group.Command == of.GroupCommandAdd && (codes.Code(statusCode) == codes.AlreadyExists) {
 				logger.Warnw(ctx, "Update Group Table Failed - Ignoring since Group Already exists",
 					log.Fields{"groupId": grp.group.GroupID, "groupOp": grp.group.Command, "Status": statusCode, "errorReason": statusMsg})
@@ -90,7 +89,6 @@ func (grp *ModGroupTask) Start(ctx context.Context, taskID uint8) error {
 		}
 		logger.Infow(ctx, "Group Mod Result", log.Fields{"groupID": grp.group.GroupID, "Error Code": statusCode})
 		return true
-
 	}
 
 	if grp.group.Command != of.GroupCommandDel {
@@ -107,10 +105,9 @@ func (grp *ModGroupTask) Start(ctx context.Context, taskID uint8) error {
 
 	groupUpdate := of.CreateGroupTableUpdate(grp.group)
 	if vc := grp.device.VolthaClient(); vc != nil {
-
-		//Retry on group mod failure
-		//Retry attempts = 3
-		//Delay between retry = 100ms. Total Possible Delay = 200ms
+		// Retry on group mod failure
+		// Retry attempts = 3
+		// Delay between retry = 100ms. Total Possible Delay = 200ms
 		for {
 			logger.Infow(ctx, "Group Mod Triggered", log.Fields{"GroupId": grp.group.GroupID, "Attempt": i})
 			_, err = vc.UpdateLogicalDeviceFlowGroupTable(grp.ctx, groupUpdate)
@@ -124,7 +121,6 @@ func (grp *ModGroupTask) Start(ctx context.Context, taskID uint8) error {
 			}
 			logger.Errorw(ctx, "Update Group Table Failed on all 3 attempts. Dropping request", log.Fields{"GroupId": grp.group.GroupID, "Bucket": grp.group.Buckets})
 			break
-
 		}
 		return err
 	}

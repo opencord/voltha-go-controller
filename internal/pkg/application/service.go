@@ -51,106 +51,102 @@ const (
 // UniVlan -	The VLAN of the packets entering the UNI of ONU
 // CVlan -	The VLAN to transalate to/from on the PON link
 // SVlan -	The outer VLAN to be used on the NNI of OLT.
-//       -	In general, 4096 is used as NO VLAN for all the above
-// SVlanTpid - SVlan Tag Protocl Identifier
+// -	In general, 4096 is used as NO VLAN for all the above
+// SVlanTpid - SVlan Tag Protocol Identifier
 // Pbits -      Each bit of uint8 represents one p-bit. MSB is pbit 7
 // DhcpRelay -	Whether it is turned on/off
 // CircuitId -	The circuit id to be used with DHCP relay. Unused otherwise
 // RemoveId - 	Same as above
 // Port -	The access port for the service. Each service has a single access
-//		port. The converse is not always true
+// port. The converse is not always true
 // MacLearning - If MAC learning is turned on, the MAC address learned from the
-//		the service activation is used in programming flows
+// the service activation is used in programming flows
 // MacAddress -	The MAC hardware address learnt on the UNI interface
 // MacAddresses - Not yet implemented. To be used to learn more MAC addresses
 type VoltServiceCfg struct {
-	Name                       string
-	UniVlan                    of.VlanType
-	CVlan                      of.VlanType
-	SVlan                      of.VlanType
-	SVlanTpid                  layers.EthernetType
-	MacAddr                    net.HardwareAddr
 	Pbits                      []of.PbitType
-	UsPonCTagPriority          of.PbitType
-	UsPonSTagPriority          of.PbitType
-	DsPonCTagPriority          of.PbitType
-	DsPonSTagPriority          of.PbitType
-	DsRemarkPbitsMap           map[int]int // Ex: Remark case {0:0,1:0} and No-remark case {1:1}
-	TechProfileID              uint16
+	Name                       string
 	CircuitID                  string
-	RemoteID                   []byte
 	Port                       string
-	PonPort                    uint32
-	MacLearning                MacLearningType
-	IsOption82Disabled         bool
-	IgmpEnabled                bool
-	McastService               bool
-	ONTEtherTypeClassification int
-	VlanControl                VlanControl
 	UsMeterProfile             string
 	DsMeterProfile             string
 	AggDsMeterProfile          string
 	VnetID                     string
 	MvlanProfileName           string
 	RemoteIDType               string
-	SchedID                    int
-	AllowTransparent           bool
-	EnableMulticastKPI         bool
 	DataRateAttr               string
+	ServiceType                string
+	DsRemarkPbitsMap           map[int]int // Ex: Remark case {0:0,1:0} and No-remark case {1:1}
+	RemoteID                   []byte
+	MacAddr                    net.HardwareAddr
+	ONTEtherTypeClassification int
+	SchedID                    int
+	Trigger                    ServiceTrigger
+	MacLearning                MacLearningType
+	PonPort                    uint32
 	MinDataRateUs              uint32
 	MinDataRateDs              uint32
 	MaxDataRateUs              uint32
 	MaxDataRateDs              uint32
+	TechProfileID              uint16
+	SVlanTpid                  layers.EthernetType
+	UniVlan                    of.VlanType
+	CVlan                      of.VlanType
+	SVlan                      of.VlanType
+	UsPonCTagPriority          of.PbitType
+	UsPonSTagPriority          of.PbitType
+	DsPonSTagPriority          of.PbitType
+	DsPonCTagPriority          of.PbitType
+	VlanControl                VlanControl
+	IsOption82Disabled         bool
+	IgmpEnabled                bool
+	McastService               bool
+	AllowTransparent           bool
+	EnableMulticastKPI         bool
 	IsActivated                bool
-	Trigger                    ServiceTrigger
-	ServiceType                string
 }
 
 // VoltServiceOper structure
 type VoltServiceOper struct {
+	Metadata        interface{}
+	PendingFlows    map[string]bool
+	AssociatedFlows map[string]bool
+	BwAvailInfo     string
 	//MacLearning  bool
 	//MacAddr      net.HardwareAddr
-	Device   string
-	Ipv4Addr net.IP
-	Ipv6Addr net.IP
-
-	UsMeterID    uint32
-	DsMeterID    uint32
-	AggDsMeterID uint32
-
-	//Multiservice-Fix
+	Device           string
+	Ipv4Addr         net.IP
+	Ipv6Addr         net.IP
+	ServiceLock      sync.RWMutex `json:"-"`
+	UsMeterID        uint32
+	DsMeterID        uint32
+	AggDsMeterID     uint32
+	UpdateInProgress bool
+	DeleteInProgress bool
+	ForceDelete      bool
+	// Multiservice-Fix
 	UsHSIAFlowsApplied bool
 	DsHSIAFlowsApplied bool
 	UsDhcpFlowsApplied bool
 	DsDhcpFlowsApplied bool
 	IgmpFlowsApplied   bool
 	Icmpv6FlowsApplied bool
-
-	ServiceLock      sync.RWMutex `json:"-"`
-	PendingFlows     map[string]bool
-	AssociatedFlows  map[string]bool
-	DeleteInProgress bool
-	ForceDelete      bool
-	BwAvailInfo      string
-
-	UpdateInProgress bool
-	Metadata         interface{}
 }
 
 // VoltService structure
 type VoltService struct {
-	VoltServiceCfg
 	VoltServiceOper
 	Version string
+	VoltServiceCfg
 }
 
-//ServiceTrigger - Service activation trigger
+// ServiceTrigger - Service activation trigger
 type ServiceTrigger int
 
 const (
-	//NBActivate - Service added due to NB Action
+	// NBActivate - Service added due to NB Action
 	NBActivate ServiceTrigger = 0
-	//ServiceVlanUpdate - Service added due to Svlan Update
+	// ServiceVlanUpdate - Service added due to Svlan Update
 	ServiceVlanUpdate ServiceTrigger = 1
 )
 
@@ -160,7 +156,7 @@ type AppMutexes struct {
 	VnetMutex        sync.Mutex `json:"-"`
 }
 
-//MigrateServiceMetadata - migrate services request metadata
+// MigrateServiceMetadata - migrate services request metadata
 type MigrateServiceMetadata struct {
 	NewVnetID string
 	RequestID string
@@ -188,7 +184,6 @@ func NewVoltService(cfg *VoltServiceCfg) *VoltService {
 
 // WriteToDb commit a service to the DB if service delete is not in-progress
 func (vs *VoltService) WriteToDb(cntx context.Context) {
-
 	vs.ServiceLock.RLock()
 	defer vs.ServiceLock.RUnlock()
 
@@ -199,7 +194,7 @@ func (vs *VoltService) WriteToDb(cntx context.Context) {
 	vs.ForceWriteToDb(cntx)
 }
 
-//ForceWriteToDb force commit a service to the DB
+// ForceWriteToDb force commit a service to the DB
 func (vs *VoltService) ForceWriteToDb(cntx context.Context) {
 	b, err := json.Marshal(vs)
 
@@ -220,8 +215,8 @@ func (vs *VoltService) isDataRateAttrPresent() bool {
 // DelFromDb delete a service from DB
 func (vs *VoltService) DelFromDb(cntx context.Context) {
 	logger.Debugw(ctx, "Deleting Service from DB", log.Fields{"Name": vs.Name})
-	//TODO - Need to understand and delete the second call
-	//Calling twice has worked though don't know why
+	// TODO - Need to understand and delete the second call
+	// Calling twice has worked though don't know why
 	_ = db.DelService(cntx, vs.Name)
 	_ = db.DelService(cntx, vs.Name)
 }
@@ -277,7 +272,7 @@ func (vs *VoltService) AddHsiaFlows(cntx context.Context) {
 	}
 }
 
-//DelHsiaFlows - Deletes US & DS HSIA Flows for the service
+// DelHsiaFlows - Deletes US & DS HSIA Flows for the service
 func (vs *VoltService) DelHsiaFlows(cntx context.Context) {
 	if err := vs.DelUsHsiaFlows(cntx); err != nil {
 		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
@@ -311,7 +306,6 @@ func (vs *VoltService) AddMeterToDevice(cntx context.Context) error {
 
 // AddUsHsiaFlows - Add US HSIA Flows for the service
 func (vs *VoltService) AddUsHsiaFlows(cntx context.Context) error {
-
 	if vs.DeleteInProgress || vs.UpdateInProgress {
 		logger.Errorw(ctx, "Ignoring US HSIA Flow Push, Service deleteion In-Progress", log.Fields{"Device": vs.Device, "Service": vs.Name})
 		return nil
@@ -331,14 +325,14 @@ func (vs *VoltService) AddUsHsiaFlows(cntx context.Context) error {
 
 		vs.Device = device.Name
 		/* In case of DPU_MGMT_TRAFFIC the meters will be configured before US flow creation*/
-		if vs.ServiceType != DPU_MGMT_TRAFFIC {
+		if vs.ServiceType != DpuMgmtTraffic {
 			va.AddMeterToDevice(vs.Port, device.Name, vs.UsMeterID, 0)
 			va.AddMeterToDevice(vs.Port, device.Name, vs.DsMeterID, vs.AggDsMeterID)
 		}
 		logger.Infow(ctx, "Adding HSIA flows", log.Fields{"Name": vs.Name})
 		pBits := vs.Pbits
 
-		//If no pbits configured for service, hence add PbitNone for flows
+		// If no pbits configured for service, hence add PbitNone for flows
 		if len(vs.Pbits) == 0 {
 			pBits = append(pBits, PbitMatchNone)
 		}
@@ -441,7 +435,6 @@ func (vs *VoltService) AddDsHsiaFlows(cntx context.Context) error {
 
 // DelUsHsiaFlows - Deletes US HSIA Flows for the service
 func (vs *VoltService) DelUsHsiaFlows(cntx context.Context) error {
-
 	logger.Infow(ctx, "Removing US HSIA Services", log.Fields{"Services": vs.Name})
 	if vs.UsHSIAFlowsApplied || vgcRebooted {
 		device, err := GetApplication().GetDeviceFromPort(vs.Port)
@@ -453,7 +446,7 @@ func (vs *VoltService) DelUsHsiaFlows(cntx context.Context) error {
 		logger.Infow(ctx, "Removing HSIA flows", log.Fields{"Name": vs.Name})
 		pBits := vs.Pbits
 
-		//If no pbits configured for service, hence add PbitNone for flows
+		// If no pbits configured for service, hence add PbitNone for flows
 		if len(vs.Pbits) == 0 {
 			pBits = append(pBits, PbitMatchNone)
 		}
@@ -479,7 +472,6 @@ func (vs *VoltService) DelUsHsiaFlows(cntx context.Context) error {
 
 // DelDsHsiaFlows - Deletes DS HSIA Flows for the service
 func (vs *VoltService) DelDsHsiaFlows(cntx context.Context) error {
-
 	logger.Infow(ctx, "Removing DS HSIA Services", log.Fields{"Services": vs.Name})
 	if vs.DsHSIAFlowsApplied || vgcRebooted {
 		device, err := GetApplication().GetDeviceFromPort(vs.Port)
@@ -490,7 +482,7 @@ func (vs *VoltService) DelDsHsiaFlows(cntx context.Context) error {
 
 		logger.Infow(ctx, "Removing HSIA flows", log.Fields{"Name": vs.Name})
 		var matchPbit int
-		//If no pbits configured for service, hence add PbitNone for flows
+		// If no pbits configured for service, hence add PbitNone for flows
 		if len(vs.DsRemarkPbitsMap) == 0 {
 			dsflows, err := vs.BuildDsHsiaFlows(of.PbitType(PbitMatchNone))
 			if err != nil {
@@ -531,7 +523,7 @@ func (vs *VoltService) DelDsHsiaFlows(cntx context.Context) error {
 		}
 		vs.DsHSIAFlowsApplied = false
 	}
-	logger.Infow(ctx, "Deleted HSIA DS flows from DB successfuly", log.Fields{"ServiceName": vs.Name})
+	logger.Infow(ctx, "Deleted HSIA DS flows from DB successfully", log.Fields{"ServiceName": vs.Name})
 	// Post HSIA configuration success indication on message bus
 	vs.WriteToDb(cntx)
 	return nil
@@ -563,7 +555,7 @@ func (vs *VoltService) BuildDsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 	remarkPbit, remarkExists := vs.DsRemarkPbitsMap[int(pbits)]
 
 	generateDSCookie := func(vlan of.VlanType, valToShift uint64) uint64 {
-		//| 12-bit cvlan/UniVlan | 4 bits action pbit | <32-bits uniport>| 16-bits HSIA mask OR flow mask OR pbit |
+		// | 12-bit cvlan/UniVlan | 4 bits action pbit | <32-bits uniport>| 16-bits HSIA mask OR flow mask OR pbit |
 		cookie := uint64(vlan)<<52 + uint64(actnPbit)<<48 + uint64(outport)<<16 | of.HsiaFlowMask
 		cookie = cookie | of.DsFlowMask
 		cookie = cookie + (valToShift << 4) + uint64(pbits)
@@ -652,7 +644,7 @@ func (vs *VoltService) BuildDsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 			"subflow": subflow1})
 	}
 
-	//Add Table-1 flow that deals with inner VLAN at the ONU
+	// Add Table-1 flow that deals with inner VLAN at the ONU
 	{
 		subflow2 := of.NewVoltSubFlow()
 		subflow2.SetTableID(1)
@@ -736,10 +728,10 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		subflow1.SetGoToTable(1)
 		subflow1.SetInPort(inport)
 
-		if vs.ServiceType == DPU_MGMT_TRAFFIC {
+		if vs.ServiceType == DpuMgmtTraffic {
 			subflow1.SetMatchPbit(vs.UsPonCTagPriority)
 			subflow1.SetPcp(vs.UsPonSTagPriority)
-		} else if vs.ServiceType == DPU_ANCP_TRAFFIC {
+		} else if vs.ServiceType == DpuAncpTraffic {
 			subflow1.SetPcp(vs.UsPonSTagPriority)
 		}
 		if err := vs.setUSMatchActionVlanT0(subflow1); err != nil {
@@ -773,7 +765,7 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		logger.Infow(ctx, "Building upstream HSIA flow for T0", log.Fields{"cookie": subflow1.Cookie, "subflow": subflow1})
 	}
 
-	//Add Table-1 flow that deals with the outer vlan in pOLT
+	// Add Table-1 flow that deals with the outer vlan in pOLT
 	{
 		subflow2 := of.NewVoltSubFlow()
 		subflow2.SetTableID(1)
@@ -782,7 +774,7 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		if err := vs.setUSMatchActionVlanT1(subflow2); err != nil {
 			return nil, err
 		}
-		if vs.ServiceType == DPU_MGMT_TRAFFIC {
+		if vs.ServiceType == DpuMgmtTraffic {
 			subflow2.SetMatchSrcMac(vs.MacAddr)
 		}
 		subflow2.SetInPort(inport)
@@ -817,7 +809,7 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 }
 
 func (vs *VoltService) generateUSCookie(vlan of.VlanType, valToShift uint64, inport uint32, pbits of.PbitType) uint64 {
-	//| 12-bit cvlan/UniVlan | 4 bits empty | <32-bits uniport>| 16-bits HSIA mask OR flow mask OR pbit |
+	// | 12-bit cvlan/UniVlan | 4 bits empty | <32-bits uniport>| 16-bits HSIA mask OR flow mask OR pbit |
 	cookie := uint64(vlan)<<52 + uint64(inport)<<16 | of.HsiaFlowMask
 	cookie = cookie | of.UsFlowMask
 	cookie = cookie + (valToShift << 4) + uint64(pbits)
@@ -990,7 +982,7 @@ func (va *VoltApplication) AddService(cntx context.Context, cfg VoltServiceCfg, 
 	var mmUs, mmDs *VoltMeter
 	var err error
 
-	//Take the  Device lock only in case of NB add request.
+	// Take the  Device lock only in case of NB add request.
 	// Allow internal adds since internal add happen only under
 	// 1. Restore Service from DB
 	// 2. Service Migration
@@ -1016,8 +1008,7 @@ func (va *VoltApplication) AddService(cntx context.Context, cfg VoltServiceCfg, 
 		vs.BwAvailInfo = oper.BwAvailInfo
 		vs.Device = oper.Device
 	} else {
-
-		//Sorting Pbit from highest
+		// Sorting Pbit from highest
 		sort.Slice(vs.Pbits, func(i, j int) bool {
 			return vs.Pbits[i] > vs.Pbits[j]
 		})
@@ -1080,12 +1071,11 @@ func (va *VoltApplication) AddService(cntx context.Context, cfg VoltServiceCfg, 
 	vs.WriteToDb(cntx)
 
 	if nil == oper {
-
 		if !vs.UsHSIAFlowsApplied {
 			vs.triggerServiceInProgressInd()
 		}
 
-		//Update meter profiles service count if service is being added from northbound
+		// Update meter profiles service count if service is being added from northbound
 		mmDs.AssociatedServices++
 		va.UpdateMeterProf(cntx, *mmDs)
 		if mmUs != nil {
@@ -1094,14 +1084,14 @@ func (va *VoltApplication) AddService(cntx context.Context, cfg VoltServiceCfg, 
 		}
 		//mmAg.AssociatedServices++
 		//va.UpdateMeterProf(*mmAg)
-		logger.Debugw(ctx, "northbound-service-add-sucessful", log.Fields{"ServiceName": vs.Name})
+		logger.Debugw(ctx, "northbound-service-add-successful", log.Fields{"ServiceName": vs.Name})
 	}
 
 	logger.Warnw(ctx, "Added Service to DB", log.Fields{"Name": vs.Name, "Port": (vs.Port), "ML": vs.MacLearning})
 	return nil
 }
 
-//DelServiceWithPrefix - Deletes service with the provided prefix.
+// DelServiceWithPrefix - Deletes service with the provided prefix.
 // Added for DT/TT usecase with sadis replica interface
 func (va *VoltApplication) DelServiceWithPrefix(cntx context.Context, prefix string) {
 	va.ServiceByName.Range(func(key, value interface{}) bool {
@@ -1124,7 +1114,6 @@ func (va *VoltApplication) DelServiceWithPrefix(cntx context.Context, prefix str
 
 // DelService delete a service form the application
 func (va *VoltApplication) DelService(cntx context.Context, name string, forceDelete bool, newSvc *VoltServiceCfg, serviceMigration bool) {
-
 	AppMutex.ServiceDataMutex.Lock()
 	defer AppMutex.ServiceDataMutex.Unlock()
 
@@ -1143,7 +1132,7 @@ func (va *VoltApplication) DelService(cntx context.Context, name string, forceDe
 		return
 	}
 
-	//Set this to avoid race-condition during flow result processing
+	// Set this to avoid race-condition during flow result processing
 	vs.DeleteInProgress = true
 	vs.ForceDelete = forceDelete
 	vs.ForceWriteToDb(cntx)
@@ -1183,30 +1172,30 @@ func (va *VoltApplication) DelService(cntx context.Context, name string, forceDe
 
 	if aggMeter, ok := va.MeterMgr.GetMeterByID(vs.AggDsMeterID); ok {
 		if nil == newSvc || (nil != newSvc && aggMeter.Name != newSvc.AggDsMeterProfile) {
-                       if aggMeter.AssociatedServices > 0 {
-                               aggMeter.AssociatedServices--
-                               logger.Infow(ctx, "Agg Meter assocaited services updated\n", log.Fields{"MeterID": aggMeter})
-                               va.UpdateMeterProf(cntx, *aggMeter)
-                       }
+			if aggMeter.AssociatedServices > 0 {
+				aggMeter.AssociatedServices--
+				logger.Infow(ctx, "Agg Meter associated services updated\n", log.Fields{"MeterID": aggMeter})
+				va.UpdateMeterProf(cntx, *aggMeter)
+			}
 		}
 	}
 	if dsMeter, ok := va.MeterMgr.GetMeterByID(vs.DsMeterID); ok {
-	       if nil == newSvc || (nil != newSvc && dsMeter.Name != newSvc.DsMeterProfile) {
-                       if dsMeter.AssociatedServices > 0 {
-                               dsMeter.AssociatedServices--
-                               logger.Infow(ctx, "DS Meter assocaited services updated\n", log.Fields{"MeterID": dsMeter})
-                               va.UpdateMeterProf(cntx, *dsMeter)
-                       }
+		if nil == newSvc || (nil != newSvc && dsMeter.Name != newSvc.DsMeterProfile) {
+			if dsMeter.AssociatedServices > 0 {
+				dsMeter.AssociatedServices--
+				logger.Infow(ctx, "DS Meter associated services updated\n", log.Fields{"MeterID": dsMeter})
+				va.UpdateMeterProf(cntx, *dsMeter)
+			}
 		}
 	}
 	if vs.AggDsMeterID != vs.UsMeterID {
 		if usMeter, ok := va.MeterMgr.GetMeterByID(vs.UsMeterID); ok {
-                       if nil == newSvc || (nil != newSvc && usMeter.Name != newSvc.UsMeterProfile) {
-                               if usMeter.AssociatedServices > 0 {
-                                       usMeter.AssociatedServices--
-                                       logger.Infow(ctx, "US Meter assocaited services updated\n", log.Fields{"MeterID": usMeter})
-                                       va.UpdateMeterProf(cntx, *usMeter)
-                               }
+			if nil == newSvc || (nil != newSvc && usMeter.Name != newSvc.UsMeterProfile) {
+				if usMeter.AssociatedServices > 0 {
+					usMeter.AssociatedServices--
+					logger.Infow(ctx, "US Meter associated services updated\n", log.Fields{"MeterID": usMeter})
+					va.UpdateMeterProf(cntx, *usMeter)
+				}
 			}
 		}
 	}
@@ -1215,17 +1204,16 @@ func (va *VoltApplication) DelService(cntx context.Context, name string, forceDe
 		vs.CheckAndDeleteService(cntx)
 	}
 
-	//Delete the per service counter too
+	// Delete the per service counter too
 	va.ServiceCounters.Delete(name)
 	if vs.IgmpEnabled && vs.EnableMulticastKPI {
 		_ = db.DelAllServiceChannelCounter(cntx, name)
 	}
 }
 
-//AddFlows - Adds the flow to the service
+// AddFlows - Adds the flow to the service
 // Triggers flow addition after registering for flow indication event
 func (vs *VoltService) AddFlows(cntx context.Context, device *VoltDevice, flow *of.VoltFlow) error {
-
 	// Using locks instead of concurrent map for PendingFlows to avoid
 	// race condition during flow response indication processing
 	vs.ServiceLock.Lock()
@@ -1245,7 +1233,7 @@ func (vs *VoltService) AddFlows(cntx context.Context, device *VoltDevice, flow *
 	return cntlr.GetController().AddFlows(cntx, vs.Port, device.Name, flow)
 }
 
-//FlowInstallSuccess - Called when corresponding service flow installation is success
+// FlowInstallSuccess - Called when corresponding service flow installation is success
 // If no more pending flows, HSIA indication wil be triggered
 func (vs *VoltService) FlowInstallSuccess(cntx context.Context, cookie string, bwAvailInfo of.BwAvailDetails) {
 	if vs.DeleteInProgress {
@@ -1273,7 +1261,6 @@ func (vs *VoltService) FlowInstallSuccess(cntx context.Context, cookie string, b
 	vs.WriteToDb(cntx)
 
 	if len(vs.PendingFlows) == 0 && vs.DsHSIAFlowsApplied {
-
 		device, err := GetApplication().GetDeviceFromPort(vs.Port)
 		if err != nil {
 			logger.Errorw(ctx, "Error Getting Device. Dropping HSIA Success indication to NB", log.Fields{"Reason": err.Error(), "Service": vs.Name, "Port": vs.Port})
@@ -1293,7 +1280,7 @@ func (vs *VoltService) FlowInstallSuccess(cntx context.Context, cookie string, b
 	logger.Infow(ctx, "Processed Service Flow Add Success Indication", log.Fields{"Cookie": cookie, "Service": vs.Name, "DsFlowsApplied": vs.DsHSIAFlowsApplied})
 }
 
-//FlowInstallFailure - Called when corresponding service flow installation is failed
+// FlowInstallFailure - Called when corresponding service flow installation is failed
 // Trigger service failure indication to NB
 func (vs *VoltService) FlowInstallFailure(cookie string, errorCode uint32, errReason string) {
 	vs.ServiceLock.RLock()
@@ -1308,10 +1295,9 @@ func (vs *VoltService) FlowInstallFailure(cookie string, errorCode uint32, errRe
 	vs.triggerServiceFailureInd(errorCode, errReason)
 }
 
-//DelFlows - Deletes the flow from the service
+// DelFlows - Deletes the flow from the service
 // Triggers flow deletion after registering for flow indication event
 func (vs *VoltService) DelFlows(cntx context.Context, device *VoltDevice, flow *of.VoltFlow) error {
-
 	if !vs.ForceDelete {
 		// Using locks instead of concurrent map for AssociatedFlows to avoid
 		// race condition during flow response indication processing
@@ -1331,7 +1317,7 @@ func (vs *VoltService) DelFlows(cntx context.Context, device *VoltDevice, flow *
 	return cntlr.GetController().DelFlows(cntx, vs.Port, device.Name, flow)
 }
 
-//CheckAndDeleteService - remove service from DB is there are no pending flows to be removed
+// CheckAndDeleteService - remove service from DB is there are no pending flows to be removed
 func (vs *VoltService) CheckAndDeleteService(cntx context.Context) {
 	if vs.DeleteInProgress && len(vs.AssociatedFlows) == 0 && !vs.DsHSIAFlowsApplied {
 		vs.DelFromDb(cntx)
@@ -1340,10 +1326,9 @@ func (vs *VoltService) CheckAndDeleteService(cntx context.Context) {
 	}
 }
 
-//FlowRemoveSuccess - Called when corresponding service flow removal is success
+// FlowRemoveSuccess - Called when corresponding service flow removal is success
 // If no more associated flows, DelHSIA indication wil be triggered
 func (vs *VoltService) FlowRemoveSuccess(cntx context.Context, cookie string) {
-
 	// if vs.DeleteInProgress {
 	// 	logger.Warnw(ctx, "Skipping Flow Remove Success Notification. Service deletion in-progress", log.Fields{"Cookie": cookie, "Service": vs.Name})
 	// 	return
@@ -1364,7 +1349,6 @@ func (vs *VoltService) FlowRemoveSuccess(cntx context.Context, cookie string) {
 	vs.WriteToDb(cntx)
 
 	if len(vs.AssociatedFlows) == 0 && !vs.DsHSIAFlowsApplied {
-
 		device := GetApplication().GetDevice(vs.Device)
 		if device == nil {
 			logger.Errorw(ctx, "Error Getting Device. Dropping DEL_HSIA Success indication to NB", log.Fields{"Service": vs.Name, "Port": vs.Port})
@@ -1376,7 +1360,7 @@ func (vs *VoltService) FlowRemoveSuccess(cntx context.Context, cookie string) {
 
 		if vs.UpdateInProgress {
 			vs.updateVnetProfile(cntx, vs.Device)
-			//Not sending DEL_HSIA Indication since it wil be generated internally by SubMgr
+			// Not sending DEL_HSIA Indication since it wil be generated internally by SubMgr
 			return
 		}
 		logger.Infow(ctx, "All Flows removed for Service. Triggering Service De-activation Success indication to NB", log.Fields{"Service": vs.Name, "DeleteFlag": vs.DeleteInProgress})
@@ -1387,7 +1371,7 @@ func (vs *VoltService) FlowRemoveSuccess(cntx context.Context, cookie string) {
 	logger.Infow(ctx, "Processed Service Flow Remove Success Indication", log.Fields{"Cookie": cookie, "Service": vs.Name, "Associated Flows": vs.AssociatedFlows, "DsFlowsApplied": vs.DsHSIAFlowsApplied})
 }
 
-//FlowRemoveFailure - Called when corresponding service flow installation is failed
+// FlowRemoveFailure - Called when corresponding service flow installation is failed
 // Trigger service failure indication to NB
 func (vs *VoltService) FlowRemoveFailure(cntx context.Context, cookie string, errorCode uint32, errReason string) {
 	vs.ServiceLock.RLock()
@@ -1476,7 +1460,6 @@ func (vs *VoltService) IPAssigned() bool {
 
 // GetServiceNameFromCookie to get service name from cookie
 func (va *VoltApplication) GetServiceNameFromCookie(cookie uint64, portName string, pbit uint8, device string, tableMetadata uint64) *VoltService {
-
 	var vlan uint64
 	vlanControl := (tableMetadata >> 32) & 0xF
 
@@ -1484,7 +1467,7 @@ func (va *VoltApplication) GetServiceNameFromCookie(cookie uint64, portName stri
 		// Fetching UniVlan for vlanControl OLTCVLANOLTSVLAN
 		vlan = (tableMetadata >> 16) & 0xFFFF
 	} else {
-		//Fetching CVlan for other vlanControl
+		// Fetching CVlan for other vlanControl
 		vlan = cookie >> 52
 	}
 	logger.Infow(ctx, "Configured Params", log.Fields{"VlanControl": vlanControl, "vlan": vlan})
@@ -1499,19 +1482,19 @@ func (va *VoltApplication) GetServiceNameFromCookie(cookie uint64, portName stri
 	return service
 }
 
-//MigrateServicesReqStatus - update vnet request status
+// MigrateServicesReqStatus - update vnet request status
 type MigrateServicesReqStatus string
 
 const (
-	//MigrateSrvsReqInit constant
+	// MigrateSrvsReqInit constant
 	MigrateSrvsReqInit MigrateServicesReqStatus = "Init"
-	//MigrateSrvsReqDeactTriggered constant
+	// MigrateSrvsReqDeactTriggered constant
 	MigrateSrvsReqDeactTriggered MigrateServicesReqStatus = "Profiles Deactivated"
-	//MigrateSrvsReqCompleted constant
+	// MigrateSrvsReqCompleted constant
 	MigrateSrvsReqCompleted MigrateServicesReqStatus = "Update Complete"
 )
 
-//MigrateServicesRequest - update vnet request params
+// MigrateServicesRequest - update vnet request params
 type MigrateServicesRequest struct {
 	ID                  string
 	OldVnetID           string
@@ -1523,7 +1506,6 @@ type MigrateServicesRequest struct {
 }
 
 func newMigrateServicesRequest(id string, oldVnetID string, newVnetID string, serviceMap map[string]bool, deviceID string) *MigrateServicesRequest {
-
 	var msr MigrateServicesRequest
 	msr.OldVnetID = oldVnetID
 	msr.NewVnetID = newVnetID
@@ -1534,7 +1516,7 @@ func newMigrateServicesRequest(id string, oldVnetID string, newVnetID string, se
 	return &msr
 }
 
-//GetMsrKey - generates migrate service request key
+// GetMsrKey - generates migrate service request key
 func (msr *MigrateServicesRequest) GetMsrKey() string {
 	return msr.OldVnetID + "-" + msr.ID
 }
@@ -1547,7 +1529,7 @@ func (msr *MigrateServicesRequest) GetMsrKey() string {
 // 	return (len(edr.AssociatedProfiles) == 0)
 // }
 
-//WriteToDB - writes the udpate vnet request details ot DB
+// WriteToDB - writes the udpate vnet request details ot DB
 func (msr *MigrateServicesRequest) WriteToDB(cntx context.Context) {
 	logger.Debugw(ctx, "Adding Migrate Service Request to DB", log.Fields{"OldVnet": msr.OldVnetID, "NewVnet": msr.NewVnetID, "Device": msr.DeviceID, "RequestID": msr.ID, "ServiceCount": len(msr.ServicesList)})
 	if b, err := json.Marshal(msr); err == nil {
@@ -1558,9 +1540,8 @@ func (msr *MigrateServicesRequest) WriteToDB(cntx context.Context) {
 	}
 }
 
-//MigrateServices - updated vnet profile for services
+// MigrateServices - updated vnet profile for services
 func (va *VoltApplication) MigrateServices(cntx context.Context, serialNum string, reqID string, oldVnetID, newVnetID string, serviceList []string) error {
-
 	logger.Warnw(ctx, "Migrate Serviec Request Received", log.Fields{"SerialNum": serialNum, "RequestID": reqID, "OldVnet": oldVnetID, "NewVnet": newVnetID, "ServiceList": serviceList})
 	if _, ok := va.VnetsByName.Load(oldVnetID); !ok {
 		return errors.New("Old Vnet Id not found")
@@ -1588,12 +1569,11 @@ func (va *VoltApplication) MigrateServices(cntx context.Context, serialNum strin
 	return nil
 }
 
-//ProcessMigrateServicesProfRequest - collects all associated profiles
+// ProcessMigrateServicesProfRequest - collects all associated profiles
 func (msr *MigrateServicesRequest) ProcessMigrateServicesProfRequest(cntx context.Context) {
 	va := GetApplication()
 	for srv, processed := range msr.ServicesList {
-
-		//Indicates new service is already created and only deletion of old one is pending
+		// Indicates new service is already created and only deletion of old one is pending
 		if processed {
 			va.DelService(cntx, srv, true, nil, true)
 			msr.serviceMigrated(cntx, srv)
@@ -1622,7 +1602,7 @@ func (msr *MigrateServicesRequest) ProcessMigrateServicesProfRequest(cntx contex
 			vs.Metadata = metadata
 			vs.ServiceLock.Unlock()
 
-			//vpv flows will be removed when last service is removed from it and
+			// vpv flows will be removed when last service is removed from it and
 			// new vpv flows will be installed when new service is added
 			if vs.UsHSIAFlowsApplied {
 				vpv.DelTrapFlows(cntx)
@@ -1637,9 +1617,8 @@ func (msr *MigrateServicesRequest) ProcessMigrateServicesProfRequest(cntx contex
 	}
 }
 
-//AddMigratingServices - store msr info to device obj
+// AddMigratingServices - store msr info to device obj
 func (d *VoltDevice) AddMigratingServices(msr *MigrateServicesRequest) {
-
 	var msrMap *util.ConcurrentMap
 	if msrMapIntf, ok := d.MigratingServices.Get(msr.OldVnetID); !ok {
 		msrMap = util.NewConcurrentMap()
@@ -1652,10 +1631,9 @@ func (d *VoltDevice) AddMigratingServices(msr *MigrateServicesRequest) {
 
 	d.MigratingServices.Set(msr.OldVnetID, msrMap)
 	logger.Infow(ctx, "1: DeviceMsr", log.Fields{"Device": d.Name, "Vnet": msr.OldVnetID, "Len": d.MigratingServices.Length()})
-
 }
 
-//getMigrateServicesRequest - fetches msr info from device
+// getMigrateServicesRequest - fetches msr info from device
 func (va *VoltApplication) getMigrateServicesRequest(deviceID string, oldVnetID string, requestID string) *MigrateServicesRequest {
 	if vd := va.GetDevice(deviceID); vd != nil {
 		logger.Infow(ctx, "2: DeviceMsr", log.Fields{"Device": deviceID, "Vnet": oldVnetID, "Len": vd.MigratingServices.Length()})
@@ -1665,14 +1643,13 @@ func (va *VoltApplication) getMigrateServicesRequest(deviceID string, oldVnetID 
 			if msrObj, ok := msrList.Get(requestID); ok {
 				return msrObj.(*MigrateServicesRequest)
 			}
-
 		}
 	}
 	logger.Errorw(ctx, "Device Not Found", log.Fields{"Device": deviceID})
 	return nil
 }
 
-//updateMigrateServicesRequest - Updates the device with updated msr
+// updateMigrateServicesRequest - Updates the device with updated msr
 func (va *VoltApplication) updateMigrateServicesRequest(deviceID string, oldVnetID string, requestID string, msr *MigrateServicesRequest) {
 	if vd := va.GetDevice(deviceID); vd != nil {
 		if msrList, ok := vd.MigratingServices.Get(oldVnetID); ok {
@@ -1683,10 +1660,9 @@ func (va *VoltApplication) updateMigrateServicesRequest(deviceID string, oldVnet
 	}
 }
 
-//updateVnetProfile - Called on flow process completion
-// Removes old service and creates new VPV & service with udpated vnet profile
+// updateVnetProfile - Called on flow process completion
+// Removes old service and creates new VPV & service with updated vnet profile
 func (vs *VoltService) updateVnetProfile(cntx context.Context, deviceID string) {
-
 	logger.Infow(ctx, "Update Vnet Profile Triggering", log.Fields{"Service": vs.Name, "US": vs.UsHSIAFlowsApplied, "DS": vs.DsHSIAFlowsApplied})
 
 	nvs := VoltService{}
@@ -1717,8 +1693,6 @@ func (vs *VoltService) updateVnetProfile(cntx context.Context, deviceID string) 
 
 	metadata := vs.Metadata.(*MigrateServiceMetadata)
 	oldVnetID := vs.VnetID
-	nvs.VnetID = metadata.NewVnetID
-	id := metadata.RequestID
 	oldSrvName := vs.Name
 
 	if metadata == nil || metadata.NewVnetID == "" {
@@ -1726,7 +1700,10 @@ func (vs *VoltService) updateVnetProfile(cntx context.Context, deviceID string) 
 		return
 	}
 
-	//First add the new service and then only delete the old service
+	nvs.VnetID = metadata.NewVnetID
+	id := metadata.RequestID
+
+	// First add the new service and then only delete the old service
 	// Since if post del service in case of pod crash or reboot, the service data will be lost
 	va := GetApplication()
 	msr := va.getMigrateServicesRequest(deviceID, oldVnetID, id)
@@ -1741,7 +1718,7 @@ func (vs *VoltService) updateVnetProfile(cntx context.Context, deviceID string) 
 	svcName = svcName + strconv.FormatUint(uint64(vs.CVlan), 10) + "-"
 	nvs.Name = svcName + strconv.FormatUint(uint64(vs.TechProfileID), 10)
 
-	//TODO:Nav Pass a copy, not the pointer
+	// TODO:Nav Pass a copy, not the pointer
 	logger.Infow(ctx, "Add New Service Triggering", log.Fields{"Service": nvs.Name, "US": nvs.UsHSIAFlowsApplied, "DS": nvs.DsHSIAFlowsApplied, "DelFlag": nvs.DeleteInProgress})
 	if err := va.AddService(cntx, nvs.VoltServiceCfg, &nvs.VoltServiceOper); err != nil {
 		logger.Warnw(ctx, "Add New Service Failed", log.Fields{"Service": nvs.Name, "Error": err})
@@ -1758,10 +1735,9 @@ func (vs *VoltService) updateVnetProfile(cntx context.Context, deviceID string) 
 	msr.serviceMigrated(cntx, oldSrvName)
 }
 
-//serviceMigrated - called on successful service updation
+// serviceMigrated - called on successful service updation
 // Removes the service entry from servicelist and deletes the request on process completion
 func (msr *MigrateServicesRequest) serviceMigrated(cntx context.Context, serviceName string) {
-
 	msr.MigrateServicesLock.Lock()
 	defer msr.MigrateServicesLock.Unlock()
 
@@ -1772,17 +1748,16 @@ func (msr *MigrateServicesRequest) serviceMigrated(cntx context.Context, service
 		return
 	}
 	msr.WriteToDB(cntx)
-	//TODO:Nav - Need for any Response to SubMgr?
+	// TODO:Nav - Need for any Response to SubMgr?
 }
 
-//TriggerPendingMigrateServicesReq - trigger pending service request
+// TriggerPendingMigrateServicesReq - trigger pending service request
 func (va *VoltApplication) TriggerPendingMigrateServicesReq(cntx context.Context, device string) {
 	va.FetchAndProcessAllMigrateServicesReq(cntx, device, storeAndProcessMigrateSrvRequest)
 }
 
-//FetchAndProcessAllMigrateServicesReq - fetch all pending migrate services req from DB and process based on provided func
+// FetchAndProcessAllMigrateServicesReq - fetch all pending migrate services req from DB and process based on provided func
 func (va *VoltApplication) FetchAndProcessAllMigrateServicesReq(cntx context.Context, device string, msrAction func(context.Context, *MigrateServicesRequest)) {
-
 	msrList, _ := db.GetAllMigrateServicesReq(cntx, device)
 	for _, msr := range msrList {
 		b, ok := msr.Value.([]byte)
@@ -1793,7 +1768,6 @@ func (va *VoltApplication) FetchAndProcessAllMigrateServicesReq(cntx context.Con
 		msr := va.createMigrateServicesFromString(b)
 		msrAction(cntx, msr)
 		logger.Warnw(ctx, "Triggering Pending Migrate Services Req", log.Fields{"OldVnet": msr.OldVnetID, "NewVnet": msr.NewVnetID, "Device": device, "PendingProfiles": len(msr.ServicesList)})
-
 	}
 }
 
@@ -1802,21 +1776,20 @@ func (va *VoltApplication) createMigrateServicesFromString(b []byte) *MigrateSer
 	var msr MigrateServicesRequest
 	if err := json.Unmarshal(b, &msr); err == nil {
 		logger.Debugw(ctx, "Adding Migrate Services Request From Db", log.Fields{"Vlan": msr.OldVnetID})
-
 	} else {
 		logger.Warn(ctx, "Unmarshal failed")
 	}
 	return &msr
 }
 
-//storeAndProcessMigrateSrvRequest - stores the msr info in device obj and triggers req
+// storeAndProcessMigrateSrvRequest - stores the msr info in device obj and triggers req
 func storeAndProcessMigrateSrvRequest(cntx context.Context, msr *MigrateServicesRequest) {
 	d := GetApplication().GetDevice(msr.DeviceID)
 	d.AddMigratingServices(msr)
 	msr.ProcessMigrateServicesProfRequest(cntx)
 }
 
-//forceUpdateAllServices - force udpate services with new vnet profile
+// forceUpdateAllServices - force udpate services with new vnet profile
 func forceUpdateAllServices(cntx context.Context, msr *MigrateServicesRequest) {
 	for srv := range msr.ServicesList {
 		if vsIntf, ok := GetApplication().ServiceByName.Load(srv); ok {
@@ -1826,7 +1799,8 @@ func forceUpdateAllServices(cntx context.Context, msr *MigrateServicesRequest) {
 	_ = db.DelMigrateServicesReq(cntx, msr.DeviceID, msr.GetMsrKey())
 }
 
-//DeepEqualServicecfg - checks if the given service cfgs are same
+// nolint: gocyclo
+// DeepEqualServicecfg - checks if the given service cfgs are same
 func (va *VoltApplication) DeepEqualServicecfg(evs *VoltServiceCfg, nvs *VoltServiceCfg) bool {
 	if nvs.Name != evs.Name {
 		return false
@@ -1925,11 +1899,10 @@ func (va *VoltApplication) DeepEqualServicecfg(evs *VoltServiceCfg, nvs *VoltSer
 	return true
 }
 
-//TriggerAssociatedFlowDelete - re-trigger service flow delete for pending delete flows
+// TriggerAssociatedFlowDelete - re-trigger service flow delete for pending delete flows
 func (vs *VoltService) TriggerAssociatedFlowDelete(cntx context.Context) bool {
-
-	//Clear the Flows flag if already set
-	//This case happens only in case of some race condition
+	// Clear the Flows flag if already set
+	// This case happens only in case of some race condition
 	if vs.UsHSIAFlowsApplied {
 		if err := vs.DelUsHsiaFlows(cntx); err != nil {
 			logger.Errorw(ctx, "DelUsHsiaFlows Failed", log.Fields{"Device": vs.Device, "Service": vs.Name, "Error": err})
@@ -1953,7 +1926,7 @@ func (vs *VoltService) TriggerAssociatedFlowDelete(cntx context.Context) bool {
 		return false
 	}
 
-	//Trigger Flow Delete
+	// Trigger Flow Delete
 	for _, cookie := range cookieList {
 		if vd := GetApplication().GetDevice(vs.Device); vd != nil {
 			flow := &of.VoltFlow{}
@@ -1970,12 +1943,12 @@ func (vs *VoltService) TriggerAssociatedFlowDelete(cntx context.Context) bool {
 	return true
 }
 
-//triggerServiceInProgressInd - Indication is generated when Service is not provisioned after add serviec req from NB
+// triggerServiceInProgressInd - Indication is generated when Service is not provisioned after add serviec req from NB
 func (vs *VoltService) triggerServiceInProgressInd() {
 }
 
-// JsonMarshal wrapper function for json Marshal VoltService
-func (vs *VoltService) JsonMarshal() ([]byte, error) {
+// JSONMarshal wrapper function for json Marshal VoltService
+func (vs *VoltService) JSONMarshal() ([]byte, error) {
 	return json.Marshal(VoltService{
 		VoltServiceCfg: vs.VoltServiceCfg,
 		VoltServiceOper: VoltServiceOper{
@@ -2081,7 +2054,7 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 		// If svlan if provided, then the tags and tpID of service has to be matching
 		logger.Infow(ctx, "Service Deactivate Request ", log.Fields{"Device": deviceID, "Port": portNo})
 		if sVlan != of.VlanNone && (sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) {
-			logger.Infow(ctx, "condition not matched", log.Fields{"Device": deviceID, "Port": portNo, "sVlan": sVlan, "cVlan":cVlan, "tpID": tpID})
+			logger.Infow(ctx, "condition not matched", log.Fields{"Device": deviceID, "Port": portNo, "sVlan": sVlan, "cVlan": cVlan, "tpID": tpID})
 			return true
 		}
 		if portNo == vs.Port && vs.IsActivated {
@@ -2096,7 +2069,7 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 				return true
 			}
 			p := device.GetPort(vs.Port)
-			if p != nil && (p.State == PortStateUp || !va.OltFlowServiceConfig.RemoveFlowsOnDisable){
+			if p != nil && (p.State == PortStateUp || !va.OltFlowServiceConfig.RemoveFlowsOnDisable) {
 				if vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan); vpv != nil {
 					// Port down call internally deletes all the flows
 					vpv.PortDownInd(cntx, deviceID, portNo, true)
@@ -2113,15 +2086,15 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 	return nil
 }
 
-/* GetServicePbit to get first set bit in the pbit map
-   returns -1 : If configured to match on all pbits
-   returns 8  : If no pbits are configured
-   returns first pbit if specific pbit is configured */
+// GetServicePbit to get first set bit in the pbit map
+// returns -1 : If configured to match on all pbits
+// returns 8  : If no pbits are configured
+// returns first pbit if specific pbit is configured
 func (vs *VoltService) GetServicePbit() int {
 	if vs.IsPbitExist(of.PbitMatchAll) {
 		return -1
 	}
-	for pbit:= 0; pbit < int(of.PbitMatchNone); pbit++ {
+	for pbit := 0; pbit < int(of.PbitMatchNone); pbit++ {
 		if vs.IsPbitExist(of.PbitType(pbit)) {
 			return pbit
 		}

@@ -13,7 +13,7 @@
 * limitations under the License.
  */
 
-package onos_nbi
+package onosnbi
 
 import (
 	"context"
@@ -45,7 +45,7 @@ func (mh *MetersHandle) MeterServeHTTP(w http.ResponseWriter, r *http.Request) {
 	meterID := vars["id"]
 
 	switch r.Method {
-	case "GET":
+	case cGet:
 		if meterID != "" {
 			logger.Warnw(ctx, "Calling GetMeter method", log.Fields{"MeterId": meterID})
 			mh.GetMeter(context.Background(), meterID, w, r)
@@ -58,15 +58,15 @@ func (mh *MetersHandle) MeterServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (mh *MetersHandle) GetMeter(cntx context.Context, meterId string, w http.ResponseWriter, r *http.Request) {
+func (mh *MetersHandle) GetMeter(cntx context.Context, meterID string, w http.ResponseWriter, r *http.Request) {
 	logger.Info(cntx, "Inside GetMeter method")
 	meterListResp := MeterList{}
 	meterListResp.Meters = []Meters{}
-	mId, err := strconv.ParseUint(meterId, 10, 32)
+	mID, err := strconv.ParseUint(meterID, 10, 32)
 	if err != nil {
 		logger.Errorw(ctx, "Failed to parse string to uint32", log.Fields{"Reason": err.Error()})
 	}
-	id := uint32(mId)
+	id := uint32(mID)
 	logger.Infow(ctx, "Meter Id", log.Fields{"metreId": id})
 	meterInfo, err := app.GetController().GetMeterInfo(cntx, id)
 	if err != nil {
@@ -74,8 +74,8 @@ func (mh *MetersHandle) GetMeter(cntx context.Context, meterId string, w http.Re
 		w.WriteHeader(http.StatusNotFound)
 	}
 
-	for deviceId, meter := range meterInfo {
-		meterResp := mh.MeterObjectMapping(meter, deviceId)
+	for deviceID, meter := range meterInfo {
+		meterResp := mh.MeterObjectMapping(meter, deviceID)
 		meterListResp.Meters = append(meterListResp.Meters, meterResp)
 	}
 	MeterRespJSON, err := json.Marshal(meterListResp)
@@ -101,9 +101,9 @@ func (mh *MetersHandle) GetAllMeters(cntx context.Context, w http.ResponseWriter
 		logger.Errorw(ctx, "Failed to get meter info", log.Fields{"Reason": err.Error()})
 		w.WriteHeader(http.StatusNotFound)
 	}
-	for deviceId, meters := range meterInfo {
+	for deviceID, meters := range meterInfo {
 		for _, meter := range meters {
-			mtr := mh.MeterObjectMapping(meter, deviceId)
+			mtr := mh.MeterObjectMapping(meter, deviceID)
 			metersList.Meters = append(metersList.Meters, mtr)
 		}
 	}
@@ -119,5 +119,4 @@ func (mh *MetersHandle) GetAllMeters(cntx context.Context, w http.ResponseWriter
 		logger.Errorw(ctx, "error in sending meter response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }

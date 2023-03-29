@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package intf
 
@@ -20,9 +20,11 @@ import (
 	"voltha-go-controller/internal/pkg/tasks"
 )
 
-/*Tasks interface is responsible for creating the tasks
+/*
+Tasks interface is responsible for creating the tasks
 and executing them as well. For now, it is assumed that
-one task run at a time though interface doesn't force it.*/
+one task run at a time though interface doesn't force it.
+*/
 type Tasks interface {
 	AddTask(tasks.Task)
 	Initialize(cxt context.Context)

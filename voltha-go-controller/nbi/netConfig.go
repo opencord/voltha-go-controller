@@ -29,9 +29,9 @@ type NetConfig struct {
 }
 
 type Apps struct {
-	SubscriberBW SubscriberBW `json:"org.opencord.sadis"`
 	IgmpProxy    *IgmpProxy   `json:"org.opencord.igmpproxy"`
 	McastInfo    *McastInfo   `json:"org.onosproject.core"`
+	SubscriberBW SubscriberBW `json:"org.opencord.sadis"`
 }
 type SubscriberBW struct {
 	Bandwidthprofile BWEnteries `json:"bandwidthprofile"`
@@ -65,7 +65,7 @@ func init() {
 func (nch *NetConfigHandle) NetConfigServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "POST":
+	case cPost:
 		nch.AddNetConfigInfo(ctx, w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -74,7 +74,6 @@ func (nch *NetConfigHandle) NetConfigServeHTTP(w http.ResponseWriter, r *http.Re
 
 // Populate the network configuration information
 func (nch *NetConfigHandle) AddNetConfigInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
@@ -108,8 +107,8 @@ func (nch *NetConfigHandle) AddNetConfigInfo(cntx context.Context, w http.Respon
 		app.GetApplication().AddMeterProf(cntx, metercfg)
 	}
 
-	for _, subscriberInfo := range req.App.SubscriberBW.Subscriber.SubscriberInfo {
-		addAllService(cntx, &subscriberInfo)
+	for i := range req.App.SubscriberBW.Subscriber.SubscriberInfo {
+		addAllService(cntx, &req.App.SubscriberBW.Subscriber.SubscriberInfo[i])
 	}
 
 	if req.App.McastInfo != nil {

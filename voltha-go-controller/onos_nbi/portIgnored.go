@@ -13,7 +13,7 @@
 * limitations under the License.
  */
 
-package onos_nbi
+package onosnbi
 
 import (
 	"context"
@@ -38,7 +38,7 @@ func init() {
 func (pih *PortIgnoredHandle) PortsIgnoredServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "GET":
+	case cGet:
 		logger.Info(ctx, "calling GetIgnoredPortsInfo handler")
 		pih.GetIgnoredPortsInfo(context.Background(), w, r)
 
@@ -48,7 +48,6 @@ func (pih *PortIgnoredHandle) PortsIgnoredServeHTTP(w http.ResponseWriter, r *ht
 }
 
 func (pih *PortIgnoredHandle) GetIgnoredPortsInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	PortIgnoredInfo, err := app.GetApplication().GetIgnoredPorts()
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get ignored port info", log.Fields{"Reason": err.Error()})
@@ -69,5 +68,4 @@ func (pih *PortIgnoredHandle) GetIgnoredPortsInfo(cntx context.Context, w http.R
 		logger.Errorw(ctx, "error in sending ignored port response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }

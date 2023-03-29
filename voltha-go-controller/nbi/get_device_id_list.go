@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package nbi
 
@@ -31,7 +31,7 @@ type DeviceIDListHandle struct {
 func (dh *DeviceIDListHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
-	case "GET":
+	case cGet:
 		dh.GetDeviceIDList(w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
@@ -40,7 +40,6 @@ func (dh *DeviceIDListHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 // GetDeviceIDList to get device id list
 func (dh *DeviceIDListHandle) GetDeviceIDList(w http.ResponseWriter, r *http.Request) {
-
 	va := app.GetApplication()
 	var deviceID string
 	var deviceIDListResp []string
@@ -66,5 +65,4 @@ func (dh *DeviceIDListHandle) GetDeviceIDList(w http.ResponseWriter, r *http.Req
 		logger.Errorw(ctx, "error in sending deviceIDList response", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }
