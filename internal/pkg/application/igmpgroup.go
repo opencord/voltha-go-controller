@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package application
 
@@ -34,19 +34,19 @@ import (
 // connected via multiple devices (OLTs). The IGMP group is stored on the
 // VOLT application.
 type IgmpGroup struct {
-	GroupID               uint32
-	Mvlan                 of.VlanType
-	PonVlan               of.VlanType
-	GroupName             string
-	GroupAddr             net.IP
 	Devices               map[string]*IgmpGroupDevice `json:"-"`
 	PendingGroupForDevice map[string]time.Time        //map [deviceId, timestamp]  (ExpiryTime  = leave time + 15mins)
 	Version               string
+	GroupName             string
+	GroupAddr             net.IP
+	PendingPoolLock       sync.RWMutex
+	IgmpGroupLock         sync.RWMutex
+	GroupID               uint32
+	Mvlan                 of.VlanType
+	PonVlan               of.VlanType
 	IsPonVlanPresent      bool
 	IsChannelBasedGroup   bool
-	PendingPoolLock       sync.RWMutex
 	IsGroupStatic         bool
-	IgmpGroupLock         sync.RWMutex
 }
 
 // NewIgmpGroup is constructor for an IGMP group
@@ -78,7 +78,6 @@ func (ig *IgmpGroup) IgmpGroupInit(name string, gip net.IP, mvp *MvlanProfile) {
 
 // IgmpGroupReInit to re-initialize igmp group members
 func (ig *IgmpGroup) IgmpGroupReInit(cntx context.Context, name string, gip net.IP) {
-
 	logger.Infow(ctx, "Reinitialize Igmp Group", log.Fields{"GroupID": ig.GroupID, "OldName": ig.GroupName, "Name": name, "OldAddr": ig.GroupAddr.String(), "GroupAddr": gip.String()})
 
 	ig.GroupName = name
@@ -112,9 +111,8 @@ func (ig *IgmpGroup) updateGroupName(cntx context.Context, newGroupName string) 
 	}
 }
 
-//HandleGroupMigration - handles migration of group members between static & dynamic
+// HandleGroupMigration - handles migration of group members between static & dynamic
 func (ig *IgmpGroup) HandleGroupMigration(cntx context.Context, deviceID string, groupAddr net.IP) {
-
 	var group *layers.IGMPv3GroupRecord
 	app := GetApplication()
 	if deviceID == "" {
@@ -191,11 +189,10 @@ func (ig *IgmpGroup) DelIgmpGroupDevice(cntx context.Context, igd *IgmpGroupDevi
 	}
 	igd.DelAllChannels(cntx)
 
-	//Clear all internal maps so that the groups can be reused
+	// Clear all internal maps so that the groups can be reused
 	igd.PortChannelMap.Range(func(key, value interface{}) bool {
-
-		//Update the counters only if not already updated
-		//(i.e) 1. In case of channel remove during Mvlan Update
+		// Update the counters only if not already updated
+		// (i.e) 1. In case of channel remove during Mvlan Update
 		if countersToBeUpdated {
 			port := key.(string)
 			channelList := value.([]net.IP)
@@ -225,7 +222,6 @@ func (ig *IgmpGroup) DelIgmpGroupDevice(cntx context.Context, igd *IgmpGroupDevi
 // there is not response for IGMP query from the receiver
 func (ig *IgmpGroup) AddReceiver(cntx context.Context, device string, port string, groupIP net.IP,
 	group *layers.IGMPv3GroupRecord, ver uint8, cvlan uint16, pbit uint8, ponPort uint32) {
-
 	logger.Debugw(ctx, "Adding Receiver", log.Fields{"Port": port})
 	if igd, ok := ig.getIgmpGroupDevice(cntx, device); !ok {
 		igd = ig.AddIgmpGroupDevice(cntx, device, ig.GroupID, ver)
@@ -272,7 +268,6 @@ func (ig *IgmpGroup) DelReceiveronDownInd(cntx context.Context, device string, p
 	logger.Infow(ctx, "Port Channel List", log.Fields{"Port": port, "IPsList": ipsList})
 	igd.PortChannelMap.Range(printPortChannel)
 
-
 	for _, groupAddr := range ipsList {
 		logger.Debugw(ctx, "Port Channels", log.Fields{"Port": port, "IPsList": ipsList, "GroupAddr": groupAddr, "Len": len(ipsList)})
 		igd.DelReceiver(cntx, groupAddr, port, nil, ponPortID)
@@ -298,7 +293,6 @@ func (ig *IgmpGroup) DelReceiver(cntx context.Context, device string, port strin
 
 // GetAllIgmpChannelForDevice - Returns all channels with active members associated to the Igmp Group for the given device
 func (ig *IgmpGroup) GetAllIgmpChannelForDevice(deviceID string) map[string]string {
-
 	if deviceID == "" {
 		return ig.GetAllIgmpChannel()
 	}
@@ -417,7 +411,7 @@ func (ig *IgmpGroup) Tick(cntx context.Context) {
 		if igdChangeCnt > 0 {
 			if err := igd.WriteToDb(cntx); err != nil {
 				logger.Errorw(ctx, "Igmp group device Write to DB failed", log.Fields{"Device": igd.Device,
-							"GroupName": igd.GroupName, "GroupAddr": igd.GroupAddr.String()})
+					"GroupName": igd.GroupName, "GroupAddr": igd.GroupAddr.String()})
 			}
 		}
 	}
@@ -434,7 +428,6 @@ func (ig *IgmpGroup) QueryExpiry(cntx context.Context) {
 			if igd.NumReceivers() == 0 {
 				ig.DelIgmpGroupDevice(cntx, igd)
 			}
-
 		} else {
 			logger.Info(ctx, "Skipping Expiry since Device is unavailable")
 		}
@@ -456,7 +449,7 @@ func (ig *IgmpGroup) Hash() uint16 {
 	defer mvp.mvpLock.RUnlock()
 	group := mvp.Groups[ig.GroupName]
 
-	//Case where mvlan update in-progress
+	// Case where mvlan update in-progress
 	if group == nil || len(group.McIPs) == 0 {
 		return 0
 	}
@@ -498,7 +491,6 @@ func (ig *IgmpGroup) NumReceivers() map[string]int {
 
 // RestoreDevices : IGMP group write to DB
 func (ig *IgmpGroup) RestoreDevices(cntx context.Context) {
-
 	ig.migrateIgmpDevices(cntx)
 	devices, _ := db.GetIgmpDevices(cntx, ig.Mvlan, ig.GroupName, ig.GroupAddr)
 	for _, device := range devices {
@@ -529,7 +521,7 @@ func (ig *IgmpGroup) RestoreDevices(cntx context.Context) {
 				igd.QueryExpiryTime = time.Now().Add(time.Duration(igd.proxyCfg.KeepAliveInterval) * time.Second)
 				if err := igd.WriteToDb(cntx); err != nil {
 					logger.Errorw(ctx, "Igmp group device Write to DB failed", log.Fields{"Device": igd.Device,
-								"GroupName": igd.GroupName, "GroupAddr": igd.GroupAddr.String()})
+						"GroupName": igd.GroupName, "GroupAddr": igd.GroupAddr.String()})
 				}
 			}
 
@@ -560,92 +552,89 @@ func (ig *IgmpGroup) getKey() string {
 
 // WriteToDb is utility to write Igmp Group Info to database
 func (ig *IgmpGroup) WriteToDb(cntx context.Context) error {
-        ig.Version = database.PresentVersionMap[database.IgmpGroupPath]
-        b, err := json.Marshal(ig)
-        if err != nil {
-                return err
-        }
-        if err1 := db.PutIgmpGroup(cntx, ig.getKey(), string(b)); err1 != nil {
-                return err1
-        }
-        return nil
+	ig.Version = database.PresentVersionMap[database.IgmpGroupPath]
+	b, err := json.Marshal(ig)
+	if err != nil {
+		return err
+	}
+	if err1 := db.PutIgmpGroup(cntx, ig.getKey(), string(b)); err1 != nil {
+		return err1
+	}
+	return nil
 }
 
 // UpdateIgmpGroup : When the pending group is allocated to new
 func (ig *IgmpGroup) UpdateIgmpGroup(cntx context.Context, oldKey, newKey string) {
+	// If the group is allocated to same McastGroup, no need to update the
+	// IgmpGroups map
+	if oldKey == newKey {
+		return
+	}
+	logger.Infow(ctx, "Updating Igmp Group with new MVP Group Info", log.Fields{"OldKey": oldKey, "NewKey": newKey, "GroupID": ig.GroupID})
 
-        //If the group is allocated to same McastGroup, no need to update the
-        //IgmpGroups map
-        if oldKey == newKey {
-                return
-        }
-        logger.Infow(ctx, "Updating Igmp Group with new MVP Group Info", log.Fields{"OldKey": oldKey, "NewKey": newKey, "GroupID": ig.GroupID})
+	GetApplication().IgmpGroups.Delete(oldKey)
+	_ = db.DelIgmpGroup(cntx, oldKey)
 
-        GetApplication().IgmpGroups.Delete(oldKey)
-        _ = db.DelIgmpGroup(cntx, oldKey)
-
-        GetApplication().IgmpGroups.Store(newKey, ig)
-        if err := ig.WriteToDb(cntx); err != nil {
-                logger.Errorw(ctx, "Igmp group Write to DB failed", log.Fields{"groupName": ig.GroupName})
-        }
+	GetApplication().IgmpGroups.Store(newKey, ig)
+	if err := ig.WriteToDb(cntx); err != nil {
+		logger.Errorw(ctx, "Igmp group Write to DB failed", log.Fields{"groupName": ig.GroupName})
+	}
 }
 
 func (ig *IgmpGroup) removeExpiredGroupFromDevice(cntx context.Context) {
-        ig.PendingPoolLock.Lock()
-        defer ig.PendingPoolLock.Unlock()
+	ig.PendingPoolLock.Lock()
+	defer ig.PendingPoolLock.Unlock()
 
-        for device, timer := range ig.PendingGroupForDevice {
+	for device, timer := range ig.PendingGroupForDevice {
+		// To ensure no race-condition between the expiry time and the new Join,
+		// ensure the group exists in pending pool before deletion
+		groupExistsInPendingPool := true
 
-                // To ensure no race-condition between the expiry time and the new Join,
-                // ensure the group exists in pending pool before deletion
-                groupExistsInPendingPool := true
+		if !time.Now().After(timer) {
+			continue
+		}
 
-                if !time.Now().After(timer) {
-                        continue
-                }
+		// Check if the IgmpGroup obj has no active member across any device
+		// If Yes, then this group is part of global pending pool (IgmpPendingPool), hence if expired,
+		// Remove only the IgmpGroup obj referenced to this device from global pool also.
+		if ig.NumDevicesActive() == 0 {
+			groupExistsInPendingPool = GetApplication().RemoveGroupFromPendingPool(device, ig)
+		}
 
-                // Check if the IgmpGroup obj has no active member across any device
-                // If Yes, then this group is part of global pending pool (IgmpPendingPool), hence if expired,
-                // Remove only the IgmpGroup obj referenced to this device from global pool also.
-                if ig.NumDevicesActive() == 0 {
-                        groupExistsInPendingPool = GetApplication().RemoveGroupFromPendingPool(device, ig)
-                }
-
-                // Remove the group entry from device and remove the IgmpDev Obj
-                // from IgmpGrp Pending pool
-                if groupExistsInPendingPool {
-                        ig.DeleteIgmpGroupDevice(cntx, device)
-                }
-        }
+		// Remove the group entry from device and remove the IgmpDev Obj
+		// from IgmpGrp Pending pool
+		if groupExistsInPendingPool {
+			ig.DeleteIgmpGroupDevice(cntx, device)
+		}
+	}
 }
 
-//DeleteIgmpGroupDevice - removes the IgmpGroupDevice obj from IgmpGroup and database
+// DeleteIgmpGroupDevice - removes the IgmpGroupDevice obj from IgmpGroup and database
 func (ig *IgmpGroup) DeleteIgmpGroupDevice(cntx context.Context, device string) {
+	logger.Infow(ctx, "Deleting IgmpGroupDevice from IG Pending Pool", log.Fields{"Device": device, "GroupID": ig.GroupID, "GroupName": ig.GroupName, "GroupAddr": ig.GroupAddr.String(), "PendingDevices": len(ig.Devices)})
 
-        logger.Infow(ctx, "Deleting IgmpGroupDevice from IG Pending Pool", log.Fields{"Device": device, "GroupID": ig.GroupID, "GroupName": ig.GroupName, "GroupAddr": ig.GroupAddr.String(), "PendingDevices": len(ig.Devices)})
+	igd := ig.Devices[device]
+	igd.DelMcGroup(true)
+	delete(ig.Devices, device)
+	delete(ig.PendingGroupForDevice, device)
+	_ = db.DelIgmpDevice(cntx, igd.Mvlan, igd.GroupName, igd.GroupAddr, igd.Device)
 
-        igd := ig.Devices[device]
-        igd.DelMcGroup(true)
-        delete(ig.Devices, device)
-        delete(ig.PendingGroupForDevice, device)
-        _ = db.DelIgmpDevice(cntx, igd.Mvlan, igd.GroupName, igd.GroupAddr, igd.Device)
-
-        //If the group is not associated to any other device, then the entire Igmp Group obj itself can be removed
-        if ig.NumDevicesAll() == 0 {
-                logger.Infow(ctx, "Deleting IgmpGroup as all pending groups has expired", log.Fields{"Device": device, "GroupID": ig.GroupID, "GroupName": ig.GroupName, "GroupAddr": ig.GroupAddr.String(), "PendingDevices": len(ig.Devices)})
-                GetApplication().DelIgmpGroup(cntx, ig)
-                return
-        }
-        if err := ig.WriteToDb(cntx); err != nil {
-                logger.Errorw(ctx, "Igmp group Write to DB failed", log.Fields{"groupName": ig.GroupName})
-        }
+	// If the group is not associated to any other device, then the entire Igmp Group obj itself can be removed
+	if ig.NumDevicesAll() == 0 {
+		logger.Infow(ctx, "Deleting IgmpGroup as all pending groups has expired", log.Fields{"Device": device, "GroupID": ig.GroupID, "GroupName": ig.GroupName, "GroupAddr": ig.GroupAddr.String(), "PendingDevices": len(ig.Devices)})
+		GetApplication().DelIgmpGroup(cntx, ig)
+		return
+	}
+	if err := ig.WriteToDb(cntx); err != nil {
+		logger.Errorw(ctx, "Igmp group Write to DB failed", log.Fields{"groupName": ig.GroupName})
+	}
 }
 
 // DelIgmpGroup deletes all devices for the provided igmp group
 func (ig *IgmpGroup) DelIgmpGroup(cntx context.Context) {
-        logger.Infow(ctx, "Deleting All Device for Group", log.Fields{"Group": ig.GroupName})
-        for _, igd := range ig.Devices {
-                ig.DelIgmpGroupDevice(cntx, igd)
-        }
-        GetApplication().DelIgmpGroup(cntx, ig)
+	logger.Infow(ctx, "Deleting All Device for Group", log.Fields{"Group": ig.GroupName})
+	for _, igd := range ig.Devices {
+		ig.DelIgmpGroupDevice(cntx, igd)
+	}
+	GetApplication().DelIgmpGroup(cntx, ig)
 }

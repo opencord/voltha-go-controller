@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package commands
 
@@ -19,20 +19,19 @@ import (
 	"fmt"
 	"log"
 
-	flags "github.com/jessevdk/go-flags"
+	db "voltha-go-controller/database"
 	"voltha-go-controller/voltha-go-controller/cli/database"
 	"voltha-go-controller/voltha-go-controller/cli/format"
 	"voltha-go-controller/voltha-go-controller/cli/models"
-	db "voltha-go-controller/database"
+
+	flags "github.com/jessevdk/go-flags"
 )
 
 // RegisterGroupCommands to register group command
 func RegisterGroupCommands(parser *flags.Parser) {
-
 	if _, err := parser.AddCommand("group", "Lists configured Groups", "Commands to display Group configuration", &groupCommand); err != nil {
 		log.Fatalf("Unexpected error while attempting to register group commands : %s", err)
 	}
-
 }
 
 // GroupCommand to register group command
@@ -42,7 +41,6 @@ var groupCommand GroupCommand
 
 // Execute for execution of group command
 func (gc *GroupCommand) Execute(args []string) error {
-
 	rc, err := database.GetRedisClient()
 	if err != nil {
 		return fmt.Errorf("Failed to make connection to KV Store: %v ", err)

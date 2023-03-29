@@ -39,9 +39,8 @@ func RemoveFromSlice(s []string, value string) []string {
 	return s
 }
 
-//IsSliceSame - check and return true if the two slices are identical
+// IsSliceSame - check and return true if the two slices are identical
 func IsSliceSame(ref, rcvd []uint32) bool {
-
 	var found bool
 	if len(ref) != len(rcvd) {
 		return false
@@ -63,9 +62,8 @@ func IsSliceSame(ref, rcvd []uint32) bool {
 	return true
 }
 
-//IsPbitSliceSame - check and return true if the two slices are identical
+// IsPbitSliceSame - check and return true if the two slices are identical
 func IsPbitSliceSame(ref, rcvd []of.PbitType) bool {
-
 	var found bool
 	if len(ref) != len(rcvd) {
 		return false

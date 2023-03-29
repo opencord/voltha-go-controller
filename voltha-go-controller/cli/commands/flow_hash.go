@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package commands
 
@@ -21,15 +21,15 @@ import (
 	"strconv"
 	"strings"
 
-	flags "github.com/jessevdk/go-flags"
 	"voltha-go-controller/voltha-go-controller/cli/database"
 	"voltha-go-controller/voltha-go-controller/cli/format"
 	"voltha-go-controller/voltha-go-controller/cli/models"
+
+	flags "github.com/jessevdk/go-flags"
 )
 
 // RegisterFlowHashCommands to get Cache Flow Hash Command
 func RegisterFlowHashCommands(parser *flags.Parser) {
-
 	if _, err := parser.AddCommand("setflowhash", "Sets the flow hash for flow throttling per device", "Commands to display setflowhash", &flowHashCommand); err != nil {
 		log.Fatalf("Unexpected error while attempting to register setflowhash commands : %s", err)
 	}
@@ -57,7 +57,7 @@ func (ic *FlowHashCommand) Execute(args []string) error {
 		flowhash := args[1]
 		hashNum, _ := strconv.ParseUint(flowhash, 10, 32)
 		if hashNum < 37 || hashNum > 151 {
-			return fmt.Errorf("Number not in the permissable range of 37 - 151")
+			return fmt.Errorf("Number not in the permissible range of 37 - 151")
 		}
 		if !checkPrime(int(hashNum)) {
 			return fmt.Errorf("Hash number provided is not a prime")

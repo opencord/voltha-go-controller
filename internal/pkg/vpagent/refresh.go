@@ -21,8 +21,9 @@ import (
 
 	"voltha-go-controller/internal/pkg/intf"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"voltha-go-controller/log"
+
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
 
@@ -127,13 +128,12 @@ func (vpa *VPAgent) addVPClient(device *voltha.LogicalDevice) intf.IVPClient {
 			VolthaClient:     vpa.volthaClient,
 			PacketOutChannel: vpa.packetOutChannel,
 		})
-
 	}
 	logger.Debugw(ctx, "Finished with addClient", log.Fields{"deviceID": device.Id})
 	return vpc
 }
 
-//AddClientToClientMap - called by controller once device obj is created
+// AddClientToClientMap - called by controller once device obj is created
 func (vpa *VPAgent) AddClientToClientMap(deviceID string, vpc intf.IVPClient) {
 	vpa.mapLock.Lock()
 	defer vpa.mapLock.Unlock()

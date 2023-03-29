@@ -13,19 +13,20 @@
 * limitations under the License.
  */
 
-// Package common provides constants.
 package common
+
 import (
 	"errors"
 )
 
-//AdminState represents Status of an VLAN:ENABLE/DISABLE
+// AdminState represents Status of an VLAN:ENABLE/DISABLE
 type AdminState string
 
 var (
 	// ErrEntryNotFound is the error when the key doesn't exist in the KVStore
 	ErrEntryNotFound = errors.New("Entry not found")
 )
+
 // DeviceState refers to the state of device
 type DeviceState string
 
@@ -38,18 +39,18 @@ const (
 // Status represents the status of the request sent to the device manager.
 type Status string
 
-//LogLevel  represents the type of the OLT's LOG
+// LogLevel  represents the type of the OLT's LOG
 type LogLevel int
 
 const (
-        // CRITICAL represents log level type of the OLT.
-        CRITICAL LogLevel = iota
-        // ERROR represents log level type of the OLT.
-        ERROR
-        // WARNING represents log level type of the OLT.
-        WARNING
-        // INFO represents log level type of the OLT.
-        INFO
-        // DEBUG represents log level type of the OLT.
-        DEBUG
+	// CRITICAL represents log level type of the OLT.
+	CRITICAL LogLevel = iota
+	// ERROR represents log level type of the OLT.
+	ERROR
+	// WARNING represents log level type of the OLT.
+	WARNING
+	// INFO represents log level type of the OLT.
+	INFO
+	// DEBUG represents log level type of the OLT.
+	DEBUG
 )

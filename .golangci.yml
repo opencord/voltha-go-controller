@@ -1,0 +1,53 @@
+linters-settings:
+  govet:
+    check-shadowing: true
+    settings:
+      printf:
+        funcs:
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+    enable:
+      - fieldalignment
+
+  golint:
+    min-confidence: 0
+
+  gocyclo:
+    min-complexity: 30
+
+  misspell:
+    locale: US
+
+linters:
+  disable-all: true
+  enable:
+     - govet
+     - errcheck
+     - goconst
+     - gofmt
+     - whitespace
+     - goimports
+     - gosimple
+     - ineffassign
+     - gocyclo
+     - revive
+     - misspell
+     - staticcheck
+     - unused
+     - gosec
+
+run:
+  issues-exit-code: 1
+  timeout: 10m
+
+# golangci.com configuration
+# https://github.com/golangci/golangci/wiki/Configuration
+service:
+  golangci-lint-version: 1.50.1 # use the fixed version to not introduce new linters unexpectedly
+  prepare:
+    - echo "here I can run custom commands, but no preparation needed for this repo"
+issues:
+   exclude:
+     - 'G114: Use of net/http serve function that has no support for setting timeouts'

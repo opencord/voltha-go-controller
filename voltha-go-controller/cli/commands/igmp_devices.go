@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package commands
 
@@ -19,20 +19,19 @@ import (
 	"fmt"
 	"log"
 
-	flags "github.com/jessevdk/go-flags"
+	db "voltha-go-controller/database"
 	"voltha-go-controller/voltha-go-controller/cli/database"
 	"voltha-go-controller/voltha-go-controller/cli/format"
 	"voltha-go-controller/voltha-go-controller/cli/models"
-	db "voltha-go-controller/database"
+
+	flags "github.com/jessevdk/go-flags"
 )
 
 // RegisterIGMPDeviceCommands to register igmp device command
 func RegisterIGMPDeviceCommands(parser *flags.Parser) {
-
 	if _, err := parser.AddCommand("igmpdevice", "Lists configured IGMP devices", "Commands to display igmp device information", &igmpdeviceCommand); err != nil {
 		log.Fatalf("Unexpected error while attempting to register service commands : %s", err)
 	}
-
 }
 
 // IGMPDeviceCommand structure
@@ -49,7 +48,7 @@ func (serv *IGMPDeviceCommand) Execute(args []string) error {
 
 	switch len(args) {
 	case 0:
-		return fmt.Errorf("Missing all arguements, Correct format is: igmpdevice [mvlan] [group-id] [channel-ip]")
+		return fmt.Errorf("Missing all arguments, Correct format is: igmpdevice [mvlan] [group-id] [channel-ip]")
 	case 1:
 		return fmt.Errorf("Missing [group-id] and [channel-ip], Correct format is: igmpdevice [mvlan] [group-id] [channel-ip]")
 	case 2:

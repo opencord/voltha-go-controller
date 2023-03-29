@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*/
+ */
 
 package commands
 
@@ -20,20 +20,19 @@ import (
 	"fmt"
 	"log"
 
-	flags "github.com/jessevdk/go-flags"
 	"voltha-go-controller/voltha-go-controller/cli/database"
 	"voltha-go-controller/voltha-go-controller/cli/format"
 	"voltha-go-controller/voltha-go-controller/cli/models"
 	"voltha-go-controller/voltha-go-controller/nbi"
+
+	flags "github.com/jessevdk/go-flags"
 )
 
 // RegisterDHCPSessionInfoCommands to register dhcp session info command
 func RegisterDHCPSessionInfoCommands(parser *flags.Parser) {
-
 	if _, err := parser.AddCommand("dhcpsession", "Lists DHCP Session Info", "Commands to display dhcp session info", &dhcpSessionInfoCommand); err != nil {
 		log.Fatalf("Unexpected error while attempting to register dhcp session info commands : %s", err)
 	}
-
 }
 
 // DhcpSessionInfoCommand structure
@@ -45,7 +44,7 @@ var dhcpSessionInfoCommand DhcpSessionInfoCommand
 func (ic *DhcpSessionInfoCommand) Execute(args []string) error {
 	switch len(args) {
 	case 0:
-		return fmt.Errorf("Missing all arguements, Correct formats are: \n dhcpsession [device-id] \n dhcpsession [device-id] [mac] \n dhcpsession [device-id] [svlan] [cvlan] \n dhcpsession [device-id] [mac] [svlan] [cvlan]")
+		return fmt.Errorf("Missing all arguments, Correct formats are: \n dhcpsession [device-id] \n dhcpsession [device-id] [mac] \n dhcpsession [device-id] [svlan] [cvlan] \n dhcpsession [device-id] [mac] [svlan] [cvlan]")
 
 	case 1:
 		deviceID := args[0]
