@@ -61,7 +61,6 @@ top:
 		default:
 			ce, err := stream.Recv()
 			if err == io.EOF {
-				logger.Warnw(ctx, "EOF for receiveChangeEvents stream, reconnecting", log.Fields{"err": err})
 				stream, err = vServiceClient.ReceiveChangeEvents(streamCtx, &empty.Empty{}, opt)
 				if err != nil {
 					logger.Errorw(ctx, "Unable to establish Receive Change Event Stream",

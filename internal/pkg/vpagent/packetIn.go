@@ -19,8 +19,9 @@ import (
 	"context"
 	"io"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"voltha-go-controller/log"
+
+	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 )
 
@@ -55,7 +56,6 @@ top:
 		default:
 			pkt, err := stream.Recv()
 			if err == io.EOF {
-				logger.Infow(ctx, "EOF for receivePacketsIn stream, reconnecting", log.Fields{"err": err})
 				stream, err = vpa.volthaClient.Get().ReceivePacketsIn(streamCtx, &empty.Empty{}, opt)
 				if err != nil {
 					logger.Errorw(ctx, "Unable to establish Receive PacketIn Stream",
