@@ -600,6 +600,9 @@ func (vs *VoltService) BuildDsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		| Byte8    | Byte7    | Byte6 | Byte5  | Byte4  | Byte3   | Byte2  | Byte1 |
 		| reserved | reserved | TpID  | TpID   | uinID  | uniID   | uniID  | uniID | */
 		metadata := uint64(vs.CVlan)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
+		if vs.ServiceType == FttbSubscriberTraffic {
+			metadata = uint64(of.VlanAny)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
+		}
 		subflow1.SetWriteMetadata(metadata)
 
 		/* TableMetaData 8 Byte(uint64) Voltha usage:  (Considering MSB bit as 63rd bit and LSB bit as 0th bit)
@@ -613,8 +616,10 @@ func (vs *VoltService) BuildDsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		| 0000     |    00     |    0     |  0  | 00000000 | 00000000 |  0000   0000     |  00000000 | 00000000 | 00000000 | 00000000|
 		| reserved | svlanTpID |  Buff us |  AT | schedID  | schedID  | onteth  vlanCtrl |   ctag    |  ctag    |  ctag    | ctag    |  */
 
-		metadata = uint64(l2ProtoValue)<<58 | uint64(allowTransparent)<<56 | uint64(vs.SchedID)<<40 | uint64(vs.ONTEtherTypeClassification)<<36 | uint64(vs.VlanControl)<<32 | uint64(vs.CVlan)
-		subflow1.SetTableMetadata(metadata)
+		if vs.ServiceType != FttbSubscriberTraffic {
+			metadata = uint64(l2ProtoValue)<<58 | uint64(allowTransparent)<<56 | uint64(vs.SchedID)<<40 | uint64(vs.ONTEtherTypeClassification)<<36 | uint64(vs.VlanControl)<<32 | uint64(vs.CVlan)
+			subflow1.SetTableMetadata(metadata)
+		}
 		// TODO - We are using cookie as key and must come up with better cookie
 		// allocation algorithm
 		/**
@@ -669,6 +674,9 @@ func (vs *VoltService) BuildDsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 
 		// refer Table-0 flow generation for byte information
 		metadata := uint64(vs.CVlan)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
+		if vs.ServiceType == FttbSubscriberTraffic {
+			metadata = uint64(of.VlanAny)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
+		}
 		subflow2.SetWriteMetadata(metadata)
 
 		// Table-1 and inport is NNI: It is a DS flow for ONU, add uniport in metadata to make it unique
@@ -744,6 +752,9 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		| reserved | reserved | TpID  | TpID   | uinID  | uniID   | uniID  | uniID | */
 		//metadata := uint64(vs.CVlan)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
 		metadata := uint64(vs.TechProfileID)<<32 + uint64(outport)
+		if vs.ServiceType == FttbSubscriberTraffic {
+			metadata = uint64(of.VlanAny)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
+		}
 		subflow1.SetWriteMetadata(metadata)
 
 		if vs.VlanControl == OLTCVlanOLTSVlan {
@@ -783,6 +794,9 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 
 		// refer Table-0 flow generation for byte information
 		metadata := uint64(vs.TechProfileID)<<32 + uint64(outport)
+		if vs.ServiceType == FttbSubscriberTraffic {
+			metadata = uint64(of.VlanAny)<<48 + uint64(vs.TechProfileID)<<32 + uint64(outport)
+		}
 		subflow2.SetWriteMetadata(metadata)
 
 		if vs.VlanControl == OLTCVlanOLTSVlan {
