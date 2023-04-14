@@ -945,7 +945,7 @@ func (vpv *VoltPortVnet) MatchesPriority(priority uint8) *VoltService {
 	matchpbitsFunc := func(key, value interface{}) bool {
 		svc := value.(*VoltService)
 		for _, pbit := range svc.Pbits {
-			if uint8(pbit) == priority {
+			if uint8(pbit) == priority || uint8(pbit) == uint8(of.PbitMatchAll) {
 				logger.Infow(ctx, "Pbit match found with service",
 					log.Fields{"Pbit": priority, "serviceName": svc.Name})
 				pbitFound = true
@@ -1683,7 +1683,7 @@ func (vpv *VoltPortVnet) BuildUsDhcpFlows() (*of.VoltFlow, error) {
 		vs := value.(*VoltService)
 		var writemetadata uint64
 		if vpv.VnetType == DpuMgmtTraffic {
-			writemetadata = uint64(vs.SVlan)<<48 + uint64(vs.TechProfileID)<<32
+			writemetadata = uint64(vs.TechProfileID)<<32 + uint64(vs.UsMeterID)
 		} else {
 			writemetadata = uint64(vs.TechProfileID) << 32
 		}
