@@ -678,7 +678,7 @@ func convertServiceToSubscriberInfo(svcs []*app.VoltService) []SubscriberInfo {
 				DownstreamBandwidthProfile:    vs.DsMeterProfile,
 				UpstreamOltBandwidthProfile:   vs.UsMeterProfile,
 				DownstreamOltBandwidthProfile: vs.DsMeterProfile,
-				ServiceName:                   vs.Name,
+				ServiceName:                   vs.ServiceType,
 				EnableMacLearning:             vs.MacLearning == app.Learn,
 				ConfiguredMacAddress:          vs.MacAddr.String(),
 				IsDhcpRequired:                vs.MacLearning == app.Learn,

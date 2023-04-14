@@ -900,7 +900,12 @@ func (vs *VoltService) setUSMatchActionVlanT0(flow *of.VoltSubFlow) error {
 			flow.SetPushVlan(vs.SVlan, layers.EthernetTypeDot1Q)
 		}
 	case OLTSVlan:
-		flow.SetMatchVlan(vs.UniVlan)
+		if vs.UniVlan != of.VlanAny && vs.UniVlan != of.VlanNone {
+			flow.SetMatchVlan(vs.UniVlan)
+			flow.SetSetVlan(vs.SVlan)
+		} else {
+			flow.SetMatchVlan(vs.UniVlan)
+		}
 	default:
 		logger.Errorw(ctx, "Invalid Vlan Control Option", log.Fields{"Value": vs.VlanControl})
 		return errorCodes.ErrInvalidParamInRequest
