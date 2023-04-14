@@ -244,6 +244,34 @@ func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.Respo
 	// HTTP response with 202 accepted for service delete request
 	w.WriteHeader(http.StatusAccepted)
 
+	d := new(bytes.Buffer)
+	if _, err := d.ReadFrom(r.Body); err != nil {
+		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		return
+	}
+
+	// Unmarshal the request into service configuration structure
+	req := &SubscriberDeviceInfo{}
+	if err := json.Unmarshal(d.Bytes(), req); err != nil {
+		logger.Warnw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
+		return
+	}
+
+	for _, uniTagInfo := range req.UniTagList {
+
+		svcname := req.ID + "_"
+		svcname = svcname + req.NasPortID + "-"
+		svcname = svcname + strconv.Itoa(uniTagInfo.UniTagMatch) + "-"
+		svcname = svcname + strconv.Itoa(uniTagInfo.PonSTag) + "-"
+		svcname = svcname + strconv.Itoa(uniTagInfo.PonCTag) + "-"
+		svcname = svcname + strconv.Itoa(uniTagInfo.TechnologyProfileID)
+
+		if uniTagInfo.ServiceName == app.FttbSubscriberTraffic {
+		id = svcname
+		}
+	}
+
 	logger.Warnw(ctx, "northbound-del-service-req", log.Fields{"ServiceName": id})
 	app.GetApplication().DelServiceWithPrefix(cntx, id)
 }
