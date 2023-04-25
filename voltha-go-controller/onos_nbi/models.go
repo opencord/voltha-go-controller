@@ -663,6 +663,13 @@ func convertServiceToSubscriberInfo(svcs []*app.VoltService) []SubscriberInfo {
 	subs := []SubscriberInfo{}
 	for _, vs := range svcs {
 		pbit := vs.GetServicePbit()
+		// Device is not filled for DPU MGMT service, so update it in response
+		if vs.ServiceType == app.DpuMgmtTraffic {
+			device, _ := app.GetApplication().GetDeviceFromPort(vs.Port)
+			if device != nil {
+				vs.Device = device.Name
+			}
+		}
 		sub := SubscriberInfo{
 			Location: vs.Device,
 			TagInfo: UniTagInformation{
