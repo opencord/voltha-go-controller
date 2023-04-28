@@ -727,11 +727,6 @@ func (vpv *VoltPortVnet) PushFlowsForPortVnet(cntx context.Context, d *VoltDevic
 		return
 	}
 
-	if vpv.PonPort != 0xFF && vpv.PonPort != vp.PonPort {
-		logger.Errorw(ctx, "UNI port discovered on wrong PON Port. Dropping Flow Configuration for VPV", log.Fields{"Device": d.Name, "Port": vpv.Port, "DetectedPon": vp.PonPort, "ExpectedPon": vpv.PonPort, "Vnet": vpv.VnetName})
-		return
-	}
-
 	//Disable the flag so that flows can be pushed again
 	// vpv.IgmpFlowsApplied = false
 	// vpv.DsFlowsApplied = false
@@ -2237,13 +2232,9 @@ func (va *VoltApplication) AddVnetToPort(cntx context.Context, port string, vvne
 		vpv.setDevice(d.Name)
 		p := d.GetPort(port)
 		if p != nil {
-			if vs.PonPort != 0xFF && vs.PonPort != p.PonPort {
-				logger.Errorw(ctx, "UNI port discovered on wrong PON Port. Dropping Flow Push for VPV", log.Fields{"Device": d.Name, "Port": port, "DetectedPon": p.PonPort, "ExpectedPon": vs.PonPort, "Vnet": vpv.VnetName})
-			} else {
-				logger.Infow(ctx, "Checking UNI port state", log.Fields{"State": p.State})
-				if d.State == controller.DeviceStateUP && p.State == PortStateUp {
-					vpv.PortUpInd(cntx, d, port)
-				}
+			logger.Infow(ctx, "Checking UNI port state", log.Fields{"State": p.State})
+			if d.State == controller.DeviceStateUP && p.State == PortStateUp {
+				vpv.PortUpInd(cntx, d, port)
 			}
 		}
 	}

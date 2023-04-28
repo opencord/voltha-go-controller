@@ -1361,23 +1361,6 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 		return
 	}
 
-	vpvList := vpvs.([]*VoltPortVnet)
-	if vpvList[0].PonPort != 0xFF && vpvList[0].PonPort != p.PonPort {
-		logger.Errorw(ctx, "UNI port discovered on wrong PON Port. Dropping Port Indication", log.Fields{"Device": device, "Port": port, "DetectedPon": p.PonPort, "ExpectedPon": vpvList[0].PonPort})
-
-		// Remove the flow (if any) which are already installed - Valid for PON switching when VGC pod is DOWN
-		for _, vpv := range vpvs.([]*VoltPortVnet) {
-			vpv.VpvLock.Lock()
-			logger.Warnw(ctx, "Removing existing VPVs/Services flows for for Subscriber: UNI Detected on wrong PON", log.Fields{"Port": vpv.Port, "Vnet": vpv.VnetName})
-			vpv.PortDownInd(cntx, device, port, false)
-			if vpv.IgmpEnabled {
-				va.ReceiverDownInd(cntx, device, port)
-			}
-			vpv.VpvLock.Unlock()
-		}
-		return
-	}
-
 	for _, vpv := range vpvs.([]*VoltPortVnet) {
 		vpv.VpvLock.Lock()
 		// If no service is activated drop the portUpInd

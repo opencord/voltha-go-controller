@@ -35,15 +35,15 @@ const (
 
 //BWProfile - Sadis BW Profile
 type BWProfile struct {
-	ID                        string `json:"id,omitempty"`
-	PeakInformationRate       uint32 `json:"pir,omitempty"`
-	PeakBurstSize             uint32 `json:"pbs,omitempty"`
-	CommittedInformationRate  uint32 `json:"cir,omitempty"`
-	CommittedBurstSize        uint32 `json:"cbs,omitempty"`
-	ExceededInformationRate   uint32 `json:"eir,omitempty"`
-	ExceededBurstSize         uint32 `json:"ebs,omitempty"`
-	AssuredInformationRate    uint32 `json:"air,omitempty"`
-	GuaranteedInformationRate uint32 `json:"gir,omitempty"`
+	ID                        string `json:"id"`
+	PeakInformationRate       uint32 `json:"pir"`
+	PeakBurstSize             uint32 `json:"pbs"`
+	CommittedInformationRate  uint32 `json:"cir"`
+	CommittedBurstSize        uint32 `json:"cbs"`
+	ExceededInformationRate   uint32 `json:"eir"`
+	ExceededBurstSize         uint32 `json:"ebs"`
+	AssuredInformationRate    uint32 `json:"air"`
+	GuaranteedInformationRate uint32 `json:"gir"`
 }
 
 // ProfileDelReq structure
