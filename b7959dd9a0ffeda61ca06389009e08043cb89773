@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e0b81a8d_008a6803",
+        "filename": "voltha-go-controller/onos_nbi/models.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 666,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-04-28T11:58:42Z",
+      "side": 1,
+      "message": "the ftth subs wont require the device name ?",
+      "revId": "b7959dd9a0ffeda61ca06389009e08043cb89773",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
