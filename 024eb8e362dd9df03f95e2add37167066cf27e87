@@ -16,6 +16,24 @@
       "message": "why removed omitempty ?",
       "revId": "024eb8e362dd9df03f95e2add37167066cf27e87",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "df97d94f_9dae879b",
+        "filename": "voltha-go-controller/nbi/bwprofile.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-05-03T05:33:19Z",
+      "side": 1,
+      "message": "It was removed because if any attributes user specified value is 0 then due to omit empty tag that attribute will not be sent in the response since it will consider 0 as default value of that attribute.",
+      "parentUuid": "c34ade03_7d898b71",
+      "revId": "024eb8e362dd9df03f95e2add37167066cf27e87",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
