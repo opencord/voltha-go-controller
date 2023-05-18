@@ -79,7 +79,7 @@ func (att *AuditTablesTask) Stop() {
 // Start is called by the framework and is responsible for implementing
 // the actual task.
 func (att *AuditTablesTask) Start(ctx context.Context, taskID uint8) error {
-	logger.Warnw(ctx, "Audit Table Task Triggered", log.Fields{"Context": ctx, "taskId": taskID, "Device": att.device.ID})
+	logger.Infow(ctx, "Audit Table Task Triggered", log.Fields{"Context": ctx, "taskId": taskID, "Device": att.device.ID})
 	att.taskID = taskID
 	att.ctx = ctx
 	var errInfo error
@@ -111,9 +111,9 @@ func (att *AuditTablesTask) Start(ctx context.Context, taskID uint8) error {
 
 	// Triggering deletion of excess groups from device after the corresponding flows are removed
 	// to avoid flow dependency error during group deletion
-	logger.Infow(ctx, "Excess Groups", log.Fields{"Groups": rcvdGroups})
+	logger.Debugw(ctx, "Excess Groups", log.Fields{"Groups": rcvdGroups})
 	att.DelExcessGroups(rcvdGroups)
-	logger.Warnw(ctx, "Audit Table Task Completed", log.Fields{"Context": ctx, "taskId": taskID, "Device": att.device.ID})
+	logger.Infow(ctx, "Audit Table Task Completed", log.Fields{"Context": ctx, "taskId": taskID, "Device": att.device.ID})
 	return errInfo
 }
 
@@ -127,7 +127,7 @@ func (att *AuditTablesTask) AuditMeters() error {
 	}
 	var vc voltha.VolthaServiceClient
 	if vc = att.device.VolthaClient(); vc == nil {
-		logger.Error(ctx, "Fetch Device Meters Failed: Voltha Client Unavailable")
+		logger.Warn(ctx, "Fetch Device Meters Failed: Voltha Client Unavailable")
 		return nil
 	}
 
@@ -563,7 +563,7 @@ func (att *AuditTablesTask) AuditPorts() error {
 			if ((vgcPort.State == PortStateDown) && (ofpPort.State == uint32(ofp.OfpPortState_OFPPS_LIVE))) || ((vgcPort.State == PortStateUp) && (ofpPort.State != uint32(ofp.OfpPortState_OFPPS_LIVE))) {
 				// This port exists in the received list and the map at
 				// VGC. This is common so delete it
-				logger.Infow(ctx, "Port State Mismatch", log.Fields{"Port": vgcPort.ID, "OfpPort": ofpPort.PortNo, "ReceivedState": ofpPort.State, "CurrentState": vgcPort.State})
+				logger.Debugw(ctx, "Port State Mismatch", log.Fields{"Port": vgcPort.ID, "OfpPort": ofpPort.PortNo, "ReceivedState": ofpPort.State, "CurrentState": vgcPort.State})
 				att.device.ProcessPortState(ctx, ofpPort.PortNo, ofpPort.State)
 			}
 			delete(missingPorts, id)
@@ -576,7 +576,7 @@ func (att *AuditTablesTask) AuditPorts() error {
 	}
 	// 1st process the NNI port before all other ports so that the device state can be updated.
 	if vgcPort, ok := att.device.PortsByID[NNIPortID]; ok {
-		logger.Info(ctx, "Processing NNI port state")
+		logger.Debugw(ctx, "Processing NNI port state", log.Fields{"Port ID": vgcPort.ID, "Port Name": vgcPort.Name})
 		processPortState(NNIPortID, vgcPort)
 	}
 
@@ -592,7 +592,7 @@ func (att *AuditTablesTask) AuditPorts() error {
 	}
 
 	if att.stop {
-		logger.Errorw(ctx, "Audit Device Task Canceled", log.Fields{"Context": att.ctx, "Task": att.taskID})
+		logger.Warnw(ctx, "Audit Device Task Canceled", log.Fields{"Context": att.ctx, "Task": att.taskID})
 		return tasks.ErrTaskCancelError
 	}
 	att.AddMissingPorts(ctx, missingPorts)
@@ -620,7 +620,7 @@ func (att *AuditTablesTask) AddMissingPorts(cntx context.Context, mps map[uint32
 
 	// 1st process the NNI port before all other ports so that the flow provisioning for UNIs can be enabled
 	if mp, ok := mps[NNIPortID]; ok {
-		logger.Info(ctx, "Adding Missing NNI port")
+		logger.Infow(ctx, "Adding Missing NNI port", log.Fields{"PortNo": mp.PortNo})
 		addMissingPort(mp)
 	}
 

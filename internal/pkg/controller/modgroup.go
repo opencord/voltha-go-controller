@@ -87,7 +87,7 @@ func (grp *ModGroupTask) Start(ctx context.Context, taskID uint8) error {
 				log.Fields{"groupId": grp.group.GroupID, "groupOp": grp.group.Command, "Status": statusCode, "errorReason": statusMsg})
 			return false
 		}
-		logger.Infow(ctx, "Group Mod Result", log.Fields{"groupID": grp.group.GroupID, "Error Code": statusCode})
+		logger.Debugw(ctx, "Group Mod Result", log.Fields{"groupID": grp.group.GroupID, "Error Code": statusCode})
 		return true
 	}
 
@@ -99,7 +99,7 @@ func (grp *ModGroupTask) Start(ctx context.Context, taskID uint8) error {
 	}
 
 	if !grp.device.isSBOperAllowed(grp.group.ForceAction) {
-		logger.Errorw(ctx, "Skipping Group Table Update", log.Fields{"Reason": "Device State not UP", "State": grp.device.State, "GroupID": grp.group.GroupID, "Operation": grp.group.Command})
+		logger.Warnw(ctx, "Skipping Group Table Update", log.Fields{"Reason": "Device State not UP", "State": grp.device.State, "GroupID": grp.group.GroupID, "Operation": grp.group.Command})
 		return nil
 	}
 

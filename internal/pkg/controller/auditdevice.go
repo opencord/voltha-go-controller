@@ -84,7 +84,7 @@ func (ad *AuditDevice) Stop() {
 
 // Start to start the task
 func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
-	logger.Warnw(ctx, "Audit Device Task Triggered", log.Fields{"Context": ctx, "taskId": taskID, "Device": ad.device.ID})
+	logger.Infow(ctx, "Audit Device Task Triggered", log.Fields{"Context": ctx, "taskId": taskID, "Device": ad.device.ID})
 	ad.taskID = taskID
 	ad.ctx = ctx
 
@@ -138,7 +138,7 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 
 	// 1st process the NNI port before all other ports so that the device state can be updated.
 	if vgcPort, ok := ad.device.PortsByID[NNIPortID]; ok {
-		logger.Info(ctx, "Processing NNI port state")
+		logger.Infow(ctx, "Processing NNI port state", log.Fields{"PortNo": vgcPort.ID, "PortName": vgcPort.Name, "PortState": vgcPort.State})
 		processPortState(NNIPortID, vgcPort)
 	}
 
@@ -161,7 +161,7 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 	ad.AddMissingPorts(ctx, missingPorts)
 	ad.DelExcessPorts(ctx, excessPorts)
 	ad.device.deviceAuditInProgress = false
-	logger.Warnw(ctx, "Audit Device Task Completed", log.Fields{"Context": ctx, "taskId": taskID, "Device": ad.device.ID})
+	logger.Infow(ctx, "Audit Device Task Completed", log.Fields{"Context": ctx, "taskId": taskID, "Device": ad.device.ID})
 	return nil
 }
 
@@ -175,7 +175,7 @@ func (ad *AuditDevice) AddMissingPorts(cntx context.Context, mps map[uint32]*ofp
 		// Error is ignored as it only drops duplicate ports
 		logger.Infow(ctx, "Calling AddPort", log.Fields{"No": mp.PortNo, "Name": mp.Name})
 		if err := ad.device.AddPort(cntx, mp); err != nil {
-			logger.Warnw(ctx, "AddPort Failed", log.Fields{"No": mp.PortNo, "Name": mp.Name, "Reason": err})
+			logger.Warnw(ctx, "AddPort Failed", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name, "Reason": err})
 		}
 		if mp.State == uint32(ofp.OfpPortState_OFPPS_LIVE) {
 			ad.device.ProcessPortState(cntx, mp.PortNo, mp.State)
@@ -185,7 +185,7 @@ func (ad *AuditDevice) AddMissingPorts(cntx context.Context, mps map[uint32]*ofp
 
 	// 1st process the NNI port before all other ports so that the flow provisioning for UNIs can be enabled
 	if mp, ok := mps[NNIPortID]; ok {
-		logger.Info(ctx, "Adding Missing NNI port")
+		logger.Debugw(ctx, "Adding Missing NNI port", log.Fields{"PortNo": mp.PortNo, "Port Name": mp.Name, "Port Status": mp.State})
 		addMissingPort(mp)
 	}
 
