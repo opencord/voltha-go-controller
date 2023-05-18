@@ -170,7 +170,7 @@ func NewDevice(cntx context.Context, id string, slno string, vclientHldr *holder
 		var hash uint32
 		err = json.Unmarshal([]byte(flowHash), &hash)
 		if err != nil {
-			logger.Error(ctx, "Failed to unmarshall flowhash")
+			logger.Errorw(ctx, "Failed to unmarshall flowhash", log.Fields{"data": flowHash})
 		} else {
 			device.flowHash = hash
 		}
@@ -191,7 +191,7 @@ func (d *Device) ResetCache() {
 func (d *Device) GetFlow(cookie uint64) (*of.VoltSubFlow, bool) {
 	d.flowLock.RLock()
 	defer d.flowLock.RUnlock()
-	logger.Infow(ctx, "Get Flow", log.Fields{"Cookie": cookie})
+	logger.Debugw(ctx, "Get Flow", log.Fields{"Cookie": cookie})
 	flow, ok := d.flows[cookie]
 	return flow, ok
 }
@@ -201,7 +201,7 @@ func (d *Device) GetAllFlows() []*of.VoltSubFlow {
 	d.flowLock.RLock()
 	defer d.flowLock.RUnlock()
 	var flows []*of.VoltSubFlow
-	logger.Infow(ctx, "Get All Flows", log.Fields{"deviceID": d.ID})
+	logger.Debugw(ctx, "Get All Flows", log.Fields{"deviceID": d.ID})
 	for _, f := range d.flows {
 		flows = append(flows, f)
 	}
@@ -213,7 +213,7 @@ func (d *Device) GetAllPendingFlows() []*of.VoltSubFlow {
 	d.flowLock.RLock()
 	defer d.flowLock.RUnlock()
 	var flows []*of.VoltSubFlow
-	logger.Infow(ctx, "Get All Pending Flows", log.Fields{"deviceID": d.ID})
+	logger.Debugw(ctx, "Get All Pending Flows", log.Fields{"deviceID": d.ID})
 	for _, f := range d.flows {
 		if f.State == of.FlowAddPending {
 			flows = append(flows, f)
@@ -226,7 +226,7 @@ func (d *Device) GetAllPendingFlows() []*of.VoltSubFlow {
 func (d *Device) AddFlow(cntx context.Context, flow *of.VoltSubFlow) error {
 	d.flowLock.Lock()
 	defer d.flowLock.Unlock()
-	logger.Infow(ctx, "AddFlow to device", log.Fields{"Cookie": flow.Cookie})
+	logger.Debugw(ctx, "AddFlow to device", log.Fields{"Cookie": flow.Cookie})
 	if _, ok := d.flows[flow.Cookie]; ok {
 		return errors.New(ErrDuplicateFlow)
 	}
@@ -269,7 +269,7 @@ func (d *Device) IsFlowPresentWithOldCookie(flow *of.VoltSubFlow) bool {
 		return false
 	} else if flow.OldCookie != 0 && flow.Cookie != flow.OldCookie {
 		if _, ok := d.flows[flow.OldCookie]; ok {
-			logger.Infow(ctx, "Flow present with old cookie", log.Fields{"OldCookie": flow.OldCookie})
+			logger.Debugw(ctx, "Flow present with old cookie", log.Fields{"OldCookie": flow.OldCookie})
 			return true
 		}
 	}
@@ -281,7 +281,7 @@ func (d *Device) DelFlowWithOldCookie(cntx context.Context, flow *of.VoltSubFlow
 	d.flowLock.Lock()
 	defer d.flowLock.Unlock()
 	if _, ok := d.flows[flow.OldCookie]; ok {
-		logger.Infow(ctx, "Flow was added before vgc upgrade. Trying to delete with old cookie",
+		logger.Debugw(ctx, "Flow was added before vgc upgrade. Trying to delete with old cookie",
 			log.Fields{"OldCookie": flow.OldCookie})
 		delete(d.flows, flow.OldCookie)
 		d.DelFlowFromDb(cntx, flow.OldCookie)
@@ -324,7 +324,7 @@ func (d *Device) CreateFlowFromString(b []byte) {
 
 // UpdateGroupEntry - Adds/Updates the group to the device and also to the database
 func (d *Device) UpdateGroupEntry(cntx context.Context, group *of.Group) {
-	logger.Infow(ctx, "Update Group to device", log.Fields{"ID": group.GroupID})
+	logger.Debugw(ctx, "Update Group to device", log.Fields{"ID": group.GroupID})
 	d.groups.Store(group.GroupID, group)
 	d.AddGroupToDb(cntx, group)
 }
@@ -332,7 +332,7 @@ func (d *Device) UpdateGroupEntry(cntx context.Context, group *of.Group) {
 // AddGroupToDb - Utility to add the group to the device DB
 func (d *Device) AddGroupToDb(cntx context.Context, group *of.Group) {
 	if b, err := json.Marshal(group); err == nil {
-		logger.Infow(ctx, "Adding Group to DB", log.Fields{"grp": group, "Json": string(b)})
+		logger.Debugw(ctx, "Adding Group to DB", log.Fields{"grp": group, "Json": string(b)})
 		if err = db.PutGroup(cntx, d.ID, group.GroupID, string(b)); err != nil {
 			logger.Errorw(ctx, "Write Group to DB failed", log.Fields{"device": d.ID, "groupID": group.GroupID, "Reason": err})
 		}
@@ -466,7 +466,7 @@ func (d *Device) CreateMeterFromString(b []byte) {
 			logger.Warnw(ctx, "Duplicate Meter", log.Fields{"ID": meter.ID})
 		}
 	} else {
-		logger.Warn(ctx, "Unmarshal failed")
+		logger.Warnw(ctx, "Unmarshal failed", log.Fields{"error": err, "meter": string(b)})
 	}
 }
 
@@ -636,7 +636,7 @@ func (d *Device) CreatePortFromString(cntx context.Context, b []byte) {
 			logger.Warnw(ctx, "Duplicate Port", log.Fields{"ID": port.ID})
 		}
 	} else {
-		logger.Warn(ctx, "Unmarshal failed")
+		logger.Warnw(ctx, "Unmarshal failed", log.Fields{"port": string(b)})
 	}
 }
 
@@ -660,12 +660,12 @@ func (d *Device) ConnectInd(ctx context.Context, discType intf.DiscoveryType) {
 	d.ctx = ctx1
 	d.Tasks.Initialize(ctx1)
 
-	logger.Warnw(ctx, "Device State change Ind: UP", log.Fields{"Device": d.ID})
+	logger.Debugw(ctx, "Device State change Ind: UP", log.Fields{"Device": d.ID})
 	d.State = DeviceStateUP
 	d.TimeStamp = time.Now()
 	GetController().DeviceUpInd(d.ID)
 
-	logger.Warnw(ctx, "Device State change Ind: UP, trigger Audit Tasks", log.Fields{"Device": d.ID})
+	logger.Debugw(ctx, "Device State change Ind: UP, trigger Audit Tasks", log.Fields{"Device": d.ID})
 	t := NewAuditDevice(d, AuditEventDeviceDisc)
 	d.Tasks.AddTask(t)
 
@@ -771,7 +771,7 @@ func (d *Device) ReSetAllPortStatesInDb(cntx context.Context) {
 
 	for _, port := range d.PortsByID {
 		if port.State != PortStateDown {
-			logger.Infow(ctx, "Resetting Port State to DOWN and Write to DB", log.Fields{"Device": d.ID, "Port": port})
+			logger.Debugw(ctx, "Resetting Port State to DOWN and Write to DB", log.Fields{"Device": d.ID, "Port": port})
 			port.State = PortStateDown
 			d.WritePortToDb(cntx, port)
 		}
@@ -1025,11 +1025,11 @@ func (d *Device) SetFlowHash(cntx context.Context, hash uint32) {
 func (d *Device) writeFlowHashToDB(cntx context.Context) {
 	hash, err := json.Marshal(d.flowHash)
 	if err != nil {
-		logger.Errorw(ctx, "failed to marshal flow hash", log.Fields{"hash": d.flowHash})
+		logger.Errorw(ctx, "failed to marshal flow hash", log.Fields{"hash": d.flowHash, "error": err})
 		return
 	}
 	if err := db.PutFlowHash(cntx, d.ID, string(hash)); err != nil {
-		logger.Errorw(ctx, "Failed to add flow hash to DB", log.Fields{"device": d.ID, "hash": d.flowHash})
+		logger.Errorw(ctx, "Failed to add flow hash to DB", log.Fields{"device": d.ID, "hash": d.flowHash, "error": err})
 	}
 }
 

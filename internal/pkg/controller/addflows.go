@@ -122,7 +122,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 		portName, _ := aft.device.GetPortName(aft.flow.PortID)
 		if aft.flow.PortName != portName && portName != "" {
 			for _, flow := range aft.flow.SubFlows {
-				logger.Errorw(ctx, "Skip Flow Update", log.Fields{"Reason": "Port Deleted", "PortName": aft.flow.PortName, "PortNo": aft.flow.PortID, "Cookie": flow.Cookie, "Operation": aft.flow.Command})
+				logger.Warnw(ctx, "Skip Flow Update", log.Fields{"Reason": "Port Deleted", "PortName": aft.flow.PortName, "PortNo": aft.flow.PortID, "Cookie": flow.Cookie, "Operation": aft.flow.Command})
 				if aft.flow.Command == of.CommandDel {
 					aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
 				}
@@ -133,7 +133,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 
 	if !aft.device.isSBOperAllowed(aft.flow.ForceAction) {
 		for _, flow := range aft.flow.SubFlows {
-			logger.Errorw(ctx, "Skipping Flow Table Update", log.Fields{"Reason": "Device State not UP", "State": aft.device.State, "Cookie": flow.Cookie, "Operation": aft.flow.Command})
+			logger.Warnw(ctx, "Skipping Flow Table Update", log.Fields{"Reason": "Device State not UP", "State": aft.device.State, "Cookie": flow.Cookie, "Operation": aft.flow.Command})
 		}
 		return nil
 	}
@@ -151,7 +151,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 					// Do NOT retry incase of failure with reason: Entry Not Found
 					if aft.flow.Command == of.CommandDel && statusCode != uint32(infraerrorcode.ErrNotExists) {
 						if attempt != MaxRetryCount {
-							logger.Errorw(ctx, "Retrying Flow Delete", log.Fields{"Cookie": flow.GetFlowMod().Cookie, "Attempt": attempt})
+							logger.Warnw(ctx, "Retrying Flow Delete", log.Fields{"Cookie": flow.GetFlowMod().Cookie, "Attempt": attempt})
 							attempt++
 							continue
 						}

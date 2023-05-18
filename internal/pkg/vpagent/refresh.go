@@ -53,7 +53,7 @@ loop:
 func (vpa *VPAgent) refreshDeviceList(cntx context.Context) {
 	// If we exit, assume disconnected
 	if vpa.volthaClient == nil {
-		logger.Error(ctx, "no-voltha-connection")
+		logger.Fatal(ctx, "no-voltha-connection")
 		vpa.events <- vpaEventVolthaDisconnected
 		return
 	}
@@ -102,7 +102,7 @@ func (vpa *VPAgent) refreshDeviceList(cntx context.Context) {
 }
 
 func (vpa *VPAgent) addVPClient(device *voltha.LogicalDevice) intf.IVPClient {
-	logger.Warnw(ctx, "GrpcClient addClient called ", log.Fields{"device-id": device.Id})
+	logger.Debugw(ctx, "GrpcClient addClient called ", log.Fields{"device-id": device.Id})
 	vpa.mapLock.Lock()
 	defer vpa.mapLock.Unlock()
 	var serialNum = "Unknown"

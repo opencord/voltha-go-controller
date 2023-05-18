@@ -31,7 +31,7 @@ func (vpa *VPAgent) streamPacketOut(ctx context.Context) {
 		logger.Debug(ctx, "packet-out-finished")
 	}()
 	if vpa.volthaClient == nil {
-		logger.Error(ctx, "no-voltha-connection")
+		logger.Fatal(ctx, "no-voltha-connection")
 		return
 	}
 	opt := grpc.EmptyCallOption{}
