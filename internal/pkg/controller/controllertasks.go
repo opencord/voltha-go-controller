@@ -70,7 +70,7 @@ func (adt *AddDeviceTask) Start(ctx context.Context, taskID uint8) error {
 
 	device := GetController().AddDevice(ctx, adt.config)
 	vpagent.GetVPAgent().AddClientToClientMap(adt.config.DeviceID, device)
-	logger.Infow(ctx, "Add Device Task Completed", log.Fields{"Device": adt.config.DeviceID, "SerialNum": adt.config.SerialNum})
+	logger.Infow(ctx, "Add Device Task Completed", log.Fields{"Device": adt.config.DeviceID, "SerialNum": adt.config.SerialNum, "SouthBoundId": adt.config.SouthBoundID})
 
 	return nil
 }

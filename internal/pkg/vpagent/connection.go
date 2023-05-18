@@ -63,7 +63,7 @@ func (vpa *VPAgent) establishConnectionToVoltha(ctx context.Context, p *probe.Pr
 				}
 			}
 		}
-		logger.Warnw(ctx, "Failed to connect to voltha",
+		logger.Fatalw(ctx, "Failed to connect to voltha",
 			log.Fields{
 				"VolthaApiEndPoint": vpa.VolthaAPIEndPoint,
 				"error":             err.Error(),

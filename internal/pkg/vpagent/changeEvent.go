@@ -33,7 +33,7 @@ func (vpa *VPAgent) receiveChangeEvents(ctx context.Context) {
 		logger.Debug(ctx, "receive-change-events-finished")
 	}()
 	if vpa.volthaClient == nil {
-		logger.Error(ctx, "no-voltha-connection")
+		logger.Fatal(ctx, "no-voltha-connection")
 		return
 	}
 	opt := grpc.EmptyCallOption{}
@@ -74,7 +74,7 @@ top:
 					log.Fields{"error": err})
 				break top
 			} else if err != nil {
-				logger.Infow(ctx, "Ignoring unhandled error", log.Fields{"err": err})
+				logger.Warnw(ctx, "Ignoring unhandled error", log.Fields{"err": err})
 				continue
 			}
 			vpa.changeEventChannel <- ce
