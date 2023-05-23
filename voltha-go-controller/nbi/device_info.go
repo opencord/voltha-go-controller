@@ -70,7 +70,7 @@ func (dh *DeviceInfoHandle) getDeviceInfo(w http.ResponseWriter, r *http.Request
 			deviceInfoOnSN[serialNumber] = getDeviceFields(string(voltDevice.State))
 			deviceInfoResp[deviceID] = deviceInfoOnSN
 		} else {
-			logger.Errorw(ctx, "Invalid Device Id", log.Fields{"Device": voltDevice})
+			logger.Warnw(ctx, "Invalid Device Id", log.Fields{"Device": id})
 			return
 		}
 	} else {
@@ -88,7 +88,7 @@ func (dh *DeviceInfoHandle) getDeviceInfo(w http.ResponseWriter, r *http.Request
 
 	deviceInfoJSON, err := json.Marshal(deviceInfoResp)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling device info response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling device info response", log.Fields{"DeviceID": deviceID, "deviceInfoResp[deviceID]": deviceInfoResp[deviceID], "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -96,7 +96,9 @@ func (dh *DeviceInfoHandle) getDeviceInfo(w http.ResponseWriter, r *http.Request
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(deviceInfoJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending device info response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending device info response", log.Fields{"DeviceID": deviceID, "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Infow(ctx, "Fetching Device Info from Device Id", log.Fields{"DeviceInfoResp": deviceInfoResp, "Device ID": id})
 }
