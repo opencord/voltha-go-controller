@@ -229,7 +229,9 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 			vnetcfg.VlanControl = app.OLTSVlan
 		}
 
-		app.GetApplication().AddVnet(cntx, vnetcfg, nil)
+		if err := app.GetApplication().AddVnet(cntx, vnetcfg, nil); err != nil {
+			logger.Errorw(ctx, "AddVnet Failed", log.Fields{"VnetName": vnetName, "Error": err})
+		}
 		if err := app.GetApplication().AddService(cntx, vs, nil); err != nil {
 			logger.Errorw(ctx, "AddService Failed", log.Fields{"Service": vs.Name, "Error": err.Error()})
 		}

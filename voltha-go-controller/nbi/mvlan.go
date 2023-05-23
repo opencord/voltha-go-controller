@@ -111,7 +111,6 @@ func (iph *MulticastHandle) AddMvlanInfo(cntx context.Context, w http.ResponseWr
 
 // DelMvlanInfo to delete igmp proxy info
 func (iph *MulticastHandle) DelMvlanInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
 	egressvlan := vars["egressvlan"]
 
