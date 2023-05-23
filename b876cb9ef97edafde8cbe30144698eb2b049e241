@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cea44dd3_7598d5d6",
+        "filename": "voltha-go-controller/nbi/device_info.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:32:41Z",
+      "side": 1,
+      "message": "there should be an error returned here correct",
+      "revId": "b876cb9ef97edafde8cbe30144698eb2b049e241",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bd1a635a_401cd1ee",
+        "filename": "voltha-go-controller/nbi/device_info.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:32:41Z",
+      "side": 1,
+      "message": "DeviceInfo instead of DeviceInfoResp in the key of one of the log feilds",
+      "revId": "b876cb9ef97edafde8cbe30144698eb2b049e241",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c187373b_30746759",
+        "filename": "voltha-go-controller/nbi/get_device_id_list.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:32:41Z",
+      "side": 1,
+      "message": "DeviceIDList instead of DeviceIDListResp , here and everywhere in the file",
+      "revId": "b876cb9ef97edafde8cbe30144698eb2b049e241",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b39325c3_9b3518cb",
+        "filename": "voltha-go-controller/nbi/subscriber.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:32:41Z",
+      "side": 1,
+      "message": "shouldnt we return an error here",
+      "revId": "b876cb9ef97edafde8cbe30144698eb2b049e241",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1539a5e7_d5e2d264",
+        "filename": "voltha-go-controller/nbi/subscriber.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:32:41Z",
+      "side": 1,
+      "message": "not checking for addVnet return code ?",
+      "revId": "b876cb9ef97edafde8cbe30144698eb2b049e241",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
