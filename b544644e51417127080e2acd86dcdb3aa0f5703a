@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e072f2dd_75f0350d",
+        "filename": "internal/pkg/controller/addflows.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:48:59Z",
+      "side": 1,
+      "message": "logging the taskid may not be of any help here.",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "31b18981_de0f824c",
+        "filename": "internal/pkg/controller/addflows.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:48:59Z",
+      "side": 1,
+      "message": "this is an error case not a warning",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9def0b9c_5fbcb61b",
+        "filename": "internal/pkg/controller/auditdevice.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:48:59Z",
+      "side": 1,
+      "message": "put an info log on the missinPorts and excess ports, it will be useful during the audit",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1c6f89cc_86a448a9",
+        "filename": "internal/pkg/controller/auditdevice.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:48:59Z",
+      "side": 1,
+      "message": "put an info for all the ports not only NNI port",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "931fcfa7_f67f5161",
+        "filename": "internal/pkg/controller/auditdevice.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:48:59Z",
+      "side": 1,
+      "message": "make this as a info, useful information, and also print the ports not only the length",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0de3a60a_b780c840",
+        "filename": "internal/pkg/controller/audittables.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:48:59Z",
+      "side": 1,
+      "message": "this is an Error",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "307b62d5_2916ad4f",
+        "filename": "internal/pkg/controller/audittables.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 566,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:48:59Z",
+      "side": 1,
+      "message": "this has to be in info",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0840f3e1_ad09c3dc",
+        "filename": "internal/pkg/controller/audittables.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:48:59Z",
+      "side": 1,
+      "message": "has to be an info",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f143f6b2_88e878fa",
+        "filename": "internal/pkg/controller/audittables.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 623,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-23T11:48:59Z",
+      "side": 1,
+      "message": "there would already be an info at the top of the function to add the missing ports, we can keep it to debug but it should be for all the ports not only nni",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
