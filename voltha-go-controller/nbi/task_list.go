@@ -74,7 +74,7 @@ func (dh *TaskListHandle) GetTaskList(w http.ResponseWriter, r *http.Request) {
 
 	taskListJSON, err := json.Marshal(taskListResp)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling task list response", log.Fields{"DeviceID": deviceID, "Error": err.Error()})
+		logger.Errorw(ctx, "Error occurred while marshaling task list response", log.Fields{"TaskList": taskListResp, "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -82,9 +82,9 @@ func (dh *TaskListHandle) GetTaskList(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(taskListJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending task list response", log.Fields{"DeviceID": deviceID, "Error": err.Error()})
+		logger.Errorw(ctx, "error in sending task list response", log.Fields{"TaskList": taskListResp, "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	logger.Infow(ctx, "Fetching TaskListResp for device id", log.Fields{"TaskListResp": taskListResp, "DeviceID": deviceID})
+	logger.Infow(ctx, "Fetching TaskListResp for device id", log.Fields{"TaskListResp": taskListResp})
 }

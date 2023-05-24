@@ -71,6 +71,7 @@ func (iph *IgmpProxyHandle) AddIgmpProxyInfo(cntx context.Context, w http.Respon
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
 		logger.Errorw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

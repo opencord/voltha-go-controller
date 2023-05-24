@@ -155,7 +155,9 @@ func (dh *DHCPSessionInfoHandle) getDhcpSessionInfo(w http.ResponseWriter, r *ht
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(dhcpSessionInfoJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending dhcp session info response", log.Fields{"DeviceID": id, "Error": err})
+		logger.Errorw(ctx, "error in sending dhcp session info response", log.Fields{"DeviceID": id, "DhcpSessionInfo": dhcpSessionInfoResp, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Infow(ctx, "Fetching Dhcp Session Info", log.Fields{"DhcpSessionInfo": dhcpSessionInfoResp})
 }

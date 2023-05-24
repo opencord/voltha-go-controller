@@ -54,7 +54,7 @@ func (dh *DeviceIDListHandle) GetDeviceIDList(w http.ResponseWriter, r *http.Req
 
 	deviceIDListJSON, err := json.Marshal(deviceIDListResp)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling device id list response", log.Fields{"DeviceID": deviceID, "DeviceIDListResp": deviceIDListResp, "Error": err.Error()})
+		logger.Errorw(ctx, "Error occurred while marshaling deviceIDList response", log.Fields{"DeviceIDList": deviceIDListResp, "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -62,9 +62,9 @@ func (dh *DeviceIDListHandle) GetDeviceIDList(w http.ResponseWriter, r *http.Req
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(deviceIDListJSON)
 	if err != nil {
-		logger.Errorw(ctx, "Error in sending deviceIDList response", log.Fields{"DeviceID": deviceID, "DeviceIDListResp": deviceIDListResp, "Error": err.Error()})
+		logger.Errorw(ctx, "Error in sending deviceIDList response", log.Fields{"DeviceIDLis": deviceIDListResp, "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	logger.Infow(ctx, "Fetch DeviceIDList response", log.Fields{"DeviceIDListResp": deviceIDListResp})
+	logger.Infow(ctx, "Fetch DeviceIDList response", log.Fields{"DeviceIDList": deviceIDListResp})
 }

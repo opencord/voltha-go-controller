@@ -101,6 +101,7 @@ func (sh *SubscriberHandle) AddSubscriberInfo(cntx context.Context, w http.Respo
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
 		logger.Errorw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
 
@@ -249,6 +250,7 @@ func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.Respo
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
 		logger.Errorw(ctx, "Error reading buffer", log.Fields{"req id": id, "Reason": err.Error()})
+		w.WriteHeader(http.StatusConflict)
 		return
 	}
 

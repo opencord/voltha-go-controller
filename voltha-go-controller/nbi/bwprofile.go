@@ -78,6 +78,7 @@ func (mh *ProfileHandle) AddProfile(cntx context.Context, w http.ResponseWriter,
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
 		logger.Errorw(ctx, "Error reading buffer", log.Fields{"ProfileName": profileName, "Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
 
@@ -152,6 +153,7 @@ func (mh *ProfileHandle) DelProfile(cntx context.Context, w http.ResponseWriter,
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
 		logger.Errorw(ctx, "Error reading buffer", log.Fields{"ProfileName": profileName, "Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
 

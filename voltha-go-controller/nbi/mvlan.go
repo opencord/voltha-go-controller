@@ -94,6 +94,7 @@ func (iph *MulticastHandle) AddMvlanInfo(cntx context.Context, w http.ResponseWr
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
 		logger.Errorw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -114,16 +115,15 @@ func (iph *MulticastHandle) DelMvlanInfo(cntx context.Context, w http.ResponseWr
 	vars := mux.Vars(r)
 	egressvlan := vars["egressvlan"]
 
-	logger.Infow(ctx, "Inside DelMvlanInfo method", log.Fields{"req": egressvlan})
-
 	name := "mvlan" + egressvlan
 	// HTTP response with 202 accepted for service delete request
 	w.WriteHeader(http.StatusAccepted)
 
-	logger.Infow(ctx, "Inside DelMvlanInfo method", log.Fields{"name": name})
+	logger.Infow(ctx, "Request for DelMvlanInfo for mvlan", log.Fields{"name": name})
 	err := app.GetApplication().DelMvlanProfile(cntx, name)
 	if err != nil {
-		logger.Errorw(cntx, "Failed to delete Mvlan profile", log.Fields{"Error": err.Error()})
+		logger.Errorw(cntx, "Failed to delete Mvlan profile", log.Fields{"name": name, "Error": err.Error()})
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 }
