@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "43e11146_be93e4c3",
+        "filename": "internal/pkg/controller/addflows.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-05-24T05:56:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e072f2dd_75f0350d",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "31b18981_de0f824c",
         "filename": "internal/pkg/controller/addflows.go",
         "patchSetId": 2
@@ -31,6 +49,24 @@
       "writtenOn": "2023-05-23T11:48:59Z",
       "side": 1,
       "message": "this is an error case not a warning",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7f9a027e_bf4e46f0",
+        "filename": "internal/pkg/controller/addflows.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-05-24T05:56:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "31b18981_de0f824c",
       "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -54,6 +90,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "dc17a713_2741e41b",
+        "filename": "internal/pkg/controller/auditdevice.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-05-24T05:56:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9def0b9c_5fbcb61b",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "1c6f89cc_86a448a9",
         "filename": "internal/pkg/controller/auditdevice.go",
         "patchSetId": 2
@@ -65,6 +119,24 @@
       "writtenOn": "2023-05-23T11:48:59Z",
       "side": 1,
       "message": "put an info for all the ports not only NNI port",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b3daf24a_482e35af",
+        "filename": "internal/pkg/controller/auditdevice.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-05-24T05:56:48Z",
+      "side": 1,
+      "message": "This check is for NNI ports only no other ports will be present here.",
+      "parentUuid": "1c6f89cc_86a448a9",
       "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -88,6 +160,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "b268896d_4e9e82a6",
+        "filename": "internal/pkg/controller/auditdevice.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-05-24T05:56:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "931fcfa7_f67f5161",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "0de3a60a_b780c840",
         "filename": "internal/pkg/controller/audittables.go",
         "patchSetId": 2
@@ -99,6 +189,24 @@
       "writtenOn": "2023-05-23T11:48:59Z",
       "side": 1,
       "message": "this is an Error",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8cdb8c88_49e988e7",
+        "filename": "internal/pkg/controller/audittables.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-05-24T05:56:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0de3a60a_b780c840",
       "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -122,6 +230,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "5a40669c_2ff2c7ce",
+        "filename": "internal/pkg/controller/audittables.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 566,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-05-24T05:56:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "307b62d5_2916ad4f",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "0840f3e1_ad09c3dc",
         "filename": "internal/pkg/controller/audittables.go",
         "patchSetId": 2
@@ -139,6 +265,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "bb885a2f_717460c4",
+        "filename": "internal/pkg/controller/audittables.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-05-24T05:56:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0840f3e1_ad09c3dc",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "f143f6b2_88e878fa",
         "filename": "internal/pkg/controller/audittables.go",
         "patchSetId": 2
@@ -150,6 +294,24 @@
       "writtenOn": "2023-05-23T11:48:59Z",
       "side": 1,
       "message": "there would already be an info at the top of the function to add the missing ports, we can keep it to debug but it should be for all the ports not only nni",
+      "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b5c6f18c_17249521",
+        "filename": "internal/pkg/controller/audittables.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 623,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-05-24T05:56:48Z",
+      "side": 1,
+      "message": "This check is for NNI port that\u0027s why only NNIport is getting logged.",
+      "parentUuid": "f143f6b2_88e878fa",
       "revId": "b544644e51417127080e2acd86dcdb3aa0f5703a",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
