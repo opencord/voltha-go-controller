@@ -46,36 +46,39 @@ func (oh *OltFlowServiceHandle) configureOltFlowService(cntx context.Context, w 
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
 
 	// Unmarshal the request into service configuration structure
 	req := &app.OltFlowService{}
 	if err := json.Unmarshal(d.Bytes(), req); err != nil {
-		logger.Warnw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Unmarshal Failed", log.Fields{"req": req, "Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
+	logger.Infow(ctx, "Request for configure Olt Flow Service", log.Fields{"req": req})
 	app.GetApplication().UpdateOltFlowService(cntx, *req)
 }
 
 func (oh *OltFlowServiceHandle) fetchOltFlowService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-	logger.Info(cntx, "Inside fetchOltFlowService method")
 	oltFlowSer := OltFlowServiceConfig{}
 	va := app.GetApplication()
 
 	oltFlowSer.OltFlowService = va.OltFlowServiceConfig
 	OltFlowRespJSON, err := json.Marshal(oltFlowSer)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling oltFlowService response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling oltFlowService response", log.Fields{"OltFlowService": oltFlowSer.OltFlowService, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(OltFlowRespJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending olt flow service response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending olt flow service response", log.Fields{"OltFlowService": oltFlowSer.OltFlowService, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Infow(cntx, "Request for Fetching Olt Flow Service", log.Fields{"OltFlowService": oltFlowSer.OltFlowService})
 }
