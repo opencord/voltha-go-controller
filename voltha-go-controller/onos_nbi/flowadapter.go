@@ -79,12 +79,13 @@ func (pfh *PendingFlowHandle) GetPendingFlows(cntx context.Context, w http.Respo
 	flows, err := cntlr.GetController().GetAllPendingFlows()
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get Pending flows", log.Fields{"Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	flowResp := ConvertFlowsToFlowEntry(flows)
 	FlowRespJSON, err := json.Marshal(flowResp)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to marshal pending flow response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Failed to marshal pending flow response", log.Fields{"Flows": flows, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -92,21 +93,29 @@ func (pfh *PendingFlowHandle) GetPendingFlows(cntx context.Context, w http.Respo
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(FlowRespJSON)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to write Pending Flow response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Failed to write Pending Flow response", log.Fields{"Flows": flows, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Infow(ctx, "Request for getting Pending Flows", log.Fields{"Flows": flows})
 }
 
 func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	deviceID := vars["deviceId"]
 	flowIDStr := vars["flowId"]
-	flowID, _ := strconv.ParseUint(flowIDStr, 10, 64)
+	flowID, parseErr := strconv.ParseUint(flowIDStr, 10, 64)
+	if parseErr != nil {
+		logger.Errorw(ctx, "Failed to parse flowIDStr from string to uint64", log.Fields{"flowIDStr": flowIDStr, "Reason": parseErr.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	var flowResp FlowEntry
 	if len(deviceID) > 0 && len(flowIDStr) > 0 {
 		flow, err := fh.getFlow(deviceID, flowID)
 		if err != nil {
-			logger.Errorw(ctx, "Failed to Fetch flow", log.Fields{"Error": err})
+			logger.Errorw(ctx, "Failed to Fetch flow from Device", log.Fields{"FlowID": flowID, "DeviceID": deviceID, "Error": err})
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		flowResp = ConvertFlowToFlowEntry(flow)
@@ -114,7 +123,8 @@ func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *h
 	} else {
 		flows, err := fh.getAllFlows(deviceID)
 		if err != nil {
-			logger.Errorw(ctx, "Failed to Fetch flows", log.Fields{"Error": err})
+			logger.Errorw(ctx, "Failed to Fetch flows", log.Fields{"DeviceID": deviceID, "Error": err})
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		flowResp = ConvertFlowsToFlowEntry(flows)
@@ -122,7 +132,7 @@ func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *h
 	}
 	FlowRespJSON, err := json.Marshal(flowResp)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to marshal flow response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Failed to marshal flow response", log.Fields{"FlowID": flowID, "DeviceID": deviceID, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -130,9 +140,11 @@ func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *h
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(FlowRespJSON)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to write flow response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Failed to write flow response", log.Fields{"FlowID": flowID, "DeviceID": deviceID, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Infow(ctx, "Request for getting Flow specific to flowID and deviceID", log.Fields{"FlowID": flowID, "DeviceID": deviceID, "flowResp": flowResp})
 }
 
 func (fh *FlowHandle) getAllFlows(deviceID string) ([]*of.VoltSubFlow, error) {

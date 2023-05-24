@@ -102,7 +102,7 @@ func (sa *ServiceAdapter) ActivateService(cntx context.Context, w http.ResponseW
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Error reading buffer", log.Fields{"portNo": portNo, "deviceID": deviceID, "Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
@@ -111,27 +111,29 @@ func (sa *ServiceAdapter) ActivateService(cntx context.Context, w http.ResponseW
 		va := app.GetApplication()
 		port, err := strconv.Atoi(portNo)
 		if err != nil {
-			logger.Warnw(ctx, "Wrong port number value", log.Fields{"portNo": portNo})
+			logger.Errorw(ctx, "Wrong port number value", log.Fields{"portNo": portNo, "Error": err})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
 		device := va.GetDevice(deviceID)
 		if device == nil {
-			logger.Warnw(ctx, "Device does not exists", log.Fields{"deviceID": deviceID})
+			logger.Errorw(ctx, "Device does not exists", log.Fields{"deviceID": deviceID})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
 		portName := device.GetPortNameFromPortID(uint32(port))
 		if len(portName) == 0 {
-			logger.Warnw(ctx, "Port does not exists", log.Fields{"deviceID": deviceID})
+			logger.Errorw(ctx, "Port does not exists", log.Fields{"portNo": portNo})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
 		if err := va.ActivateService(cntx, deviceID, portName, of.VlanNone, of.VlanNone, 0); err != nil {
-			logger.Warnw(ctx, "ActivateService Failed", log.Fields{"deviceID": deviceID, "Port": portNo})
+			logger.Errorw(ctx, "ActivateService Failed", log.Fields{"deviceID": deviceID, "Port": portNo, "Error": err})
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 	}
+	logger.Infow(ctx, "ActivateService request specific for portNo and deviceID", log.Fields{"portNo": portNo, "deviceID": deviceID})
 }
 
 func (sa *ServiceAdapter) DeactivateService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -142,7 +144,7 @@ func (sa *ServiceAdapter) DeactivateService(cntx context.Context, w http.Respons
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Error reading buffer", log.Fields{"portNo": portNo, "deviceID": deviceID, "Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
@@ -151,27 +153,29 @@ func (sa *ServiceAdapter) DeactivateService(cntx context.Context, w http.Respons
 		va := app.GetApplication()
 		port, err := strconv.Atoi(portNo)
 		if err != nil {
-			logger.Warnw(ctx, "Wrong port number value", log.Fields{"portNo": portNo})
+			logger.Errorw(ctx, "Wrong port number value", log.Fields{"portNo": portNo, "Error": err})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
 		device := va.GetDevice(deviceID)
 		if device == nil {
-			logger.Warnw(ctx, "Device does not exists", log.Fields{"deviceID": deviceID})
+			logger.Errorw(ctx, "Device does not exists", log.Fields{"deviceID": deviceID})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
 		portName := device.GetPortNameFromPortID(uint32(port))
 		if len(portName) == 0 {
-			logger.Warnw(ctx, "Port does not exists", log.Fields{"deviceID": deviceID})
+			logger.Errorw(ctx, "Port does not exists", log.Fields{"portNo": portNo})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
 		if err := va.DeactivateService(cntx, deviceID, portName, of.VlanNone, of.VlanNone, 0); err != nil {
-			logger.Warnw(ctx, "DeactivateService Failed", log.Fields{"deviceID": deviceID, "Port": portNo})
+			logger.Errorw(ctx, "DeactivateService Failed", log.Fields{"deviceID": deviceID, "Port": portNo, "Error": err})
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 	}
+	logger.Infow(ctx, "DeactivateService request specific for portNo and deviceID", log.Fields{"portNo": portNo, "deviceID": deviceID})
 }
 
 func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -187,7 +191,7 @@ func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w ht
 	if len(sTag) > 0 {
 		sv, err := strconv.Atoi(sTag)
 		if err != nil {
-			logger.Warnw(ctx, "Wrong vlan value", log.Fields{"sTag": sTag})
+			logger.Errorw(ctx, "Wrong vlan value", log.Fields{"sTag": sTag, "Reason": err.Error()})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
@@ -196,7 +200,7 @@ func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w ht
 	if len(cTag) > 0 {
 		cv, err := strconv.Atoi(cTag)
 		if err != nil {
-			logger.Warnw(ctx, "Wrong vlan value", log.Fields{"cTag": cTag})
+			logger.Errorw(ctx, "Wrong vlan value", log.Fields{"cTag": cTag, "Reason": err.Error()})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
@@ -205,7 +209,7 @@ func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w ht
 	if len(tpID) > 0 {
 		tp, err := strconv.Atoi(tpID)
 		if err != nil {
-			logger.Warnw(ctx, "Wrong tech profile value", log.Fields{"tpID": tpID})
+			logger.Errorw(ctx, "Wrong tech profile value", log.Fields{"tpID": tpID, "Reason": err.Error()})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
@@ -214,10 +218,12 @@ func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w ht
 
 	if len(portNo) > 0 {
 		if err := app.GetApplication().ActivateService(cntx, app.DeviceAny, portNo, sVlan, cVlan, techProfile); err != nil {
-			logger.Warnw(ctx, "ActivateService Failed", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile})
+			logger.Errorw(ctx, "ActivateService Failed", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile, "Reason": err.Error()})
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 	}
+	logger.Infow(ctx, "ActivateService request specific for portNo, sVlan, cVlan and techProfile", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile})
 }
 
 func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -233,7 +239,7 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 	if len(sTag) > 0 {
 		sv, err := strconv.Atoi(sTag)
 		if err != nil {
-			logger.Warnw(ctx, "Wrong vlan value", log.Fields{"sTag": sTag})
+			logger.Errorw(ctx, "Wrong vlan value", log.Fields{"sTag": sTag, "Reason": err.Error()})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
@@ -242,7 +248,7 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 	if len(cTag) > 0 {
 		cv, err := strconv.Atoi(cTag)
 		if err != nil {
-			logger.Warnw(ctx, "Wrong vlan value", log.Fields{"cTag": cTag})
+			logger.Errorw(ctx, "Wrong vlan value", log.Fields{"cTag": cTag, "Reason": err.Error()})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
@@ -251,7 +257,7 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 	if len(tpID) > 0 {
 		tp, err := strconv.Atoi(tpID)
 		if err != nil {
-			logger.Warnw(ctx, "Wrong tech profile value", log.Fields{"tpID": tpID})
+			logger.Errorw(ctx, "Wrong tech profile value", log.Fields{"tpID": tpID, "Reason": err.Error()})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
@@ -260,10 +266,12 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 
 	if len(portNo) > 0 {
 		if err := app.GetApplication().DeactivateService(cntx, app.DeviceAny, portNo, sVlan, cVlan, techProfile); err != nil {
-			logger.Warnw(ctx, "DeactivateService Failed", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile})
+			logger.Errorw(ctx, "DeactivateService Failed", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile, "Reason": err.Error()})
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 	}
+	logger.Infow(ctx, "DeactivateService request specific for portNo, sVlan, cVlan and techProfile", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile})
 }
 
 func (sa *ServiceAdapter) GetProgrammedSubscribers(cntx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -274,13 +282,15 @@ func (sa *ServiceAdapter) GetProgrammedSubscribers(cntx context.Context, w http.
 	subsbr.Subscribers = []SubscriberInfo{}
 	svcs, err := app.GetApplication().GetProgrammedSubscribers(cntx, deviceID, portNo)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to get subscribers", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to get subscribers", log.Fields{"portNo": portNo, "deviceID": deviceID, "Reason": err.Error()})
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 	subs := convertServiceToSubscriberInfo(svcs)
 	subsbr.Subscribers = subs
 	subsJSON, err := json.Marshal(subsbr)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling subscriber response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling subscriber response", log.Fields{"Subsbr": subsbr, "portNo": portNo, "deviceID": deviceID, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -288,7 +298,9 @@ func (sa *ServiceAdapter) GetProgrammedSubscribers(cntx context.Context, w http.
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(subsJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending subscriber response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending subscriber response", log.Fields{"Subsbr": subsbr, "portNo": portNo, "deviceID": deviceID, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Infow(ctx, "Programmed Subscribers request specific for portNo and deviceID", log.Fields{"Subsbr": subsbr, "portNo": portNo, "deviceID": deviceID})
 }
