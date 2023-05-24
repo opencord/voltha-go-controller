@@ -109,6 +109,7 @@ func (dh *DHCPSessionInfoHandle) getDhcpSessionInfo(w http.ResponseWriter, r *ht
 
 		// Ignore if UNI port is not UP
 		if vp.State != app.PortStateUp {
+			logger.Warnw(ctx, "Ignore if UNI port is not UP", log.Fields{"VoltPort State": vp.State, "PortStateUp": app.PortStateUp})
 			return true
 		}
 
@@ -136,7 +137,7 @@ func (dh *DHCPSessionInfoHandle) getDhcpSessionInfo(w http.ResponseWriter, r *ht
 	}
 
 	if len(id) == 0 {
-		logger.Errorw(ctx, "No Device Id Provided for Dhcp session Info", log.Fields{"DeviceID": id})
+		logger.Warnw(ctx, "No Device Id Provided for Dhcp session Info", log.Fields{"DeviceID": id})
 		return
 	}
 	voltDevice := va.GetDevice(id)
@@ -146,7 +147,7 @@ func (dh *DHCPSessionInfoHandle) getDhcpSessionInfo(w http.ResponseWriter, r *ht
 
 	dhcpSessionInfoJSON, err := json.Marshal(dhcpSessionInfoResp)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling dhcp session info response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling dhcp session info response", log.Fields{"DeviceID": id, "DhcpSessionInfoResp": dhcpSessionInfoResp, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -154,7 +155,9 @@ func (dh *DHCPSessionInfoHandle) getDhcpSessionInfo(w http.ResponseWriter, r *ht
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(dhcpSessionInfoJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending dhcp session info response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending dhcp session info response", log.Fields{"DeviceID": id, "DhcpSessionInfo": dhcpSessionInfoResp, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Infow(ctx, "Fetching Dhcp Session Info", log.Fields{"DhcpSessionInfo": dhcpSessionInfoResp})
 }
