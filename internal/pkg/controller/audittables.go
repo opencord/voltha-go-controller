@@ -268,7 +268,6 @@ func (att *AuditTablesTask) AuditFlows(cntx context.Context) error {
 			}
 			defaultSuccessFlowStatus.Cookie = strconv.FormatUint(flow.Cookie, 10)
 
-			logger.Infow(ctx, "Triggering Internal Flow Notification", log.Fields{"Flow Status": defaultSuccessFlowStatus})
 			GetController().ProcessFlowModResultIndication(cntx, defaultSuccessFlowStatus)
 		} else {
 			// The flow exists at the controller but not at the device
