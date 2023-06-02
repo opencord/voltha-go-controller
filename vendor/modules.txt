@@ -24,6 +24,8 @@ github.com/coreos/go-semver/semver
 github.com/coreos/go-systemd/journal
 # github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f
 github.com/coreos/pkg/capnslog
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
 # github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f
 github.com/dgryski/go-rendezvous
 # github.com/go-redis/redis/v8 v8.11.5
@@ -40,6 +42,9 @@ github.com/go-redis/redis/v8/internal/util
 github.com/gogo/protobuf/gogoproto
 github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/protoc-gen-gogo/descriptor
+# github.com/golang/mock v1.4.4
+## explicit
+github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.5.2
 ## explicit
 github.com/golang/protobuf/proto
@@ -86,12 +91,15 @@ github.com/opentracing/opentracing-go/ext
 github.com/opentracing/opentracing-go/log
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
 # github.com/rivo/uniseg v0.1.0
 github.com/rivo/uniseg
 # github.com/sirupsen/logrus v1.8.1
 ## explicit
-# github.com/stretchr/testify v1.7.1
+# github.com/stretchr/testify v1.8.2
 ## explicit
+github.com/stretchr/testify/assert
 # github.com/uber/jaeger-client-go v2.29.1+incompatible
 github.com/uber/jaeger-client-go
 github.com/uber/jaeger-client-go/config
@@ -217,6 +225,8 @@ google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/timestamppb
+# gopkg.in/yaml.v3 v3.0.1
+gopkg.in/yaml.v3
 # github.com/coreos/bbolt v1.3.4 => go.etcd.io/bbolt v1.3.4
 # github.com/google/gopacket => github.com/tinojj/gopacket v1.1.20-0.20220525133109-3e65a52a1a61
 # go.etcd.io/bbolt v1.3.4 => github.com/coreos/bbolt v1.3.4
