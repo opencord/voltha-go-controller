@@ -23,7 +23,7 @@ import (
 
 // ConcurrentMap implements a wrapper on top of SyncMap so that the count is also maintained
 type ConcurrentMap struct {
-	count   *atomic.Uint64
+	Count   *atomic.Uint64
 	syncMap sync.Map
 	MapLock sync.RWMutex
 }
@@ -31,7 +31,7 @@ type ConcurrentMap struct {
 // NewConcurrentMap - Initializes new ConcurentMap Object
 func NewConcurrentMap() *ConcurrentMap {
 	var cm ConcurrentMap
-	cm.count = atomic.NewUint64(0)
+	cm.Count = atomic.NewUint64(0)
 	return &cm
 }
 
@@ -43,13 +43,13 @@ func (cm *ConcurrentMap) Get(key interface{}) (value interface{}, result bool) {
 
 // Set - Store the value in sync map against the key provided
 func (cm *ConcurrentMap) Set(key, value interface{}) {
-	if cm.count == nil {
-		cm.count = atomic.NewUint64(0)
+	if cm.Count == nil {
+		cm.Count = atomic.NewUint64(0)
 	}
 	_, exists := cm.syncMap.Load(key)
 	cm.syncMap.Store(key, value)
 	if !exists {
-		cm.count.Inc()
+		cm.Count.Inc()
 	}
 }
 
@@ -57,7 +57,7 @@ func (cm *ConcurrentMap) Set(key, value interface{}) {
 func (cm *ConcurrentMap) Remove(key interface{}) bool {
 	if _, ok := cm.syncMap.Load(key); ok {
 		cm.syncMap.Delete(key)
-		cm.count.Dec()
+		cm.Count.Dec()
 		return true
 	}
 	return false
@@ -79,8 +79,8 @@ func (cm *ConcurrentMap) Range(f func(key, value interface{}) bool) {
 
 // Length - return the no of entries present in the map
 func (cm *ConcurrentMap) Length() uint64 {
-	if cm.count == nil {
+	if cm.Count == nil {
 		return 0
 	}
-	return cm.count.Load()
+	return cm.Count.Load()
 }
