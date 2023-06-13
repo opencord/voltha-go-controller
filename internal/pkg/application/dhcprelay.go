@@ -827,12 +827,12 @@ func (va *VoltApplication) ProcessUsDhcpv4Packet(cntx context.Context, device st
 		}
 		raiseDHCPv4Indication(msgType, vpv, dhcp4.ClientHWAddr, vpv.Ipv4Addr, priority, device, 0)
 
-		// Check IsOption82Disabled flag in configuration. if true(disabled), do not add option82 into dhcpv4 header.
+		// Check IsOption82Enabled flag in configuration. if true(enabled), add option82 into dhcpv4 header.
 		// Remote id can be custom or mac address.
 		// If remote id is custom, then add service will carry the remote id
 		// If remote id is mac address, and if mac is configured, then add service will carry the remote id
 		// If remote id is mac address, in mac learning case, then mac has to be taken from dhcp packet
-		if !svc.IsOption82Disabled {
+		if svc.IsOption82Enabled {
 			var remoteID []byte
 			if svc.RemoteIDType == string(MACAddress) {
 				remoteID = []byte((dhcp4.ClientHWAddr).String())
@@ -990,12 +990,12 @@ func GetRelayReplyBytes(dhcp6 *layers.DHCPv6) []byte {
 }
 
 // BuildRelayFwd to build forward relay
-func BuildRelayFwd(paddr net.IP, intfID []byte, remoteID []byte, payload []byte, isOption82Disabled bool, dhcpRelay bool) *layers.DHCPv6 {
+func BuildRelayFwd(paddr net.IP, intfID []byte, remoteID []byte, payload []byte, isOption82Enabled bool, dhcpRelay bool) *layers.DHCPv6 {
 	dhcp6 := &layers.DHCPv6{MsgType: layers.DHCPv6MsgTypeRelayForward, LinkAddr: net.ParseIP("::"), PeerAddr: []byte(paddr)}
 	dhcp6.Options = append(dhcp6.Options, layers.NewDHCPv6Option(layers.DHCPv6OptRelayMessage, payload))
-	// Check IsOption82Disabled flag in configuration. if true(disabled), do not add remoteID and circuitID into dhcpv6 header.
+	// Check IsOption82Enabled flag in configuration. if true(enabled), add remoteID and circuitID into dhcpv6 header.
 	if dhcpRelay {
-		if !isOption82Disabled {
+		if isOption82Enabled {
 			remote := &layers.DHCPv6RemoteId{RemoteId: remoteID}
 			if len(remoteID) != 0 {
 				dhcp6.Options = append(dhcp6.Options, layers.NewDHCPv6Option(layers.DHCPv6OptRemoteID, remote.Encode()))
@@ -1046,7 +1046,7 @@ func (va *VoltApplication) ProcessUsDhcpv6Packet(cntx context.Context, device st
 	} else if svc.RemoteID != nil {
 		remoteID = svc.RemoteID
 	}
-	dhcp6 := BuildRelayFwd(ip.SrcIP, svc.GetCircuitID(), remoteID, udp.Payload, svc.IsOption82Disabled, vpv.DhcpRelay)
+	dhcp6 := BuildRelayFwd(ip.SrcIP, svc.GetCircuitID(), remoteID, udp.Payload, svc.IsOption82Enabled, vpv.DhcpRelay)
 
 	var sourceMac = eth.SrcMAC
 	var sessionKey [MaxLenDhcpv6DUID]byte
