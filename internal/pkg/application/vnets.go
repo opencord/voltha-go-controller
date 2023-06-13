@@ -455,7 +455,7 @@ type VoltPortVnet struct {
 	IgmpFlowsApplied           bool
 	McastService               bool
 	FlowsApplied               bool
-	IsOption82Disabled         bool //Will not be used
+	IsOption82Enabled          bool //Will not be used
 }
 
 // VlanControl vlan control type
@@ -3148,7 +3148,7 @@ func (vpv *VoltPortVnet) JSONMarshal() ([]byte, error) {
 		LearntMacAddr:              vpv.LearntMacAddr,
 		CircuitID:                  vpv.CircuitID,
 		RemoteID:                   vpv.RemoteID,
-		IsOption82Disabled:         vpv.IsOption82Disabled,
+		IsOption82Enabled:          vpv.IsOption82Enabled,
 		RelayState:                 vpv.RelayState,
 		PPPoeState:                 vpv.PPPoeState,
 		RelayStatev6:               vpv.RelayStatev6,

@@ -98,7 +98,7 @@ type VoltServiceCfg struct {
 	DsPonSTagPriority          of.PbitType
 	DsPonCTagPriority          of.PbitType
 	VlanControl                VlanControl
-	IsOption82Disabled         bool
+	IsOption82Enabled          bool
 	IgmpEnabled                bool
 	McastService               bool
 	AllowTransparent           bool
@@ -173,7 +173,7 @@ func NewVoltService(cfg *VoltServiceCfg) *VoltService {
 	vs.DsHSIAFlowsApplied = false
 	vs.DeleteInProgress = false
 	//vs.MacAddr, _ = net.ParseMAC("00:00:00:00:00:00")
-
+	vs.IsOption82Enabled = cfg.IsOption82Enabled
 	vs.MacAddr = cfg.MacAddr
 	vs.Ipv4Addr = net.ParseIP("0.0.0.0")
 	vs.Ipv6Addr = net.ParseIP("::")
@@ -1855,7 +1855,7 @@ func (va *VoltApplication) DeepEqualServicecfg(evs *VoltServiceCfg, nvs *VoltSer
 	if evs.MacLearning == MacLearningNone && !util.MacAddrsMatch(nvs.MacAddr, evs.MacAddr) {
 		return false
 	}
-	if nvs.IsOption82Disabled != evs.IsOption82Disabled {
+	if nvs.IsOption82Enabled != evs.IsOption82Enabled {
 		return false
 	}
 	if nvs.IgmpEnabled != evs.IgmpEnabled {
