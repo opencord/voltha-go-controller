@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b4d9f92b_29e2b9b9",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-06-16T11:26:17Z",
+      "side": 1,
+      "message": "the new value needs to be filled here.",
+      "revId": "814db9b8bbcfa2f735173406d953df2050e6c86e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
