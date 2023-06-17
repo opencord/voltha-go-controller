@@ -16,6 +16,24 @@
       "message": "the new value needs to be filled here.",
       "revId": "814db9b8bbcfa2f735173406d953df2050e6c86e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9a704268_4fb5488f",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-06-17T04:44:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b4d9f92b_29e2b9b9",
+      "revId": "814db9b8bbcfa2f735173406d953df2050e6c86e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
