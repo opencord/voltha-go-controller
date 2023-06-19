@@ -114,16 +114,17 @@ type VoltServiceOper struct {
 	BwAvailInfo     string
 	//MacLearning  bool
 	//MacAddr      net.HardwareAddr
-	Device           string
-	Ipv4Addr         net.IP
-	Ipv6Addr         net.IP
-	ServiceLock      sync.RWMutex `json:"-"`
-	UsMeterID        uint32
-	DsMeterID        uint32
-	AggDsMeterID     uint32
-	UpdateInProgress bool
-	DeleteInProgress bool
-	ForceDelete      bool
+	Device               string
+	Ipv4Addr             net.IP
+	Ipv6Addr             net.IP
+	ServiceLock          sync.RWMutex `json:"-"`
+	UsMeterID            uint32
+	DsMeterID            uint32
+	AggDsMeterID         uint32
+	UpdateInProgress     bool
+	DeleteInProgress     bool
+	DeactivateInProgress bool
+	ForceDelete          bool
 	// Multiservice-Fix
 	UsHSIAFlowsApplied bool
 	DsHSIAFlowsApplied bool
@@ -172,6 +173,7 @@ func NewVoltService(cfg *VoltServiceCfg) *VoltService {
 	vs.UsHSIAFlowsApplied = false
 	vs.DsHSIAFlowsApplied = false
 	vs.DeleteInProgress = false
+	vs.DeactivateInProgress = false
 	//vs.MacAddr, _ = net.ParseMAC("00:00:00:00:00:00")
 	vs.IsOption82Enabled = cfg.IsOption82Enabled
 	vs.MacAddr = cfg.MacAddr
@@ -1019,6 +1021,7 @@ func (va *VoltApplication) AddService(cntx context.Context, cfg VoltServiceCfg, 
 		vs.PendingFlows = oper.PendingFlows
 		vs.AssociatedFlows = oper.AssociatedFlows
 		vs.DeleteInProgress = oper.DeleteInProgress
+		vs.DeactivateInProgress = oper.DeactivateInProgress
 		vs.BwAvailInfo = oper.BwAvailInfo
 		vs.Device = oper.Device
 	} else {
@@ -1437,6 +1440,11 @@ func (va *VoltApplication) RestoreSvcsFromDb(cntx context.Context) {
 			logger.Warnw(ctx, "Add New Service Failed", log.Fields{"Service": vvs.Name, "Error": err})
 		}
 
+		if vvs.VoltServiceOper.DeactivateInProgress {
+			va.ServicesToDeactivate[vvs.VoltServiceCfg.Name] = true
+			logger.Warnw(ctx, "Service (restored) to be deactivated", log.Fields{"Service": vvs.Name})
+		}
+
 		if vvs.VoltServiceOper.DeleteInProgress {
 			va.ServicesToDelete[vvs.VoltServiceCfg.Name] = true
 			logger.Warnw(ctx, "Service (restored) to be deleted", log.Fields{"Service": vvs.Name})
@@ -1696,6 +1704,7 @@ func (vs *VoltService) updateVnetProfile(cntx context.Context, deviceID string) 
 	nvs.PendingFlows = vs.PendingFlows
 	nvs.AssociatedFlows = vs.AssociatedFlows
 	nvs.DeleteInProgress = vs.DeleteInProgress
+	nvs.DeactivateInProgress = vs.DeactivateInProgress
 	nvs.ForceDelete = vs.ForceDelete
 	nvs.BwAvailInfo = vs.BwAvailInfo
 	nvs.UpdateInProgress = vs.UpdateInProgress
@@ -1966,25 +1975,26 @@ func (vs *VoltService) JSONMarshal() ([]byte, error) {
 	return json.Marshal(VoltService{
 		VoltServiceCfg: vs.VoltServiceCfg,
 		VoltServiceOper: VoltServiceOper{
-			Device:             vs.VoltServiceOper.Device,
-			Ipv4Addr:           vs.VoltServiceOper.Ipv4Addr,
-			Ipv6Addr:           vs.VoltServiceOper.Ipv6Addr,
-			UsMeterID:          vs.VoltServiceOper.UsMeterID,
-			DsMeterID:          vs.VoltServiceOper.DsMeterID,
-			AggDsMeterID:       vs.VoltServiceOper.AggDsMeterID,
-			UsHSIAFlowsApplied: vs.VoltServiceOper.UsHSIAFlowsApplied,
-			DsHSIAFlowsApplied: vs.VoltServiceOper.DsHSIAFlowsApplied,
-			UsDhcpFlowsApplied: vs.VoltServiceOper.UsDhcpFlowsApplied,
-			DsDhcpFlowsApplied: vs.VoltServiceOper.DsDhcpFlowsApplied,
-			IgmpFlowsApplied:   vs.VoltServiceOper.IgmpFlowsApplied,
-			Icmpv6FlowsApplied: vs.VoltServiceOper.Icmpv6FlowsApplied,
-			PendingFlows:       vs.VoltServiceOper.PendingFlows,
-			AssociatedFlows:    vs.VoltServiceOper.AssociatedFlows,
-			DeleteInProgress:   vs.VoltServiceOper.DeleteInProgress,
-			ForceDelete:        vs.VoltServiceOper.ForceDelete,
-			BwAvailInfo:        vs.VoltServiceOper.BwAvailInfo,
-			UpdateInProgress:   vs.VoltServiceOper.UpdateInProgress,
-			Metadata:           vs.VoltServiceOper.Metadata,
+			Device:               vs.VoltServiceOper.Device,
+			Ipv4Addr:             vs.VoltServiceOper.Ipv4Addr,
+			Ipv6Addr:             vs.VoltServiceOper.Ipv6Addr,
+			UsMeterID:            vs.VoltServiceOper.UsMeterID,
+			DsMeterID:            vs.VoltServiceOper.DsMeterID,
+			AggDsMeterID:         vs.VoltServiceOper.AggDsMeterID,
+			UsHSIAFlowsApplied:   vs.VoltServiceOper.UsHSIAFlowsApplied,
+			DsHSIAFlowsApplied:   vs.VoltServiceOper.DsHSIAFlowsApplied,
+			UsDhcpFlowsApplied:   vs.VoltServiceOper.UsDhcpFlowsApplied,
+			DsDhcpFlowsApplied:   vs.VoltServiceOper.DsDhcpFlowsApplied,
+			IgmpFlowsApplied:     vs.VoltServiceOper.IgmpFlowsApplied,
+			Icmpv6FlowsApplied:   vs.VoltServiceOper.Icmpv6FlowsApplied,
+			PendingFlows:         vs.VoltServiceOper.PendingFlows,
+			AssociatedFlows:      vs.VoltServiceOper.AssociatedFlows,
+			DeleteInProgress:     vs.VoltServiceOper.DeleteInProgress,
+			DeactivateInProgress: vs.VoltServiceOper.DeactivateInProgress,
+			ForceDelete:          vs.VoltServiceOper.ForceDelete,
+			BwAvailInfo:          vs.VoltServiceOper.BwAvailInfo,
+			UpdateInProgress:     vs.VoltServiceOper.UpdateInProgress,
+			Metadata:             vs.VoltServiceOper.Metadata,
 		},
 	})
 }
@@ -2073,6 +2083,7 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 		}
 		if portNo == vs.Port && vs.IsActivated {
 			vs.IsActivated = false
+			vs.DeactivateInProgress = true
 			va.ServiceByName.Store(vs.Name, vs)
 			vs.WriteToDb(cntx)
 			device, err := va.GetDeviceFromPort(portNo)
@@ -2090,6 +2101,7 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 					if vpv.IgmpEnabled {
 						va.ReceiverDownInd(cntx, deviceID, portNo)
 					}
+					vs.DeactivateInProgress = false
 				} else {
 					logger.Warnw(ctx, "VPV does not exists!!!", log.Fields{"Device": deviceID, "port": portNo, "SvcName": vs.Name})
 				}
