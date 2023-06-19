@@ -90,6 +90,8 @@ func (sh *SubscriberHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		sh.AddSubscriberInfo(context.Background(), w, r)
 	case cDelete:
 		sh.DelSubscriberInfo(context.Background(), w, r)
+	case cGet:
+		sh.GetSubscriberInfo(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
 	}
@@ -273,4 +275,24 @@ func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.Respo
 
 	logger.Warnw(ctx, "northbound-del-service-req", log.Fields{"ServiceName": id})
 	app.GetApplication().DelServiceWithPrefix(cntx, id)
+}
+
+// DelSubscriberInfo to delete service
+func (sh *SubscriberHandle) GetSubscriberInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	name := vars["id"]
+	logger.Debugw(ctx, "Received-northbound-del-service-request", log.Fields{"req": name})
+	subs := app.GetApplication().GetService(name)
+	SubsRespJSON, err := json.Marshal(subs)
+	if err != nil {
+		logger.Errorw(ctx, "Error occurred while marshaling meter response", log.Fields{"Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	_, err = w.Write(SubsRespJSON)
+	if err != nil {
+		logger.Errorw(ctx, "error in sending meter response", log.Fields{"Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
