@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ae4e2c62_a02446b7",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2024,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-06-21T09:01:10Z",
+      "side": 1,
+      "message": "this can be info",
+      "revId": "5c3666017850fa94951c6bf6a569e58e1dca3d29",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2736165d_3e7dfac9",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2026,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-06-21T09:01:10Z",
+      "side": 1,
+      "message": "this can be info as well",
+      "revId": "5c3666017850fa94951c6bf6a569e58e1dca3d29",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
