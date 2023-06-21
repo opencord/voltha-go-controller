@@ -415,6 +415,7 @@ type VoltApplication struct {
 	macPortMap            map[string]string
 	VnetsToDelete         map[string]bool
 	ServicesToDelete      map[string]bool
+	ServicesToDeactivate  map[string]bool
 	PortAlarmProfileCache map[string]map[string]int // [portAlarmID][ThresholdLevelString]ThresholdLevel
 	vendorID              string
 	ServiceByName         sync.Map // [serName]*VoltService
@@ -652,6 +653,7 @@ func newVoltApplication() *VoltApplication {
 	va.VnetsBySvlan = util.NewConcurrentMap()
 	va.VnetsToDelete = make(map[string]bool)
 	va.ServicesToDelete = make(map[string]bool)
+	va.ServicesToDeactivate = make(map[string]bool)
 	va.VoltPortVnetsToDelete = make(map[*VoltPortVnet]bool)
 	go va.Start(context.Background(), TimerCfg{tick: 100 * time.Millisecond}, tickTimer)
 	go va.Start(context.Background(), TimerCfg{tick: time.Duration(GroupExpiryTime) * time.Minute}, pendingPoolTimer)
@@ -2010,10 +2012,36 @@ func (va *VoltApplication) removeExpiredGroups(cntx context.Context) {
 
 // TriggerPendingProfileDeleteReq - trigger pending profile delete request
 func (va *VoltApplication) TriggerPendingProfileDeleteReq(cntx context.Context, device string) {
+	va.TriggerPendingServiceDeactivateReq(cntx, device)
 	va.TriggerPendingServiceDeleteReq(cntx, device)
 	va.TriggerPendingVpvDeleteReq(cntx, device)
 	va.TriggerPendingVnetDeleteReq(cntx, device)
 	logger.Warnw(ctx, "All Pending Profile Delete triggered for device", log.Fields{"Device": device})
+}
+
+// TriggerPendingServiceDeactivateReq - trigger pending service deactivate request
+func (va *VoltApplication) TriggerPendingServiceDeactivateReq(cntx context.Context, device string) {
+	logger.Infow(ctx, "Pending Services to be deactivated", log.Fields{"Count": len(va.ServicesToDeactivate)})
+	for serviceName := range va.ServicesToDeactivate {
+		logger.Infow(ctx, "Trigger Service Deactivate", log.Fields{"Service": serviceName})
+		if vs := va.GetService(serviceName); vs != nil {
+			if vs.Device == device {
+				logger.Warnw(ctx, "Triggering Pending Service Deactivate", log.Fields{"Service": vs.Name})
+				vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan)
+				if vpv == nil {
+					logger.Errorw(ctx, "Vpv Not found for Service", log.Fields{"vs": vs.Name, "port": vs.Port, "Vnet": vs.VnetID})
+					continue
+				}
+
+				vpv.DelTrapFlows(cntx)
+				vs.DelHsiaFlows(cntx)
+				vs.WriteToDb(cntx)
+				vpv.ClearServiceCounters(cntx)
+			}
+		} else {
+			logger.Errorw(ctx, "Pending Service Not found", log.Fields{"Service": serviceName})
+		}
+	}
 }
 
 // TriggerPendingServiceDeleteReq - trigger pending service delete request
