@@ -45,6 +45,7 @@ const (
 	FlowPerDeviceIDFlowIDPath         string = "/flows/{deviceId}/{flowId}"
 	PendingFlowsPath                  string = "/flows/pending"
 	ProgrammedSubscribersPath         string = "/programmed-subscribers"
+	ProgrammedSubscribersByIdPath     string = "/programmed-subscribers/{device}/{port}"
 	ServiceDevicePortPath             string = "/services/{device}/{port}"
 	ServicePortNamePath               string = "/services/{portName}"
 	ServicePortStagCtagTpIDPath       string = "/services/{portName}/{sTag}/{cTag}/{tpId}"
@@ -59,8 +60,9 @@ const (
 	GroupsPath                        string = "/groups"
 	GroupsByIDPath                    string = "/groups/{id}"
 	OltFlowServicePath                string = "/oltflowservice"
-	NetConfigPath                     string = "/network/configurations"
+	NetConfigPath                     string = "/network-configurations"
 	DeviceConfigPath                  string = "/olt/{serialNumber}"
+	FlowProvisionStatus               string = "/flow-status/{portName}"
 )
 
 // RestStart to execute for API
@@ -78,6 +80,7 @@ func RestStart() {
 	mu.HandleFunc(BasePath+FlowPerDeviceIDFlowIDPath, (&onosnbi.FlowHandle{}).ServeHTTP)
 	mu.HandleFunc(BasePath+PendingFlowsPath, (&onosnbi.PendingFlowHandle{}).ServeHTTP)
 	mu.HandleFunc(BasePath+ProgrammedSubscribersPath, (&onosnbi.ServiceAdapter{}).ServeHTTP)
+	mu.HandleFunc(BasePath+ProgrammedSubscribersByIdPath, (&onosnbi.ServiceAdapter{}).ServeHTTP)
 	mu.HandleFunc(BasePath+ServiceDevicePortPath, (&onosnbi.ServiceAdapter{}).ServeHTTP)
 	mu.HandleFunc(BasePath+ServicePortNamePath, (&onosnbi.ServiceAdapter{}).ServeHTTPWithPortName)
 	mu.HandleFunc(BasePath+ServicePortStagCtagTpIDPath, (&onosnbi.ServiceAdapter{}).ServeHTTPWithPortName)
@@ -97,6 +100,7 @@ func RestStart() {
 	mu.HandleFunc(BasePath+OltFlowServicePath, (&onosnbi.OltFlowServiceHandle{}).ServeHTTP)
 	mu.HandleFunc(BasePath+NetConfigPath, (&NetConfigHandle{}).NetConfigServeHTTP)
 	mu.HandleFunc(BasePath+DeviceConfigPath, (&onosnbi.DeviceConfigHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+FlowProvisionStatus, (&SubscriberHandle{}).StatusServeHTTP)
 
 	err := http.ListenAndServe(":8181", mu)
 	logger.Infow(ctx, "Rest Server Started", log.Fields{"Error": err})
