@@ -16,6 +16,24 @@
       "message": "Length of ServiceByName map can be computed in the above Range() itself. No need for this separate function.",
       "revId": "ec08f1cd6f8b282c65b08a2c35f28c21c456f2e9",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1ef08f10_6ca7c0bb",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2065,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-06-29T06:16:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d0b17abd_ec2cb518",
+      "revId": "ec08f1cd6f8b282c65b08a2c35f28c21c456f2e9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
