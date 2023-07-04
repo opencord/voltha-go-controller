@@ -22,6 +22,7 @@ import (
 	"strconv"
 
 	cntlr "voltha-go-controller/internal/pkg/controller"
+	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/log"
 
@@ -62,6 +63,8 @@ func (fh *FlowHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fh.GetFlows(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+		err := errorCodes.ErrOperationNotSupported
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
@@ -72,6 +75,8 @@ func (pfh *PendingFlowHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		pfh.GetPendingFlows(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+		err := errorCodes.ErrOperationNotSupported
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 

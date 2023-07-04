@@ -21,6 +21,7 @@ import (
 	"net/http"
 
 	app "voltha-go-controller/internal/pkg/application"
+	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/log"
 
 	"github.com/gorilla/mux"
@@ -51,6 +52,8 @@ func (dh *DhcpRelayHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		dh.GetAllocations(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+		err := errorCodes.ErrOperationNotSupported
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
