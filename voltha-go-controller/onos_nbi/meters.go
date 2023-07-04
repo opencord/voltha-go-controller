@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"strconv"
 	app "voltha-go-controller/internal/pkg/controller"
+	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/log"
 
 	"github.com/gorilla/mux"
@@ -55,6 +56,8 @@ func (mh *MetersHandle) MeterServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+		err := errorCodes.ErrOperationNotSupported
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 

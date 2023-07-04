@@ -932,9 +932,8 @@ func TestVoltApplication_DeactivateService(t *testing.T) {
 				}
 			case "sVlan != of.VlanNone":
 				va.ServiceByName.Store("test_name", voltServiceTest)
-				if err := va.DeactivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID); (err != nil) != tt.wantErr {
-					t.Errorf("VoltApplication.DeactivateService() error = %v, wantErr %v", err, tt.wantErr)
-				}
+				err := va.DeactivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID)
+				assert.NotNil(t, err)
 			case GetDeviceFromPort_error:
 				va.ServiceByName.Store("test_name", voltServiceTest)
 				if err := va.DeactivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID); (err != nil) != tt.wantErr {
