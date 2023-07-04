@@ -1110,11 +1110,13 @@ func (va *VoltApplication) AddService(cntx context.Context, cfg VoltServiceCfg, 
 
 // DelServiceWithPrefix - Deletes service with the provided prefix.
 // Added for DT/TT usecase with sadis replica interface
-func (va *VoltApplication) DelServiceWithPrefix(cntx context.Context, prefix string) {
+func (va *VoltApplication) DelServiceWithPrefix(cntx context.Context, prefix string) error {
+	var isServiceExist bool
 	va.ServiceByName.Range(func(key, value interface{}) bool {
 		srvName := key.(string)
 		vs := value.(*VoltService)
 		if strings.Contains(srvName, prefix) {
+			isServiceExist = true
 			va.DelService(cntx, srvName, true, nil, false)
 
 			vnetName := strconv.FormatUint(uint64(vs.SVlan), 10) + "-"
@@ -1127,6 +1129,11 @@ func (va *VoltApplication) DelServiceWithPrefix(cntx context.Context, prefix str
 		}
 		return true
 	})
+
+	if !isServiceExist {
+		return errorCodes.ErrServiceNotFound
+	}
+	return nil
 }
 
 // DelService delete a service form the application
@@ -2025,6 +2032,7 @@ func (va *VoltApplication) GetProgrammedSubscribers(cntx context.Context, device
 
 // ActivateService to activate pre-provisioned service
 func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) error {
+	var isParmsInvalid bool
 	logger.Infow(ctx, "Service Activate Request ", log.Fields{"Device": deviceID, "Port": portNo})
 	device, err := va.GetDeviceFromPort(portNo)
 	if err != nil {
@@ -2043,9 +2051,11 @@ func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portN
 		// If svlan if provided, then the tags and tpID of service has to be matching
 		if sVlan != of.VlanNone && (sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) {
 			logger.Infow(ctx, "Service Activate Request Does not match", log.Fields{"Device": deviceID, "voltService": vs})
+			isParmsInvalid = true
 			return true
 		}
 		if portNo == vs.Port && !vs.IsActivated {
+			isParmsInvalid = false
 			p := device.GetPort(vs.Port)
 			if p == nil {
 				logger.Warnw(ctx, "Wrong device or port", log.Fields{"Device": deviceID, "Port": portNo})
@@ -2067,21 +2077,31 @@ func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portN
 		}
 		return true
 	})
+
+	if isParmsInvalid {
+		return errorCodes.ErrInvalidParamInRequest
+	}
 	return nil
 }
 
 // DeactivateService to activate pre-provisioned service
 func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) error {
 	logger.Infow(ctx, "Service Deactivate Request ", log.Fields{"Device": deviceID, "Port": portNo})
+	var isServiceExist bool
+	var isParmsInvalid bool
+
 	va.ServiceByName.Range(func(key, value interface{}) bool {
 		vs := value.(*VoltService)
 		// If svlan if provided, then the tags and tpID of service has to be matching
 		logger.Infow(ctx, "Service Deactivate Request ", log.Fields{"Device": deviceID, "Port": portNo})
 		if sVlan != of.VlanNone && (sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) {
 			logger.Infow(ctx, "condition not matched", log.Fields{"Device": deviceID, "Port": portNo, "sVlan": sVlan, "cVlan": cVlan, "tpID": tpID})
+			isParmsInvalid = true
 			return true
 		}
 		if portNo == vs.Port && vs.IsActivated {
+			isServiceExist = true
+			isParmsInvalid = false
 			vs.IsActivated = false
 			vs.DeactivateInProgress = true
 			va.ServiceByName.Store(vs.Name, vs)
@@ -2109,6 +2129,12 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 		}
 		return true
 	})
+
+	if isParmsInvalid {
+		return errorCodes.ErrInvalidParamInRequest
+	} else if !isServiceExist && !isParmsInvalid {
+		return errorCodes.ErrPortNotFound
+	}
 	return nil
 }
 

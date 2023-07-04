@@ -22,6 +22,7 @@ import (
 	"net/http"
 
 	app "voltha-go-controller/internal/pkg/application"
+	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/log"
 
 	"github.com/gorilla/mux"
@@ -47,6 +48,8 @@ func (oh *DeviceConfigHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		oh.FetchDeviceConfig(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+		err := errorCodes.ErrOperationNotSupported
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
@@ -74,18 +77,24 @@ func (oh *DeviceConfigHandle) FetchDeviceConfig(cntx context.Context, w http.Res
 	serialNum := vars["serialNumber"]
 	deviceInfo := DeviceConfigPayload{}
 	dc := app.GetApplication().GetDeviceConfig(serialNum)
-	deviceInfo.DeviceConfig = dc
-	oltInfoJSON, err := json.Marshal(deviceInfo)
-	if err != nil {
-		logger.Errorw(ctx, "Failed to marshal olt payload response", log.Fields{"Error": err})
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	if dc != nil {
+		deviceInfo.DeviceConfig = dc
+		oltInfoJSON, err := json.Marshal(deviceInfo)
+		if err != nil {
+			logger.Errorw(ctx, "Failed to marshal olt payload response", log.Fields{"Error": err})
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-	w.Header().Add("Content-Type", "application/json")
-	_, err = w.Write(oltInfoJSON)
-	if err != nil {
-		logger.Errorw(ctx, "Failed to write olt payload response", log.Fields{"Error": err})
-		w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Add("Content-Type", "application/json")
+		_, err = w.Write(oltInfoJSON)
+		if err != nil {
+			logger.Errorw(ctx, "Failed to write olt payload response", log.Fields{"Error": err})
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	} else {
+		logger.Warnw(ctx, "Device not found", log.Fields{"serialNum": serialNum})
+		err := errorCodes.ErrDeviceNotFound
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
