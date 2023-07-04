@@ -23,6 +23,7 @@ import (
 	"strconv"
 
 	app "voltha-go-controller/internal/pkg/application"
+	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/log"
 
@@ -91,6 +92,8 @@ func (sa *ServiceAdapter) ServeHTTPWithPortName(w http.ResponseWriter, r *http.R
 		sa.DeactivateServiceWithPortName(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+		err := errorCodes.ErrOperationNotSupported
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
@@ -124,6 +127,7 @@ func (sa *ServiceAdapter) ActivateService(cntx context.Context, w http.ResponseW
 		portName := device.GetPortNameFromPortID(uint32(port))
 		if len(portName) == 0 {
 			logger.Warnw(ctx, "Port does not exists", log.Fields{"deviceID": deviceID})
+			err := errorCodes.ErrPortNotFound
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
@@ -164,6 +168,7 @@ func (sa *ServiceAdapter) DeactivateService(cntx context.Context, w http.Respons
 		portName := device.GetPortNameFromPortID(uint32(port))
 		if len(portName) == 0 {
 			logger.Warnw(ctx, "Port does not exists", log.Fields{"deviceID": deviceID})
+			err := errorCodes.ErrPortNotFound
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
