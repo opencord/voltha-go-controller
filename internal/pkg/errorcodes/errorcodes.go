@@ -76,6 +76,9 @@ var (
 	ErrImageNotRegistered = status.Errorf(codes.FailedPrecondition, VolthaErrorMessageFormat, PrerequisiteNotMet, "Image is not registered")
 	// ErrImageDownloadInProgress is returned when the image download is in progress
 	ErrImageDownloadInProgress = status.Errorf(codes.FailedPrecondition, VolthaErrorMessageFormat, MethodNotAllowed, "Image download is in progress")
+
+	// ErrServiceNotFound is returned when the Service is not present in VOLTHA
+	ErrServiceNotFound = status.Errorf(codes.NotFound, VolthaErrorMessageFormat, ResourceNotFound, "Service not found")
 )
 
 // ConvertToVolthaErrorFormat converts the error to Voltha error format

@@ -22,6 +22,7 @@ import (
 	"strconv"
 
 	cntlr "voltha-go-controller/internal/pkg/controller"
+	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/log"
 
@@ -62,6 +63,8 @@ func (fh *FlowHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fh.GetFlows(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+		err := errorCodes.ErrOperationNotSupported
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
@@ -72,6 +75,8 @@ func (pfh *PendingFlowHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		pfh.GetPendingFlows(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+		err := errorCodes.ErrOperationNotSupported
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
@@ -79,6 +84,7 @@ func (pfh *PendingFlowHandle) GetPendingFlows(cntx context.Context, w http.Respo
 	flows, err := cntlr.GetController().GetAllPendingFlows()
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get Pending flows", log.Fields{"Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	flowResp := ConvertFlowsToFlowEntry(flows)
@@ -107,6 +113,7 @@ func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *h
 		flow, err := fh.getFlow(deviceID, flowID)
 		if err != nil {
 			logger.Errorw(ctx, "Failed to Fetch flow", log.Fields{"Error": err})
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		flowResp = ConvertFlowToFlowEntry(flow)
@@ -115,6 +122,7 @@ func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *h
 		flows, err := fh.getAllFlows(deviceID)
 		if err != nil {
 			logger.Errorw(ctx, "Failed to Fetch flows", log.Fields{"Error": err})
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		flowResp = ConvertFlowsToFlowEntry(flows)
