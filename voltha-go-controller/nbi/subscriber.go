@@ -25,6 +25,7 @@ import (
 
 	"voltha-go-controller/internal/pkg/application"
 	app "voltha-go-controller/internal/pkg/application"
+	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/log"
 
@@ -92,6 +93,8 @@ func (sh *SubscriberHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		sh.DelSubscriberInfo(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+		err := errorCodes.ErrOperationNotSupported
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
@@ -241,9 +244,6 @@ func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.Respo
 
 	logger.Debugw(ctx, "Received-northbound-del-service-request", log.Fields{"req": id})
 
-	// HTTP response with 202 accepted for service delete request
-	w.WriteHeader(http.StatusAccepted)
-
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
 		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
@@ -272,5 +272,13 @@ func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.Respo
 	}
 
 	logger.Warnw(ctx, "northbound-del-service-req", log.Fields{"ServiceName": id})
-	app.GetApplication().DelServiceWithPrefix(cntx, id)
+	err := app.GetApplication().DelServiceWithPrefix(cntx, id)
+	if err != nil {
+		logger.Warnw(ctx, "northbound-del-service-req failed, Subscriber not exist", log.Fields{"ServiceName": id})
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// HTTP response with 202 accepted for service delete request
+	w.WriteHeader(http.StatusAccepted)
 }

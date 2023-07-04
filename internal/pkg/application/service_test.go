@@ -932,9 +932,8 @@ func TestVoltApplication_DeactivateService(t *testing.T) {
 				}
 			case "sVlan != of.VlanNone":
 				va.ServiceByName.Store("test_name", voltServiceTest)
-				if err := va.DeactivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID); (err != nil) != tt.wantErr {
-					t.Errorf("VoltApplication.DeactivateService() error = %v, wantErr %v", err, tt.wantErr)
-				}
+				err := va.DeactivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID)
+				assert.NotNil(t, err)
 			case GetDeviceFromPort_error:
 				va.ServiceByName.Store("test_name", voltServiceTest)
 				if err := va.DeactivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID); (err != nil) != tt.wantErr {
@@ -1089,9 +1088,8 @@ func TestVoltApplication_ActivateService(t *testing.T) {
 				va.PortsDisc.Store("test_port", voltPortTest)
 				va.DevicesDisc.Store(test_device, voltDevice)
 				va.ServiceByName.Store("test_name", voltServiceTest)
-				if err := va.ActivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID); (err != nil) != tt.wantErr {
-					t.Errorf("VoltApplication.ActivateService() error = %v, wantErr %v", err, tt.wantErr)
-				}
+				err := va.ActivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID)
+				assert.NotNil(t, err)
 			}
 		})
 	}
@@ -2308,7 +2306,8 @@ func TestVoltApplication_DelServiceWithPrefix(t *testing.T) {
 			}
 			va.VnetsBySvlan.Set(of.VlanAny, cuncurrentMap)
 			dbintf.EXPECT().DelVnet(gomock.Any(), gomock.Any()).Return(nil).Times(1)
-			va.DelServiceWithPrefix(tt.args.cntx, tt.args.prefix)
+			err := va.DelServiceWithPrefix(tt.args.cntx, tt.args.prefix)
+			assert.Nil(t, err)
 		})
 	}
 }
