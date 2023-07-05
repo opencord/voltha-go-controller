@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "504cf368_0f8567a2",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2065,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-07-05T14:34:44Z",
+      "side": 1,
+      "message": "return true ? it should be flowProvisionStatus",
+      "revId": "b2379ab07961847dae6b3ffd445f70fb06239dd0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
