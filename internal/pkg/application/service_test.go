@@ -19,6 +19,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net"
+	"reflect"
 	"sync"
 	"testing"
 	"voltha-go-controller/internal/pkg/controller"
@@ -48,8 +50,9 @@ var voltDevice = &VoltDevice{
 }
 
 var voltMeter = &VoltMeter{
-	Name:    "test_volt_meter",
-	Version: "test_version",
+	Name:               "test_volt_meter",
+	Version:            "test_version",
+	AssociatedServices: 3,
 }
 
 var voltVnet = &VoltVnet{
@@ -72,6 +75,26 @@ var voltPortVnet1 = []*VoltPortVnet{
 
 var voltDevice1 = &VoltDevice{
 	State: cntlr.DeviceStateDOWN,
+}
+
+var voltDevice2 = &VoltDevice{
+	Name:              "test_name",
+	State:             controller.DeviceStateUP,
+	FlowAddEventMap:   util.NewConcurrentMap(),
+	FlowDelEventMap:   util.NewConcurrentMap(),
+	SerialNum:         "test_serial_number",
+	MigratingServices: util.NewConcurrentMap(),
+}
+
+var voltService2 = &VoltService{
+	Version: "test_version",
+	VoltServiceCfg: VoltServiceCfg{
+		VnetID:  "test_vnet_id",
+		Port:    "test_port",
+		SVlan:   of.VlanAny,
+		CVlan:   of.VlanAny,
+		UniVlan: of.VlanAny,
+	},
 }
 
 var GetDeviceFromPort_error = "GetDeviceFromPort_error"
@@ -105,7 +128,7 @@ func TestVoltApplication_RestoreSvcsFromDb(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			voltService := &VoltService{
+			voltService4 := &VoltService{
 				VoltServiceOper: VoltServiceOper{
 					Device:           "SDX6320031",
 					ForceDelete:      true,
@@ -116,7 +139,7 @@ func TestVoltApplication_RestoreSvcsFromDb(t *testing.T) {
 				},
 			}
 			serviceToDelete := map[string]bool{}
-			serviceToDelete[voltService.VoltServiceCfg.Name] = true
+			serviceToDelete[voltService4.VoltServiceCfg.Name] = true
 			va := &VoltApplication{
 				ServicesToDelete: serviceToDelete,
 			}
@@ -125,7 +148,7 @@ func TestVoltApplication_RestoreSvcsFromDb(t *testing.T) {
 			switch tt.name {
 			case "VoltApplication_RestoreSvcsFromDb":
 
-				b, err := json.Marshal(voltService)
+				b, err := json.Marshal(voltService4)
 				if err != nil {
 					panic(err)
 				}
@@ -441,6 +464,19 @@ func TestVoltApplication_DelService(t *testing.T) {
 				serviceMigration: true,
 			},
 		},
+		{
+			name: "GetMeterByID_not_nil",
+			args: args{
+				cntx:        context.Background(),
+				name:        "test_name",
+				forceDelete: true,
+				newSvc: &VoltServiceCfg{
+					Name: "vs_cfg_name",
+					Port: "test_port",
+				},
+				serviceMigration: true,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -448,7 +484,7 @@ func TestVoltApplication_DelService(t *testing.T) {
 				ServiceByName: sync.Map{},
 				VnetsByPort:   sync.Map{},
 			}
-			voltService := &VoltService{
+			voltService3 := &VoltService{
 				Version: "test_version",
 				VoltServiceCfg: VoltServiceCfg{
 					Port:    "4096-4096-4096",
@@ -457,13 +493,30 @@ func TestVoltApplication_DelService(t *testing.T) {
 					UniVlan: of.VlanAny,
 				},
 			}
-			va.ServiceByName.Store(tt.args.name, voltService)
-			va.VnetsByPort.Store("4096-4096-4096", voltPortVnet1)
-			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
-			db = dbintf
-			dbintf.EXPECT().DelService(gomock.Any(), gomock.Any()).AnyTimes()
-			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-			va.DelService(tt.args.cntx, tt.args.name, tt.args.forceDelete, tt.args.newSvc, tt.args.serviceMigration)
+			switch tt.name {
+			case "VoltApplication_DelService":
+				va.ServiceByName.Store(tt.args.name, voltService3)
+				va.VnetsByPort.Store("4096-4096-4096", voltPortVnet1)
+				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+				db = dbintf
+				dbintf.EXPECT().DelService(gomock.Any(), gomock.Any()).AnyTimes()
+				dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				va.DelService(tt.args.cntx, tt.args.name, tt.args.forceDelete, tt.args.newSvc, tt.args.serviceMigration)
+			case "GetMeterByID_not_nil":
+				va.ServiceByName.Store(tt.args.name, voltService3)
+				va.VnetsByPort.Store("4096-4096-4096", voltPortVnet1)
+				voltService3.AggDsMeterID = uint32(1)
+				voltService3.DsMeterID = uint32(1)
+				voltService3.UsMeterID = uint32(2)
+				va.MeterMgr.MetersByID.Store(voltService3.AggDsMeterID, voltMeter)
+				va.MeterMgr.MetersByID.Store(voltService3.DsMeterID, voltMeter)
+				va.MeterMgr.MetersByID.Store(voltService3.UsMeterID, voltMeter)
+				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+				db = dbintf
+				dbintf.EXPECT().DelService(gomock.Any(), gomock.Any()).AnyTimes()
+				dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				va.DelService(tt.args.cntx, tt.args.name, tt.args.forceDelete, tt.args.newSvc, tt.args.serviceMigration)
+			}
 		})
 	}
 }
@@ -910,7 +963,7 @@ func TestVoltApplication_ActivateService(t *testing.T) {
 			name: "VoltApplication_ActivateService",
 			args: args{
 				cntx:     context.Background(),
-				deviceID: "test_name",
+				deviceID: DeviceAny,
 				portNo:   "test_port",
 				sVlan:    of.VlanNone,
 				cVlan:    of.VlanAny,
@@ -935,6 +988,28 @@ func TestVoltApplication_ActivateService(t *testing.T) {
 				deviceID: "test_name",
 				portNo:   "test_port",
 				sVlan:    of.VlanNone,
+				cVlan:    of.VlanAny,
+				tpID:     AnyVlan,
+			},
+		},
+		{
+			name: "deviceID != device.Name",
+			args: args{
+				cntx:     context.Background(),
+				deviceID: "test_name1",
+				portNo:   "test_port",
+				sVlan:    of.VlanNone,
+				cVlan:    of.VlanAny,
+				tpID:     AnyVlan,
+			},
+		},
+		{
+			name: "sVlan != of.VlanNone && sVlan != vs.SVlan",
+			args: args{
+				cntx:     context.Background(),
+				deviceID: "test_name",
+				portNo:   "test_port",
+				sVlan:    1,
 				cVlan:    of.VlanAny,
 				tpID:     AnyVlan,
 			},
@@ -992,6 +1067,31 @@ func TestVoltApplication_ActivateService(t *testing.T) {
 			case GetDeviceFromPort_error:
 				err := va.ActivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID)
 				assert.NotNil(t, err)
+			case "deviceID != device.Name":
+				var voltPortTest1 = &VoltPort{
+					Name:   "test_name",
+					State:  PortStateUp,
+					Device: test_device,
+				}
+				var voltDevice_test = &VoltDevice{
+					Name:            "",
+					State:           controller.DeviceStateUP,
+					FlowAddEventMap: util.NewConcurrentMap(),
+					FlowDelEventMap: util.NewConcurrentMap(),
+					SerialNum:       "test_serial_number",
+				}
+				va.PortsDisc.Store("test_port", voltPortTest1)
+				va.DevicesDisc.Store(test_device, voltDevice_test)
+				err := va.ActivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID)
+				assert.NotNil(t, err)
+			case "sVlan != of.VlanNone && sVlan != vs.SVlan":
+				voltPortTest.Device = test_device
+				va.PortsDisc.Store("test_port", voltPortTest)
+				va.DevicesDisc.Store(test_device, voltDevice)
+				va.ServiceByName.Store("test_name", voltServiceTest)
+				if err := va.ActivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID); (err != nil) != tt.wantErr {
+					t.Errorf("VoltApplication.ActivateService() error = %v, wantErr %v", err, tt.wantErr)
+				}
 			}
 		})
 	}
@@ -1522,6 +1622,16 @@ func TestVoltApplication_DeepEqualServicecfg(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name: "nvs.IsOption82Enabled != evs.IsOption82Enabled",
+			args: args{
+				evs: &VoltServiceCfg{
+					IsOption82Enabled: true,
+				},
+				nvs: &VoltServiceCfg{},
+			},
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1542,11 +1652,1423 @@ func TestVoltApplication_DeepEqualServicecfg(t *testing.T) {
 				"nvs.AllowTransparent != evs.AllowTransparent",
 				"nvs.EnableMulticastKPI != evs.EnableMulticastKPI", "nvs.DataRateAttr != evs.DataRateAttr",
 				"nvs.MinDataRateUs != evs.MinDataRateUs", "nvs.MinDataRateDs != evs.MinDataRateDs",
-				"nvs.MaxDataRateUs != evs.MaxDataRateUs", "nvs.MaxDataRateDs != evs.MaxDataRateDs":
+				"nvs.MaxDataRateUs != evs.MaxDataRateUs", "nvs.MaxDataRateDs != evs.MaxDataRateDs",
+				"nvs.IsOption82Enabled != evs.IsOption82Enabled":
 				if got := va.DeepEqualServicecfg(tt.args.evs, tt.args.nvs); got != tt.want {
 					t.Errorf("VoltApplication.DeepEqualServicecfg() = %v, want %v", got, tt.want)
 				}
 			}
+		})
+	}
+}
+
+func Test_forceUpdateAllServices(t *testing.T) {
+	type args struct {
+		cntx context.Context
+		msr  *MigrateServicesRequest
+	}
+	servicesList := map[string]bool{}
+	servicesList[test_device] = true
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "forceUpdateAllServices",
+			args: args{
+				cntx: context.Background(),
+				msr: &MigrateServicesRequest{
+					ID:           "test_id",
+					ServicesList: servicesList,
+					DeviceID:     test_device,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ga := GetApplication()
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().DelMigrateServicesReq(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			ga.ServiceByName.Store(test_device, voltService2)
+			voltService2.VoltServiceOper.Metadata = &MigrateServiceMetadata{
+				NewVnetID: "test_new_vnet_id",
+				RequestID: "test_request_id",
+			}
+			newConcurrentMap := util.NewConcurrentMap()
+			ga.DevicesDisc.Store(test_device, voltDevice2)
+			voltDevice2.MigratingServices.Set("test_vnet_id", newConcurrentMap)
+			migrateServicesRequest := &MigrateServicesRequest{
+				ID:           "test_id",
+				ServicesList: servicesList,
+			}
+			newConcurrentMap.Set("test_request_id", migrateServicesRequest)
+			dbintf.EXPECT().PutMigrateServicesReq(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			forceUpdateAllServices(tt.args.cntx, tt.args.msr)
+		})
+	}
+}
+
+func TestVoltService_updateVnetProfile(t *testing.T) {
+	type args struct {
+		cntx     context.Context
+		deviceID string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "DeleteInProgress_true",
+			args: args{
+				cntx:     context.Background(),
+				deviceID: test_device,
+			},
+		},
+		{
+			name: "metadata_nil",
+			args: args{
+				cntx:     context.Background(),
+				deviceID: test_device,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "DeleteInProgress_true":
+				vs := &VoltService{
+					VoltServiceOper: VoltServiceOper{
+						DeleteInProgress: true,
+					},
+				}
+				vs.updateVnetProfile(tt.args.cntx, tt.args.deviceID)
+			case "metadata_nil":
+				vs := &VoltService{
+					VoltServiceOper: VoltServiceOper{
+						Metadata: &MigrateServiceMetadata{},
+					},
+				}
+				vs.updateVnetProfile(tt.args.cntx, tt.args.deviceID)
+			}
+		})
+	}
+}
+
+func TestMigrateServicesRequest_serviceMigrated(t *testing.T) {
+	type args struct {
+		cntx        context.Context
+		serviceName string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "ServicesList_nil",
+			args: args{
+				cntx:        context.Background(),
+				serviceName: "test_service_name",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			msr := &MigrateServicesRequest{
+				ServicesList: map[string]bool{},
+			}
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().DelMigrateServicesReq(gomock.All(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			msr.serviceMigrated(tt.args.cntx, tt.args.serviceName)
+		})
+	}
+}
+
+func TestVoltApplication_TriggerPendingMigrateServicesReq(t *testing.T) {
+	type args struct {
+		cntx   context.Context
+		device string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "VoltApplication_TriggerPendingMigrateServicesReq",
+			args: args{
+				cntx:   context.Background(),
+				device: test_device,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				ServiceByName: sync.Map{},
+			}
+			migrateServicesRequest := &MigrateServicesRequest{
+				ID:        "test_id",
+				OldVnetID: "test_vnet_id",
+				DeviceID:  test_device,
+			}
+			b, err := json.Marshal(migrateServicesRequest)
+			if err != nil {
+				panic(err)
+			}
+			kvpair := map[string]*kvstore.KVPair{}
+			kvpair["test_device_id"] = &kvstore.KVPair{
+				Key:   "test_device_id",
+				Value: b,
+			}
+
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			ga := GetApplication()
+			ga.DevicesDisc.Store(test_device, voltDevice2)
+			newConcurrentMap := util.NewConcurrentMap()
+			voltDevice2.MigratingServices.Set("test_vnet_id", newConcurrentMap)
+			dbintf.EXPECT().GetAllMigrateServicesReq(gomock.Any(), gomock.Any()).Return(kvpair, nil).AnyTimes()
+			va.TriggerPendingMigrateServicesReq(tt.args.cntx, tt.args.device)
+		})
+	}
+}
+
+func TestVoltApplication_FetchAndProcessAllMigrateServicesReq(t *testing.T) {
+	type args struct {
+		cntx      context.Context
+		device    string
+		msrAction func(context.Context, *MigrateServicesRequest)
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "invalid_value_type",
+			args: args{
+				cntx:      context.Background(),
+				device:    test_device,
+				msrAction: func(ctx context.Context, msr *MigrateServicesRequest) {},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				DevicesDisc: sync.Map{},
+			}
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			kvpair := map[string]*kvstore.KVPair{}
+			kvpair["test_device_id"] = &kvstore.KVPair{
+				Key:   "test_device_id",
+				Value: "invalid_value",
+			}
+			dbintf.EXPECT().GetAllMigrateServicesReq(gomock.Any(), gomock.Any()).Return(kvpair, nil).AnyTimes()
+			va.FetchAndProcessAllMigrateServicesReq(tt.args.cntx, tt.args.device, tt.args.msrAction)
+		})
+	}
+}
+
+func TestVoltApplication_createMigrateServicesFromString(t *testing.T) {
+	type args struct {
+		b []byte
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Unmarshal_error",
+			args: args{
+				b: []byte{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				vendorID: test_device,
+			}
+			got := va.createMigrateServicesFromString(tt.args.b)
+			assert.NotNil(t, got)
+		})
+	}
+}
+
+func TestVoltApplication_getMigrateServicesRequest(t *testing.T) {
+	type args struct {
+		deviceID  string
+		oldVnetID string
+		requestID string
+	}
+	tests := []struct {
+		name string
+		args args
+		want *MigrateServicesRequest
+	}{
+		{
+			name: "GetDevice_nil",
+			args: args{
+				deviceID: test_device,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				vendorID: "vendorID",
+			}
+			if got := va.getMigrateServicesRequest(tt.args.deviceID, tt.args.oldVnetID, tt.args.requestID); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("VoltApplication.getMigrateServicesRequest() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestVoltDevice_AddMigratingServices(t *testing.T) {
+	type args struct {
+		msr *MigrateServicesRequest
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "MigratingServices_Get_nil",
+			args: args{
+				msr: &MigrateServicesRequest{
+					ID: "test_id",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &VoltDevice{
+				MigratingServices: util.NewConcurrentMap(),
+			}
+			d.AddMigratingServices(tt.args.msr)
+		})
+	}
+}
+
+func TestMigrateServicesRequest_ProcessMigrateServicesProfRequest(t *testing.T) {
+	type args struct {
+		cntx context.Context
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "ServicesList_true",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+		{
+			name: "ServicesList_false",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+		{
+			name: "GetVnetByPort_nil",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+		{
+			name: "UsHSIAFlowsApplied_true",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+		{
+			name: "ServiceByName_nil",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			switch tt.name {
+			case "ServicesList_true":
+				servicesList := map[string]bool{}
+				servicesList[test_device] = true
+				msr := &MigrateServicesRequest{
+					ServicesList: servicesList,
+				}
+				dbintf.EXPECT().DelMigrateServicesReq(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				msr.ProcessMigrateServicesProfRequest(tt.args.cntx)
+			case "ServicesList_false":
+				servicesList := map[string]bool{}
+				servicesList[test_device] = false
+				msr := &MigrateServicesRequest{
+					ServicesList: servicesList,
+				}
+				ga := GetApplication()
+				ga.ServiceByName.Store(test_device, voltService2)
+				ga.VnetsByPort.Store("test_port", voltPortVnet1)
+				msr.ProcessMigrateServicesProfRequest(tt.args.cntx)
+			case "GetVnetByPort_nil":
+				servicesList := map[string]bool{}
+				servicesList[test_device] = false
+				msr := &MigrateServicesRequest{
+					ServicesList: servicesList,
+				}
+				ga := GetApplication()
+				var voltService1 = &VoltService{
+					Version: "test_version",
+					VoltServiceCfg: VoltServiceCfg{
+						VnetID:  "test_vnet_id",
+						SVlan:   of.VlanAny,
+						CVlan:   of.VlanAny,
+						UniVlan: of.VlanAny,
+					},
+				}
+				ga.ServiceByName.Store(test_device, voltService1)
+				ga.VnetsByPort.Store("test_port1", nil)
+				msr.ProcessMigrateServicesProfRequest(tt.args.cntx)
+			case "UsHSIAFlowsApplied_true":
+				servicesList := map[string]bool{}
+				servicesList[test_device] = false
+				msr := &MigrateServicesRequest{
+					ServicesList: servicesList,
+				}
+				ga := GetApplication()
+				voltService2.UsHSIAFlowsApplied = true
+				ga.ServiceByName.Store(test_device, voltService2)
+				ga.VnetsByPort.Store("test_port", voltPortVnet1)
+				dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				msr.ProcessMigrateServicesProfRequest(tt.args.cntx)
+			case "ServiceByName_nil":
+				servicesList := map[string]bool{}
+				servicesList[""] = false
+				msr := &MigrateServicesRequest{
+					ServicesList: servicesList,
+				}
+				msr.ProcessMigrateServicesProfRequest(tt.args.cntx)
+			}
+		})
+	}
+}
+
+func TestVoltApplication_MigrateServices(t *testing.T) {
+	type args struct {
+		cntx        context.Context
+		serialNum   string
+		reqID       string
+		oldVnetID   string
+		newVnetID   string
+		serviceList []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "VoltApplication_MigrateServices",
+			args: args{
+				cntx:        context.Background(),
+				serialNum:   "test_serial_number",
+				reqID:       "test_reqid",
+				oldVnetID:   "test_old_vnet_id",
+				newVnetID:   "test_new_vnet_id",
+				serviceList: []string{"test_service_list_1", "test_service_list_2"},
+			},
+		},
+		{
+			name: "Old Vnet Id not found",
+			args: args{
+				cntx:        context.Background(),
+				serialNum:   "test_serial_number",
+				reqID:       "test_reqid",
+				oldVnetID:   "",
+				newVnetID:   "test_new_vnet_id",
+				serviceList: []string{"test_service_list_1", "test_service_list_2"},
+			},
+		},
+		{
+			name: "New Vnet Id not found",
+			args: args{
+				cntx:        context.Background(),
+				serialNum:   "test_serial_number",
+				reqID:       "test_reqid",
+				oldVnetID:   "test_old_vnet_id",
+				newVnetID:   "",
+				serviceList: []string{"test_service_list_1", "test_service_list_2"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				VnetsByName: sync.Map{},
+			}
+			voltVnet2 := &VoltVnet{
+				Version: "v3",
+				VnetConfig: VnetConfig{
+					Name:      "2310-4096-4096",
+					VnetType:  "Encapsulation",
+					SVlan:     2310,
+					CVlan:     4096,
+					UniVlan:   4096,
+					SVlanTpid: 33024,
+				},
+				VnetOper: VnetOper{
+					PendingDeviceToDelete: "SDX63200313",
+				},
+			}
+			switch tt.name {
+			case "VoltApplication_MigrateServices":
+				va.VnetsByName.Store("test_old_vnet_id", voltVnet2)
+				va.VnetsByName.Store("test_new_vnet_id", voltVnet2)
+				va.DevicesDisc.Store(test_device, voltDevice2)
+				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+				db = dbintf
+				dbintf.EXPECT().PutMigrateServicesReq(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				if err := va.MigrateServices(tt.args.cntx, tt.args.serialNum, tt.args.reqID, tt.args.oldVnetID, tt.args.newVnetID, tt.args.serviceList); (err != nil) != tt.wantErr {
+					t.Errorf("VoltApplication.MigrateServices() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "Old Vnet Id not found":
+				va.VnetsByName.Store("test_old_vnet_id", voltVnet2)
+				err := va.MigrateServices(tt.args.cntx, tt.args.serialNum, tt.args.reqID, tt.args.oldVnetID, tt.args.newVnetID, tt.args.serviceList)
+				assert.NotNil(t, err)
+			case "New Vnet Id not found":
+				va.VnetsByName.Store("test_old_vnet_id", voltVnet2)
+				va.VnetsByName.Store("test_new_vnet_id", voltVnet2)
+				err := va.MigrateServices(tt.args.cntx, tt.args.serialNum, tt.args.reqID, tt.args.oldVnetID, tt.args.newVnetID, tt.args.serviceList)
+				assert.NotNil(t, err)
+			}
+		})
+	}
+}
+
+func TestMigrateServicesRequest_WriteToDB(t *testing.T) {
+	type args struct {
+		cntx context.Context
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "PutMigrateServicesReq_error",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			msr := &MigrateServicesRequest{
+				ID: test_device,
+			}
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().PutMigrateServicesReq(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("error")).Times(1)
+			msr.WriteToDB(tt.args.cntx)
+		})
+	}
+}
+
+func TestVoltService_MatchesVlans(t *testing.T) {
+	type args struct {
+		vlans []of.VlanType
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "vlans_nil",
+			args: args{
+				vlans: []of.VlanType{},
+			},
+			want: false,
+		},
+		{
+			name: "MatchesVlans",
+			args: args{
+				vlans: []of.VlanType{
+					of.VlanAny,
+				},
+			},
+			want: true,
+		},
+		{
+			name: "vlans[0] != vs.CVlan",
+			args: args{
+				vlans: []of.VlanType{
+					of.VlanNone,
+				},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{
+				VoltServiceCfg: VoltServiceCfg{CVlan: of.VlanAny},
+			}
+			switch tt.name {
+			case "vlans_nil", "MatchesVlans", "vlans[0] != vs.CVlan":
+				if got := vs.MatchesVlans(tt.args.vlans); got != tt.want {
+					t.Errorf("VoltService.MatchesVlans() = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
+
+func TestVoltService_MatchesPbits(t *testing.T) {
+	type args struct {
+		pbits []of.PbitType
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "VoltService_MatchesPbits",
+			args: args{
+				pbits: []of.PbitType{
+					of.PbitMatchAll,
+				},
+			},
+			want: true,
+		},
+		{
+			name: "PbitType_nil",
+			args: args{
+				pbits: []of.PbitType{},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{
+				VoltServiceCfg: VoltServiceCfg{
+					Pbits: []of.PbitType{
+						of.PbitMatchAll,
+					},
+				},
+			}
+			switch tt.name {
+			case "VoltService_MatchesPbits", "PbitType_nil":
+				if got := vs.MatchesPbits(tt.args.pbits); got != tt.want {
+					t.Errorf("VoltService.MatchesPbits() = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
+
+func TestVoltApplication_DelServiceWithPrefix(t *testing.T) {
+	type args struct {
+		cntx   context.Context
+		prefix string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "VoltApplication_DelServiceWithPrefix",
+			args: args{
+				cntx:   context.Background(),
+				prefix: test_device,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				VnetsBySvlan: util.NewConcurrentMap(),
+			}
+			va.ServiceByName.Store(test_device, voltService)
+			va.VnetsByName.Store("0-0-0", voltVnet)
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().PutVnet(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			cuncurrentMap := &util.ConcurrentMap{
+				Count: atomic.NewUint64(0),
+			}
+			va.VnetsBySvlan.Set(of.VlanAny, cuncurrentMap)
+			dbintf.EXPECT().DelVnet(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			va.DelServiceWithPrefix(tt.args.cntx, tt.args.prefix)
+		})
+	}
+}
+
+func TestVoltService_FlowInstallFailure(t *testing.T) {
+	type args struct {
+		cookie    string
+		errorCode uint32
+		errReason string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "VoltService_FlowInstallFailure",
+			args: args{
+				cookie:    "test_cookie",
+				errorCode: uint32(1),
+				errReason: "err_reason",
+			},
+		},
+		{
+			name: "PendingFlows[cookie]_false",
+			args: args{
+				cookie:    "test_cookie",
+				errorCode: uint32(1),
+				errReason: "err_reason",
+			},
+		},
+	}
+	pendingFlows := map[string]bool{}
+	pendingFlows["test_cookie"] = true
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{
+				VoltServiceOper: VoltServiceOper{},
+			}
+			switch tt.name {
+			case "VoltService_FlowInstallFailure":
+				vs.PendingFlows = pendingFlows
+				vs.FlowInstallFailure(tt.args.cookie, tt.args.errorCode, tt.args.errReason)
+			case "PendingFlows[cookie]_false":
+				vs.FlowInstallFailure(tt.args.cookie, tt.args.errorCode, tt.args.errReason)
+			}
+		})
+	}
+}
+
+func TestVoltService_FlowRemoveSuccess(t *testing.T) {
+	type args struct {
+		cntx   context.Context
+		cookie string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "GetDevice != nil",
+			args: args{
+				cntx:   context.Background(),
+				cookie: "test_cookie",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{
+				VoltServiceOper: VoltServiceOper{
+					Device: test_device,
+				},
+			}
+			ga := GetApplication()
+			ga.DevicesDisc.Store(test_device, voltDevice2)
+			voltDevice2.State = controller.DeviceStateUP
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			vs.FlowRemoveSuccess(tt.args.cntx, tt.args.cookie)
+		})
+	}
+}
+
+func TestVoltService_setDSMatchActionVlanT0(t *testing.T) {
+	type args struct {
+		flow *of.VoltSubFlow
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "VlanControl: ONUCVlanOLTSVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "VlanControl: OLTCVlanOLTSVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "VlanControl: ONUCVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "VlanControl: OLTSVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "VlanControl: OLTSVlan && UniVlan != of.VlanAny",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "invalid VlanControl",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{
+				VoltServiceCfg: VoltServiceCfg{
+					SVlan:       of.VlanAny,
+					UniVlan:     of.VlanAny,
+					VlanControl: ONUCVlanOLTSVlan,
+				},
+			}
+			switch tt.name {
+			case "VlanControl: ONUCVlanOLTSVlan":
+				vs.VlanControl = ONUCVlanOLTSVlan
+				if err := vs.setDSMatchActionVlanT0(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "VlanControl: OLTCVlanOLTSVlan":
+				vs.VlanControl = OLTCVlanOLTSVlan
+				if err := vs.setDSMatchActionVlanT0(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "VlanControl: ONUCVlan":
+				vs.VlanControl = ONUCVlan
+				if err := vs.setDSMatchActionVlanT0(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "VlanControl: OLTSVlan":
+				vs.VlanControl = OLTSVlan
+				vs.UniVlan = vs.CVlan
+				if err := vs.setDSMatchActionVlanT0(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "VlanControl: OLTSVlan && UniVlan != of.VlanAny":
+				vs.VlanControl = OLTSVlan
+				if err := vs.setDSMatchActionVlanT0(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "invalid VlanControl":
+				vs.VlanControl = 5
+				err := vs.setDSMatchActionVlanT0(tt.args.flow)
+				assert.NotNil(t, err)
+			}
+		})
+	}
+}
+
+func TestVoltService_setUSMatchActionVlanT1(t *testing.T) {
+	type args struct {
+		flow *of.VoltSubFlow
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "VlanControl: ONUCVlanOLTSVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "VlanControl: OLTCVlanOLTSVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "VlanControl: ONUCVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "VlanControl: OLTSVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "VlanControl: OLTSVlan vs.UniVlan != of.VlanAny && vs.UniVlan != of.VlanNone",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "VlanControl: OLTSVlan vs.UniVlan == of.VlanNone",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "VlanControl: default",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{
+				VoltServiceCfg: VoltServiceCfg{
+					SVlan:       of.VlanAny,
+					UniVlan:     of.VlanAny,
+					VlanControl: ONUCVlanOLTSVlan,
+				},
+			}
+			switch tt.name {
+			case "VlanControl: ONUCVlanOLTSVlan":
+				vs.VlanControl = ONUCVlanOLTSVlan
+				if err := vs.setUSMatchActionVlanT1(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "VlanControl: OLTCVlanOLTSVlan":
+				vs.VlanControl = OLTCVlanOLTSVlan
+				if err := vs.setUSMatchActionVlanT1(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "VlanControl: ONUCVlan":
+				vs.VlanControl = ONUCVlan
+				if err := vs.setUSMatchActionVlanT1(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "VlanControl: OLTSVlan":
+				vs.VlanControl = OLTSVlan
+				if err := vs.setUSMatchActionVlanT1(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "VlanControl: OLTSVlan vs.UniVlan != of.VlanAny && vs.UniVlan != of.VlanNone":
+				vs.VlanControl = OLTSVlan
+				vs.UniVlan = vs.CVlan
+				if err := vs.setUSMatchActionVlanT1(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "VlanControl: OLTSVlan vs.UniVlan == of.VlanNone":
+				vs.VlanControl = OLTSVlan
+				vs.UniVlan = of.VlanNone
+				if err := vs.setUSMatchActionVlanT1(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "VlanControl: default":
+				vs.VlanControl = 6
+				err := vs.setUSMatchActionVlanT1(tt.args.flow)
+				assert.NotNil(t, err)
+			}
+		})
+	}
+}
+
+func TestVoltService_setUSMatchActionVlanT0(t *testing.T) {
+	type args struct {
+		flow *of.VoltSubFlow
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "vs.VlanControl: ONUCVlanOLTSVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "vs.VlanControl: ONUCVlanOLTSVlan vs.UniVlan == of.VlanNone",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "vs.VlanControl: OLTCVlanOLTSVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "vs.VlanControl: ONUCVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "vs.VlanControl: ONUCVlan vs.UniVlan == of.VlanNone",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "vs.VlanControl: OLTSVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{}
+			switch tt.name {
+			case "vs.VlanControl: ONUCVlanOLTSVlan":
+				vs.VlanControl = ONUCVlanOLTSVlan
+				if err := vs.setUSMatchActionVlanT0(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setUSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "vs.VlanControl: ONUCVlanOLTSVlan vs.UniVlan == of.VlanNone":
+				vs.VlanControl = ONUCVlanOLTSVlan
+				vs.UniVlan = of.VlanNone
+				if err := vs.setUSMatchActionVlanT0(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setUSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "vs.VlanControl: OLTCVlanOLTSVlan":
+				vs.VlanControl = OLTCVlanOLTSVlan
+				if err := vs.setUSMatchActionVlanT0(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setUSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "vs.VlanControl: ONUCVlan":
+				vs.VlanControl = ONUCVlan
+				if err := vs.setUSMatchActionVlanT0(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setUSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "vs.VlanControl: ONUCVlan vs.UniVlan == of.VlanNone":
+				vs.VlanControl = ONUCVlan
+				vs.UniVlan = of.VlanNone
+				if err := vs.setUSMatchActionVlanT0(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setUSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "vs.VlanControl: OLTSVlan":
+				vs.VlanControl = OLTSVlan
+				if err := vs.setUSMatchActionVlanT0(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setUSMatchActionVlanT0() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			}
+		})
+	}
+}
+
+func TestVoltService_setDSMatchActionVlanT1(t *testing.T) {
+	type args struct {
+		flow *of.VoltSubFlow
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "vs.VlanControl: ONUCVlanOLTSVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "vs.VlanControl: ONUCVlanOLTSVlan vs.UniVlan == of.VlanNone",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "vs.VlanControl: OLTCVlanOLTSVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "vs.VlanControl: ONUCVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "vs.VlanControl: ONUCVlan vs.UniVlan == of.VlanNone",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "vs.VlanControl: OLTSVlan",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+		{
+			name: "vs.VlanControl: default",
+			args: args{
+				flow: &of.VoltSubFlow{
+					ErrorReason: "test_error_reason",
+					Cookie:      uint64(1),
+					OldCookie:   uint64(2),
+					TableID:     uint32(3),
+					Priority:    uint32(4),
+					State:       uint8(5),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{}
+			switch tt.name {
+			case "vs.VlanControl: ONUCVlanOLTSVlan":
+				vs.VlanControl = ONUCVlanOLTSVlan
+				if err := vs.setDSMatchActionVlanT1(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT1() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "vs.VlanControl: ONUCVlanOLTSVlan vs.UniVlan == of.VlanNone":
+				vs.VlanControl = ONUCVlanOLTSVlan
+				vs.UniVlan = of.VlanNone
+				if err := vs.setDSMatchActionVlanT1(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT1() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "vs.VlanControl: OLTCVlanOLTSVlan":
+				vs.VlanControl = OLTCVlanOLTSVlan
+				if err := vs.setDSMatchActionVlanT1(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT1() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "vs.VlanControl: ONUCVlan":
+				vs.VlanControl = ONUCVlan
+				if err := vs.setDSMatchActionVlanT1(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT1() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "vs.VlanControl: ONUCVlan vs.UniVlan == of.VlanNone":
+				vs.VlanControl = ONUCVlan
+				vs.UniVlan = of.VlanNone
+				if err := vs.setDSMatchActionVlanT1(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT1() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "vs.VlanControl: OLTSVlan":
+				vs.VlanControl = OLTSVlan
+				if err := vs.setDSMatchActionVlanT1(tt.args.flow); (err != nil) != tt.wantErr {
+					t.Errorf("VoltService.setDSMatchActionVlanT1() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "vs.VlanControl: default":
+				vs.VlanControl = 6
+				err := vs.setDSMatchActionVlanT1(tt.args.flow)
+				assert.NotNil(t, err)
+			}
+		})
+	}
+}
+
+func TestVoltService_SetIpv6Addr(t *testing.T) {
+	type args struct {
+		addr net.IP
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "SetIpv6Addr",
+			args: args{
+				addr: AllSystemsMulticastGroupIP,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{}
+			vs.SetIpv6Addr(tt.args.addr)
+		})
+	}
+}
+
+func TestVoltService_SetIpv4Addr(t *testing.T) {
+	type args struct {
+		addr net.IP
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "VoltService_SetIpv4Addr",
+			args: args{
+				addr: AllSystemsMulticastGroupIP,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{}
+			vs.SetIpv4Addr(tt.args.addr)
+		})
+	}
+}
+
+func TestVoltService_SetMacAddr(t *testing.T) {
+	type args struct {
+		addr net.HardwareAddr
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "VoltService_SetMacAddr",
+			args: args{
+				addr: BroadcastMAC,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{}
+			vs.SetMacAddr(tt.args.addr)
+		})
+	}
+}
+
+func TestVoltService_GetCircuitID(t *testing.T) {
+	tests := []struct {
+		name string
+		want []byte
+	}{
+		{
+			name: "VoltService_GetCircuitID",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{}
+			_ = vs.GetCircuitID()
+		})
+	}
+}
+
+func TestVoltService_GetRemoteID(t *testing.T) {
+	tests := []struct {
+		name string
+		want []byte
+	}{
+		{
+			name: "VoltService_GetRemoteID",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{}
+			_ = vs.GetRemoteID()
+		})
+	}
+}
+
+func TestVoltService_IPAssigned(t *testing.T) {
+	tests := []struct {
+		name string
+		want bool
+	}{
+		{
+			name: "VoltService_IPAssigned",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := &VoltService{}
+			_ = vs.IPAssigned()
 		})
 	}
 }

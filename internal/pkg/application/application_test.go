@@ -34,6 +34,8 @@ import (
 	"go.uber.org/atomic"
 )
 
+var test_data = "1234"
+
 func TestVoltApplication_RestoreNbDeviceFromDb(t *testing.T) {
 	type args struct {
 		cntx     context.Context
@@ -424,7 +426,7 @@ func TestVoltApplication_UpdateMacInPortMap(t *testing.T) {
 	}
 	macAdd, _ := net.ParseMAC("ff:ff:ff:ff:ff:ff")
 	macPort := map[string]string{}
-	macPort[macAdd.String()] = "1234"
+	macPort[macAdd.String()] = test_data
 	tests := []struct {
 		name string
 		args args
@@ -433,7 +435,7 @@ func TestVoltApplication_UpdateMacInPortMap(t *testing.T) {
 			name: "Positive_Case_UpdateMacInPortMap",
 			args: args{
 				macAddr: macAdd,
-				port:    "1234",
+				port:    test_data,
 			},
 		},
 	}
@@ -453,7 +455,7 @@ func TestVoltApplication_GetMacInPortMap(t *testing.T) {
 	}
 	macAdd, _ := net.ParseMAC("ff:ff:ff:ff:ff:ff")
 	macPort := map[string]string{}
-	macPort[macAdd.String()] = "1234"
+	macPort[macAdd.String()] = test_data
 	tests := []struct {
 		name string
 		args args
@@ -464,7 +466,7 @@ func TestVoltApplication_GetMacInPortMap(t *testing.T) {
 			args: args{
 				macAddr: macAdd,
 			},
-			want: "1234",
+			want: test_data,
 		},
 	}
 	for _, tt := range tests {
@@ -2372,6 +2374,326 @@ func TestVoltApplication_DeviceRebootInd(t *testing.T) {
 			}
 			va.DevicesDisc.Store("SDX6320031", voltDev)
 			va.DeviceRebootInd(tt.args.cntx, tt.args.device, tt.args.serialNum, tt.args.southBoundID)
+		})
+	}
+}
+
+func TestVoltApplication_GetDeviceFromPort(t *testing.T) {
+	type args struct {
+		port string
+	}
+	voltDev := &VoltDevice{
+		Name:           "SDX6320031",
+		SerialNum:      "SDX6320031",
+		NniDhcpTrapVid: 123,
+		NniPort:        "16777216",
+		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a",
+		Ports:          sync.Map{},
+	}
+	voltPort := &VoltPort{
+		Name:                     "16777216",
+		Device:                   "SDX6320031",
+		ID:                       16777216,
+		State:                    PortStateDown,
+		ChannelPerSubAlarmRaised: false,
+		Type:                     VoltPortTypeNni,
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *VoltDevice
+		wantErr bool
+	}{
+		{
+			name: "Positive_Case_GetDeviceFromPort",
+			args: args{
+				port: "16777216",
+			},
+			want:    voltDev,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				DevicesDisc: sync.Map{},
+				PortsDisc:   sync.Map{},
+			}
+			va.PortsDisc.Store("16777216", voltPort)
+			va.DevicesDisc.Store("SDX6320031", voltDev)
+			got, err := va.GetDeviceFromPort(tt.args.port)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("VoltApplication.GetDeviceFromPort() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("VoltApplication.GetDeviceFromPort() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestVoltApplication_GetPortID(t *testing.T) {
+	type args struct {
+		port string
+	}
+	voltPort := &VoltPort{
+		Name:                     "16777216",
+		Device:                   "SDX6320031",
+		ID:                       16777216,
+		State:                    PortStateDown,
+		ChannelPerSubAlarmRaised: false,
+		Type:                     VoltPortTypeNni,
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    uint32
+		wantErr bool
+	}{
+		{
+			name: "Positive_Case_GetPortID",
+			args: args{
+				port: "16777216",
+			},
+			want:    16777216,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				PortsDisc: sync.Map{},
+			}
+			va.PortsDisc.Store("16777216", voltPort)
+			got, err := va.GetPortID(tt.args.port)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("VoltApplication.GetPortID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("VoltApplication.GetPortID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestVoltApplication_GetPortName(t *testing.T) {
+	type args struct {
+		port uint32
+	}
+	voltPort := &VoltPort{
+		Name:                     "16777216",
+		Device:                   "SDX6320031",
+		ID:                       16777216,
+		State:                    PortStateDown,
+		ChannelPerSubAlarmRaised: false,
+		Type:                     VoltPortTypeNni,
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "Positive_Case_GetPortID",
+			args: args{
+				port: 16777216,
+			},
+			want:    "16777216",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				PortsDisc: sync.Map{},
+			}
+			va.PortsDisc.Store("16777216", voltPort)
+			got, err := va.GetPortName(tt.args.port)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("VoltApplication.GetPortName() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("VoltApplication.GetPortName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestVoltApplication_PortUpInd(t *testing.T) {
+	type args struct {
+		cntx   context.Context
+		device string
+		port   string
+	}
+	voltDev := &VoltDevice{
+		Name:           "SDX6320031",
+		SerialNum:      "SDX6320031",
+		NniDhcpTrapVid: 123,
+		NniPort:        "16777472",
+		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a",
+		Ports:          sync.Map{},
+		VpvsBySvlan:    util.NewConcurrentMap(),
+	}
+	voltPort := &VoltPort{
+		Name:                     "16777472",
+		Device:                   "SDX6320031",
+		ID:                       16777472,
+		State:                    PortStateUp,
+		ChannelPerSubAlarmRaised: false,
+		Type:                     VoltPortTypeNni,
+	}
+	voltServ := &VoltService{
+		VoltServiceOper: VoltServiceOper{
+			Device: "SDX6320031",
+		},
+		VoltServiceCfg: VoltServiceCfg{
+			IsActivated: true,
+		},
+	}
+	voltPortVnets := make([]*VoltPortVnet, 0)
+	voltPortVnet := &VoltPortVnet{
+		Device:           "SDX6320031",
+		Port:             "16777472",
+		DeleteInProgress: false,
+		services:         sync.Map{},
+		SVlan:            4096,
+		CVlan:            2310,
+		UniVlan:          4096,
+		SVlanTpid:        65,
+		servicesCount:    atomic.NewUint64(1),
+	}
+	voltPortVnets = append(voltPortVnets, voltPortVnet)
+
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Positive_Case_PortUpInd",
+			args: args{
+				cntx:   context.Background(),
+				port:   "16777472",
+				device: "SDX6320031",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				DevicesDisc: sync.Map{},
+				VnetsByPort: sync.Map{},
+			}
+			va.DevicesDisc.Store("SDX6320031", voltDev)
+			voltDev.Ports.Store("16777472", voltPort)
+			va.VnetsByPort.Store("16777472", voltPortVnets)
+			voltPortVnet.services.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", voltServ)
+			voltapp := GetApplication()
+			voltapp.DevicesDisc.Store("SDX6320031", voltDev)
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			va.PortUpInd(tt.args.cntx, tt.args.device, tt.args.port)
+		})
+	}
+}
+
+func TestVoltApplication_PortDownInd(t *testing.T) {
+	type args struct {
+		cntx   context.Context
+		device string
+		port   string
+	}
+	voltDev := &VoltDevice{
+		Name:           "SDX6320031",
+		SerialNum:      "SDX6320031",
+		NniDhcpTrapVid: 123,
+		NniPort:        "16777472",
+		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a",
+		Ports:          sync.Map{},
+		VpvsBySvlan:    util.NewConcurrentMap(),
+	}
+	voltPort := &VoltPort{
+		Name:                     "16777472",
+		Device:                   "SDX6320031",
+		ID:                       16777472,
+		State:                    PortStateDown,
+		ChannelPerSubAlarmRaised: false,
+		Type:                     VoltPortTypeNni,
+	}
+	voltPortVnets := make([]*VoltPortVnet, 0)
+	voltPortVnet := &VoltPortVnet{
+		Device:           "SDX6320031",
+		Port:             "16777472",
+		DeleteInProgress: false,
+		services:         sync.Map{},
+		SVlan:            4096,
+		CVlan:            2310,
+		UniVlan:          4096,
+		SVlanTpid:        65,
+		servicesCount:    atomic.NewUint64(1),
+	}
+	voltPortVnets = append(voltPortVnets, voltPortVnet)
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Positive_Case_PortDownInd",
+			args: args{
+				cntx:   context.Background(),
+				port:   "16777472",
+				device: "SDX6320031",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{}
+			va.DevicesDisc.Store("SDX6320031", voltDev)
+			voltDev.Ports.Store("16777472", voltPort)
+			va.VnetsByPort.Store("16777472", voltPortVnets)
+			voltApp := GetApplication()
+			voltApp.DevicesDisc.Store("SDX6320031", voltDev)
+			va.PortDownInd(tt.args.cntx, tt.args.device, tt.args.port)
+		})
+	}
+}
+
+func TestVoltApplication_UpdateDeviceSerialNumberList(t *testing.T) {
+	type args struct {
+		oldOltSlNo string
+		newOltSlNo string
+	}
+	voltDev := &VoltDevice{
+		Name:           "49686e2d-618f-4e8e-bca0",
+		SerialNum:      "SDX6320031",
+		NniDhcpTrapVid: 123,
+		NniPort:        "16777472",
+		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a",
+		Ports:          sync.Map{},
+		VpvsBySvlan:    util.NewConcurrentMap(),
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Positive_Case_UpdateDeviceSerialNumberList",
+			args: args{
+				oldOltSlNo: "SDX6320030",
+				newOltSlNo: "SDX6320031",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{}
+			va.DevicesDisc.Store("SDX6320031", voltDev)
+			va.UpdateDeviceSerialNumberList(tt.args.oldOltSlNo, tt.args.newOltSlNo)
 		})
 	}
 }
