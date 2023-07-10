@@ -98,6 +98,16 @@ func (sh *SubscriberHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (sh *SubscriberHandle) StatusServeHTTP(w http.ResponseWriter, r *http.Request) {
+	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
+	switch r.Method {
+	case cGet:
+		sh.GetSubscriberAndFlowProvisionStatus(context.Background(), w, r)
+	default:
+		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+	}
+}
+
 // AddSubscriberInfo to add service
 func (sh *SubscriberHandle) AddSubscriberInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	// Get the payload to process the request
@@ -281,4 +291,24 @@ func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.Respo
 
 	// HTTP response with 202 accepted for service delete request
 	w.WriteHeader(http.StatusAccepted)
+}
+
+// DelSubscriberInfo to delete service
+func (sh *SubscriberHandle) GetSubscriberAndFlowProvisionStatus(cntx context.Context, w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	portName := vars["portName"]
+	logger.Debugw(ctx, "Received-northbound-GetSubscriberProvisionStatus-request", log.Fields{"req": portName})
+	flowProvisionStatus := app.GetApplication().GetFlowProvisionStatus(cntx, portName)
+	flowProvisionStatusRes, err := json.Marshal(flowProvisionStatus)
+	if err != nil {
+		logger.Errorw(ctx, "Error occurred while marshaling flowProvisionStatus response", log.Fields{"Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	_, err = w.Write(flowProvisionStatusRes)
+	if err != nil {
+		logger.Errorw(ctx, "error in sending flowProvisionStatus response", log.Fields{"Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

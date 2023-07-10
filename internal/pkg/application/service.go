@@ -44,6 +44,18 @@ const (
 	DSLAttrEnabled string = "ENABLED"
 	// DeviceAny constant
 	DeviceAny string = "DEVICE-ANY"
+
+	ALL_FLOWS_PROVISIONED string = "ALL_FLOWS_PROVISIONED"
+
+	NO_FLOWS_PROVISIONED string = "NO_FLOWS_PROVISIONED"
+
+	FLOWS_PROVISIONED_PARTIALLY string = "FLOWS_PROVISIONED_PARTIALLY"
+
+	SUBSCRIBER_DISABLED_IN_CONTROLLER string = "DISABLED_IN_CONTROLLER"
+
+	SUBSCRIBER_NOT_IN_CONTROLLER string = "NOT_IN_CONTROLLER"
+
+	ONT_FLOWS_PROVISION_STATE_UNUSED string = "ONT_FLOWS_PROVISION_STATE_UNUSED"
 )
 
 // VoltServiceCfg structure
@@ -2028,6 +2040,49 @@ func (va *VoltApplication) GetProgrammedSubscribers(cntx context.Context, device
 		return true
 	})
 	return svcList, nil
+}
+
+type FlowProvisionStatus struct {
+	FlowProvisionStatus string
+}
+
+// GetFlowProvisionStatus to get status of the subscriber and flow provisioned in controller
+func (va *VoltApplication) GetFlowProvisionStatus(cntx context.Context, portNo string) FlowProvisionStatus {
+	logger.Infow(ctx, "GetFlowProvisionStatus Request ", log.Fields{"Port": portNo})
+	flowProvisionStatus := FlowProvisionStatus{}
+	serviceCount := 0
+	va.ServiceByName.Range(func(key, value interface{}) bool {
+		vs := value.(*VoltService)
+		logger.Debugw(ctx, "Volt Service ", log.Fields{"VS": vs})
+		serviceCount++
+		if len(portNo) > 0 {
+			if portNo == vs.Port {
+				if vs.DsHSIAFlowsApplied && vs.UsHSIAFlowsApplied && vs.LenOfPendingFlows() == 0 {
+					flowProvisionStatus.FlowProvisionStatus = ALL_FLOWS_PROVISIONED
+				} else if !vs.IsActivated {
+					flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_DISABLED_IN_CONTROLLER
+				} else if !vs.DsHSIAFlowsApplied && !vs.UsHSIAFlowsApplied {
+					flowProvisionStatus.FlowProvisionStatus = NO_FLOWS_PROVISIONED
+				} else if vs.LenOfPendingFlows() > 0 {
+					flowProvisionStatus.FlowProvisionStatus = FLOWS_PROVISIONED_PARTIALLY
+				}
+			} else {
+				flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_NOT_IN_CONTROLLER
+			}
+		}
+		return true
+	})
+	if serviceCount == 0 {
+		flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_NOT_IN_CONTROLLER
+	}
+	return flowProvisionStatus
+}
+
+func (vs *VoltService) LenOfPendingFlows() int {
+	vs.ServiceLock.RLock()
+	lth := len(vs.PendingFlows)
+	vs.ServiceLock.RUnlock()
+	return lth
 }
 
 // ActivateService to activate pre-provisioned service
