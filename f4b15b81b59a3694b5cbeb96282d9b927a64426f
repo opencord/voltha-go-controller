@@ -18,6 +18,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "edbedb1e_9d1bb994",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1134,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-17T09:32:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c675ef58_5bc7dc92",
+      "revId": "f4b15b81b59a3694b5cbeb96282d9b927a64426f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "153e66de_d0607eec",
@@ -31,6 +49,24 @@
       "writtenOn": "2023-07-10T09:03:50Z",
       "side": 1,
       "message": "we can avoid the cextra variable here.. and also in quite a bit of of other funcitons as well",
+      "revId": "f4b15b81b59a3694b5cbeb96282d9b927a64426f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "136c7549_1b9fb60c",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2035,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-17T09:32:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "153e66de_d0607eec",
       "revId": "f4b15b81b59a3694b5cbeb96282d9b927a64426f",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
