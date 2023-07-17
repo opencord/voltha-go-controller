@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "745d4352_85db6453",
+        "filename": "voltha-go-controller/onos_nbi/flowadapter.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-07-17T11:47:53Z",
+      "side": 1,
+      "message": "The error is not handled here, if there is an error in GetPendingFLows processing then error will not be returned",
+      "revId": "37f9c931c8460834e5ed6b0c919bdafa83c15174",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f2600764_eaa4e39e",
+        "filename": "voltha-go-controller/onos_nbi/flowadapter.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-07-17T11:47:53Z",
+      "side": 1,
+      "message": "Same here",
+      "revId": "37f9c931c8460834e5ed6b0c919bdafa83c15174",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
