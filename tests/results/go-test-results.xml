@@ -15,12 +15,12 @@
 
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-	<testsuite tests="343" failures="0" time="0.231" name="voltha-go-controller/internal/pkg/application">
+	<testsuite tests="444" failures="0" time="0.065" name="voltha-go-controller/internal/pkg/application">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
-			<property name="coverage.statements.pct" value="26.8"></property>
+			<property name="coverage.statements.pct" value="32.2"></property>
 		</properties>
-		<testcase classname="application" name="TestVoltApplication_RestoreNbDeviceFromDb" time="0.010"></testcase>
+		<testcase classname="application" name="TestVoltApplication_RestoreNbDeviceFromDb" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_RestoreNbDeviceFromDb/VoltApplication_RestoreNbDeviceFromDb" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_RestoreNbDeviceFromDb/VoltApplication_RestoreNbDeviceFromDb_invalid_Value_type" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_RestoreNbDeviceFromDb/VoltApplication_RestoreNbDeviceFromDb_unmarshal_error" time="0.000"></testcase>
@@ -56,7 +56,7 @@
 		<testcase classname="application" name="TestNewVoltPort/Positive_Case2_TestNewVoltPort" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltPort_SetPortID" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltPort_SetPortID/Positive_Case_TestNewVoltPort" time="0.000"></testcase>
-		<testcase classname="application" name="TestNewVoltDevice" time="0.010"></testcase>
+		<testcase classname="application" name="TestNewVoltDevice" time="0.000"></testcase>
 		<testcase classname="application" name="TestNewVoltDevice/Positive_Case_TestNewVoltDevice" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_GetAssociatedVpvsForDevice" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_GetAssociatedVpvsForDevice/Positive_Case_GetAssociatedVpvsForDevice" time="0.000"></testcase>
@@ -84,8 +84,8 @@
 		<testcase classname="application" name="TestNewNbDevice/Positive_Case_pushFlowsForUnis" time="0.000"></testcase>
 		<testcase classname="application" name="TestNbDevice_WriteToDb" time="0.000"></testcase>
 		<testcase classname="application" name="TestNbDevice_WriteToDb/Positive_Case_pushFlowsForUnis" time="0.000"></testcase>
-		<testcase classname="application" name="TestNbDevice_AddPortToNbDevice" time="0.010"></testcase>
-		<testcase classname="application" name="TestNbDevice_AddPortToNbDevice/Positive_Case_AddPortToNbDevice" time="0.010"></testcase>
+		<testcase classname="application" name="TestNbDevice_AddPortToNbDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestNbDevice_AddPortToNbDevice/Positive_Case_AddPortToNbDevice" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_AddDeviceConfig" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_AddDeviceConfig/Positive_Case_AddDeviceConfig" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_GetDeviceConfig" time="0.000"></testcase>
@@ -176,6 +176,62 @@
 		<testcase classname="application" name="TestProcessMcastFlowDelEvent/ProcessMcastFlowDelEvent" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_InitIgmpSrcMac" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_InitIgmpSrcMac/test" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_DelMeterProf" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_DelMeterProf/VoltApplication_DelMeterProf" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_DelMeterProf/GetMeterByName_!ok" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_DelMeterProf/cfg.AssociatedServices_!=_0" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_DelMeterProf/delmeterFromDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestMeterMgr_GetMeterByProfID" time="0.000"></testcase>
+		<testcase classname="application" name="TestMeterMgr_GetMeterByProfID/MeterMgr_GetMeterByProfID" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_UpdateMeterProf" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_UpdateMeterProf/VoltApplication_UpdateMeterProf" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_UpdateMeterProf/WriteToDb_error" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_AddMeterProf" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_AddMeterProf/VoltApplication_AddMeterProf" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_AddMeterProf/GetMeterByName_ok" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_AddMeterProf/WriteToDb_error" time="0.000"></testcase>
+		<testcase classname="application" name="TestMeterMgr_RestoreMetersFromDb" time="0.000"></testcase>
+		<testcase classname="application" name="TestMeterMgr_RestoreMetersFromDb/MeterMgr_RestoreMetersFromDb" time="0.000"></testcase>
+		<testcase classname="application" name="TestMeterMgr_RestoreMetersFromDb/invalid_value" time="0.000"></testcase>
+		<testcase classname="application" name="TestMeterMgr_RestoreMetersFromDb/unmarshal_error" time="0.000"></testcase>
+		<testcase classname="application" name="TestMeterMgr_AddMeterToDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestMeterMgr_AddMeterToDevice/MeterMgr_AddMeterToDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltMeter_AddToDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltMeter_AddToDevice/VoltMeter_AddToDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltMeter_AddToDevice/Gir_==_0" time="0.000"></testcase>
+		<testcase classname="application" name="TestUpdateDbData" time="0.000"></testcase>
+		<testcase classname="application" name="TestUpdateDbData/Update_Db_Data" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateServices" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateServices/updateServices" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateVpvs" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateVpvs/updateVpvs" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateVpvs/Del_error" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateMvlans" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateMvlans/updateMvlans" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateMvlans/WriteToDb_error" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateIgmpGroups" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateIgmpGroups/updateIgmpGroups" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateIgmpGroups/PutIgmpGroup_error" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateIgmpDevices" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateIgmpDevices/updateIgmpDevices" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateIgmpDevices/PutIgmpDevice_error" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateIgmpProfiles" time="0.000"></testcase>
+		<testcase classname="application" name="Test_updateIgmpProfiles/updateIgmpProfiles" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_migrateIgmpDevices" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_migrateIgmpDevices/IgmpGroup_migrateIgmpDevices" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_migrateIgmpDevices/invalid_value" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_migrateIgmpDevices/Del_error" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_migrateIgmpDevices/NewIgmpGroupDeviceFromBytes_error" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupDevice_migrateIgmpChannels" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupDevice_migrateIgmpChannels/IgmpGroupDevice_migrateIgmpChannels" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupDevice_migrateIgmpChannels/invalid_value" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupDevice_migrateIgmpChannels/Del_error" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupDevice_migrateIgmpChannels/NewIgmpGroupChannelFromBytes_error" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupChannel_migrateIgmpPorts" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupChannel_migrateIgmpPorts/IgmpGroupChannel_migrateIgmpPorts" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupChannel_migrateIgmpPorts/invalid_value" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupChannel_migrateIgmpPorts/Del_error" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupChannel_migrateIgmpPorts/NewIgmpGroupPortFromBytes_error" time="0.000"></testcase>
 		<testcase classname="application" name="TestPppoeIaPacketTask_Start" time="0.000"></testcase>
 		<testcase classname="application" name="TestPppoeIaPacketTask_Start/PppoeIaPacketTask_Start" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_ProcessPPPoEIaPacket" time="0.000"></testcase>
@@ -197,7 +253,7 @@
 		<testcase classname="application" name="TestVoltApplication_GetServiceNameFromCookie/VoltApplication_GetServiceNameFromCookie" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltService_SvcUpInd" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltService_SvcUpInd/VoltService_SvcUpInd" time="0.000"></testcase>
-		<testcase classname="application" name="TestVoltService_SvcDownInd" time="0.010"></testcase>
+		<testcase classname="application" name="TestVoltService_SvcDownInd" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltService_SvcDownInd/VoltService_SvcDownInd" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_AddService" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_AddService/VoltApplication_AddService" time="0.000"></testcase>
@@ -223,8 +279,8 @@
 		<testcase classname="application" name="TestVoltService_GetServicePbit" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltService_GetServicePbit/VoltService_GetServicePbit" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltService_GetServicePbit/!IsPbitExist" time="0.000"></testcase>
-		<testcase classname="application" name="TestVoltApplication_DeactivateService" time="0.010"></testcase>
-		<testcase classname="application" name="TestVoltApplication_DeactivateService/VoltApplication_DeactivateService" time="0.010"></testcase>
+		<testcase classname="application" name="TestVoltApplication_DeactivateService" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_DeactivateService/VoltApplication_DeactivateService" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_DeactivateService/VoltPortVnet_nil" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_DeactivateService/sVlan_!=_of.VlanNone" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_DeactivateService/GetDeviceFromPort_error" time="0.000"></testcase>
@@ -245,7 +301,7 @@
 		<testcase classname="application" name="TestVoltService_TriggerAssociatedFlowDelete" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltService_TriggerAssociatedFlowDelete/VoltService_TriggerAssociatedFlowDelete" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltService_TriggerAssociatedFlowDelete/cookieList_nil" time="0.000"></testcase>
-		<testcase classname="application" name="TestVoltApplication_DeepEqualServicecfg" time="0.010"></testcase>
+		<testcase classname="application" name="TestVoltApplication_DeepEqualServicecfg" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_DeepEqualServicecfg/VoltApplication_DeepEqualServicecfg" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_DeepEqualServicecfg/nvs.Name_!=_evs.Name" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_DeepEqualServicecfg/nvs.UniVlan_!=_evs.UniVlan" time="0.000"></testcase>
@@ -363,8 +419,53 @@
 		<testcase classname="application" name="TestVoltService_GetRemoteID/VoltService_GetRemoteID" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltService_IPAssigned" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltService_IPAssigned/VoltService_IPAssigned" time="0.000"></testcase>
+		<testcase classname="application" name="TestGetMetadataForL2Protocol" time="0.000"></testcase>
+		<testcase classname="application" name="TestGetMetadataForL2Protocol/EthernetTypeDot1QDoubleTag" time="0.000"></testcase>
+		<testcase classname="application" name="TestGetMetadataForL2Protocol/EthernetTypeQinQDoubleTag" time="0.000"></testcase>
+		<testcase classname="application" name="Test_convertToUInt64" time="0.000"></testcase>
+		<testcase classname="application" name="Test_convertToUInt64/ParseUint_error" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_JSONMarshal" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_JSONMarshal/VoltPortVnet_JSONMarshal" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_IsServiceActivated" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_IsServiceActivated/VoltPortVnet_IsServiceActivated" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltVnet_JSONMarshal" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltVnet_JSONMarshal/VoltVnet_JSONMarshal" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltVnet_TriggerAssociatedFlowDelete" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltVnet_TriggerAssociatedFlowDelete/VoltVnet_TriggerAssociatedFlowDelete" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltVnet_TriggerAssociatedFlowDelete/cookieList_empty" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_GetMatchingMcastService" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_GetMatchingMcastService/VoltApplication_GetMatchingMcastService" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_GetMatchingMcastService/dIntf_error" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_GetMatchingMcastService/port_==_d.NniPort" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_GetMatchingMcastService/vnets_error" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_IgmpFlowInstallFailure" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_IgmpFlowInstallFailure/VoltPortVnet_IgmpFlowInstallFailure" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltVnet_FlowRemoveFailure" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltVnet_FlowRemoveFailure/VoltVnet_FlowRemoveFailure" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltVnet_FlowRemoveFailure/mismatch_cookie" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltVnet_FlowRemoveSuccess" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltVnet_FlowRemoveSuccess/VoltVnet_FlowRemoveSuccess" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_FlowRemoveFailure" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_FlowRemoveFailure/VoltPortVnet_FlowRemoveFailure" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_FlowRemoveFailure/DeleteInProgress_false" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_PushFlows" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_PushFlows/VoltPortVnet_PushFlows" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_isVlanMatching" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_isVlanMatching/VoltPortVnet_isVlanMatching" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltPortVnet_isVlanMatching/vpv.VlanControl_nil" time="0.000"></testcase>
+		<testcase classname="application" name="TestProcessIcmpv6McGroup" time="0.000"></testcase>
+		<testcase classname="application" name="TestProcessIcmpv6McGroup/TestProcessIcmpv6McGroup" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltVnet_setPbitRemarking" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltVnet_setPbitRemarking/VoltVnet_setPbitRemarking" time="0.000"></testcase>
+		<testcase classname="application" name="TestBuildDSArpFlow" time="0.000"></testcase>
+		<testcase classname="application" name="TestBuildDSArpFlow/BuildDSArpFlow" time="0.000"></testcase>
+		<testcase classname="application" name="TestBuildICMPv6Flow" time="0.000"></testcase>
+		<testcase classname="application" name="TestBuildICMPv6Flow/BuildICMPv6Flow" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_DeleteDevFlowForVlanFromDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_DeleteDevFlowForVlanFromDevice/device.SerialNum_!=_deviceSerialNum" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_DeleteDevFlowForVlanFromDevice/VoltApplication_DeleteDevFlowForVlanFromDevice" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="2" failures="0" time="0.029" name="voltha-go-controller/internal/pkg/controller">
+	<testsuite tests="2" failures="0" time="0.022" name="voltha-go-controller/internal/pkg/controller">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="0.5"></property>
@@ -372,7 +473,7 @@
 		<testcase classname="controller" name="Test_isFlowOperSuccess" time="0.000"></testcase>
 		<testcase classname="controller" name="Test_isFlowOperSuccess/test" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="2" failures="0" time="0.021" name="voltha-go-controller/internal/pkg/of">
+	<testsuite tests="2" failures="0" time="0.030" name="voltha-go-controller/internal/pkg/of">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="1.1"></property>
@@ -380,7 +481,7 @@
 		<testcase classname="of" name="TestMatch_SetTableMetadata" time="0.000"></testcase>
 		<testcase classname="of" name="TestMatch_SetTableMetadata/test" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="22" failures="0" time="0.035" name="voltha-go-controller/voltha-go-controller/nbi">
+	<testsuite tests="22" failures="0" time="0.062" name="voltha-go-controller/voltha-go-controller/nbi">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="29.7"></property>
@@ -408,13 +509,13 @@
 		<testcase classname="nbi" name="TestTaskListHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestTaskListHandle_ServeHTTP/GetTaskList_invalid_input" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="22" failures="0" time="0.036" name="voltha-go-controller/voltha-go-controller/onos_nbi">
+	<testsuite tests="22" failures="0" time="0.033" name="voltha-go-controller/voltha-go-controller/onos_nbi">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="22.7"></property>
 		</properties>
-		<testcase classname="onos_nbi" name="TestDeviceConfigHandle_ServeHTTP" time="0.000"></testcase>
-		<testcase classname="onos_nbi" name="TestDeviceConfigHandle_ServeHTTP/DeviceConfigHandle_ServeHTTP" time="0.000"></testcase>
+		<testcase classname="onos_nbi" name="TestDeviceConfigHandle_ServeHTTP" time="0.010"></testcase>
+		<testcase classname="onos_nbi" name="TestDeviceConfigHandle_ServeHTTP/DeviceConfigHandle_ServeHTTP" time="0.010"></testcase>
 		<testcase classname="onos_nbi" name="TestDeviceHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestDeviceHandle_ServeHTTP/DeviceHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestDevicePortHandle_ServeHTTP" time="0.000"></testcase>
