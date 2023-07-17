@@ -100,7 +100,7 @@ func TestVoltApplication_RestoreNbDeviceFromDb(t *testing.T) {
 				test := map[string]*kvstore.KVPair{}
 				test["test_device_id"] = &kvstore.KVPair{
 					Key:   "test_device_id",
-					Value: "invalid_value",
+					Value: invalid_value,
 				}
 				dbintf.EXPECT().GetAllNbPorts(gomock.Any(), gomock.Any()).Return(test, nil).Times(1)
 				got := va.RestoreNbDeviceFromDb(tt.args.cntx, tt.args.deviceID)

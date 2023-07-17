@@ -164,7 +164,7 @@ func TestVoltApplication_RestoreSvcsFromDb(t *testing.T) {
 				kvPair := map[string]*kvstore.KVPair{}
 				kvPair["key"] = &kvstore.KVPair{
 					Key:     "test_key",
-					Value:   "invalid_value",
+					Value:   invalid_value,
 					Version: 1,
 				}
 				dbintf.EXPECT().GetServices(tt.args.cntx).Return(kvPair, nil).Times(1)
@@ -1862,7 +1862,7 @@ func TestVoltApplication_FetchAndProcessAllMigrateServicesReq(t *testing.T) {
 			kvpair := map[string]*kvstore.KVPair{}
 			kvpair["test_device_id"] = &kvstore.KVPair{
 				Key:   "test_device_id",
-				Value: "invalid_value",
+				Value: invalid_value,
 			}
 			dbintf.EXPECT().GetAllMigrateServicesReq(gomock.Any(), gomock.Any()).Return(kvpair, nil).AnyTimes()
 			va.FetchAndProcessAllMigrateServicesReq(tt.args.cntx, tt.args.device, tt.args.msrAction)
