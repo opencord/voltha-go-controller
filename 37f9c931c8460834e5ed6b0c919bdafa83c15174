@@ -33,6 +33,23 @@
       "message": "Same here",
       "revId": "37f9c931c8460834e5ed6b0c919bdafa83c15174",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fd36b527_feda1275",
+        "filename": "voltha-go-controller/onos_nbi/meters.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-07-17T11:49:04Z",
+      "side": 1,
+      "message": "same here, no error",
+      "revId": "37f9c931c8460834e5ed6b0c919bdafa83c15174",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
