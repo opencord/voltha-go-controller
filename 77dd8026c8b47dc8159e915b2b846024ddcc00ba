@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b62edddd_a7c2eb58",
+        "filename": "voltha-go-controller/nbi/bwprofile.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-07-18T12:38:52Z",
+      "side": 1,
+      "message": "this info is not required",
+      "revId": "77dd8026c8b47dc8159e915b2b846024ddcc00ba",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f1612474_d53f2a1b",
+        "filename": "voltha-go-controller/nbi/bwprofile.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-07-18T12:38:52Z",
+      "side": 1,
+      "message": "this is not required here, you can have it as debug",
+      "revId": "77dd8026c8b47dc8159e915b2b846024ddcc00ba",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "13c28f5f_214553ba",
+        "filename": "voltha-go-controller/nbi/device_info.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-07-18T12:38:52Z",
+      "side": 1,
+      "message": "do we need to pring the deviceInfoREsp here",
+      "revId": "77dd8026c8b47dc8159e915b2b846024ddcc00ba",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5a140c7d_08327903",
+        "filename": "voltha-go-controller/nbi/device_info.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-07-18T12:38:52Z",
+      "side": 1,
+      "message": "please move it to debug",
+      "revId": "77dd8026c8b47dc8159e915b2b846024ddcc00ba",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5fefa436_833b13d1",
+        "filename": "voltha-go-controller/nbi/dhcp_session.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-07-18T12:38:52Z",
+      "side": 1,
+      "message": "We need to have an info log on the request for each request made and what the request is",
+      "revId": "77dd8026c8b47dc8159e915b2b846024ddcc00ba",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f77df477_e75bf013",
+        "filename": "voltha-go-controller/nbi/dhcp_session.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-07-18T12:38:52Z",
+      "side": 1,
+      "message": "please move  this to debug",
+      "revId": "77dd8026c8b47dc8159e915b2b846024ddcc00ba",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "388e4fba_46eb542f",
+        "filename": "voltha-go-controller/nbi/get_device_id_list.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-07-18T12:38:52Z",
+      "side": 1,
+      "message": "move it to debug, here and everywhere in other files",
+      "revId": "77dd8026c8b47dc8159e915b2b846024ddcc00ba",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
