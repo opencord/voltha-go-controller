@@ -70,18 +70,19 @@ func (iph *IgmpProxyHandle) AddIgmpProxyInfo(cntx context.Context, w http.Respon
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// Unmarshal the request into service configuration structure
 	req := &IgmpProxy{}
 	if err := json.Unmarshal(d.Bytes(), req); err != nil {
-		logger.Warnw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to Unmarshal Adding Igmp Proxy Info", log.Fields{"req": req, "Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
-	logger.Debugw(ctx, "Received-northbound-add-service-request", log.Fields{"req": req})
+	logger.Infow(ctx, "Received-northbound-add-igmpProxyInfo-request", log.Fields{"req": req})
 
 	go iph.addIgmpProxy(cntx, w, req)
 }
@@ -103,11 +104,11 @@ func (iph *IgmpProxyHandle) addIgmpProxy(cntx context.Context, w http.ResponseWr
 	config.OltSerialNum = splits[0]
 	config.MvlanProfileID = "mvlan" + strconv.Itoa(req.OutgoingIgmpVlanID)
 
-	logger.Errorw(ctx, "IgmpProxy", log.Fields{"config": config})
+	logger.Infow(ctx, "northbound-add-igmpProxy-request", log.Fields{"config": config})
 
 	if err := app.GetApplication().AddMcastConfig(cntx, config.MvlanProfileID, config.IgmpProfileID,
 		config.IgmpProxyIP, config.OltSerialNum); err != nil {
-		logger.Errorw(ctx, "northbound-add-mcast-config-failed", log.Fields{"config": config, "Error": err})
+		logger.Errorw(ctx, "northbound-add-mcast-config-failed", log.Fields{"config": config, "Error": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}

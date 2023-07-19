@@ -77,18 +77,20 @@ func (mh *ProfileHandle) AddProfile(cntx context.Context, w http.ResponseWriter,
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Error reading buffer", log.Fields{"ProfileName": profileName, "Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
 
 	// Unmarshal the request into service configuration structure
 	req := &BWProfile{}
 	if err := json.Unmarshal(d.Bytes(), req); err != nil {
-		logger.Warnw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to Unmarshal Adding Profile", log.Fields{"ProfileName": profileName, "Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
-	logger.Debugw(ctx, "Received-northbound-add-meter-request", log.Fields{"req": req, "d": d.String()})
+
+	logger.Infow(ctx, "Received-northbound-add-meter-request", log.Fields{"req": req})
 	metercfg := app.VoltMeter{
 		Name: profileName,
 		Cir:  req.CommittedInformationRate,
@@ -109,6 +111,8 @@ func (mh *ProfileHandle) GetProfile(cntx context.Context, w http.ResponseWriter,
 	vars := mux.Vars(r)
 	profileName := vars["id"]
 
+	logger.Infow(ctx, "Received-northbound-get-meter-request", log.Fields{"ProfileName": profileName})
+
 	cfg, ok := app.GetApplication().GetMeterByName(profileName)
 	if !ok {
 		logger.Warnw(ctx, "Meter profile does not exist", log.Fields{"Name": profileName})
@@ -128,7 +132,7 @@ func (mh *ProfileHandle) GetProfile(cntx context.Context, w http.ResponseWriter,
 	}
 	profileRespJSON, err := json.Marshal(profileResp)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to marshal profile response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Failed to marshal profile response", log.Fields{"ProfileResp": profileResp, "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -136,33 +140,37 @@ func (mh *ProfileHandle) GetProfile(cntx context.Context, w http.ResponseWriter,
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(profileRespJSON)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to write profile response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Failed to write profile response", log.Fields{"ProfileResp": profileResp, "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Debugw(ctx, "Fetching ProfileResp from Profilename", log.Fields{"profileResp": profileResp})
 }
 
 // DelProfile to delete meter
 func (mh *ProfileHandle) DelProfile(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	profileName := vars["id"]
+	logger.Infow(ctx, "Received-northbound-del-meter-request", log.Fields{"profileName": profileName})
+
 	// TODO : Change the URL and Mux to fetch meter id from the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Error reading buffer", log.Fields{"ProfileName": profileName, "Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
 
 	req := &ProfileDelReq{}
 	if err := json.Unmarshal(d.Bytes(), req); err != nil {
-		logger.Warnw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to Unmarshal Deleting Profile", log.Fields{"ProfileName": profileName, "Req": req, "Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
-	logger.Debugw(ctx, "Received-northbound-del-meter-request", log.Fields{"req": req})
 
 	meterName := profileName
 	if err := app.GetApplication().DelMeterProf(cntx, meterName); err != nil {
-		logger.Errorw(ctx, "northbound-del-meter-failed", log.Fields{"req": req})
+		logger.Errorw(ctx, "northbound-del-meter-failed", log.Fields{"Req": req, "Error": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}

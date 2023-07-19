@@ -93,39 +93,37 @@ func (iph *MulticastHandle) AddMvlanInfo(cntx context.Context, w http.ResponseWr
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// Unmarshal the request into service configuration structure
 	req := &Mvlan{}
 	if err := json.Unmarshal(d.Bytes(), req); err != nil {
-		logger.Warnw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to Unmarshal Adding Mvlan Info", log.Fields{"req": req, "Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
-	logger.Debugw(ctx, "Received-northbound-add-service-request", log.Fields{"req": req})
+	logger.Infow(ctx, "Received-northbound-add-mvlanInfo-request", log.Fields{"req": req})
 
 	go iph.addMvlan(cntx, w, req)
 }
 
 // DelMvlanInfo to delete igmp proxy info
 func (iph *MulticastHandle) DelMvlanInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-	logger.Info(ctx, "Inside DelMvlanInfo method")
-
 	vars := mux.Vars(r)
 	egressvlan := vars["egressvlan"]
-
-	logger.Infow(ctx, "Inside DelMvlanInfo method", log.Fields{"req": egressvlan})
 
 	name := "mvlan" + egressvlan
 	// HTTP response with 202 accepted for service delete request
 	w.WriteHeader(http.StatusAccepted)
 
-	logger.Infow(ctx, "Inside DelMvlanInfo method", log.Fields{"name": name})
+	logger.Infow(ctx, "Request for DelMvlanInfo for mvlan", log.Fields{"name": name})
 	err := app.GetApplication().DelMvlanProfile(cntx, name)
 	if err != nil {
-		logger.Errorw(cntx, "Failed to delete Mvlan profile", log.Fields{"Error": err})
+		logger.Errorw(cntx, "Failed to delete Mvlan profile", log.Fields{"name": name, "Error": err.Error()})
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 }
@@ -140,6 +138,8 @@ func (iph *MulticastHandle) addMvlan(cntx context.Context, w http.ResponseWriter
 	config.PonVlan = of.VlanType(req.EgressInnerVlan)
 	config.Groups = make(map[string][]string)
 	config.Groups["default"] = groups
+
+	logger.Infow(ctx, "northbound-add-mvlan-received", log.Fields{"Config": config})
 
 	if err := app.GetApplication().AddMvlanProfile(cntx, config.Name, config.Mvlan, config.PonVlan, config.Groups,
 		config.IsChannelBasedGroup, config.OLTSerialNum,
