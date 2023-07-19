@@ -47,16 +47,30 @@ func (fh *FlowHashHandle) PutFlowHash(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	flowhash, _ := strconv.ParseUint(string(reqBody), 10, 32)
+	reqBody, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		logger.Errorw(ctx, "Failed to read put flowhash request", log.Fields{"DeviceID": id, "Error": readErr.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	flowhash, parseErr := strconv.ParseUint(string(reqBody), 10, 32)
+	if parseErr != nil {
+		logger.Errorw(ctx, "Failed to parse string to uint32", log.Fields{"device": id, "Reason": parseErr.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	if len(id) > 0 {
 		device, err := cntlr.GetController().GetDevice(id)
 		if err != nil {
-			logger.Errorw(ctx, "Failed to get device", log.Fields{"device": id})
+			logger.Errorw(ctx, "Failed to get device", log.Fields{"device": id, "Error": err.Error()})
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		device.SetFlowHash(ctx, uint32(flowhash))
+		logger.Infow(ctx, "Device flow hash", log.Fields{"Flow hash": flowhash})
 	}
 
-	logger.Debugw(ctx, "flowhash data is ", log.Fields{"vars": vars, "value": string(reqBody)})
+	logger.Debugw(ctx, "flowhash data is ", log.Fields{"vars": vars})
 }
