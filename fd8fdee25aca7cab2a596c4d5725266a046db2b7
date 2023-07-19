@@ -1,0 +1,146 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8d05b454_1f19fa34",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T08:12:07Z",
+      "side": 1,
+      "message": "Added Comments by Abhilash",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e0a740cf_c64e8050",
+        "filename": "voltha-go-controller/nbi/bwprofile.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T08:12:07Z",
+      "side": 1,
+      "message": "Comment by Abhilash \nthis info is not required",
+      "range": {
+        "startLine": 145,
+        "startChar": 1,
+        "endLine": 145,
+        "endChar": 7
+      },
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a5dc7b08_3cca08bd",
+        "filename": "voltha-go-controller/nbi/bwprofile.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T08:12:07Z",
+      "side": 1,
+      "message": "Comment by Abhilash \nthis is not required here, you can have it as debug",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a57afcd5_caa69a4e",
+        "filename": "voltha-go-controller/nbi/device_info.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T08:12:07Z",
+      "side": 1,
+      "message": "Comment by Abhilash\ndo we need to pring the deviceInfoREsp here",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bfe85f94_bd0bec57",
+        "filename": "voltha-go-controller/nbi/device_info.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T08:12:07Z",
+      "side": 1,
+      "message": "Comment by Abhilash\nplease move it to debug",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a2c450a0_81c84ff8",
+        "filename": "voltha-go-controller/nbi/dhcp_session.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T08:12:07Z",
+      "side": 1,
+      "message": "Comment by Abhilash\nWe need to have an info log on the request for each request made and what the request is",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "87c12b3f_8fe65c3d",
+        "filename": "voltha-go-controller/nbi/dhcp_session.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T08:12:07Z",
+      "side": 1,
+      "message": "Comment by Abhilash\nplease move  this to debug",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aebb1f43_6ed6faed",
+        "filename": "voltha-go-controller/nbi/get_device_id_list.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T08:12:07Z",
+      "side": 1,
+      "message": "Comment by Abhilash\nmove it to debug, here and everywhere in other files",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
