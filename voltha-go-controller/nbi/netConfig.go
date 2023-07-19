@@ -80,18 +80,19 @@ func (nch *NetConfigHandle) AddNetConfigInfo(cntx context.Context, w http.Respon
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// Unmarshal the request into Network configuration structure
 	req := &NetConfig{}
 	if err := json.Unmarshal(d.Bytes(), req); err != nil {
-		logger.Warnw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to Unmarshal Adding Network Config", log.Fields{"req": req, "Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
-	logger.Debugw(ctx, "Received-northbound-network-configuration-request", log.Fields{"req": req, "d": d.String()})
+	logger.Infow(ctx, "Received-northbound-network-configuration-request", log.Fields{"req": req})
 
 	//va := app.VoltApplication{}
 

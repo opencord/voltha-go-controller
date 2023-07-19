@@ -113,18 +113,19 @@ func (sh *SubscriberHandle) AddSubscriberInfo(cntx context.Context, w http.Respo
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
 
 	// Unmarshal the request into service configuration structure
 	req := &SubscriberDeviceInfo{}
 	if err := json.Unmarshal(d.Bytes(), req); err != nil {
-		logger.Warnw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to Unmarshal Adding Subscriber", log.Fields{"req": req, "Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
-	logger.Debugw(ctx, "Received-northbound-add-service-request", log.Fields{"req": req})
+	logger.Infow(ctx, "Received-northbound-add-service-request", log.Fields{"req": req})
 
 	//vsCfgList := getVoltServiceFromSrvInfo(req)
 
@@ -135,10 +136,10 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 	//vsCfgList := getVoltServiceFromSrvInfo(srvInfo)
 	va := app.GetApplication()
 	if len(srvInfo.UniTagList) == 0 {
-		logger.Debugw(ctx, "Received OLT configuration", log.Fields{"req": srvInfo})
+		logger.Infow(ctx, "Received OLT configuration", log.Fields{"req": srvInfo})
 		err := va.AddDeviceConfig(cntx, srvInfo.ID, srvInfo.HardwareIdentifier, srvInfo.NasID, srvInfo.IPAddress, srvInfo.UplinkPort, srvInfo.NniDhcpTrapVid)
 		if err != nil {
-			logger.Warnw(ctx, "Device config addition failed :", log.Fields{"Reason": err.Error()})
+			logger.Warnw(ctx, "Device config addition failed :", log.Fields{"req": srvInfo, "Reason": err.Error()})
 		}
 		return
 	}
@@ -165,6 +166,8 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 		vs.DsMeterProfile = uniTagInfo.DownstreamBandwidthProfile
 		vs.IgmpEnabled = uniTagInfo.IsIgmpRequired
 		vs.ServiceType = uniTagInfo.ServiceName
+
+		logger.Debugw(ctx, "", log.Fields{"ServiceName": vs.Name})
 
 		if uniTagInfo.ServiceName == app.DpuMgmtTraffic ||
 			uniTagInfo.ServiceName == app.DpuAncpTraffic ||
@@ -204,6 +207,8 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 		vnetName = vnetName + strconv.FormatUint(uint64(vs.CVlan), 10) + "-"
 		vnetName = vnetName + strconv.FormatUint(uint64(vs.UniVlan), 10)
 
+		logger.Debugw(ctx, "", log.Fields{"VnetName": vnetName})
+
 		vnetcfg := app.VnetConfig{
 			Name:              vnetName,
 			SVlan:             vs.SVlan,
@@ -242,7 +247,7 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 			logger.Errorw(ctx, "AddVnet Failed", log.Fields{"VnetName": vnetName, "Error": err})
 		}
 		if err := app.GetApplication().AddService(cntx, vs, nil); err != nil {
-			logger.Errorw(ctx, "AddService Failed", log.Fields{"Service": vs.Name, "Error": err})
+			logger.Errorw(ctx, "AddService Failed", log.Fields{"Service": vs.Name, "Error": err.Error()})
 		}
 	}
 }
@@ -252,11 +257,10 @@ func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.Respo
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	logger.Debugw(ctx, "Received-northbound-del-service-request", log.Fields{"req": id})
-
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Error reading buffer", log.Fields{"req id": id, "Reason": err.Error()})
+		w.WriteHeader(http.StatusConflict)
 		return
 	}
 
@@ -281,7 +285,7 @@ func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.Respo
 		}
 	}
 
-	logger.Warnw(ctx, "northbound-del-service-req", log.Fields{"ServiceName": id})
+	logger.Infow(ctx, "Received northbound-del-service-req", log.Fields{"ServiceName": id})
 	err := app.GetApplication().DelServiceWithPrefix(cntx, id)
 	if err != nil {
 		logger.Warnw(ctx, "northbound-del-service-req failed, Subscriber not exist", log.Fields{"ServiceName": id})
