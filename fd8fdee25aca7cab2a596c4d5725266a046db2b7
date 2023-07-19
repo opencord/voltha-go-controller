@@ -41,6 +41,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "42dcaccd_e7f37d68",
+        "filename": "voltha-go-controller/nbi/bwprofile.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T09:43:14Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "e0a740cf_c64e8050",
+      "range": {
+        "startLine": 145,
+        "startChar": 1,
+        "endLine": 145,
+        "endChar": 7
+      },
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a5dc7b08_3cca08bd",
@@ -54,6 +78,24 @@
       "writtenOn": "2023-07-19T08:12:07Z",
       "side": 1,
       "message": "Comment by Abhilash \nthis is not required here, you can have it as debug",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b0ba372e_47e47e3a",
+        "filename": "voltha-go-controller/nbi/bwprofile.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T09:43:14Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "a5dc7b08_3cca08bd",
       "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -75,6 +117,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ec9d19bd_1173c58e",
+        "filename": "voltha-go-controller/nbi/device_info.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T09:43:14Z",
+      "side": 1,
+      "message": "Yes, If any error comes during Marshalling, we can see all the parameters of deviceInfoResp and check which parameter is failing",
+      "parentUuid": "a57afcd5_caa69a4e",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bfe85f94_bd0bec57",
@@ -88,6 +148,24 @@
       "writtenOn": "2023-07-19T08:12:07Z",
       "side": 1,
       "message": "Comment by Abhilash\nplease move it to debug",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "417a260f_a2d75e58",
+        "filename": "voltha-go-controller/nbi/device_info.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T09:43:14Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "bfe85f94_bd0bec57",
       "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -109,6 +187,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "68dc985f_1d7e5b26",
+        "filename": "voltha-go-controller/nbi/dhcp_session.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T09:43:14Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "a2c450a0_81c84ff8",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "87c12b3f_8fe65c3d",
@@ -126,6 +222,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "46981a0e_d9dfe663",
+        "filename": "voltha-go-controller/nbi/dhcp_session.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T09:43:14Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "87c12b3f_8fe65c3d",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "aebb1f43_6ed6faed",
@@ -139,6 +253,24 @@
       "writtenOn": "2023-07-19T08:12:07Z",
       "side": 1,
       "message": "Comment by Abhilash\nmove it to debug, here and everywhere in other files",
+      "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0331f2c4_e270183e",
+        "filename": "voltha-go-controller/nbi/get_device_id_list.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T09:43:14Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "aebb1f43_6ed6faed",
       "revId": "fd8fdee25aca7cab2a596c4d5725266a046db2b7",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
