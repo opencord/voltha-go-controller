@@ -104,6 +104,24 @@
       "parentUuid": "f5476ead_326ec72d",
       "revId": "adc2ac4dd8b409e0389c15a668aaf73fd8a0fbce",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "67334bb4_5df28d50",
+        "filename": "voltha-go-controller/nbi/subscriber.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-07-19T09:17:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7e699c50_3af6b9d8",
+      "revId": "adc2ac4dd8b409e0389c15a668aaf73fd8a0fbce",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
