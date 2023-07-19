@@ -33,6 +33,24 @@
       "message": "print the profile name requested for",
       "revId": "3776c4cd44dfa73c25772695a568fee51e501f26",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "10b329bd_7ffe6302",
+        "filename": "voltha-go-controller/nbi/bwprofile.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-07-19T12:02:46Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "e77e490e_24b01d7d",
+      "revId": "3776c4cd44dfa73c25772695a568fee51e501f26",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
