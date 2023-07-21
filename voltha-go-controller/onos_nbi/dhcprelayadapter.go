@@ -60,16 +60,17 @@ func (dh *DhcpRelayHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (dh *DhcpRelayHandle) GetAllocations(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	deviceID := vars[DeviceID]
+	logger.Debugw(ctx, "Received Get DhcpAllocation info for device ID", log.Fields{"deviceID": deviceID})
 	Allocations, err := app.GetApplication().GetAllocations(cntx, deviceID)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to get dhcp allocations", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to get dhcp allocations", log.Fields{"deviceID": deviceID, "Reason": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	AllocRespJSON, err := json.Marshal(Allocations)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to Marshal dhcp allocation response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Failed to Marshal dhcp allocation response", log.Fields{"Allocations": Allocations, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -77,7 +78,9 @@ func (dh *DhcpRelayHandle) GetAllocations(cntx context.Context, w http.ResponseW
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(AllocRespJSON)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to write dhcp allocations response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Failed to write dhcp allocations response", log.Fields{"Allocations": Allocations, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Debugw(ctx, "Fetching DhcpAllocation info for device ID", log.Fields{"Allocations": Allocations, "deviceID": deviceID})
 }

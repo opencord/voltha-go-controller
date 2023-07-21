@@ -40,9 +40,9 @@ func init() {
 
 // ServeHTTP to serve http request
 func (gh *GroupsHandle) GroupServeHTTP(w http.ResponseWriter, r *http.Request) {
-	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	vars := mux.Vars(r)
 	groupID := vars["id"]
+	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "groupId": groupID, "URL": r.URL})
 
 	switch r.Method {
 	case cGet:
@@ -60,17 +60,17 @@ func (gh *GroupsHandle) GroupServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (gh *GroupsHandle) GetGroupInfo(cntx context.Context, groupID string, w http.ResponseWriter, r *http.Request) {
 	groupResp := GroupList{}
 	groupResp.Groups = []*GroupsInfo{}
+
 	grpID, err := strconv.ParseUint(groupID, 10, 32)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to parse string to uint32", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to parse received groupID from string to uint32", log.Fields{"groupID": groupID, "Reason": err.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	id := uint32(grpID)
-
-	logger.Infow(ctx, "Inside GetGroupInfo method", log.Fields{"groupId": id})
-
 	Groups, err := app.GetController().GetGroups(ctx, id)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to fetch group info", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to fetch group info from Device through grpID", log.Fields{"groupID": groupID, "Reason": err.Error()})
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -80,7 +80,7 @@ func (gh *GroupsHandle) GetGroupInfo(cntx context.Context, groupID string, w htt
 
 	GroupsRespJSON, err := json.Marshal(groupResp)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling group response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling group response specific to received groupID", log.Fields{"groupId": id, "GroupResp": groupResp, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -88,19 +88,20 @@ func (gh *GroupsHandle) GetGroupInfo(cntx context.Context, groupID string, w htt
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(GroupsRespJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending group response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending group response specific to received groupID", log.Fields{"groupId": id, "GroupResp": groupResp, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Debugw(ctx, "Fetching GroupInfo specific to received groupID", log.Fields{"groupId": id, "GroupResp": groupResp})
 }
 
 func (gh *GroupsHandle) GetAllGroups(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-	logger.Info(cntx, "Inside GetAllGroups method")
 	groupListResp := GroupList{}
 	groupListResp.Groups = []*GroupsInfo{}
 
 	GroupsInfo, err := app.GetController().GetGroupList()
 	if err != nil {
-		logger.Errorw(ctx, "Failed to fetch group info", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to fetch group info from VoltController Device", log.Fields{"Reason": err.Error()})
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -112,7 +113,7 @@ func (gh *GroupsHandle) GetAllGroups(cntx context.Context, w http.ResponseWriter
 
 	GroupRespJSON, err := json.Marshal(groupListResp)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling meter response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling group List response", log.Fields{"groupListResp": groupListResp, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -120,7 +121,9 @@ func (gh *GroupsHandle) GetAllGroups(cntx context.Context, w http.ResponseWriter
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(GroupRespJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending meter response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending group List response", log.Fields{"groupListResp": groupListResp, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Debugw(ctx, "Fetching All GroupInfo", log.Fields{"groupListResp": groupListResp})
 }

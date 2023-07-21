@@ -41,14 +41,13 @@ func init() {
 
 // ServeHTTP to serve http request
 func (mh *MetersHandle) MeterServeHTTP(w http.ResponseWriter, r *http.Request) {
-	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	vars := mux.Vars(r)
 	meterID := vars["id"]
 
+	logger.Infow(ctx, "Received-northbound-request ", log.Fields{"Method": r.Method, "URL": r.URL, "meterID": meterID})
 	switch r.Method {
 	case cGet:
 		if meterID != "" {
-			logger.Warnw(ctx, "Calling GetMeter method", log.Fields{"MeterId": meterID})
 			mh.GetMeter(context.Background(), meterID, w, r)
 		} else {
 			mh.GetAllMeters(context.Background(), w, r)
@@ -62,12 +61,11 @@ func (mh *MetersHandle) MeterServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mh *MetersHandle) GetMeter(cntx context.Context, meterID string, w http.ResponseWriter, r *http.Request) {
-	logger.Info(cntx, "Inside GetMeter method")
 	meterListResp := MeterList{}
 	meterListResp.Meters = []Meters{}
 	mID, err := strconv.ParseUint(meterID, 10, 32)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to parse string to uint32", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to parse meterID from string to uint32", log.Fields{"Meter ID": mID, "Reason": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -75,7 +73,7 @@ func (mh *MetersHandle) GetMeter(cntx context.Context, meterID string, w http.Re
 	logger.Infow(ctx, "Meter Id", log.Fields{"metreId": id})
 	meterInfo, err := app.GetController().GetMeterInfo(cntx, id)
 	if err != nil {
-		logger.Errorw(ctx, "Failed to get meter info", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Failed to get meter info from device with Meter Id", log.Fields{"Meter ID": mID, "Reason": err.Error()})
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -86,26 +84,28 @@ func (mh *MetersHandle) GetMeter(cntx context.Context, meterID string, w http.Re
 	}
 	MeterRespJSON, err := json.Marshal(meterListResp)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling meter response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling meter response", log.Fields{"Meter ID": mID, "MeterListResp": meterListResp, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(MeterRespJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending meter response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending meter response", log.Fields{"Meter ID": mID, "MeterListResp": meterListResp, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Debugw(ctx, "Fetch Meter Info specific to received Meter Id", log.Fields{"metreId": id, "MeterListResp": meterListResp})
 }
 
 func (mh *MetersHandle) GetAllMeters(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-	logger.Info(cntx, "Inside GetAllMeters method")
 	metersList := MeterList{}
 	metersList.Meters = []Meters{}
 	meterInfo, err := app.GetController().GetAllMeterInfo()
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get meter info", log.Fields{"Reason": err.Error()})
 		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 	for deviceID, meters := range meterInfo {
 		for _, meter := range meters {
@@ -115,14 +115,16 @@ func (mh *MetersHandle) GetAllMeters(cntx context.Context, w http.ResponseWriter
 	}
 	MeterRespJSON, err := json.Marshal(metersList)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling meter response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling meter response", log.Fields{"MetersList": metersList, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(MeterRespJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending meter response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending meter response", log.Fields{"MetersList": metersList, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Debugw(ctx, "Fetching all Meter Info from device", log.Fields{"MetersList": metersList})
 }
