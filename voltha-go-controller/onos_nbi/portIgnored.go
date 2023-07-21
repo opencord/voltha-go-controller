@@ -40,7 +40,6 @@ func (pih *PortIgnoredHandle) PortsIgnoredServeHTTP(w http.ResponseWriter, r *ht
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	switch r.Method {
 	case cGet:
-		logger.Info(ctx, "calling GetIgnoredPortsInfo handler")
 		pih.GetIgnoredPortsInfo(context.Background(), w, r)
 
 	default:
@@ -60,7 +59,7 @@ func (pih *PortIgnoredHandle) GetIgnoredPortsInfo(cntx context.Context, w http.R
 
 	PortIgnoredRespJSON, err := json.Marshal(PortIgnoredInfo)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling ignored port response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling ignored port response", log.Fields{"PortIgnoredInfo": PortIgnoredInfo, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -68,7 +67,9 @@ func (pih *PortIgnoredHandle) GetIgnoredPortsInfo(cntx context.Context, w http.R
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(PortIgnoredRespJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending ignored port response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending ignored port response", log.Fields{"PortIgnoredInfo": PortIgnoredInfo, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Debugw(ctx, "Request for get Ignored Ports Info", log.Fields{"PortIgnoredInfo": PortIgnoredInfo})
 }

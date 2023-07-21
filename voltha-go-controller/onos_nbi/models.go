@@ -792,7 +792,7 @@ func convertVoltPortToPort(voltPort *app.VoltPort) Port {
 	return port
 }
 func (gh *GroupsHandle) convertGroupsToOnosGroup(groupsInfo *of.Group) *GroupsInfo {
-	logger.Info(ctx, "Entering into convertGroupsToOnosGroup")
+	logger.Debug(ctx, "Entering into convertGroupsToOnosGroup")
 	var groups *GroupsInfo
 	var bucket []Bucket
 	Instruction := []Instructions{}
