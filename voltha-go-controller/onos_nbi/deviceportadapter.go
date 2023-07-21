@@ -52,6 +52,7 @@ func (dh *DeviceHandle) GetDeviceList(w http.ResponseWriter, r *http.Request) {
 	va := app.GetApplication()
 	var deviceListResp DeviceEntry
 	deviceListResp.Devices = []Device{}
+	logger.Info(ctx, "Received Get Device List Request")
 
 	getDeviceList := func(key, value interface{}) bool {
 		voltDevice := value.(*app.VoltDevice)
@@ -63,7 +64,7 @@ func (dh *DeviceHandle) GetDeviceList(w http.ResponseWriter, r *http.Request) {
 
 	deviceListJSON, err := json.Marshal(deviceListResp)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling device list response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling device list response", log.Fields{"DeviceListResp": deviceListResp, "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -71,9 +72,11 @@ func (dh *DeviceHandle) GetDeviceList(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(deviceListJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending deviceList response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending deviceList response", log.Fields{"DeviceListResp": deviceListResp, "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Debugw(ctx, "Fetching Device List Resp", log.Fields{"DeviceListResp": deviceListResp})
 }
 
 // ServeHTTP to serve HTTP requests
@@ -106,6 +109,7 @@ func (dh *DevicePortHandle) ServeHTTPWithDeviceID(w http.ResponseWriter, r *http
 func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	deviceID := vars["olt_of_id"]
+	logger.Infow(ctx, "Received Get Port List request for device", log.Fields{"deviceID": deviceID})
 
 	var devicePortListResp DevicePortEntry
 	devicePortListResp.Device = Device{}
@@ -118,17 +122,16 @@ func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.
 		return true
 	}
 	if len(deviceID) > 0 {
-		logger.Infow(ctx, "Received Port get request for device", log.Fields{"deviceID": deviceID})
 		voltDevice := app.GetApplication().GetDevice(deviceID)
 		if voltDevice != nil {
-			logger.Infow(ctx, "Found device", log.Fields{"deviceID": deviceID})
+			logger.Debugw(ctx, "Fetch volt device from voltApplication", log.Fields{"voltDevice": voltDevice})
 			devicePortListResp.Device = convertVoltDeviceToDevice(voltDevice)
 			voltDevice.Ports.Range(getPortList)
 		}
 	}
 	portListJSON, err := json.Marshal(devicePortListResp)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling port list response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling port list response", log.Fields{"DevicePortListResp": devicePortListResp, "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -136,9 +139,11 @@ func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(portListJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending portList response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error in sending portList response", log.Fields{"DevicePortListResp": devicePortListResp, "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Debugw(ctx, "Fetching Port List for device", log.Fields{"devicePortListResp": devicePortListResp, "deviceID": deviceID})
 }
 
 // GetPortList to get device id list
@@ -146,6 +151,7 @@ func (dh *DevicePortHandle) GetPortList(w http.ResponseWriter, r *http.Request) 
 	va := app.GetApplication()
 	var portListResp PortEntry
 	portListResp.Ports = []Port{}
+	logger.Info(ctx, "Received Get Port List")
 
 	getPortList := func(key, value interface{}) bool {
 		voltPort := value.(*app.VoltPort)
@@ -163,7 +169,7 @@ func (dh *DevicePortHandle) GetPortList(w http.ResponseWriter, r *http.Request) 
 
 	portListJSON, err := json.Marshal(portListResp)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling port list response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling port list response", log.Fields{"PortListResp": portListResp, "Error": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -171,7 +177,9 @@ func (dh *DevicePortHandle) GetPortList(w http.ResponseWriter, r *http.Request) 
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(portListJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending portList response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending portList response", log.Fields{"PortListResp": portListResp, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Debugw(ctx, "Fetching Port List ", log.Fields{"PortListResp": portListResp})
 }
