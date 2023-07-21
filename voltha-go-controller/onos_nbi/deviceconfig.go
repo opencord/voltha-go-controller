@@ -58,30 +58,32 @@ func (oh *DeviceConfigHandle) AddDeviceConfig(cntx context.Context, w http.Respo
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {
-		logger.Warnw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
 	// Unmarshal the request into device configuration structure
 	req := &app.DeviceConfig{}
 	if err := json.Unmarshal(d.Bytes(), req); err != nil {
-		logger.Warnw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
 	app.GetApplication().UpdateDeviceConfig(cntx, req)
+	logger.Debugw(ctx, "Added Device Config ", log.Fields{"Req": req})
 }
 
 func (oh *DeviceConfigHandle) FetchDeviceConfig(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-	logger.Info(cntx, "Inside FetchDeviceConfig method")
 	vars := mux.Vars(r)
 	serialNum := vars["serialNumber"]
+	logger.Infow(cntx, "Inside FetchDeviceConfig method", log.Fields{"serialNum": serialNum})
 	deviceInfo := DeviceConfigPayload{}
 	dc := app.GetApplication().GetDeviceConfig(serialNum)
 	if dc != nil {
 		deviceInfo.DeviceConfig = dc
 		oltInfoJSON, err := json.Marshal(deviceInfo)
 		if err != nil {
-			logger.Errorw(ctx, "Failed to marshal olt payload response", log.Fields{"Error": err})
+			logger.Errorw(ctx, "Failed to marshal olt payload response", log.Fields{"deviceInfo": deviceInfo, "Error": err})
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -89,8 +91,9 @@ func (oh *DeviceConfigHandle) FetchDeviceConfig(cntx context.Context, w http.Res
 		w.Header().Add("Content-Type", "application/json")
 		_, err = w.Write(oltInfoJSON)
 		if err != nil {
-			logger.Errorw(ctx, "Failed to write olt payload response", log.Fields{"Error": err})
+			logger.Errorw(ctx, "Failed to write olt payload response", log.Fields{"deviceInfo": deviceInfo, "Error": err})
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 	} else {
 		logger.Warnw(ctx, "Device not found", log.Fields{"serialNum": serialNum})
