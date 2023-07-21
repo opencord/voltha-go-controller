@@ -40,11 +40,12 @@ func init() {
 
 // ServeHTTP to serve http request
 func (mlh *MacLearnerHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
 	vars := mux.Vars(r)
 	deviceID := vars["deviceId"]
 	portNum := vars["portNumber"]
 	vlanID := vars["vlanId"]
+	logger.Infow(ctx, "Received-northbound-request ", log.Fields{"Method": r.Method, "URL": r.URL, "deviceID": deviceID, "portNum": portNum, "vlanID": vlanID})
+
 	switch r.Method {
 	case cGet:
 		if deviceID == "" && portNum == "" && vlanID == "" {
@@ -60,7 +61,6 @@ func (mlh *MacLearnerHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mlh *MacLearnerHandle) GetAllMacLearnerInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-	logger.Info(cntx, "Inside GetAllMacLearnerInfo method")
 	MacLearnerInfo, err := app.GetApplication().GetAllMacLearnerInfo()
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get mac learning info", log.Fields{"Reason": err.Error()})
@@ -70,7 +70,7 @@ func (mlh *MacLearnerHandle) GetAllMacLearnerInfo(cntx context.Context, w http.R
 
 	MliRespJSON, err := json.Marshal(MacLearnerInfo)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling mac learner response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling mac learner response", log.Fields{"MacLearnerInfo": MacLearnerInfo, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -78,13 +78,14 @@ func (mlh *MacLearnerHandle) GetAllMacLearnerInfo(cntx context.Context, w http.R
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(MliRespJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending mac learner response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending mac learner response", log.Fields{"MacLearnerInfo": MacLearnerInfo, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Debugw(ctx, "Getting All MacLearnerInfo from DHCP Networks", log.Fields{"MacLearnerInfo": MacLearnerInfo})
 }
 
 func (mlh *MacLearnerHandle) GetMacLearnerInfo(cntx context.Context, deviceID, portNum, vlanID string, w http.ResponseWriter, r *http.Request) {
-	logger.Infow(cntx, "Inside GetMacLearnerInfo method", log.Fields{"deviceID": deviceID, "portNum": portNum, "vlanId": vlanID})
 	MacLearnerInfo, err := app.GetApplication().GetMacLearnerInfo(cntx, deviceID, portNum, vlanID)
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get mac learning info", log.Fields{"Reason": err.Error()})
@@ -94,7 +95,7 @@ func (mlh *MacLearnerHandle) GetMacLearnerInfo(cntx context.Context, deviceID, p
 
 	MliRespJSON, err := json.Marshal(MacLearnerInfo)
 	if err != nil {
-		logger.Errorw(ctx, "Error occurred while marshaling mac learner response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "Error occurred while marshaling mac learner response", log.Fields{"MacLearnerInfo": MacLearnerInfo, "deviceID": deviceID, "portNum": portNum, "vlanId": vlanID, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -102,7 +103,9 @@ func (mlh *MacLearnerHandle) GetMacLearnerInfo(cntx context.Context, deviceID, p
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(MliRespJSON)
 	if err != nil {
-		logger.Errorw(ctx, "error in sending mac learner response", log.Fields{"Error": err})
+		logger.Errorw(ctx, "error in sending mac learner response", log.Fields{"MacLearnerInfo": MacLearnerInfo, "deviceID": deviceID, "portNum": portNum, "vlanId": vlanID, "Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	logger.Debugw(cntx, "Get MacLearnerInfo from DHCP Networks specific to deviceID, portNum and vlanID", log.Fields{"MacLearnerInfo": MacLearnerInfo, "deviceID": deviceID, "portNum": portNum, "vlanId": vlanID})
 }
