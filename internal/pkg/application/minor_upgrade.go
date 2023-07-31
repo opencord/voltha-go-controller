@@ -44,10 +44,10 @@ var updationMap = map[string]paramsUpdationFunc{
 
 // UpdateDbData to update database data
 func UpdateDbData(cntx context.Context, dbPath, hash string, value interface{}) error {
+	logger.Debugw(ctx, "Update Db Data", log.Fields{"DbPath": dbPath, "Hash": hash})
 	if migrationFunc, ok := updationMap[dbPath]; ok {
 		err := migrationFunc(cntx, hash, value)
 		if err != nil {
-			logger.Error(ctx, "Error in migrating data\n")
 			return errors.New("Error-in-migration")
 		}
 	}
@@ -57,6 +57,7 @@ func UpdateDbData(cntx context.Context, dbPath, hash string, value interface{}) 
 // This function modifyies the old data as per current version requirement and also
 // returns the new path on which the modified data has to be written
 func updateServices(cntx context.Context, hash string, value interface{}) error {
+	logger.Debugw(ctx, "Update Services", log.Fields{"Hash": hash})
 	param := value.(*VoltService)
 	param.VnetID = VnetKey(param.SVlan, param.CVlan, param.UniVlan)
 	return nil
@@ -65,6 +66,7 @@ func updateServices(cntx context.Context, hash string, value interface{}) error 
 // This function modifyies the old data as per current version requirement and also
 // returns the new path on which the modified data has to be written
 func updateVnets(cntx context.Context, hash string, value interface{}) error {
+	logger.Debugw(ctx, "Update Vnets", log.Fields{"Hash": hash})
 	param := value.(*VoltVnet)
 	newKey := VnetKey(param.SVlan, param.CVlan, param.UniVlan)
 	if newKey != hash {
@@ -86,6 +88,7 @@ func updateVnets(cntx context.Context, hash string, value interface{}) error {
 // This function modifyies the old data as per current version requirement and also
 // returns the new path on which the modified data has to be written
 func updateVpvs(cntx context.Context, hash string, value interface{}) error {
+	logger.Debugw(ctx, "Update Vpvs", log.Fields{"Hash": hash})
 	//var param VoltPortVnet
 	param := value.(*VoltPortVnet)
 
@@ -110,6 +113,7 @@ func updateVpvs(cntx context.Context, hash string, value interface{}) error {
 }
 
 func updateMvlans(cntx context.Context, hash string, value interface{}) error {
+	logger.Debugw(ctx, "Update Mvlans", log.Fields{"Hash": hash})
 	param := value.(*MvlanProfile)
 	if param.DevicesList == nil || len(param.DevicesList) == 0 {
 		param.DevicesList = make(map[string]OperInProgress) // Empty OLT serial number as of now since submgr won't have proper serial num
@@ -178,7 +182,7 @@ func (ig *IgmpGroup) migrateIgmpDevices(cntx context.Context) {
 				logger.Errorw(ctx, "Igmp Group Delete from DB failed", log.Fields{"Error": err, "key": key})
 			}
 			if err := UpdateDbData(cntx, database.IgmpDevicePath, key, igd); err != nil {
-				logger.Warnw(ctx, "Group Device Migration failed", log.Fields{"IGD": igd, "Error": err})
+				logger.Errorw(ctx, "Group Device Migration failed", log.Fields{"IGD": igd, "Error": err})
 			} else {
 				logger.Infow(ctx, "Group Device Migrated", log.Fields{"IGD": igd})
 			}

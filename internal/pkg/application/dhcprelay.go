@@ -138,6 +138,7 @@ func NewDhcpRelayVnet(outerVlan uint16, innerVlan uint16) *DhcpRelayVnet {
 
 // GetDhcpVnet to add dhcp vnet
 func (dn *DhcpNetworks) GetDhcpVnet(outerVlan uint16, innerVlan uint16) *DhcpRelayVnet {
+	logger.Debugw(ctx, "Get Dhcp Vnet", log.Fields{"OuterVlan": outerVlan, "InnerVlan": innerVlan})
 	comboVlan := uint32(outerVlan)<<16 + uint32(innerVlan)
 	drv, ok := dn.Networks[comboVlan]
 	if ok {
@@ -148,6 +149,7 @@ func (dn *DhcpNetworks) GetDhcpVnet(outerVlan uint16, innerVlan uint16) *DhcpRel
 
 // AddDhcpVnet to add dhcp vnet
 func (dn *DhcpNetworks) AddDhcpVnet(outerVlan uint16, innerVlan uint16) *DhcpRelayVnet {
+	logger.Debugw(ctx, "Add Dhcp Vnet", log.Fields{"OuterVlan": outerVlan, "InnerVlan": innerVlan})
 	comboVlan := uint32(outerVlan)<<16 + uint32(innerVlan)
 	if drv, ok := dn.Networks[comboVlan]; ok {
 		return drv
@@ -166,6 +168,7 @@ func NewDhcpNetworks() *DhcpNetworks {
 
 // AddDhcpSession to add dhcp session
 func (dn *DhcpNetworks) AddDhcpSession(pkt gopacket.Packet, session IDhcpRelaySession) error {
+	logger.Info(ctx, "Add Dhcp Session")
 	var key [6]byte
 	ethl := pkt.Layer(layers.LayerTypeEthernet)
 	eth, _ := ethl.(*layers.Ethernet)
@@ -186,6 +189,7 @@ func (dn *DhcpNetworks) AddDhcpSession(pkt gopacket.Packet, session IDhcpRelaySe
 
 // DelDhcpSession to delete dhcp session
 func (dn *DhcpNetworks) DelDhcpSession(pkt gopacket.Packet, session IDhcpRelaySession) {
+	logger.Info(ctx, "Delete Dhcp Session")
 	var key [6]byte
 	ethl := pkt.Layer(layers.LayerTypeEthernet)
 	eth, _ := ethl.(*layers.Ethernet)
@@ -203,9 +207,10 @@ func (dn *DhcpNetworks) DelDhcpSession(pkt gopacket.Packet, session IDhcpRelaySe
 
 // delDhcpSessions to delete dhcp sessions
 func delDhcpSessions(addr net.HardwareAddr, outervlan of.VlanType, innervlan of.VlanType, sessionKey [MaxLenDhcpv6DUID]byte) {
+	logger.Debugw(ctx, "Delete Dhcp Sessions", log.Fields{"Addr": addr, "OuterVlan": outervlan, "InnerVlan": innervlan})
 	var key [6]byte
 	if addr == nil || !NonZeroMacAddress(addr) {
-		logger.Warnw(ctx, "Invalid MAC address", log.Fields{"Addr": addr})
+		logger.Warnw(ctx, "Invalid MAC address", log.Fields{"Addr": addr, "OuterVlan": outervlan, "InnerVlan": innervlan})
 		return
 	}
 	copy(key[:], addr[0:6])
@@ -220,7 +225,7 @@ func delDhcpSessions(addr net.HardwareAddr, outervlan of.VlanType, innervlan of.
 // AddDhcp6Session to add dhcpv6 session
 func (dn *DhcpNetworks) AddDhcp6Session(key [MaxLenDhcpv6DUID]byte, session IDhcpRelaySession) error {
 	outerVlan, innerVlan := session.GetNniVlans()
-	logger.Infow(ctx, "Adding Session", log.Fields{"outerVlan": outerVlan, "innerVlan": innerVlan, "Addr": key})
+	logger.Debugw(ctx, "Adding Dhcp6 Session", log.Fields{"outerVlan": outerVlan, "innerVlan": innerVlan, "Addr": key})
 	drv := dn.AddDhcpVnet(outerVlan, innerVlan)
 	drv.sessionLock.Lock()
 	drv.sessionsv6[key] = session
@@ -231,7 +236,7 @@ func (dn *DhcpNetworks) AddDhcp6Session(key [MaxLenDhcpv6DUID]byte, session IDhc
 // DelDhcp6Session to delete dhcpv6 session
 func (dn *DhcpNetworks) DelDhcp6Session(key [MaxLenDhcpv6DUID]byte, session IDhcpRelaySession) {
 	outerVlan, innerVlan := session.GetNniVlans()
-	logger.Infow(ctx, "Get Session", log.Fields{"OuterVLAN": outerVlan, "InnerVLAN": innerVlan, "Addr": key})
+	logger.Debugw(ctx, "Delete Dhcp6 Session", log.Fields{"OuterVLAN": outerVlan, "InnerVLAN": innerVlan, "Addr": key})
 	drv := dn.GetDhcpVnet(outerVlan, innerVlan)
 	drv.sessionLock.Lock()
 	delete(drv.sessionsv6, key)
@@ -240,6 +245,7 @@ func (dn *DhcpNetworks) DelDhcp6Session(key [MaxLenDhcpv6DUID]byte, session IDhc
 
 // GetDhcpSession to get dhcp session info
 func (dn *DhcpNetworks) GetDhcpSession(outerVlan uint16, innerVlan uint16, addr net.HardwareAddr) (IDhcpRelaySession, error) {
+	logger.Debugw(ctx, "Get Dhcp Session", log.Fields{"OuterVLAN": outerVlan, "InnerVLAN": innerVlan, "Addr": addr})
 	var key [6]byte
 	if len(addr) != 6 {
 		logger.Errorw(ctx, "Invalid MAC address", log.Fields{"Addr": addr})
@@ -257,7 +263,7 @@ func (dn *DhcpNetworks) GetDhcpSession(outerVlan uint16, innerVlan uint16, addr 
 
 // GetDhcp6Session to get Dhcp6Session
 func (dn *DhcpNetworks) GetDhcp6Session(outerVlan uint16, innerVlan uint16, key [MaxLenDhcpv6DUID]byte) (IDhcpRelaySession, error) {
-	logger.Infow(ctx, "Locating Session", log.Fields{"OuterVlan": outerVlan, "InnerVlan": innerVlan, "key": key})
+	logger.Debugw(ctx, "Locating Session", log.Fields{"OuterVlan": outerVlan, "InnerVlan": innerVlan, "key": key})
 
 	drv := dn.AddDhcpVnet(outerVlan, innerVlan)
 	drv.sessionLock.RLock()
@@ -270,6 +276,7 @@ func (dn *DhcpNetworks) GetDhcp6Session(outerVlan uint16, innerVlan uint16, key 
 
 // GetVlansFromPacket to get vlans from the packet
 func GetVlansFromPacket(pkt gopacket.Packet) (innerVlan of.VlanType, outerVlan of.VlanType) {
+	logger.Debugw(ctx, "Get Vlans From Packet", log.Fields{"OuterVlan": outerVlan, "InnerVlan": innerVlan})
 	vlans := GetVlans(pkt)
 	if len(vlans) == 1 {
 		outerVlan = vlans[0]
@@ -289,7 +296,7 @@ func GetVnetForV4Nni(dhcp *layers.DHCPv4, cvlan of.VlanType, svlan of.VlanType, 
 	var err error
 	var session IDhcpRelaySession
 	var vpvList []*VoltPortVnet
-	logger.Infow(ctx, "Mac Obtained MAC: ", log.Fields{"Addr": dhcp.ClientHWAddr})
+	logger.Debugw(ctx, "Get Vnet For V4 Nni: ", log.Fields{"Addr": dhcp.ClientHWAddr})
 	session, err = dhcpNws.GetDhcpSession(uint16(svlan), uint16(cvlan), dhcp.ClientHWAddr)
 
 	if session != nil {
@@ -303,7 +310,7 @@ func GetVnetForV4Nni(dhcp *layers.DHCPv4, cvlan of.VlanType, svlan of.VlanType, 
 
 	if err == ErrSessionDoNotExist {
 		//No DHCP Session found, find matching VPV to send the packet out
-		logger.Info(ctx, "Session Doesnt Exist: Finding matching VPV")
+		logger.Warn(ctx, "Session Doesnt Exist: Finding matching VPV")
 		return GetApplication().GetVpvsForDsPkt(cvlan, svlan, dhcp.ClientHWAddr, pbit)
 	}
 	return nil, errors.New("The session retrieved of wrong type")
@@ -315,6 +322,7 @@ func GetVnetForV6Nni(dhcp *layers.DHCPv6, cvlan of.VlanType, svlan of.VlanType,
 	var err error
 	var session IDhcpRelaySession
 	var vpvList []*VoltPortVnet
+	logger.Info(ctx, "Get Vnet For V6 Nni")
 
 	var sessionKey [MaxLenDhcpv6DUID]byte
 
@@ -374,6 +382,7 @@ func getDhcpv6ClientMacAddr(dhcpv6 *layers.DHCPv6) net.HardwareAddr {
 
 // getDhcpv6ClientDUID to get Dhcpv6 client DUID
 func getDhcpv6ClientDUID(dhcpv6 *layers.DHCPv6) ([]byte, *layers.DHCPv6DUID) {
+	logger.Info(ctx, "Get Dhcp v6 Client DUID")
 	for _, option := range dhcpv6.Options {
 		logger.Debugw(ctx, "DHCPv6 Options", log.Fields{"option": option.Code})
 		if option.Code == layers.DHCPv6OptClientID {
@@ -387,11 +396,11 @@ func getDhcpv6ClientDUID(dhcpv6 *layers.DHCPv6) ([]byte, *layers.DHCPv6DUID) {
 				}
 				return option.Data[0:duidLen], duid
 			}
-			logger.Errorw(ctx, "Client DUID decode failed", log.Fields{"error": err})
+			logger.Warnw(ctx, "Client DUID decode failed", log.Fields{"error": err})
 			break
 		}
 	}
-	logger.Error(ctx, "Client DUID is not present in the packet")
+	logger.Warn(ctx, "Client DUID is not present in the packet")
 	return nil, nil
 }
 
@@ -400,6 +409,7 @@ func getDhcpv6ClientDUID(dhcpv6 *layers.DHCPv6) ([]byte, *layers.DHCPv6DUID) {
 // into the packet. This happens as the request is relayed to the
 // DHCP servers on the NNI
 func AddDhcpv4Option82(svc *VoltService, rID []byte, dhcpv4 *layers.DHCPv4) {
+	logger.Debugw(ctx, "Add Dhcp v4 Option82", log.Fields{"Addr": dhcpv4.ClientHWAddr})
 	//NOTE : both cID and rID should not be empty if this function is called
 	cID := svc.GetCircuitID()
 	var data []byte
@@ -444,6 +454,7 @@ func AddDhcpv4Option82(svc *VoltService, rID []byte, dhcpv4 *layers.DHCPv4) {
 // Once the packet is received, the option 82 is stripped off and the
 // packet is forwarded towards access
 func DelOption82(dhcpv4 *layers.DHCPv4) {
+	logger.Debugw(ctx, "Delete Dhcp v4 Option82", log.Fields{"Addr": dhcpv4.ClientHWAddr})
 	for index, option := range dhcpv4.Options {
 		if option.Type == opt82 {
 			dhcpv4.Options = append(dhcpv4.Options[0:index], dhcpv4.Options[index+1:]...)
@@ -454,6 +465,7 @@ func DelOption82(dhcpv4 *layers.DHCPv4) {
 
 // DhcpMsgType returns the DHCP message type from the packet
 func DhcpMsgType(dhcp *layers.DHCPv4) layers.DHCPMsgType {
+	logger.Debugw(ctx, "Dhcp msg type", log.Fields{"Addr": dhcp.ClientHWAddr})
 	for _, option := range dhcp.Options {
 		if option.Type == layers.DHCPOptMessageType {
 			return layers.DHCPMsgType(option.Data[0])
@@ -464,6 +476,7 @@ func DhcpMsgType(dhcp *layers.DHCPv4) layers.DHCPMsgType {
 
 // GetIpv4Addr returns the IP address in the DHCP reply
 func GetIpv4Addr(dhcp *layers.DHCPv4) (net.IP, int64) {
+	logger.Debugw(ctx, "Get Dhcp ipv4 addr", log.Fields{"Addr": dhcp.ClientHWAddr})
 	var leaseTime uint32
 	for _, opt := range dhcp.Options {
 		if opt.Type == layers.DHCPOptLeaseTime {
@@ -480,6 +493,7 @@ func GetIPv4LeaseTime(opt layers.DHCPOption) uint32 {
 
 // GetIpv6Addr returns the IPv6 address in the DHCPv6 reply
 func GetIpv6Addr(dhcp6 *layers.DHCPv6) (net.IP, uint32) {
+	logger.Debugw(ctx, "Get Dhcp ipv6 addr", log.Fields{"Addr": dhcp6.MsgType})
 	var ipv6Addr net.IP
 	var leaseTime uint32
 
@@ -495,6 +509,7 @@ func GetIpv6Addr(dhcp6 *layers.DHCPv6) (net.IP, uint32) {
 
 // GetIANAAddress returns the IPv6 address in the DHCPv6 reply
 func GetIANAAddress(dhcp6 *layers.DHCPv6) (net.IP, uint32) {
+	logger.Debugw(ctx, "Get Dhcp IANA addr", log.Fields{"Addr": dhcp6.MsgType})
 	var ipv6Addr net.IP
 	var leaseTime uint32
 	if dhcp6.MsgType == layers.DHCPv6MsgTypeReply {
@@ -518,6 +533,7 @@ func GetIANAAddress(dhcp6 *layers.DHCPv6) (net.IP, uint32) {
 
 // GetIAPDAddress returns the IPv6 address in the DHCPv6 reply
 func GetIAPDAddress(dhcp6 *layers.DHCPv6) (net.IP, uint32) {
+	logger.Debugw(ctx, "Get Dhcp IAPD addr", log.Fields{"Addr": dhcp6.MsgType})
 	var ipv6Addr net.IP
 	var leaseTime uint32
 	if dhcp6.MsgType == layers.DHCPv6MsgTypeReply {
@@ -607,7 +623,7 @@ func (va *VoltApplication) ProcessDsDhcpv4Packet(cntx context.Context, device st
 		// Create the outgoing bufer and set the checksum in the packet
 		buff := gopacket.NewSerializeBuffer()
 		if err := udp.SetNetworkLayerForChecksum(ip); err != nil {
-			logger.Error(ctx, "Error in setting checksum")
+			logger.Errorw(ctx, "Error in setting checksum", log.Fields{"Reason": err.Error()})
 			return
 		}
 		opts := gopacket.SerializeOptions{
@@ -659,7 +675,7 @@ func (va *VoltApplication) ProcessDsDhcpv4Packet(cntx context.Context, device st
 			udot1q := &layers.Dot1Q{Priority: dsPbit, VLANIdentifier: uint16(vpv.UniVlan), DropEligible: dropEligible, Type: cTagType}
 			pktLayers = append(pktLayers, udot1q)
 		default:
-			logger.Errorw(ctx, "Invalid Vlan Control Option", log.Fields{"Value": vpv.VlanControl})
+			logger.Warnw(ctx, "Invalid Vlan Control Option", log.Fields{"Value": vpv.VlanControl})
 		}
 
 		pktLayers = append(pktLayers, qVlanLayers...)
@@ -756,6 +772,7 @@ func raiseDHCPv6Indication(msgType layers.DHCPv6MsgType, vpv *VoltPortVnet,
 // ProcessUsDhcpv4Packet : The US DHCPv4 packet is identified the DHCP OP in the packet. A request is considered upstream
 // and the service associated with the packet is located by the port and VLANs in the packet
 func (va *VoltApplication) ProcessUsDhcpv4Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) {
+	logger.Infow(ctx, "Processing Southbound US DHCPv4 packet", log.Fields{"Device": device, "Port": port})
 	// We received the packet on an access port and the service for the packet can be
 	// gotten from the port and the packet
 	vpv, svc := va.GetVnetFromPkt(device, port, pkt)
@@ -778,7 +795,6 @@ func (va *VoltApplication) ProcessUsDhcpv4Packet(cntx context.Context, device st
 	udp := pkt.Layer(layers.LayerTypeUDP).(*layers.UDP)
 	dhcp4 := pkt.Layer(layers.LayerTypeDHCPv4).(*layers.DHCPv4)
 	msgType := DhcpMsgType(dhcp4)
-	logger.Infow(ctx, "Processing Southbound US DHCPv4 packet", log.Fields{"Device": device, "Port": port, "Type": msgType})
 
 	// Learn the 8021P values from the packet received
 	var priority uint8
@@ -927,6 +943,7 @@ func (va *VoltApplication) ProcessUDP4Packet(cntx context.Context, device string
 	// Currently DHCP is the only application supported by the application
 	// We check for DHCP before proceeding further. In future, this could be
 	// based on registration and the callbacks
+	logger.Debugw(ctx, "Process UDP4 Packet", log.Fields{"Device": device, "Port": port})
 	dhcpl := pkt.Layer(layers.LayerTypeDHCPv4)
 	if dhcpl == nil {
 		return
@@ -956,11 +973,11 @@ func ProcessUDP6Packet(cntx context.Context, device string, port string, pkt gop
 // additional option that identifies to the server that the DHCP packet is forwarded
 // by an LDRA node.
 func (va *VoltApplication) ProcessUDP6Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) []byte {
+	logger.Debugw(ctx, "Processing DHCPv6 packet", log.Fields{"Device": device, "Port": port})
 	dhcpl := pkt.Layer(layers.LayerTypeDHCPv6)
 	if dhcpl == nil {
 		return nil
 	}
-	logger.Infow(ctx, "Processing DHCPv6 packet", log.Fields{"Port": port})
 	dhcpv6 := dhcpl.(*layers.DHCPv6)
 	switch dhcpv6.MsgType {
 	case layers.DHCPv6MsgTypeSolicit, layers.DHCPv6MsgTypeRequest, layers.DHCPv6MsgTypeRenew,
@@ -981,7 +998,7 @@ func (va *VoltApplication) ProcessUDP6Packet(cntx context.Context, device string
 // GetRelayReplyBytes to get relay reply bytes
 func GetRelayReplyBytes(dhcp6 *layers.DHCPv6) []byte {
 	for _, o := range dhcp6.Options {
-		logger.Infow(ctx, "Received Option", log.Fields{"Code": o.Code})
+		logger.Debugw(ctx, "Received Option", log.Fields{"Code": o.Code})
 		if o.Code == layers.DHCPv6OptRelayMessage {
 			return o.Data
 		}
@@ -991,6 +1008,7 @@ func GetRelayReplyBytes(dhcp6 *layers.DHCPv6) []byte {
 
 // BuildRelayFwd to build forward relay
 func BuildRelayFwd(paddr net.IP, intfID []byte, remoteID []byte, payload []byte, isOption82Enabled bool, dhcpRelay bool) *layers.DHCPv6 {
+	logger.Debugw(ctx, "Build Relay Fwd", log.Fields{"Paddr": paddr, "isOption82Enabled": isOption82Enabled, "dhcpRelay": dhcpRelay})
 	dhcp6 := &layers.DHCPv6{MsgType: layers.DHCPv6MsgTypeRelayForward, LinkAddr: net.ParseIP("::"), PeerAddr: []byte(paddr)}
 	dhcp6.Options = append(dhcp6.Options, layers.NewDHCPv6Option(layers.DHCPv6OptRelayMessage, payload))
 	// Check IsOption82Enabled flag in configuration. if true(enabled), add remoteID and circuitID into dhcpv6 header.
@@ -1014,7 +1032,7 @@ func BuildRelayFwd(paddr net.IP, intfID []byte, remoteID []byte, payload []byte,
 func (va *VoltApplication) ProcessUsDhcpv6Packet(cntx context.Context, device string, port string, pkt gopacket.Packet) {
 	// We received the packet on an access port and the service for the packet can be
 	// gotten from the port and the packet
-	logger.Infow(ctx, "Processing Southbound US DHCPv6 packet", log.Fields{"Port": port})
+	logger.Infow(ctx, "Processing Southbound US DHCPv6 packet", log.Fields{"Device": device, "Port": port})
 	logger.Debugw(ctx, "Packet IN", log.Fields{"Pkt": hex.EncodeToString(pkt.Data())})
 	vpv, svc := va.GetVnetFromPkt(device, port, pkt)
 	if vpv == nil {
@@ -1415,10 +1433,10 @@ func (va *VoltApplication) GetAllMacLearnerInfo() ([]MacLearnerInfo, error) {
 }
 
 func (va *VoltApplication) GetMacLearnerInfo(cntx context.Context, deviceID, portNumber, vlanID string) (MacLearnerInfo, error) {
-	logger.Info(ctx, "GetMecLearnerInfo")
+	logger.Debugw(ctx, "GetMecLearnerInfo", log.Fields{"DeviceID": deviceID, "PortNumber": portNumber, "VlanID": vlanID})
 	macLearn := MacLearnerInfo{}
 	for _, drv := range dhcpNws.Networks {
-		logger.Infow(ctx, "drv found", log.Fields{"drv": drv})
+		logger.Debugw(ctx, "drv found", log.Fields{"drv": drv})
 		drv.sessionLock.RLock()
 		for _, session := range drv.sessions {
 			vpv, ok := session.(*VoltPortVnet)
@@ -1430,7 +1448,7 @@ func (va *VoltApplication) GetMacLearnerInfo(cntx context.Context, deviceID, por
 						VlanID:     vpv.SVlan.String(),
 						MacAddress: vpv.MacAddr.String(),
 					}
-					logger.Infow(ctx, "MacLerner found", log.Fields{"MacLearn": macLearn})
+					logger.Debugw(ctx, "MacLerner found", log.Fields{"MacLearn": macLearn})
 				} else if deviceID == vpv.Device && portNumber == vpv.Port && vlanID == "" {
 					macLearn = MacLearnerInfo{
 						DeviceID:   vpv.Device,
@@ -1438,7 +1456,7 @@ func (va *VoltApplication) GetMacLearnerInfo(cntx context.Context, deviceID, por
 						VlanID:     vpv.SVlan.String(),
 						MacAddress: vpv.MacAddr.String(),
 					}
-					logger.Infow(ctx, "MacLerner found", log.Fields{"MacLearn": macLearn})
+					logger.Debugw(ctx, "MacLerner found", log.Fields{"MacLearn": macLearn})
 				}
 			}
 		}
@@ -1452,10 +1470,10 @@ func (va *VoltApplication) GetIgnoredPorts() (map[string][]string, error) {
 	IgnoredPorts := make(map[string][]string)
 	portIgnored := func(key, value interface{}) bool {
 		voltDevice := value.(*VoltDevice)
-		logger.Infow(ctx, "Inside GetIgnoredPorts method", log.Fields{"deviceName": voltDevice.Name})
+		logger.Debugw(ctx, "Inside GetIgnoredPorts method", log.Fields{"deviceName": voltDevice.Name})
 		voltDevice.Ports.Range(func(key, value interface{}) bool {
 			port := key.(string)
-			logger.Infow(ctx, "Inside GetIgnoredPorts method", log.Fields{"port": port})
+			logger.Debugw(ctx, "Inside GetIgnoredPorts method", log.Fields{"port": port})
 			//Obtain all VPVs associated with the port
 			vnets, ok := GetApplication().VnetsByPort.Load(port)
 			if !ok {
@@ -1466,12 +1484,12 @@ func (va *VoltApplication) GetIgnoredPorts() (map[string][]string, error) {
 					IgnoredPorts[vpv.Device] = append(IgnoredPorts[vpv.Device], vpv.Port)
 				}
 			}
-			logger.Debugw(ctx, "Ignored Port", log.Fields{"Ignored Port": IgnoredPorts})
+			logger.Warnw(ctx, "Ignored Port", log.Fields{"Ignored Port": IgnoredPorts})
 			return true
 		})
 		return true
 	}
 	va.DevicesDisc.Range(portIgnored)
-	logger.Info(ctx, "GetIgnoredPorts completed")
+	logger.Debug(ctx, "GetIgnoredPorts completed")
 	return IgnoredPorts, nil
 }
