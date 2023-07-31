@@ -18,6 +18,7 @@ package application
 import (
 	"context"
 	"time"
+	"voltha-go-controller/log"
 )
 
 // TimerType - type of timer used
@@ -42,6 +43,7 @@ type TimerCfg struct {
 
 // Start to start timer
 func (va *VoltApplication) Start(cntx context.Context, cfg TimerCfg, timerType TimerType) {
+	logger.Infow(ctx, " Timer Starts", log.Fields{"Duration ": cfg})
 	if timerMap[timerType] {
 		logger.Warn(ctx, "Duplicate Timer!!! Timer already running")
 		return
