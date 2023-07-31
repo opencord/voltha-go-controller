@@ -18,6 +18,7 @@ package application
 import (
 	"errors"
 	"strconv"
+	"voltha-go-controller/log"
 
 	"github.com/google/gopacket/layers"
 )
@@ -35,6 +36,7 @@ const (
 
 // GetMetadataForL2Protocol - returns metadata value for provide ethertype
 func GetMetadataForL2Protocol(etherType layers.EthernetType) (uint8, error) {
+	logger.Infow(ctx, " GetMetadataForL2Protocol", log.Fields{"EtherType ": etherType})
 	switch etherType {
 	case layers.EthernetTypeDot1Q:
 		return EtherType8100, nil

@@ -100,6 +100,7 @@ type PppoeIaNetworks struct {
 
 // NewPppoeIaRelayVnet is constructor for a PppoeIa Relay Virtual network
 func NewPppoeIaRelayVnet(outerVlan uint16, innerVlan uint16) *PppoeIaRelayVnet {
+	logger.Infow(ctx, "NewPppoeIaRelayVnet", log.Fields{"OuterVlan": outerVlan, "innerVlan": innerVlan})
 	var drv PppoeIaRelayVnet
 
 	drv.OuterVlan = outerVlan
@@ -110,6 +111,7 @@ func NewPppoeIaRelayVnet(outerVlan uint16, innerVlan uint16) *PppoeIaRelayVnet {
 
 // AddPppoeIaRelayVnet add pppoeia relay vnet
 func (dn *PppoeIaNetworks) AddPppoeIaRelayVnet(outerVlan uint16, innerVlan uint16) *PppoeIaRelayVnet {
+	logger.Infow(ctx, "AddPppoeIaRelayVnet", log.Fields{"OuterVlan": outerVlan, "innerVlan": innerVlan})
 	comboVlan := uint32(outerVlan)<<16 + uint32(innerVlan)
 	if drv, ok := dn.Networks.Get(comboVlan); ok {
 		return drv.(*PppoeIaRelayVnet)
@@ -121,6 +123,7 @@ func (dn *PppoeIaNetworks) AddPppoeIaRelayVnet(outerVlan uint16, innerVlan uint1
 
 // NewPppoeIaNetworks is constructor for PppoeIa network
 func NewPppoeIaNetworks() *PppoeIaNetworks {
+	logger.Info(ctx, "NewPppoeIaNetworks")
 	var dn PppoeIaNetworks
 	dn.Networks = util.NewConcurrentMap() //make(map[uint32]*PppoeIaRelayVnet)
 	return &dn
@@ -128,6 +131,7 @@ func NewPppoeIaNetworks() *PppoeIaNetworks {
 
 // AddPppoeIaSession to add pppoeia session
 func (dn *PppoeIaNetworks) AddPppoeIaSession(pkt gopacket.Packet, session IPppoeIaSession) {
+	logger.Info(ctx, "AddPppoeIaSession")
 	var key [6]byte
 	ethl := pkt.Layer(layers.LayerTypeEthernet)
 	eth, _ := ethl.(*layers.Ethernet)
@@ -139,6 +143,7 @@ func (dn *PppoeIaNetworks) AddPppoeIaSession(pkt gopacket.Packet, session IPppoe
 
 // DelPppoeIaSession to delete pppoeia session
 func (dn *PppoeIaNetworks) DelPppoeIaSession(pkt gopacket.Packet, session IPppoeIaSession) {
+	logger.Info(ctx, "DelPppoeIaSession")
 	var key [6]byte
 	ethl := pkt.Layer(layers.LayerTypeEthernet)
 	eth, _ := ethl.(*layers.Ethernet)
@@ -154,6 +159,7 @@ func (dn *PppoeIaNetworks) DelPppoeIaSession(pkt gopacket.Packet, session IPppoe
 
 // delPppoeIaSessions to delete pppoeia sessions
 func delPppoeIaSessions(addr net.HardwareAddr, outervlan of.VlanType, innervlan of.VlanType) {
+	logger.Infow(ctx, "delPppoeIaSessions", log.Fields{"Addr": addr, "OuterVlan": outervlan, "innerVlan": innervlan})
 	var key [6]byte
 	if addr == nil || !NonZeroMacAddress(addr) {
 		logger.Warnw(ctx, "Invalid MAC address", log.Fields{"Addr": addr})
@@ -162,11 +168,12 @@ func delPppoeIaSessions(addr net.HardwareAddr, outervlan of.VlanType, innervlan 
 	copy(key[:], addr[0:6])
 	drv := pppoeIaNws.AddPppoeIaRelayVnet(uint16(outervlan), uint16(innervlan))
 	drv.sessions.Remove(key)
-	logger.Infow(ctx, "PppoeIa Sessions deleted", log.Fields{"MAC": addr})
+	logger.Debugw(ctx, "PppoeIa Sessions deleted", log.Fields{"MAC": addr})
 }
 
 // GetPppoeIaSession to get pppoeia sessions
 func (dn *PppoeIaNetworks) GetPppoeIaSession(outerVlan uint16, innerVlan uint16, addr net.HardwareAddr) (IPppoeIaSession, error) {
+	logger.Infow(ctx, "GetPppoeIaSession", log.Fields{"Addr": addr, "OuterVlan": outerVlan, "innerVlan": innerVlan})
 	var key [6]byte
 	if len(addr) != 6 {
 		logger.Errorw(ctx, "Invalid MAC address", log.Fields{"Addr": addr})
@@ -185,7 +192,7 @@ func (dn *PppoeIaNetworks) GetPppoeIaSession(outerVlan uint16, innerVlan uint16,
 func GetVnetForNni(addr net.HardwareAddr, cvlan of.VlanType, svlan of.VlanType, pbit uint8) (*VoltPortVnet, error) {
 	var err error
 	var session IPppoeIaSession
-	logger.Infow(ctx, "Mac Obtained MAC: ", log.Fields{"Addr": addr})
+	logger.Infow(ctx, "GetVnetForNni, Mac Obtained MAC: ", log.Fields{"Addr": addr})
 	if session, err = pppoeIaNws.GetPppoeIaSession(uint16(svlan), uint16(cvlan), addr); err != nil {
 		logger.Errorw(ctx, "PPPoE Session retrieval failed", log.Fields{"Error": err})
 		if err == ErrSessionDoNotExist {
@@ -219,6 +226,7 @@ func AddIaOption(svc *VoltService, pppoe *layers.PPPoE) {
 	var data []byte
 	cID := svc.GetCircuitID()
 	rID := svc.RemoteID
+	logger.Infow(ctx, "AddIaOption", log.Fields{"cID": cID, "rID": rID})
 
 	if len(cID) != 0 || len(rID) != 0 || svc.isDataRateAttrPresent() {
 		data = append(data, DSLATTRVendorID...)
@@ -264,6 +272,7 @@ func AddIaOption(svc *VoltService, pppoe *layers.PPPoE) {
 
 // DelIaOption for deletion of IA option from the packet received on the NNI interface.
 func DelIaOption(pppoe *layers.PPPoE) {
+	logger.Info(ctx, "DelIaOption")
 	for index, option := range pppoe.Options {
 		if option.Type == layers.PPPoEOptVendorSpecific {
 			pppoe.Options = append(pppoe.Options[0:index], pppoe.Options[index+1:]...)
@@ -284,7 +293,7 @@ func (va *VoltApplication) ProcessDsPppoeIaPacket(cntx context.Context, device s
 	eth := pkt.Layer(layers.LayerTypeEthernet).(*layers.Ethernet)
 	pppoe := pkt.Layer(layers.LayerTypePPPoE).(*layers.PPPoE)
 
-	logger.Infow(ctx, "Processing Southbound DS PppoeIa packet", log.Fields{"Port": port, "Type": pppoe.Code})
+	logger.Infow(ctx, "Processing Southbound DS PppoeIa packet", log.Fields{"Device": device, "Port": port, "Type": pppoe.Code})
 
 	// Retrieve the priority and drop eligible flags from the
 	// packet received
@@ -391,6 +400,7 @@ func (va *VoltApplication) ProcessDsPppoeIaPacket(cntx context.Context, device s
 // ProcessUsPppoeIaPacket : The US PppoeIa packet is identified the PppoeIa OP in the packet. A request is considered upstream
 // and the service associated with the packet is located by the port and VLANs in the packet
 func (va *VoltApplication) ProcessUsPppoeIaPacket(cntx context.Context, device string, port string, pkt gopacket.Packet) {
+	logger.Infow(ctx, "Processing Southbound US PppoeIa packet", log.Fields{"Device": device, "Port": port})
 	// We received the packet on an access port and the service for the packet can be
 	// gotten from the port and the packet
 	vpv, svc := va.GetVnetFromPkt(device, port, pkt)
@@ -414,7 +424,7 @@ func (va *VoltApplication) ProcessUsPppoeIaPacket(cntx context.Context, device s
 	eth := pkt.Layer(layers.LayerTypeEthernet).(*layers.Ethernet)
 	pppoe := pkt.Layer(layers.LayerTypePPPoE).(*layers.PPPoE)
 	msgType := pppoe.Code
-	logger.Infow(ctx, "Processing Southbound US PppoeIa packet", log.Fields{"Device": device, "Port": port, "Type": pppoe.Code})
+	logger.Debugw(ctx, "Processing Southbound US PppoeIa packet", log.Fields{"Device": device, "Port": port, "Type": pppoe.Code})
 
 	AddIaOption(svc, pppoe)
 
@@ -517,6 +527,7 @@ func (va *VoltApplication) ProcessUsPppoeIaPacket(cntx context.Context, device s
 
 // ProcessPPPoEIaPacket to process Pppoeia packet
 func (va *VoltApplication) ProcessPPPoEIaPacket(cntx context.Context, device string, port string, pkt gopacket.Packet) {
+	logger.Infow(ctx, "Processing PPPoEIa packet", log.Fields{"Device": device, "Port": port})
 	// Make some error checks before proceeding
 	pppoel := pkt.Layer(layers.LayerTypePPPoE)
 	if pppoel == nil {
@@ -548,6 +559,7 @@ func (va *VoltApplication) ProcessPPPoEIaPacket(cntx context.Context, device str
 
 // ProcessPPPoEPacket to process Pppoe packet
 func (va *VoltApplication) ProcessPPPoEPacket(device string, port string, pkt gopacket.Packet) {
+	logger.Infow(ctx, "Processing PPPoE packet", log.Fields{"Device": device, "Port": port})
 	dpt := NewPppoeIaPacketTask(pkt, device, port)
 	va.pppoeTasks.AddTask(dpt)
 }
@@ -577,6 +589,7 @@ type PppoeIaPacketTask struct {
 
 // NewPppoeIaPacketTask constructor for PppoeIaPacketTask
 func NewPppoeIaPacketTask(pkt gopacket.Packet, dev string, port string) *PppoeIaPacketTask {
+	logger.Infow(ctx, "New PPPoEIa packet", log.Fields{"Device": dev, "Port": port})
 	var dpt PppoeIaPacketTask
 	dpt.pkt = pkt
 	dpt.device = dev
@@ -606,6 +619,7 @@ func (dpt *PppoeIaPacketTask) Stop() {
 
 // Start to start PppoeIaPacketTask
 func (dpt *PppoeIaPacketTask) Start(ctx context.Context, taskID uint8) error {
+	logger.Infow(ctx, "Start PPPoEIa task", log.Fields{"TaskID": taskID})
 	dpt.taskID = taskID
 	dpt.ctx = ctx
 	GetApplication().ProcessPPPoEIaPacket(ctx, dpt.device, dpt.port, dpt.pkt)

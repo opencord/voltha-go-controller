@@ -93,12 +93,12 @@ func checkDhcpTimeout() {
 
 // dhcpRequestReceived called for every DHCP request received from client.
 func dhcpRequestReceived(cTag, sTag uint16, smac string) {
+	logger.Infow(ctx, "Dhcp Request Received", log.Fields{"ctag": cTag, "stag": sTag, "smac": smac})
 	var dtInfo dhcpTransactionInfo
 	var valueExist bool
 	dsTag := newDhcpServerTag(cTag, sTag)
 
 	mux.Lock()
-	logger.Debugw(ctx, "dhcpRequestReceived", log.Fields{"ctag": cTag, "stag": sTag, "smac": smac})
 	if dtInfo, valueExist = dhcpServerInfo[dsTag]; !valueExist {
 		dtInfo = newDhcpTransactionInfo(dhcpTimeout, smac)
 		dtInfo.incrementPendingRequestCount()
@@ -117,12 +117,12 @@ func dhcpRequestReceived(cTag, sTag uint16, smac string) {
 
 // dhcpResponseReceived called for every DHCP response received from dhcp server.
 func dhcpResponseReceived(cTag, sTag uint16) {
+	logger.Infow(ctx, "Dhcp Response Received", log.Fields{"ctag": cTag, "stag": sTag})
 	var dtInfo dhcpTransactionInfo
 	var valueExist bool
 	dsTag := newDhcpServerTag(cTag, sTag)
 
 	mux.Lock()
-	logger.Debugw(ctx, "dhcpResponseReceived", log.Fields{"ctag": cTag, "stag": sTag})
 	if dtInfo, valueExist = dhcpServerInfo[dsTag]; !valueExist {
 		logger.Warnw(ctx, "Ignore unknown response", log.Fields{"DhcpResp": dsTag})
 		mux.Unlock()

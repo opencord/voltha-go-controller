@@ -108,7 +108,7 @@ func (vm *VoltMeter) DelFromDb(cntx context.Context) {
 // GetMeterByName to get meter by name
 func (m *MeterMgr) GetMeterByName(name string) (*VoltMeter, bool) {
 	meter, ok := m.Meters.Load(name)
-	logger.Infow(ctx, "Meter Obtained Name", log.Fields{"Meter": meter})
+	logger.Infow(ctx, "Meter Obtained Name", log.Fields{"Name": name, "Meter": meter})
 	if ok {
 		return meter.(*VoltMeter), ok
 	}
@@ -118,7 +118,7 @@ func (m *MeterMgr) GetMeterByName(name string) (*VoltMeter, bool) {
 // GetMeterByID to get meter by ID
 func (m *MeterMgr) GetMeterByID(id uint32) (*VoltMeter, bool) {
 	meter, ok := m.MetersByID.Load(id)
-	logger.Infow(ctx, "Meter Obtained ID", log.Fields{"Meter": meter})
+	logger.Infow(ctx, "GetMeter Obtained ID", log.Fields{"ID": id, "Meter": meter})
 	if ok {
 		return meter.(*VoltMeter), ok
 	}
@@ -127,21 +127,23 @@ func (m *MeterMgr) GetMeterByID(id uint32) (*VoltMeter, bool) {
 
 // AddMeter to add meter
 func (m *MeterMgr) AddMeter(meter *VoltMeter) {
+	logger.Infow(ctx, "Received Add Meter", log.Fields{"Meter": meter})
 	m.Meters.Store(meter.Name, meter)
 	m.MetersByID.Store(meter.ID, meter)
-	logger.Infow(ctx, "Meter Added/Updated", log.Fields{"Meter": meter, "Name": meter.Name, "Id": meter.ID})
+	logger.Debugw(ctx, "Meter Added/Updated", log.Fields{"Meter": meter, "Name": meter.Name, "Id": meter.ID})
 }
 
 // DelMeter to delete meter
 func (m *MeterMgr) DelMeter(meter *VoltMeter) {
+	logger.Infow(ctx, "Received Delete Meter", log.Fields{"Meter": meter})
 	m.Meters.Delete(meter.Name)
 	m.MetersByID.Delete(meter.ID)
-	logger.Infow(ctx, "Meter Deleted", log.Fields{"Meter": meter, "Name": meter.Name, "Id": meter.ID})
+	logger.Debugw(ctx, "Meter Deleted", log.Fields{"Meter": meter, "Name": meter.Name, "Id": meter.ID})
 }
 
 // AddToDevice to add meter to the device
 func (vm *VoltMeter) AddToDevice(port string, device string, aggVM *VoltMeter) {
-	logger.Debugw(ctx, "Adding Meter To Device", log.Fields{"Id": vm.ID, "Device": device, "Port": port})
+	logger.Infow(ctx, "Add To Device", log.Fields{"Id": vm.ID, "Device": device, "Port": port})
 	meter := of.NewMeter(vm.ID)
 	// meter.AddBand(vm.Air, vm.BurstSize)
 	// meter.AddBand(vm.Eir, vm.BurstSize)
@@ -201,6 +203,7 @@ func (vm *VoltMeter) AddToDevice(port string, device string, aggVM *VoltMeter) {
 
 // AddMeterToDevice to add meter to the device
 func (m *MeterMgr) AddMeterToDevice(port string, device string, meterID uint32, aggMeterID uint32) {
+	logger.Infow(ctx, "Adding Meter To Device", log.Fields{"Agg MeterID": aggMeterID, "Device": device, "Port": port, "MeterID": meterID})
 	var aggVM *VoltMeter
 	vm, err := m.GetMeterByProfID(meterID)
 	if err == nil {
@@ -218,7 +221,7 @@ func (m *MeterMgr) AddMeterToDevice(port string, device string, meterID uint32, 
 // RestoreMetersFromDb to read from the DB and restore all the services
 func (m *MeterMgr) RestoreMetersFromDb(cntx context.Context) {
 	// VNETS must be learnt first
-	logger.Infow(ctx, "LastMeterID on restart", log.Fields{"LastMeterID": m.LastMeterID})
+	logger.Infow(ctx, "Received RestoreMetersFromDb and LastMeterID on restart", log.Fields{"LastMeterID": m.LastMeterID})
 	ms, _ := db.GetMeters(cntx)
 	for _, mt := range ms {
 		b, ok := mt.Value.([]byte)
@@ -232,17 +235,18 @@ func (m *MeterMgr) RestoreMetersFromDb(cntx context.Context) {
 			logger.Warn(ctx, "Unmarshal of meter profile failed")
 			continue
 		}
-		logger.Infow(ctx, "Retrieved Meter", log.Fields{"Meter": meter.Name})
+		logger.Debugw(ctx, "Retrieved Meter", log.Fields{"Meter": meter.Name})
 		m.AddMeter(&meter)
 		if meter.ID > m.LastMeterID {
 			m.LastMeterID = meter.ID
 		}
 	}
-	logger.Infow(ctx, "LastMeterID on reading DB", log.Fields{"LastMeterID": m.LastMeterID})
+	logger.Debugw(ctx, "LastMeterID on reading DB", log.Fields{"LastMeterID": m.LastMeterID})
 }
 
 // AddMeterProf to add the meter profile name as key
 func (va *VoltApplication) AddMeterProf(cntx context.Context, cfg VoltMeter) {
+	logger.Infow(ctx, "Add the meter profile name as key", log.Fields{"MeterConfig": cfg})
 	mm := &va.MeterMgr
 	if _, ok := mm.GetMeterByName(cfg.Name); ok {
 		logger.Warnw(ctx, "Meter profile exists", log.Fields{"Name": cfg.Name})
@@ -263,6 +267,7 @@ func (va *VoltApplication) AddMeterProf(cntx context.Context, cfg VoltMeter) {
 
 // UpdateMeterProf to update the meter profile
 func (va *VoltApplication) UpdateMeterProf(cntx context.Context, cfg VoltMeter) {
+	logger.Infow(ctx, "Update the meter profile name as key", log.Fields{"MeterConfig": cfg})
 	mm := &va.MeterMgr
 	if _, ok := mm.GetMeterByName(cfg.Name); !ok {
 		logger.Warnw(ctx, "Meter profile does not exist", log.Fields{"Name": cfg.Name})
@@ -277,6 +282,7 @@ func (va *VoltApplication) UpdateMeterProf(cntx context.Context, cfg VoltMeter) 
 // GetMeterByProfID to get a meter based on the identities of bandwidth profile and shaper
 // profile names.
 func (m *MeterMgr) GetMeterByProfID(id uint32) (*VoltMeter, error) {
+	logger.Infow(ctx, "Get Meter by Profile id", log.Fields{"ID": id})
 	if mtr, ok := m.GetMeterByID(id); ok {
 		return mtr, nil
 	}
@@ -286,6 +292,7 @@ func (m *MeterMgr) GetMeterByProfID(id uint32) (*VoltMeter, error) {
 // GetMeter to get a meter based on the identities of bandwidth profile and shaper
 // profile names.
 func (m *MeterMgr) GetMeter(meterID string) (*VoltMeter, error) {
+	logger.Infow(ctx, "Get Meter by Meter id", log.Fields{"MeterID": meterID})
 	if mt, ok := m.GetMeterByName(meterID); ok {
 		return mt, nil
 	}
@@ -294,6 +301,7 @@ func (m *MeterMgr) GetMeter(meterID string) (*VoltMeter, error) {
 
 // DeleteFromDevice to delete meter from the device
 func (vm *VoltMeter) DeleteFromDevice(port string, device string) {
+	logger.Infow(ctx, "Delete meter from device", log.Fields{"Id": vm.ID, "Port": port, "Device": device})
 	meter := of.NewMeter(vm.ID)
 
 	logger.Debugw(ctx, "Delete meter from device", log.Fields{"Id": vm.ID, "meter": *meter})
@@ -304,6 +312,7 @@ func (vm *VoltMeter) DeleteFromDevice(port string, device string) {
 
 // DelMeterProf to delete meter profile
 func (va *VoltApplication) DelMeterProf(cntx context.Context, name string) error {
+	logger.Infow(ctx, "Delete meter profile", log.Fields{"Name": name})
 	mm := &va.MeterMgr
 	if _, ok := mm.GetMeterByName(name); !ok {
 		logger.Warnw(ctx, "Meter profile does not exist", log.Fields{"Name": name})
