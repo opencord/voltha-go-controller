@@ -42,11 +42,13 @@ var voltPort = &VoltPort{
 	Device: test_device,
 }
 var voltDevice = &VoltDevice{
-	Name:            "test_name",
-	State:           controller.DeviceStateUP,
-	FlowAddEventMap: util.NewConcurrentMap(),
-	FlowDelEventMap: util.NewConcurrentMap(),
-	SerialNum:       "test_serial_number",
+	Name:                         "test_name",
+	State:                        controller.DeviceStateUP,
+	FlowAddEventMap:              util.NewConcurrentMap(),
+	FlowDelEventMap:              util.NewConcurrentMap(),
+	SerialNum:                    "test_serial_number",
+	ConfiguredVlanForDeviceFlows: util.NewConcurrentMap(),
+	NniPort:                      "16777216",
 }
 
 var voltMeter = &VoltMeter{

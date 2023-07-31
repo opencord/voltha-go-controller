@@ -22,6 +22,7 @@ import (
 	"reflect"
 	"sync"
 	"testing"
+	"time"
 	"voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/internal/pkg/intf"
 	"voltha-go-controller/internal/pkg/of"
@@ -2694,6 +2695,244 @@ func TestVoltApplication_UpdateDeviceSerialNumberList(t *testing.T) {
 			va := &VoltApplication{}
 			va.DevicesDisc.Store("SDX6320031", voltDev)
 			va.UpdateDeviceSerialNumberList(tt.args.oldOltSlNo, tt.args.newOltSlNo)
+		})
+	}
+}
+
+func TestVoltApplication_DeleteMacInPortMap(t *testing.T) {
+	type args struct {
+		macAddr net.HardwareAddr
+	}
+
+	macAdd, _ := net.ParseMAC("ff:ff:ff:ff:ff:ff")
+	macPort := map[string]string{}
+	macPort[macAdd.String()] = test_data
+
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Positive_Case_DeleteMacInPortMap",
+			args: args{
+				macAddr: macAdd,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				macPortMap: macPort,
+			}
+			va.DeleteMacInPortMap(tt.args.macAddr)
+		})
+	}
+}
+
+func TestVoltApplication_TriggerPendingServiceDeactivateReq(t *testing.T) {
+	type args struct {
+		cntx   context.Context
+		device string
+	}
+	ServicesDeactivate := map[string]bool{}
+	ServicesDeactivate["SDX6320031-1_SDX6320031-1-4096-2310-4096-65"] = true
+	voltServ := &VoltService{
+		VoltServiceOper: VoltServiceOper{
+			Device: "SDX6320031",
+		},
+		VoltServiceCfg: VoltServiceCfg{
+			Name:          "SDX6320031-1_SDX6320031-1-4096-2310-4096-65",
+			SVlan:         4096,
+			CVlan:         2310,
+			UniVlan:       4096,
+			Port:          "16777472",
+			TechProfileID: 65,
+		},
+	}
+
+	voltPortVnets := make([]*VoltPortVnet, 0)
+	voltPortVnet := &VoltPortVnet{
+		Device:           "SDX6320031",
+		Port:             "16777472",
+		DeleteInProgress: false,
+		services:         sync.Map{},
+		SVlan:            4096,
+		CVlan:            2310,
+		UniVlan:          4096,
+		SVlanTpid:        65,
+		servicesCount:    atomic.NewUint64(1),
+	}
+
+	voltPortVnets = append(voltPortVnets, voltPortVnet)
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Positive_Case_DeleteMacInPortMap",
+			args: args{
+				cntx:   context.Background(),
+				device: "SDX6320031",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				ServicesToDeactivate: ServicesDeactivate,
+				ServiceByName:        sync.Map{},
+				VnetsByPort:          sync.Map{},
+			}
+			va.ServiceByName.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", voltServ)
+			va.VnetsByPort.Store("16777472", voltPortVnets)
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			va.TriggerPendingServiceDeactivateReq(tt.args.cntx, tt.args.device)
+		})
+	}
+}
+
+func TestVoltApplication_ReadAllFromDb(t *testing.T) {
+	type args struct {
+		cntx context.Context
+	}
+
+	migrationInfo := "migration done"
+	deviceConfig := DeviceConfig{
+		SerialNumber:       "SDX6320031",
+		UplinkPort:         "16777472",
+		HardwareIdentifier: "0.0.0.0",
+		IPAddress:          "127.26.1.74",
+		NasID:              "12345",
+		NniDhcpTrapVid:     123,
+	}
+
+	voltVnet := &VoltVnet{
+		Version: "v3",
+		VnetConfig: VnetConfig{
+			Name:      "2310-4096-4096",
+			VnetType:  "Encapsulation",
+			SVlan:     2310,
+			CVlan:     4096,
+			UniVlan:   4096,
+			SVlanTpid: 33024,
+		},
+
+		VnetOper: VnetOper{
+			PendingDeviceToDelete: "SDX6320031",
+			DeleteInProgress:      true,
+		},
+	}
+
+	cuncurrentMap := &util.ConcurrentMap{
+		Count: atomic.NewUint64(0),
+	}
+
+	vnetToDelete := map[string]bool{}
+	vnetToDelete["2310-4096-4096"] = true
+	macAdd, _ := net.ParseMAC("ff:ff:ff:ff:ff:ff")
+	voltPortVnet := &VoltPortVnet{
+		Device:           "SDX6320031",
+		Port:             "16777472",
+		DeleteInProgress: true,
+		MacAddr:          macAdd,
+	}
+
+	macPortMap := map[string]string{}
+	voltPortVnetsToDelete := map[*VoltPortVnet]bool{}
+	voltPortVnetsToDelete[voltPortVnet] = true
+	macPortMap[macAdd.String()] = "16777472"
+
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Positive_Case_ReadAllFromDb",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				VnetsBySvlan:          util.NewConcurrentMap(),
+				VnetsToDelete:         vnetToDelete,
+				macPortMap:            macPortMap,
+				VoltPortVnetsToDelete: voltPortVnetsToDelete,
+				VnetsByName:           sync.Map{},
+			}
+
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().GetMeters(gomock.Any()).AnyTimes()
+			vnet, _ := json.Marshal(voltVnet)
+			voltVnets := map[string]*kvstore.KVPair{}
+			voltVnets["2310-4096-4096"] = &kvstore.KVPair{
+				Key:   "2310-4096-4096",
+				Value: vnet,
+			}
+
+			va.VnetsBySvlan.Set(of.VlanAny, cuncurrentMap)
+			dbintf.EXPECT().GetVnets(gomock.Any()).AnyTimes().Return(voltVnets, nil).AnyTimes()
+			dbintf.EXPECT().PutVnet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil).AnyTimes()
+			vpvs, _ := json.Marshal(voltPortVnet)
+			voltPort := map[string]*kvstore.KVPair{}
+			voltPort["16777472"] = &kvstore.KVPair{
+				Key:   "16777472",
+				Value: vpvs,
+			}
+			va.VnetsByName.Store("2310-4096-4096", voltVnet)
+			dbintf.EXPECT().GetVpvs(gomock.Any()).AnyTimes().Return(voltPort, nil).AnyTimes()
+			dbintf.EXPECT().GetServices(gomock.Any()).AnyTimes()
+			dbintf.EXPECT().GetMvlans(gomock.Any()).AnyTimes()
+			dbintf.EXPECT().GetIgmpProfiles(gomock.Any()).AnyTimes()
+			dbintf.EXPECT().GetMcastConfigs(gomock.Any()).AnyTimes()
+			dbintf.EXPECT().GetIgmpGroups(gomock.Any()).AnyTimes()
+			dbintf.EXPECT().GetMigrationInfo(gomock.Any()).Return(migrationInfo, nil).AnyTimes()
+			dbintf.EXPECT().GetOltFlowService(gomock.Any()).AnyTimes()
+			b, _ := json.Marshal(deviceConfig)
+			test := map[string]*kvstore.KVPair{}
+			test["SDX6320031"] = &kvstore.KVPair{
+				Key:   "SDX6320031",
+				Value: b,
+			}
+			dbintf.EXPECT().GetDeviceConfig(gomock.Any()).Return(test, nil).AnyTimes()
+			dbintf.EXPECT().PutDeviceConfig(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			va.ReadAllFromDb(tt.args.cntx)
+		})
+	}
+}
+
+func TestVoltApplication_RemoveGroupDevicesFromPendingPool(t *testing.T) {
+	type args struct {
+		ig *IgmpGroup
+	}
+	pendingGroupForDevice := map[string]time.Time{}
+	pendingGroupForDevice[test_device] = time.Now()
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "VoltApplication_RemoveGroupDevicesFromPendingPool",
+			args: args{
+				ig: &IgmpGroup{
+					Version:               "test_version",
+					PendingGroupForDevice: pendingGroupForDevice,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{}
+			va.RemoveGroupDevicesFromPendingPool(tt.args.ig)
 		})
 	}
 }
