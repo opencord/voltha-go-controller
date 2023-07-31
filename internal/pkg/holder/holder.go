@@ -26,7 +26,7 @@ import (
 // point for a mutable value that represents a GRPC service interface to
 // VOLTHA
 type VolthaServiceClientHolder struct {
-	volthaSvcClient voltha.VolthaServiceClient
+	VolthaSvcClient voltha.VolthaServiceClient
 	mutex           sync.RWMutex
 }
 
@@ -38,19 +38,19 @@ type VolthaServiceClientReference struct {
 func (h *VolthaServiceClientHolder) Clear() {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
-	h.volthaSvcClient = nil
+	h.VolthaSvcClient = nil
 }
 
 // Set assigns the value being held to the specified value
 func (h *VolthaServiceClientHolder) Set(client voltha.VolthaServiceClient) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
-	h.volthaSvcClient = client
+	h.VolthaSvcClient = client
 }
 
 // Get returns the currently held value
 func (h *VolthaServiceClientHolder) Get() voltha.VolthaServiceClient {
 	h.mutex.RLock()
 	defer h.mutex.RUnlock()
-	return h.volthaSvcClient
+	return h.VolthaSvcClient
 }

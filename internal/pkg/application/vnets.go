@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net"
+	"reflect"
 	"strconv"
 	"sync"
 	"time"
@@ -2260,7 +2261,7 @@ func (va *VoltApplication) DelVnetFromPort(cntx context.Context, port string, vp
 	}
 	vpvs := vpvsIntf.([]*VoltPortVnet)
 	for i, lvpv := range vpvs {
-		if lvpv == vpv {
+		if reflect.DeepEqual(lvpv, vpv) {
 			logger.Debugw(ctx, "Deleting VPV from port", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan,
 				"UNIVLAN": vpv.UniVlan})
 

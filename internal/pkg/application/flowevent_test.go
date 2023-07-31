@@ -132,6 +132,21 @@ func TestProcessUsIgmpFlowAddEvent(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "ProcessUsIgmpFlowAddEvent_else_condition",
+			args: args{
+				cntx: context.Background(),
+				event: &FlowEvent{
+					device:    "test_device",
+					eType:     EventTypeControlFlowAdded,
+					eventData: voltPortVnet,
+				},
+				flowStatus: intf.FlowStatus{
+					Device: "test_device",
+					Status: uint32(1001),
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -158,6 +173,19 @@ func TestProcessServiceFlowAddEvent(t *testing.T) {
 				event: &FlowEvent{
 					device:    "test_device",
 					eventData: voltService,
+				},
+			},
+		},
+		{
+			name: "ProcessServiceFlowAddEvent_else_condition",
+			args: args{
+				cntx: context.Background(),
+				event: &FlowEvent{
+					device:    "test_device",
+					eventData: voltService,
+				},
+				flowStatus: intf.FlowStatus{
+					Status: uint32(1001),
 				},
 			},
 		},
@@ -188,6 +216,18 @@ func TestProcessControlFlowAddEvent(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "ProcessControlFlowAddEvent_else_condition",
+			args: args{
+				cntx: context.Background(),
+				event: &FlowEvent{
+					eventData: voltPortVnet,
+				},
+				flowStatus: intf.FlowStatus{
+					Status: uint32(1001),
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -212,6 +252,18 @@ func TestProcessServiceFlowDelEvent(t *testing.T) {
 				cntx: context.Background(),
 				event: &FlowEvent{
 					eventData: voltService,
+				},
+			},
+		},
+		{
+			name: "ProcessServiceFlowDelEvent_else_condition",
+			args: args{
+				cntx: context.Background(),
+				event: &FlowEvent{
+					eventData: voltService,
+				},
+				flowStatus: intf.FlowStatus{
+					Status: uint32(1001),
 				},
 			},
 		},
@@ -242,6 +294,18 @@ func TestProcessControlFlowDelEvent(t *testing.T) {
 				cntx: context.Background(),
 				event: &FlowEvent{
 					eventData: voltPortVnet,
+				},
+			},
+		},
+		{
+			name: "ProcessControlFlowDelEvent_else_condition",
+			args: args{
+				cntx: context.Background(),
+				event: &FlowEvent{
+					eventData: voltPortVnet,
+				},
+				flowStatus: intf.FlowStatus{
+					Status: uint32(1001),
 				},
 			},
 		},
@@ -278,6 +342,18 @@ func TestProcessMcastFlowDelEvent(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "ProcessMcastFlowDelEvent_else_condition",
+			args: args{
+				cntx: context.Background(),
+				event: &FlowEvent{
+					eventData: mvlanProfile,
+				},
+				flowStatus: intf.FlowStatus{
+					Status: uint32(1001),
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -285,6 +361,59 @@ func TestProcessMcastFlowDelEvent(t *testing.T) {
 			db = dbintf
 			dbintf.EXPECT().PutMvlan(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
 			ProcessMcastFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
+		})
+	}
+}
+
+func TestProcessDeviceFlowDelEvent(t *testing.T) {
+	type args struct {
+		cntx       context.Context
+		event      *FlowEvent
+		flowStatus intf.FlowStatus
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "ProcessDeviceFlowDelEvent",
+			args: args{
+				cntx: context.Background(),
+				event: &FlowEvent{
+					device:    test_device,
+					eventData: voltVnet,
+				},
+				flowStatus: intf.FlowStatus{
+					Device: test_device,
+				},
+			},
+		},
+		{
+			name: "ProcessDeviceFlowDelEvent_else_condition",
+			args: args{
+				cntx: context.Background(),
+				event: &FlowEvent{
+					device:    test_device,
+					eventData: voltVnet,
+				},
+				flowStatus: intf.FlowStatus{
+					Device: test_device,
+					Status: uint32(1001),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "ProcessDeviceFlowDelEvent":
+				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+				db = dbintf
+				dbintf.EXPECT().PutVnet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil).AnyTimes()
+				ProcessDeviceFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
+			case "ProcessDeviceFlowDelEvent_else_condition":
+				ProcessDeviceFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
+			}
 		})
 	}
 }

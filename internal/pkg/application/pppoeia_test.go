@@ -264,3 +264,35 @@ func TestVoltApplication_ProcessDsPppoeIaPacket(t *testing.T) {
 		})
 	}
 }
+
+func TestAddIaOption(t *testing.T) {
+	type args struct {
+		svc   *VoltService
+		pppoe *layers.PPPoE
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "AddIaOption",
+			args: args{
+				svc: &VoltService{
+					VoltServiceCfg: VoltServiceCfg{
+						CircuitID:    "test_circuit_id",
+						RemoteID:     []byte{1},
+						DataRateAttr: DSLAttrEnabled,
+					},
+				},
+				pppoe: &layers.PPPoE{
+					Options: make(layers.PPPoEOptions, 1),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			AddIaOption(tt.args.svc, tt.args.pppoe)
+		})
+	}
+}
