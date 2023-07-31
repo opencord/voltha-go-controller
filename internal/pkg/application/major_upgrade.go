@@ -19,6 +19,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 	common "voltha-go-controller/internal/pkg/types"
 
@@ -92,6 +93,7 @@ func (md *DataMigration) WriteToDb(cntx context.Context) error {
 
 // DelFromDb delete a meter profile from DB
 func (md *DataMigration) DelFromDb(cntx context.Context) {
+	logger.Debug(ctx, "Received Delete from Db")
 	if err := db.DelMigrationInfo(cntx); err != nil {
 		logger.Warnw(ctx, "DelMigrationInfo Failed", log.Fields{"Error": err})
 	}
@@ -99,6 +101,7 @@ func (md *DataMigration) DelFromDb(cntx context.Context) {
 
 // GetMigrationInfo to get data migration info
 func GetMigrationInfo(cntx context.Context, dmInfo *DataMigration) error {
+	logger.Debug(ctx, "Get Migration Info")
 	var migrationInfo string
 	var err error
 	if db == nil {
@@ -120,6 +123,7 @@ func GetMigrationInfo(cntx context.Context, dmInfo *DataMigration) error {
 // When Roll back happens just Delete of DB keys has to happen
 // which will be done once delete key request is received from MSM
 func CheckIfMigrationRequired(ctx context.Context) bool {
+	logger.Debug(ctx, "Check If Migration Required")
 	Migrate := new(DataMigration)
 	var NoDataInDB bool
 	err := GetMigrationInfo(ctx, Migrate)
@@ -127,7 +131,7 @@ func CheckIfMigrationRequired(ctx context.Context) bool {
 	// No DB entry represents N version Bring Up for the First time
 	if err != nil {
 		NoDataInDB = true
-		logger.Error(ctx, "Failed to read the Migration Data from DB ")
+		logger.Warn(ctx, "Failed to read the Migration Data from DB ")
 	}
 	// Covers N version bringup and Reboot Scenarios
 	if NoDataInDB {
@@ -136,7 +140,7 @@ func CheckIfMigrationRequired(ctx context.Context) bool {
 		Migrate.Status = MigrationComplete
 		Migrate.ModuleVer = database.PresentVersionMap
 		if err := Migrate.WriteToDb(ctx); err != nil {
-			logger.Errorw(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
+			logger.Warnw(ctx, "DB Write failed for Migration Path", log.Fields{"error": err})
 		}
 		// MigrateProbestatus has to be Updated to Complete when No Migration is Required
 		logger.Debugw(ctx, "Migration Probe Status", log.Fields{"Migration Probe": Migrate.Status})
@@ -181,6 +185,7 @@ func CheckIfMigrationRequired(ctx context.Context) bool {
 // InitiateDataMigration Migrates the DB data
 // depending on the bool value returned by CheckIfMigrationDone
 func InitiateDataMigration(ctx context.Context) {
+	logger.Debug(ctx, "Initiate Data Migration")
 	var err error
 	Migrate := new(DataMigration)
 	var migrationWG sync.WaitGroup
@@ -234,6 +239,7 @@ func InitiateDataMigration(ctx context.Context) {
 
 // MigrateDBData to migrate database data
 func MigrateDBData(cntx context.Context) error {
+	logger.Debug(ctx, "Migrate DB Data")
 	var err error
 	for module, currentVersion := range database.PresentVersionMap {
 		if currentVersion == database.DBVersionMap[module] {
@@ -257,8 +263,7 @@ func MigrateDBData(cntx context.Context) error {
 		}
 
 		if err != nil {
-			logger.Errorw(ctx, "Error in data migration", log.Fields{"Module": module})
-			return err
+			return fmt.Errorf("error in data migration for module %s : %w", module, err)
 		}
 	}
 	return nil
@@ -266,21 +271,22 @@ func MigrateDBData(cntx context.Context) error {
 
 // FetchAndMigrateDeviceDBData fetchs the data from database and migrte the same to latest versions and store ot back ot database
 func FetchAndMigrateDeviceDBData(module string) error {
-	logger.Error(ctx, "Data Migration not implemented for Device DB Data")
+	logger.Errorw(ctx, "Data Migration not implemented for Device DB Data", log.Fields{"Table": module})
 	return nil
 }
 
 // FetchAndMigrateDBData fetchs the data from database and migrte the same to latest versions and store ot back ot database
 func FetchAndMigrateDBData(cntx context.Context, module string) error {
+	logger.Debugw(ctx, "Fetch And Migrate DB Data", log.Fields{"Module": module})
 	previousPath := database.GetModuleKeypath(module, database.PreviousVersionMap[module])
 	dbPathKeysValueMap, err := db.List(cntx, previousPath)
 	if err != nil {
-		logger.Errorw(ctx, "failed to Fetch the Keys from Redis", log.Fields{"error": err})
+		logger.Warnw(ctx, "failed to Fetch the Keys from Redis", log.Fields{"error": err})
 		// No return required, Data might not be present in DB
 		return nil
 	}
 	if len(dbPathKeysValueMap) == 0 {
-		logger.Debugw(ctx, "No data present in DB for the path", log.Fields{"dbPath": module})
+		logger.Warnw(ctx, "No data present in DB for the path", log.Fields{"dbPath": module})
 		return nil
 	}
 
@@ -290,14 +296,12 @@ func FetchAndMigrateDBData(cntx context.Context, module string) error {
 		// convert the value to a specific type based on the dbPath
 		b, ok := value.Value.([]byte)
 		if !ok {
-			logger.Error(ctx, "The value type is not []byte")
-			return errors.New("Error-in-migration")
+			return errors.New("Error-in-migration, The value type is not []byt")
 		}
 
 		presentParams := migrationMap[module](cntx, b)
 		logger.Infow(ctx, "Migrated data", log.Fields{"presentParams": presentParams})
 		if "" == presentParams {
-			logger.Error(ctx, "Error in migrating data\n")
 			return errors.New("Error-in-migration")
 		} else if ModuleToBeDeleted == presentParams {
 			return nil
@@ -314,6 +318,7 @@ func FetchAndMigrateDBData(cntx context.Context, module string) error {
 
 // MigrateServices modifyies the old data as per current version requirement and updates the database
 func MigrateServices(cntx context.Context, data []byte) string {
+	logger.Debug(ctx, "Migrate Services")
 	var vs VoltService
 	var updatedData, updatedData1 []byte
 	var vsmap map[string]interface{}
@@ -390,6 +395,7 @@ func MigrateDeviceFlowHash(cntx context.Context, data []byte) string {
 
 // MigrateVnets modifyies the old data as per current version requirement and updates the database
 func MigrateVnets(cntx context.Context, data []byte) string {
+	logger.Debug(ctx, "Migrate Vnets")
 	var vnet VoltVnet
 	var updatedData []byte
 
@@ -420,6 +426,7 @@ func MigrateVnets(cntx context.Context, data []byte) string {
 
 // MigrateVpvs modifyies the old data as per current version requirement and updates the database
 func MigrateVpvs(cntx context.Context, data []byte) string {
+	logger.Debug(ctx, "Migrate Vpvs")
 	var vpv VoltPortVnet
 	var updatedData, updatedData1 []byte
 	var vpvmap map[string]interface{}
@@ -474,6 +481,7 @@ func MigrateVpvs(cntx context.Context, data []byte) string {
 
 // MigrateMvlans modifyies the old data as per current version requirement and updates the database
 func MigrateMvlans(cntx context.Context, data []byte) string {
+	logger.Debug(ctx, "Migrate Mvlans")
 	var mvp MvlanProfile
 	var updatedData []byte
 
@@ -505,6 +513,7 @@ func MigrateMeters(cntx context.Context, data []byte) string {
 
 // MigrateIgmpConfs modifyies the old data as per current version requirement and updates the database
 func MigrateIgmpConfs(cntx context.Context, data []byte) string {
+	logger.Debug(ctx, "Migrate IgmpConfs")
 	var igmpProfile IgmpProfile
 
 	err := json.Unmarshal(data, &igmpProfile)
@@ -513,7 +522,7 @@ func MigrateIgmpConfs(cntx context.Context, data []byte) string {
 		return ""
 	}
 	if err := igmpProfile.WriteToDb(cntx); err != nil {
-		logger.Errorw(ctx, "Igmp profile Write to DB failed", log.Fields{"profileID": igmpProfile.ProfileID})
+		logger.Warnw(ctx, "Igmp profile Write to DB failed", log.Fields{"profileID": igmpProfile.ProfileID})
 	}
 
 	logger.Infow(ctx, "Igmp Conf Migrated", log.Fields{"Profile": igmpProfile, "PresentVersion": database.PresentVersionMap[database.VpvPath]})

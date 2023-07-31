@@ -77,11 +77,12 @@ func InitEventFuncMapper() {
 
 // ExecuteFlowEvent - Process flow based event triggers
 func ExecuteFlowEvent(cntx context.Context, vd *VoltDevice, cookie string, flowStatus intf.FlowStatus) bool {
+	logger.Debugw(ctx, "Execute Flow event", log.Fields{"Cookie": cookie, "flowMod": flowStatus.FlowModType})
 	var event interface{}
 
 	flowEventMap, err := vd.GetFlowEventRegister(flowStatus.FlowModType)
 	if err != nil {
-		logger.Debugw(ctx, "Flow event map does not exists", log.Fields{"flowMod": flowStatus.FlowModType, "Error": err})
+		logger.Warnw(ctx, "Flow event map does not exists", log.Fields{"flowMod": flowStatus.FlowModType, "Error": err})
 		return false
 	}
 	flowEventMap.MapLock.Lock()
@@ -164,7 +165,7 @@ func ProcessMcastFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatus
 
 // ProcessDeviceFlowDelEvent - Process Control Flow event trigger
 func ProcessDeviceFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus) {
-	logger.Infow(ctx, "Processing Post Flow Remove Event for VNET", log.Fields{"Cookie": event.cookie, "event": event})
+	logger.Debugw(ctx, "Processing Post Flow Remove Event for VNET", log.Fields{"Cookie": event.cookie, "event": event})
 	vnet := event.eventData.(*VoltVnet)
 	if isFlowStatusSuccess(flowStatus.Status, false) {
 		vnet.FlowRemoveSuccess(cntx, event.cookie, event.device)
@@ -175,6 +176,7 @@ func ProcessDeviceFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatu
 
 // TODO: Update the func or flowStatus struct once all flow status are based on NB error code
 func isFlowStatusSuccess(status uint32, flowAdd bool) bool {
+	logger.Infow(ctx, "Processing isFlowStatusSuccess", log.Fields{"Status": status, "FlowAdd": flowAdd})
 	result := false
 	errorCode := infraerrorcode.ErrorCode(status)
 
