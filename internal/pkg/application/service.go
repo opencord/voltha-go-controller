@@ -2055,20 +2055,22 @@ func (va *VoltApplication) GetFlowProvisionStatus(cntx context.Context, portNo s
 		vs := value.(*VoltService)
 		logger.Debugw(ctx, "Volt Service ", log.Fields{"VS": vs})
 		serviceCount++
-		if len(portNo) > 0 {
-			if portNo == vs.Port {
-				if vs.DsHSIAFlowsApplied && vs.UsHSIAFlowsApplied && vs.LenOfPendingFlows() == 0 {
-					flowProvisionStatus.FlowProvisionStatus = ALL_FLOWS_PROVISIONED
-				} else if !vs.IsActivated {
-					flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_DISABLED_IN_CONTROLLER
-				} else if !vs.DsHSIAFlowsApplied && !vs.UsHSIAFlowsApplied {
-					flowProvisionStatus.FlowProvisionStatus = NO_FLOWS_PROVISIONED
-				} else if vs.LenOfPendingFlows() > 0 {
-					flowProvisionStatus.FlowProvisionStatus = FLOWS_PROVISIONED_PARTIALLY
-				}
-			} else {
-				flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_NOT_IN_CONTROLLER
+		if portNo == vs.Port {
+			if vs.DsHSIAFlowsApplied && vs.UsHSIAFlowsApplied && vs.LenOfPendingFlows() == 0 {
+				flowProvisionStatus.FlowProvisionStatus = ALL_FLOWS_PROVISIONED
+				return false
+			} else if !vs.IsActivated {
+				flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_DISABLED_IN_CONTROLLER
+				return false
+			} else if !vs.DsHSIAFlowsApplied && !vs.UsHSIAFlowsApplied {
+				flowProvisionStatus.FlowProvisionStatus = NO_FLOWS_PROVISIONED
+				return false
+			} else if vs.LenOfPendingFlows() > 0 {
+				flowProvisionStatus.FlowProvisionStatus = FLOWS_PROVISIONED_PARTIALLY
+				return false
 			}
+		} else {
+			flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_NOT_IN_CONTROLLER
 		}
 		return true
 	})
