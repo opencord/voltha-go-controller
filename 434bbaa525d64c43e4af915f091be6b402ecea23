@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f3a86e86_64b342cb",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1000959
+      },
+      "writtenOn": "2023-08-16T11:17:33Z",
+      "side": 1,
+      "message": "Logging deviceID along with port might help during debugging.",
+      "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
