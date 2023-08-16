@@ -2047,34 +2047,30 @@ type FlowProvisionStatus struct {
 }
 
 // GetFlowProvisionStatus to get status of the subscriber and flow provisioned in controller
-func (va *VoltApplication) GetFlowProvisionStatus(cntx context.Context, portNo string) FlowProvisionStatus {
+func (va *VoltApplication) GetFlowProvisionStatus(portNo string) FlowProvisionStatus {
 	logger.Infow(ctx, "GetFlowProvisionStatus Request ", log.Fields{"Port": portNo})
 	flowProvisionStatus := FlowProvisionStatus{}
-	serviceCount := 0
+	flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_NOT_IN_CONTROLLER
 	va.ServiceByName.Range(func(key, value interface{}) bool {
 		vs := value.(*VoltService)
 		logger.Debugw(ctx, "Volt Service ", log.Fields{"VS": vs})
-		serviceCount++
-		if len(portNo) > 0 {
-			if portNo == vs.Port {
-				if vs.DsHSIAFlowsApplied && vs.UsHSIAFlowsApplied && vs.LenOfPendingFlows() == 0 {
-					flowProvisionStatus.FlowProvisionStatus = ALL_FLOWS_PROVISIONED
-				} else if !vs.IsActivated {
-					flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_DISABLED_IN_CONTROLLER
-				} else if !vs.DsHSIAFlowsApplied && !vs.UsHSIAFlowsApplied {
-					flowProvisionStatus.FlowProvisionStatus = NO_FLOWS_PROVISIONED
-				} else if vs.LenOfPendingFlows() > 0 {
-					flowProvisionStatus.FlowProvisionStatus = FLOWS_PROVISIONED_PARTIALLY
-				}
-			} else {
-				flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_NOT_IN_CONTROLLER
+		if portNo == vs.Port {
+			if vs.DsHSIAFlowsApplied && vs.UsHSIAFlowsApplied && vs.LenOfPendingFlows() == 0 {
+				flowProvisionStatus.FlowProvisionStatus = ALL_FLOWS_PROVISIONED
+				return false
+			} else if !vs.IsActivated {
+				flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_DISABLED_IN_CONTROLLER
+				return false
+			} else if !vs.DsHSIAFlowsApplied && !vs.UsHSIAFlowsApplied {
+				flowProvisionStatus.FlowProvisionStatus = NO_FLOWS_PROVISIONED
+				return false
+			} else if vs.LenOfPendingFlows() > 0 {
+				flowProvisionStatus.FlowProvisionStatus = FLOWS_PROVISIONED_PARTIALLY
+				return false
 			}
 		}
 		return true
 	})
-	if serviceCount == 0 {
-		flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_NOT_IN_CONTROLLER
-	}
 	return flowProvisionStatus
 }
 

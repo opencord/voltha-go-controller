@@ -302,7 +302,7 @@ func (sh *SubscriberHandle) GetSubscriberAndFlowProvisionStatus(cntx context.Con
 	vars := mux.Vars(r)
 	portName := vars["portName"]
 	logger.Debugw(ctx, "Received-northbound-GetSubscriberProvisionStatus-request", log.Fields{"req": portName})
-	flowProvisionStatus := app.GetApplication().GetFlowProvisionStatus(cntx, portName)
+	flowProvisionStatus := app.GetApplication().GetFlowProvisionStatus(portName)
 	flowProvisionStatusRes, err := json.Marshal(flowProvisionStatus)
 	if err != nil {
 		logger.Errorw(ctx, "Error occurred while marshaling flowProvisionStatus response", log.Fields{"Error": err})
