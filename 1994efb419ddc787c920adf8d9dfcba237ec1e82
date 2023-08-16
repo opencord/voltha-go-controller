@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3c491baf_d53065c1",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2058,
+      "author": {
+        "id": 1000959
+      },
+      "writtenOn": "2023-08-16T11:05:43Z",
+      "side": 1,
+      "message": "The validation checks on the portNo can be run only once before Ranging.",
+      "revId": "1994efb419ddc787c920adf8d9dfcba237ec1e82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
