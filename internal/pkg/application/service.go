@@ -2059,12 +2059,16 @@ func (va *VoltApplication) GetFlowProvisionStatus(cntx context.Context, portNo s
 			if portNo == vs.Port {
 				if vs.DsHSIAFlowsApplied && vs.UsHSIAFlowsApplied && vs.LenOfPendingFlows() == 0 {
 					flowProvisionStatus.FlowProvisionStatus = ALL_FLOWS_PROVISIONED
+					return false
 				} else if !vs.IsActivated {
 					flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_DISABLED_IN_CONTROLLER
+					return false
 				} else if !vs.DsHSIAFlowsApplied && !vs.UsHSIAFlowsApplied {
 					flowProvisionStatus.FlowProvisionStatus = NO_FLOWS_PROVISIONED
+					return false
 				} else if vs.LenOfPendingFlows() > 0 {
 					flowProvisionStatus.FlowProvisionStatus = FLOWS_PROVISIONED_PARTIALLY
+					return false
 				}
 			} else {
 				flowProvisionStatus.FlowProvisionStatus = SUBSCRIBER_NOT_IN_CONTROLLER
