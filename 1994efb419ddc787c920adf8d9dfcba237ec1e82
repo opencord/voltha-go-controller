@@ -34,6 +34,24 @@
       "parentUuid": "3c491baf_d53065c1",
       "revId": "1994efb419ddc787c920adf8d9dfcba237ec1e82",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9db0277a_0d27fd10",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2058,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-18T11:46:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3c491baf_d53065c1",
+      "revId": "1994efb419ddc787c920adf8d9dfcba237ec1e82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
