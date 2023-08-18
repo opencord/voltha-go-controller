@@ -621,7 +621,7 @@ func (v *VoltController) GetGroups(cntx context.Context, id uint32) (*of.Group, 
 		logger.Debugw(ctx, "Inside GetGroupList method", log.Fields{"groupID": id})
 		grps, ok := device.groups.Load(id)
 		if !ok {
-			return nil, errors.New("Group not found")
+			return nil, errors.New("group not found")
 		}
 		groups = grps.(*of.Group)
 		logger.Debugw(ctx, "Groups", log.Fields{"groups": groups})
