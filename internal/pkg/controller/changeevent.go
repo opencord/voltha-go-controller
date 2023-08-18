@@ -89,5 +89,5 @@ func (cet *ChangeEventTask) Start(ctx context.Context, taskID uint8) error {
 		logger.Debugw(ctx, "Processed Port Change Event", log.Fields{"Port No": portNo, "Port Name": portName, "State": state, "Reason": status.PortStatus.Reason})
 		return nil
 	}
-	return errors.New("Invalid message received")
+	return errors.New("invalid message received")
 }

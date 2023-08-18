@@ -51,7 +51,11 @@ const (
 	// DefaultMaxFlowQueues constant
 	DefaultMaxFlowQueues = 67
 	//ErrDuplicateFlow - indicates flow already exists in DB
-	ErrDuplicateFlow string = "Duplicate Flow"
+	ErrDuplicateFlow string = "duplicate flow"
+	//Unknown_Port_ID - indicates that the port id is unknown
+	Unknown_Port_ID = "unknown port id"
+	//Duplicate_Port - indicates the port is already exist in controller
+	Duplicate_Port = "duplicate port"
 )
 
 // DevicePort structure
@@ -253,7 +257,7 @@ func (d *Device) DelFlow(cntx context.Context, flow *of.VoltSubFlow) error {
 		d.DelFlowFromDb(cntx, flow.Cookie)
 		return nil
 	}
-	return errors.New("Flow does not Exist")
+	return errors.New("flow does not exist")
 }
 
 // DelFlowFromDb is utility to delete the flow from the device
@@ -287,7 +291,7 @@ func (d *Device) DelFlowWithOldCookie(cntx context.Context, flow *of.VoltSubFlow
 		d.DelFlowFromDb(cntx, flow.OldCookie)
 		return nil
 	}
-	return errors.New("Flow does not Exist")
+	return errors.New("flow does not exist")
 }
 
 // RestoreFlowsFromDb to restore flows from database
@@ -386,7 +390,7 @@ func (d *Device) AddMeter(cntx context.Context, meter *of.Meter) error {
 	d.meterLock.Lock()
 	defer d.meterLock.Unlock()
 	if _, ok := d.meters[meter.ID]; ok {
-		return errors.New("Duplicate Meter")
+		return errors.New("duplicate meter")
 	}
 	d.meters[meter.ID] = meter
 	go d.AddMeterToDb(cntx, meter)
@@ -401,7 +405,7 @@ func (d *Device) UpdateMeter(cntx context.Context, meter *of.Meter) error {
 		d.meters[meter.ID] = meter
 		d.AddMeterToDb(cntx, meter)
 	} else {
-		return errors.New("Meter not found for updation")
+		return errors.New("meter not found for updation")
 	}
 	return nil
 }
@@ -413,7 +417,7 @@ func (d *Device) GetMeter(id uint32) (*of.Meter, error) {
 	if m, ok := d.meters[id]; ok {
 		return m, nil
 	}
-	return nil, errors.New("Meter Not Found")
+	return nil, errors.New("meter not found")
 }
 
 // DelMeter to delete meter
@@ -483,10 +487,10 @@ func (d *Device) AddPort(cntx context.Context, mp *ofp.OfpPort) error {
 	id := mp.PortNo
 	name := mp.Name
 	if _, ok := d.PortsByID[id]; ok {
-		return errors.New("Duplicate port")
+		return errors.New(Duplicate_Port)
 	}
 	if _, ok := d.PortsByName[name]; ok {
-		return errors.New("Duplicate port")
+		return errors.New(Duplicate_Port)
 	}
 
 	p := NewDevicePort(mp)
@@ -503,7 +507,7 @@ func (d *Device) AddPort(cntx context.Context, mp *ofp.OfpPort) error {
 func (d *Device) DelPort(cntx context.Context, id uint32) error {
 	p := d.GetPortByID(id)
 	if p == nil {
-		return errors.New("Unknown Port")
+		return errors.New("unknown port")
 	}
 	if p.State == PortStateUp {
 		GetController().PortDownInd(cntx, d.ID, p.Name)
@@ -546,7 +550,7 @@ func (d *Device) GetPortName(id uint32) (string, error) {
 		return p.Name, nil
 	}
 	logger.Errorw(ctx, "Port not found", log.Fields{"port": id})
-	return "", errors.New("Unknown Port ID")
+	return "", errors.New(Unknown_Port_ID)
 }
 
 // GetPortByID is utility to retrieve the port by ID
@@ -581,7 +585,7 @@ func (d *Device) GetPortState(name string) (PortState, error) {
 	if p, ok := d.PortsByName[name]; ok {
 		return p.State, nil
 	}
-	return PortStateDown, errors.New("Unknown Port ID")
+	return PortStateDown, errors.New(Unknown_Port_ID)
 }
 
 // GetPortID to get the port-id by the port name
@@ -592,7 +596,7 @@ func (d *Device) GetPortID(name string) (uint32, error) {
 	if p, ok := d.PortsByName[name]; ok {
 		return p.ID, nil
 	}
-	return 0, errors.New("Unknown Port ID")
+	return 0, errors.New(Unknown_Port_ID)
 }
 
 // WritePortToDb to add the port to the database
@@ -633,7 +637,7 @@ func (d *Device) CreatePortFromString(cntx context.Context, b []byte) {
 			d.PortsByName[port.Name] = &port
 			GetController().PortAddInd(cntx, d.ID, port.ID, port.Name)
 		} else {
-			logger.Warnw(ctx, "Duplicate Port", log.Fields{"ID": port.ID})
+			logger.Warnw(ctx, Duplicate_Port, log.Fields{"ID": port.ID})
 		}
 	} else {
 		logger.Warnw(ctx, "Unmarshal failed", log.Fields{"port": string(b)})
@@ -907,11 +911,11 @@ func PacketInGetPort(pkt *ofp.OfpPacketIn) uint32 {
 func (d *Device) PacketOutReq(outport string, inport string, data []byte, isCustomPkt bool) error {
 	inp, err := d.GetPortID(inport)
 	if err != nil {
-		return errors.New("Unknown inport")
+		return errors.New("unknown inport")
 	}
 	outp, err1 := d.GetPortID(outport)
 	if err1 != nil {
-		return errors.New("Unknown outport")
+		return errors.New("unknown outport")
 	}
 	logger.Debugw(ctx, "Sending packet out", log.Fields{"Device": d.ID, "Inport": inport, "Outport": outport})
 	return d.SendPacketOut(outp, inp, data, isCustomPkt)
