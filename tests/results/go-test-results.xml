@@ -15,7 +15,7 @@
 
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-	<testsuite tests="574" failures="0" time="0.064" name="voltha-go-controller/internal/pkg/application">
+	<testsuite tests="574" failures="0" time="0.097" name="voltha-go-controller/internal/pkg/application">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="40.4"></property>
@@ -595,12 +595,12 @@
 		<testcase classname="application" name="TestVoltApplication_PushDevFlowForDevice/device.VlanPortStatus_is_false" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_PushDevFlowForDevice/device.VlanPortStatus_is_true" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="13" failures="0" time="0.089" name="voltha-go-controller/internal/pkg/controller">
+	<testsuite tests="95" failures="0" time="0.146" name="voltha-go-controller/internal/pkg/controller">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
-			<property name="coverage.statements.pct" value="13.7"></property>
+			<property name="coverage.statements.pct" value="35.6"></property>
 		</properties>
-		<testcase classname="controller" name="Test_isFlowOperSuccess" time="0.010"></testcase>
+		<testcase classname="controller" name="Test_isFlowOperSuccess" time="0.000"></testcase>
 		<testcase classname="controller" name="Test_isFlowOperSuccess/test" time="0.000"></testcase>
 		<testcase classname="controller" name="TestAddFlowsTask_Start" time="0.000"></testcase>
 		<testcase classname="controller" name="TestAddFlowsTask_Start/AddFlowsTask_Start" time="0.000"></testcase>
@@ -611,10 +611,92 @@
 		<testcase classname="controller" name="TestAuditDevice_DelExcessPorts/AddFlowsTask_Start" time="0.000"></testcase>
 		<testcase classname="controller" name="TestAuditDevice_Start" time="0.000"></testcase>
 		<testcase classname="controller" name="TestAuditDevice_Start/AddFlowsTask_Start" time="0.000"></testcase>
+		<testcase classname="controller" name="TestNewController" time="0.000"></testcase>
+		<testcase classname="controller" name="TestNewController/TestNewController" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_DelDevice" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_DelDevice/DelDevice" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_AddFlows" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_AddFlows/AddFlows" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_DelFlows" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_DelFlows/DelFlows" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetGroups" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetGroups/VoltController_GetGroups" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetGroups/GetGroups_Not-Found" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetGroupList" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetGroupList/VoltController_GetGroups" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetMeterInfo" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetMeterInfo/VoltController_GetMeterInfo" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetMeterInfo/Not_Found_Error" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetAllMeterInfo" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetAllMeterInfo/VoltController_GetMeterInfo" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetAllPendingFlows" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetAllPendingFlows/GetAllPendingFlows" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetAllPendingFlows/GetFlows_with_DeviceID" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetAllPendingFlows/GetFlows_with_DeviceID_NOT_FOUND" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetAllPendingFlows/GetFlow_with_DeviceID_and_cookie" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetAllPendingFlows/GetFlow_with_DeviceID_and_cookie_NOT_FOUND" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetTaskList" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetTaskList/GetTaskList" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetTaskList/GetTaskList_Device_Not_found" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetPortState" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetPortState/GetPortState" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_GetPortState/GetPortState_Device_Not_found" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_ModMeter" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_ModMeter/ModMeter" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_ModMeter/ModMeter_device_not_found" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_ModMeter/ModMeter_port_not_found" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_VPAgent" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_VPAgent/VPAgent" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_VPAgent/VPAgent_Error" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_DeviceRebootInd" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_DeviceRebootInd/VPAgent" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_SetRebootInProgressForDevice" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_SetRebootInProgressForDevice/SetRebootInProgressForDevice" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_SetRebootInProgressForDevice/SetRebootInProgressForDevice_Error" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_ReSetRebootInProgressForDevice" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_ReSetRebootInProgressForDevice/ReSetRebootInProgressForDevice" time="0.000"></testcase>
+		<testcase classname="controller" name="TestNewDevicePort" time="0.020"></testcase>
+		<testcase classname="controller" name="TestNewDevicePort/NewDevicePort" time="0.000"></testcase>
+		<testcase classname="controller" name="TestDevice_UpdateFlows" time="0.000"></testcase>
+		<testcase classname="controller" name="TestDevice_UpdateFlows/Device_UpdateFlows" time="0.000"></testcase>
+		<testcase classname="controller" name="TestNewDevice" time="0.000"></testcase>
+		<testcase classname="controller" name="TestNewDevice/TestNewDevice" time="0.000"></testcase>
+		<testcase classname="controller" name="TestDevice_triggerFlowResultNotification" time="0.000"></testcase>
+		<testcase classname="controller" name="TestDevice_triggerFlowResultNotification/Device_triggerFlowResultNotification" time="0.000"></testcase>
+		<testcase classname="controller" name="TestDevice_ResetCache" time="0.000"></testcase>
+		<testcase classname="controller" name="TestDevice_ResetCache/Device_ResetCache" time="0.000"></testcase>
+		<testcase classname="controller" name="TestDevice_GetAllFlows" time="0.000"></testcase>
+		<testcase classname="controller" name="TestDevice_GetAllFlows/Device_GetAllFlows" time="0.000"></testcase>
+		<testcase classname="controller" name="TestModMeterTask_Start" time="0.000"></testcase>
+		<testcase classname="controller" name="TestModMeterTask_Start/mmt.command_==_of.MeterCommandAdd" time="0.000"></testcase>
+		<testcase classname="controller" name="TestNewModMeterTask" time="0.000"></testcase>
+		<testcase classname="controller" name="TestNewModMeterTask/NewModMeterTask" time="0.000"></testcase>
+		<testcase classname="controller" name="TestModMeterTask_Name" time="0.000"></testcase>
+		<testcase classname="controller" name="TestModMeterTask_Name/ModMeterTask_Name" time="0.000"></testcase>
+		<testcase classname="controller" name="TestModMeterTask_TaskID" time="0.000"></testcase>
+		<testcase classname="controller" name="TestModMeterTask_TaskID/ModMeterTask_TaskID" time="0.000"></testcase>
+		<testcase classname="controller" name="TestModMeterTask_Timestamp" time="0.000"></testcase>
+		<testcase classname="controller" name="TestModMeterTask_Timestamp/ModMeterTask_Timestamp" time="0.000"></testcase>
+		<testcase classname="controller" name="TestModMeterTask_Stop" time="0.000"></testcase>
+		<testcase classname="controller" name="TestModMeterTask_Stop/ModMeterTask_Stop" time="0.000"></testcase>
 		<testcase classname="controller" name="TestPendingProfilesTask_Start" time="0.000"></testcase>
 		<testcase classname="controller" name="TestPendingProfilesTask_Start/PendingProfilesTask_Start" time="0.000"></testcase>
+		<testcase classname="controller" name="TestNewPendingProfilesTask" time="0.000"></testcase>
+		<testcase classname="controller" name="TestNewPendingProfilesTask/NewPendingProfilesTask" time="0.000"></testcase>
+		<testcase classname="controller" name="TestPendingProfilesTask_Name" time="0.000"></testcase>
+		<testcase classname="controller" name="TestPendingProfilesTask_Name/PendingProfilesTask_Name" time="0.000"></testcase>
+		<testcase classname="controller" name="TestPendingProfilesTask_TaskID" time="0.000"></testcase>
+		<testcase classname="controller" name="TestPendingProfilesTask_TaskID/PendingProfilesTask_TaskID" time="0.000"></testcase>
+		<testcase classname="controller" name="TestPendingProfilesTask_Timestamp" time="0.000"></testcase>
+		<testcase classname="controller" name="TestPendingProfilesTask_Timestamp/PendingProfilesTask_Timestamp" time="0.000"></testcase>
+		<testcase classname="controller" name="TestPendingProfilesTask_Stop" time="0.000"></testcase>
+		<testcase classname="controller" name="TestPendingProfilesTask_Stop/PendingProfilesTask_Stop" time="0.000"></testcase>
+		<testcase classname="controller" name="TestPadString" time="0.000"></testcase>
+		<testcase classname="controller" name="TestPadString/PadString" time="0.000"></testcase>
+		<testcase classname="controller" name="TestGetXid" time="0.000"></testcase>
+		<testcase classname="controller" name="TestGetXid/GetXid" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="2" failures="0" time="0.037" name="voltha-go-controller/internal/pkg/of">
+	<testsuite tests="2" failures="0" time="0.081" name="voltha-go-controller/internal/pkg/of">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="1.1"></property>
@@ -622,13 +704,39 @@
 		<testcase classname="of" name="TestMatch_SetTableMetadata" time="0.000"></testcase>
 		<testcase classname="of" name="TestMatch_SetTableMetadata/test" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="22" failures="0" time="0.031" name="voltha-go-controller/voltha-go-controller/nbi">
+	<testsuite tests="10" failures="0" time="0.021" name="voltha-go-controller/internal/pkg/tasks">
+		<properties>
+			<property name="go.version" value="go1.16.3"></property>
+			<property name="coverage.statements.pct" value="70.4"></property>
+		</properties>
+		<testcase classname="tasks" name="TestNewTasks" time="0.000"></testcase>
+		<testcase classname="tasks" name="TestNewTasks/NewTasks" time="0.000"></testcase>
+		<testcase classname="tasks" name="TestTasks_CheckAndInitialize" time="0.000"></testcase>
+		<testcase classname="tasks" name="TestTasks_CheckAndInitialize/Tasks_CheckAndInitialize" time="0.000"></testcase>
+		<testcase classname="tasks" name="TestTasks_StopAll" time="0.000"></testcase>
+		<testcase classname="tasks" name="TestTasks_StopAll/Tasks_StopAll" time="0.000"></testcase>
+		<testcase classname="tasks" name="TestTasks_executeTasks" time="0.000"></testcase>
+		<testcase classname="tasks" name="TestTasks_executeTasks/Tasks_executeTasks" time="0.000"></testcase>
+		<testcase classname="tasks" name="TestTaskSet_Start" time="0.000"></testcase>
+		<testcase classname="tasks" name="TestTaskSet_Start/Tasks_TaskSet_Start" time="0.000"></testcase>
+	</testsuite>
+	<testsuite tests="4" failures="0" time="0.133" name="voltha-go-controller/internal/pkg/vpagent">
+		<properties>
+			<property name="go.version" value="go1.16.3"></property>
+			<property name="coverage.statements.pct" value="4.2"></property>
+		</properties>
+		<testcase classname="vpagent" name="Test_isConnCanceled" time="0.000"></testcase>
+		<testcase classname="vpagent" name="Test_isConnCanceled/isConnCanceled" time="0.000"></testcase>
+		<testcase classname="vpagent" name="Test_isConnCanceled/error_nil" time="0.000"></testcase>
+		<testcase classname="vpagent" name="Test_isConnCanceled/the_client_connection_is_closing" time="0.000"></testcase>
+	</testsuite>
+	<testsuite tests="22" failures="0" time="0.030" name="voltha-go-controller/voltha-go-controller/nbi">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="27.7"></property>
 		</properties>
 		<testcase classname="nbi" name="TestProfileHandle_GetProfile" time="0.010"></testcase>
-		<testcase classname="nbi" name="TestProfileHandle_GetProfile/GetProfile" time="0.000"></testcase>
+		<testcase classname="nbi" name="TestProfileHandle_GetProfile/GetProfile" time="0.010"></testcase>
 		<testcase classname="nbi" name="TestProfileHandle_DelProfile" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestProfileHandle_DelProfile/DelProfile" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestProfileHandle_AddProfile" time="0.000"></testcase>
@@ -650,10 +758,10 @@
 		<testcase classname="nbi" name="TestTaskListHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestTaskListHandle_ServeHTTP/GetTaskList_invalid_input" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="22" failures="0" time="0.026" name="voltha-go-controller/voltha-go-controller/onos_nbi">
+	<testsuite tests="24" failures="0" time="0.046" name="voltha-go-controller/voltha-go-controller/onos_nbi">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
-			<property name="coverage.statements.pct" value="21.3"></property>
+			<property name="coverage.statements.pct" value="23.3"></property>
 		</properties>
 		<testcase classname="onos_nbi" name="TestDeviceConfigHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestDeviceConfigHandle_ServeHTTP/DeviceConfigHandle_ServeHTTP" time="0.000"></testcase>
@@ -669,6 +777,8 @@
 		<testcase classname="onos_nbi" name="TestMacLearnerHandle_ServeHTTP/MacLearnerHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestMacLearnerHandle_GetAllMacLearnerInfo_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestMacLearnerHandle_GetAllMacLearnerInfo_ServeHTTP/MacLearnerHandle_GetAllMacLearnerInfo_ServeHTTP" time="0.000"></testcase>
+		<testcase classname="onos_nbi" name="TestMetersHandle_GetMeter" time="0.000"></testcase>
+		<testcase classname="onos_nbi" name="TestMetersHandle_GetMeter/Get_Meters" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestServiceAdapter_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestServiceAdapter_ServeHTTP/ServiceAdapter_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestServiceAdapter_DeactivateService_ServeHTTP" time="0.000"></testcase>
