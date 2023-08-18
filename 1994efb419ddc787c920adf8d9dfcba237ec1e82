@@ -52,6 +52,24 @@
       "parentUuid": "3c491baf_d53065c1",
       "revId": "1994efb419ddc787c920adf8d9dfcba237ec1e82",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a6e60256_cff4dd3a",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2058,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-18T11:48:23Z",
+      "side": 1,
+      "message": "I am not able to see this comment fix on latest diff, please check",
+      "parentUuid": "3cabecae_d61df138",
+      "revId": "1994efb419ddc787c920adf8d9dfcba237ec1e82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
