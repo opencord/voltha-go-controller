@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "f5839cdc_96d1ab3b",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2050,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T12:30:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19e06a75_3305e3bd",
+      "range": {
+        "startLine": 2050,
+        "startChar": 50,
+        "endLine": 2050,
+        "endChar": 54
+      },
+      "revId": "229c53e9a92e6bddeb5be634c2222b43db17e8a9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "c212d8fb_828740ef",
         "filename": "internal/pkg/application/service.go",
         "patchSetId": 2
@@ -37,6 +61,30 @@
       "writtenOn": "2023-08-18T11:48:23Z",
       "side": 1,
       "message": "I think there is no need to take servicecount var.\n\nWe can initialize flowProvisionStatus.FlowProvisionStatus \u003d SUBSCRIBER_NOT_IN_CONTROLLER \nlike this and if no service exist then by default SUBSCRIBER_NOT_IN_CONTROLLER will return.\n\nPlease check and see if we can do this. Some operation will be cut down like increment service count and after that if servicecount \u003d\u003d 0, so both will be gone.\n\nIf these changes are fine then please test before merge",
+      "range": {
+        "startLine": 2053,
+        "startChar": 1,
+        "endLine": 2053,
+        "endChar": 13
+      },
+      "revId": "229c53e9a92e6bddeb5be634c2222b43db17e8a9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6287d286_f7f9278c",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2053,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T12:30:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c212d8fb_828740ef",
       "range": {
         "startLine": 2053,
         "startChar": 1,
