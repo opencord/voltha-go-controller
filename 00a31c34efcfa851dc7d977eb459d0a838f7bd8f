@@ -16,6 +16,278 @@
       "message": "Please rebase the MR",
       "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1d41503f_06599171",
+        "filename": "voltha-go-controller/onos_nbi/deviceconfig.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "No need to log req here as its an empty object.",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aeb7a38b_dc708d27",
+        "filename": "voltha-go-controller/onos_nbi/deviceconfig.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "Add one debug log here and print req in the log.",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6e407459_f7edbed8",
+        "filename": "voltha-go-controller/onos_nbi/flowadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "Two logs are not required in this condition and please do not use person name comment string needs to be corrected.",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aa156425_3032a161",
+        "filename": "voltha-go-controller/onos_nbi/flowadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "Log FlowRespJSON instead of flow and device id.",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "364d60ba_0bf3676d",
+        "filename": "voltha-go-controller/onos_nbi/groups.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "Log id along with groupID",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a1defbb4_4f915eb1",
+        "filename": "voltha-go-controller/onos_nbi/maclearning_info.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "Already getting logged at line 47 not needed here.",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a6602709_16ab504c",
+        "filename": "voltha-go-controller/onos_nbi/maclearning_info.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "Already logged at line 47 reputative log",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7a657e9a_fc22cc63",
+        "filename": "voltha-go-controller/onos_nbi/meters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "This log is not needed as it is already getting logged at line 47",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5d120139_f2a66558",
+        "filename": "voltha-go-controller/onos_nbi/meters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "This is also getting logged at line 47 not it can be either of one places",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5aa7af3e_c85c9452",
+        "filename": "voltha-go-controller/onos_nbi/oltapprestadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "Along with port no please print the (uint32(port)) since we are fetching the data with this value.",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c2b135d6_21e200d7",
+        "filename": "voltha-go-controller/onos_nbi/oltapprestadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "deviceID, portName, of.VlanNone, of.VlanNone These four parameters can be logged instead of port no.",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "07928ddb_061e8da7",
+        "filename": "voltha-go-controller/onos_nbi/oltapprestadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "Please log this value as well uint32(port)",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e52edb26_1fe81d9d",
+        "filename": "voltha-go-controller/onos_nbi/oltapprestadapter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "Log these 4 attributes deviceID, portName, of.VlanNone, of.VlanNone.",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aa49408e_ecc2d70d",
+        "filename": "voltha-go-controller/onos_nbi/oltflowservice.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "Better to print oltFlowSer instead of  oltFlowSer.OltFlowService since we are marsheling complete object.",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5c1a01b7_54893802",
+        "filename": "voltha-go-controller/onos_nbi/oltflowservice.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "Same here as well and wherever needed.",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "07ba3554_580e2b1e",
+        "filename": "voltha-go-controller/onos_nbi/portIgnored.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-08-21T10:10:18Z",
+      "side": 1,
+      "message": "PortIgnoredInfo object can be printed here along with the error",
+      "revId": "00a31c34efcfa851dc7d977eb459d0a838f7bd8f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
