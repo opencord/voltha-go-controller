@@ -48,6 +48,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5cab1e4c_c47e1489",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2050,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-22T06:56:17Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f5839cdc_96d1ab3b",
+      "range": {
+        "startLine": 2050,
+        "startChar": 50,
+        "endLine": 2050,
+        "endChar": 54
+      },
+      "revId": "229c53e9a92e6bddeb5be634c2222b43db17e8a9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c212d8fb_828740ef",
@@ -85,6 +109,30 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "c212d8fb_828740ef",
+      "range": {
+        "startLine": 2053,
+        "startChar": 1,
+        "endLine": 2053,
+        "endChar": 13
+      },
+      "revId": "229c53e9a92e6bddeb5be634c2222b43db17e8a9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d100cb12_4a353b32",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2053,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-22T06:56:17Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6287d286_f7f9278c",
       "range": {
         "startLine": 2053,
         "startChar": 1,
