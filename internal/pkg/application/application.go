@@ -924,7 +924,7 @@ func (va *VoltApplication) PortDelInd(cntx context.Context, device string, port 
 			} else {
 				for _, vpv := range vpvs.([]*VoltPortVnet) {
 					vpv.VpvLock.Lock()
-					vpv.PortDownInd(cntx, device, port, true)
+					vpv.PortDownInd(cntx, device, port, false)
 					vpv.VpvLock.Unlock()
 				}
 			}
