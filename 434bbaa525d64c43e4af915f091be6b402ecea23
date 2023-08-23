@@ -35,6 +35,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a68d1d4b_d440e872",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-23T05:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4602e6a3_98d51708",
+      "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "25e2ef09_d96e5474",
@@ -48,6 +66,24 @@
       "writtenOn": "2023-08-22T14:40:48Z",
       "side": 1,
       "message": "same as above comment",
+      "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6a0a3f61_9df5316e",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-23T05:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25e2ef09_d96e5474",
       "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -69,6 +105,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a0db0d83_a741d856",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-23T05:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8f126a04_8ae0a81e",
+      "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f3a86e86_64b342cb",
@@ -82,6 +136,24 @@
       "writtenOn": "2023-08-16T11:17:33Z",
       "side": 1,
       "message": "Logging deviceID along with port might help during debugging.",
+      "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1f7e36e8_9ae0d4de",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-23T05:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3a86e86_64b342cb",
       "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -103,6 +175,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7e697e47_688cc62c",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 520,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-23T05:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b85530b_9490810b",
+      "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0b526c23_e776c556",
@@ -116,6 +206,24 @@
       "writtenOn": "2023-08-22T14:40:48Z",
       "side": 1,
       "message": "is the info required here, there will be lot of these piled up",
+      "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7ae8b7aa_54710aba",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 615,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-23T05:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b526c23_e776c556",
       "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -137,6 +245,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4f3bab52_1d5cac66",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-23T05:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d121867c_cf3dc924",
+      "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "938f5e5c_bf25fb60",
@@ -150,6 +276,24 @@
       "writtenOn": "2023-08-22T14:40:48Z",
       "side": 1,
       "message": "info not required here",
+      "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9e67944d_4a8232a6",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 690,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-23T05:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "938f5e5c_bf25fb60",
       "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -171,6 +315,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f6f3a11c_03c345fa",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 698,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-23T05:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f0c2692f_6184c6d4",
+      "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4f369011_63abdf2f",
@@ -188,6 +350,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1280dd90_86f9e958",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 706,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-23T05:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f369011_63abdf2f",
+      "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "30173ba9_f73c60ba",
@@ -201,6 +381,24 @@
       "writtenOn": "2023-08-22T14:40:48Z",
       "side": 1,
       "message": "lot of these are not required.. please move them to debug",
+      "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a29e824e_54450996",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 754,
+      "author": {
+        "id": 1000981
+      },
+      "writtenOn": "2023-08-23T05:15:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "30173ba9_f73c60ba",
       "revId": "434bbaa525d64c43e4af915f091be6b402ecea23",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
