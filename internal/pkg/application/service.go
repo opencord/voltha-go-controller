@@ -2104,62 +2104,61 @@ func (vs *VoltService) LenOfPendingFlows() int {
 
 // ActivateService to activate pre-provisioned service
 func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) error {
-	var isParmsInvalid bool
 	logger.Infow(ctx, "Service Activate Request ", log.Fields{"Device": deviceID, "Port": portNo, "Svaln": sVlan, "Cvlan": cVlan, "TpID": tpID})
 	device, err := va.GetDeviceFromPort(portNo)
 	if err != nil {
-		return fmt.Errorf("error getting device for portNo %s : %w", portNo, err)
+		// Lets activate the service even though port was not found. We will push the flows once the port is added by voltha
+		logger.Warnw(ctx, "Couldn't get device for port, continuing with service activation", log.Fields{"Reason": err.Error(), "Port": portNo})
 	}
 	// If device id is not provided check only port number
-	if deviceID == DeviceAny {
-		deviceID = device.Name
-	} else if deviceID != device.Name {
-		err := errorCodes.ErrDeviceNotFound
-		return fmt.Errorf("wrong device id %s : %w", deviceID, err)
+	if device != nil {
+		if deviceID == DeviceAny {
+			deviceID = device.Name
+		} else if deviceID != device.Name {
+			logger.Errorw(ctx, "Wrong Device ID", log.Fields{"Device": deviceID, "Port": portNo})
+			return errorCodes.ErrDeviceNotFound
+		}
 	}
 	va.ServiceByName.Range(func(key, value interface{}) bool {
 		vs := value.(*VoltService)
 		// If svlan if provided, then the tags and tpID of service has to be matching
 		if sVlan != of.VlanNone && (sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) {
-			logger.Warnw(ctx, "Service Activate Request Does not match", log.Fields{"Device": deviceID, "voltService": vs})
-			isParmsInvalid = true
+			logger.Infow(ctx, "Service Activate Request Does not match", log.Fields{"Device": deviceID, "voltService": vs})
 			return true
 		}
 		if portNo == vs.Port && !vs.IsActivated {
-			isParmsInvalid = false
-			p := device.GetPort(vs.Port)
-			if p == nil {
-				logger.Warnw(ctx, "Wrong device or port", log.Fields{"Device": deviceID, "Port": portNo})
-				return true
-			}
-			logger.Debugw(ctx, "Service Activate", log.Fields{"Name": vs.Name})
+			// Mark the service as activated, so that we can push the flows later when the port is added by voltha
+			logger.Infow(ctx, "Service Activate", log.Fields{"Name": vs.Name})
 			vs.IsActivated = true
 			va.ServiceByName.Store(vs.Name, vs)
 			vs.WriteToDb(cntx)
-			// If port is already up send indication to vpv
-			if p.State == PortStateUp {
-				if vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan); vpv != nil {
-					// PortUp call initiates flow addition
-					vpv.PortUpInd(cntx, device, portNo)
-				} else {
-					logger.Warnw(ctx, "VPV does not exists!!!", log.Fields{"Device": deviceID, "port": portNo, "SvcName": vs.Name})
+
+			// Push the flows only if the port is already added and we have a valid device
+			if device != nil {
+				p := device.GetPort(vs.Port)
+				if p == nil {
+					logger.Warnw(ctx, "Wrong device or port", log.Fields{"Device": deviceID, "Port": portNo})
+					return true
+				}
+				// If port is already up send indication to vpv
+				if p.State == PortStateUp {
+					if vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan); vpv != nil {
+						// PortUp call initiates flow addition
+						vpv.PortUpInd(cntx, device, portNo)
+					} else {
+						logger.Warnw(ctx, "VPV does not exists!!!", log.Fields{"Device": deviceID, "port": portNo, "SvcName": vs.Name})
+					}
 				}
 			}
 		}
 		return true
 	})
-
-	if isParmsInvalid {
-		return errorCodes.ErrInvalidParamInRequest
-	}
 	return nil
 }
 
 // DeactivateService to activate pre-provisioned service
 func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) error {
 	logger.Infow(ctx, "Service Deactivate Request ", log.Fields{"Device": deviceID, "Port": portNo, "Svaln": sVlan, "Cvlan": cVlan, "TpID": tpID})
-	var isServiceExist bool
-	var isParmsInvalid bool
 
 	va.ServiceByName.Range(func(key, value interface{}) bool {
 		vs := value.(*VoltService)
@@ -2167,12 +2166,9 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 		logger.Debugw(ctx, "Service Deactivate Request ", log.Fields{"Device": deviceID, "Port": portNo})
 		if sVlan != of.VlanNone && (sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) {
 			logger.Warnw(ctx, "condition not matched", log.Fields{"Device": deviceID, "Port": portNo, "sVlan": sVlan, "cVlan": cVlan, "tpID": tpID})
-			isParmsInvalid = true
 			return true
 		}
 		if portNo == vs.Port && vs.IsActivated {
-			isServiceExist = true
-			isParmsInvalid = false
 			vs.IsActivated = false
 			vs.DeactivateInProgress = true
 			va.ServiceByName.Store(vs.Name, vs)
@@ -2200,12 +2196,6 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 		}
 		return true
 	})
-
-	if isParmsInvalid {
-		return errorCodes.ErrInvalidParamInRequest
-	} else if !isServiceExist && !isParmsInvalid {
-		return errorCodes.ErrPortNotFound
-	}
 	return nil
 }
 
