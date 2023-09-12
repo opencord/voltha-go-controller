@@ -313,7 +313,8 @@ func (v *VoltController) AddFlows(cntx context.Context, port string, device stri
 }
 
 // DelFlows to delete flows
-func (v *VoltController) DelFlows(cntx context.Context, port string, device string, flow *of.VoltFlow) error {
+// delFlowsOnlyInDevice flag indicates that flows should be deleted only in DB/device and should not be forwarded to core
+func (v *VoltController) DelFlows(cntx context.Context, port string, device string, flow *of.VoltFlow, delFlowsOnlyInDevice bool) error {
 	d, err := v.GetDevice(device)
 	if err != nil {
 		logger.Errorw(ctx, "Device Not Found", log.Fields{"Device": device})
@@ -351,10 +352,18 @@ func (v *VoltController) DelFlows(cntx context.Context, port string, device stri
 			}
 		}
 	} else {
-		flow.Command = of.CommandDel
-		d.UpdateFlows(flow, devPort)
-		for cookie := range flow.SubFlows {
-			logger.Debugw(ctx, "Flow Del added to queue", log.Fields{"Cookie": cookie, "Device": device, "Port": port})
+		// Delete flows only in DB/device when Port Delete has come. Do not send flows to core during Port Delete
+		if delFlowsOnlyInDevice {
+			for cookie, subFlow := range flow.SubFlows {
+				err := d.DelFlow(ctx, subFlow)
+				logger.Infow(ctx, "Flow Deleted from device/DB", log.Fields{"Cookie": cookie, "Device": device, "Port": port, "Error": err})
+			}
+		} else {
+			flow.Command = of.CommandDel
+			d.UpdateFlows(flow, devPort)
+			for cookie := range flow.SubFlows {
+				logger.Debugw(ctx, "Flow Del added to queue", log.Fields{"Cookie": cookie, "Device": device, "Port": port})
+			}
 		}
 	}
 	return nil

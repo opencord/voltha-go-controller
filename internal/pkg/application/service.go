@@ -292,12 +292,12 @@ func (vs *VoltService) AddHsiaFlows(cntx context.Context) {
 // DelHsiaFlows - Deletes US & DS HSIA Flows for the service
 func (vs *VoltService) DelHsiaFlows(cntx context.Context) {
 	logger.Debugw(ctx, "Delete US & DS HSIA Flows for the service", log.Fields{"ServiceName": vs.Name})
-	if err := vs.DelUsHsiaFlows(cntx); err != nil {
+	if err := vs.DelUsHsiaFlows(cntx, false); err != nil {
 		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
 		vs.triggerServiceFailureInd(statusCode, statusMessage)
 	}
 
-	if err := vs.DelDsHsiaFlows(cntx); err != nil {
+	if err := vs.DelDsHsiaFlows(cntx, false); err != nil {
 		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
 		vs.triggerServiceFailureInd(statusCode, statusMessage)
 	}
@@ -446,7 +446,7 @@ func (vs *VoltService) AddDsHsiaFlows(cntx context.Context) error {
 }
 
 // DelUsHsiaFlows - Deletes US HSIA Flows for the service
-func (vs *VoltService) DelUsHsiaFlows(cntx context.Context) error {
+func (vs *VoltService) DelUsHsiaFlows(cntx context.Context, delFlowsInDevice bool) error {
 	logger.Infow(ctx, "Removing US HSIA Services", log.Fields{"Device": vs.Device, "ServiceName": vs.Name})
 	if vs.UsHSIAFlowsApplied || vgcRebooted {
 		device, err := GetApplication().GetDeviceFromPort(vs.Port)
@@ -468,7 +468,7 @@ func (vs *VoltService) DelUsHsiaFlows(cntx context.Context) error {
 				continue
 			}
 			usflows.MigrateCookie = vgcRebooted
-			if err = vs.DelFlows(cntx, device, usflows); err != nil {
+			if err = vs.DelFlows(cntx, device, usflows, delFlowsInDevice); err != nil {
 				logger.Errorw(ctx, "Error Deleting HSIA US flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name, "Reason": err.Error()})
 				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
 				vs.triggerServiceFailureInd(statusCode, statusMessage)
@@ -481,7 +481,7 @@ func (vs *VoltService) DelUsHsiaFlows(cntx context.Context) error {
 }
 
 // DelDsHsiaFlows - Deletes DS HSIA Flows for the service
-func (vs *VoltService) DelDsHsiaFlows(cntx context.Context) error {
+func (vs *VoltService) DelDsHsiaFlows(cntx context.Context, delFlowsInDevice bool) error {
 	logger.Infow(ctx, "Removing DS HSIA Services", log.Fields{"Device": vs.Device, "ServiceName": vs.Name})
 	if vs.DsHSIAFlowsApplied || vgcRebooted {
 		device, err := GetApplication().GetDeviceFromPort(vs.Port)
@@ -497,7 +497,7 @@ func (vs *VoltService) DelDsHsiaFlows(cntx context.Context) error {
 				return fmt.Errorf("Error Building HSIA DS flows for Service %s and Port %s  : %w", vs.Name, vs.Port, err)
 			}
 			dsflows.MigrateCookie = vgcRebooted
-			if err = vs.DelFlows(cntx, device, dsflows); err != nil {
+			if err = vs.DelFlows(cntx, device, dsflows, delFlowsInDevice); err != nil {
 				logger.Errorw(ctx, "Error Deleting HSIA DS flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name, "Reason": err.Error()})
 				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
 				vs.triggerServiceFailureInd(statusCode, statusMessage)
@@ -508,7 +508,7 @@ func (vs *VoltService) DelDsHsiaFlows(cntx context.Context) error {
 				return fmt.Errorf("Error Building HSIA DS flows for Service %s and Port %s  : %w", vs.Name, vs.Port, err)
 			}
 			dsflows.MigrateCookie = vgcRebooted
-			if err = vs.DelFlows(cntx, device, dsflows); err != nil {
+			if err = vs.DelFlows(cntx, device, dsflows, delFlowsInDevice); err != nil {
 				logger.Errorw(ctx, "Error Deleting HSIA DS flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name, "Reason": err.Error()})
 				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
 				vs.triggerServiceFailureInd(statusCode, statusMessage)
@@ -523,7 +523,7 @@ func (vs *VoltService) DelDsHsiaFlows(cntx context.Context) error {
 					continue
 				}
 				dsflows.MigrateCookie = vgcRebooted
-				if err = vs.DelFlows(cntx, device, dsflows); err != nil {
+				if err = vs.DelFlows(cntx, device, dsflows, delFlowsInDevice); err != nil {
 					logger.Errorw(ctx, "Error Deleting HSIA DS flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name, "Reason": err.Error()})
 					statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
 					vs.triggerServiceFailureInd(statusCode, statusMessage)
@@ -1338,7 +1338,7 @@ func (vs *VoltService) FlowInstallFailure(cookie string, errorCode uint32, errRe
 
 // DelFlows - Deletes the flow from the service
 // Triggers flow deletion after registering for flow indication event
-func (vs *VoltService) DelFlows(cntx context.Context, device *VoltDevice, flow *of.VoltFlow) error {
+func (vs *VoltService) DelFlows(cntx context.Context, device *VoltDevice, flow *of.VoltFlow, delFlowsInDevice bool) error {
 	logger.Debugw(ctx, "Delete the flow from the service", log.Fields{"Port": vs.Port, "Device": device.Name})
 	if !vs.ForceDelete {
 		// Using locks instead of concurrent map for AssociatedFlows to avoid
@@ -1356,7 +1356,7 @@ func (vs *VoltService) DelFlows(cntx context.Context, device *VoltDevice, flow *
 			device.RegisterFlowDelEvent(cookie, fe)
 		}
 	}
-	return cntlr.GetController().DelFlows(cntx, vs.Port, device.Name, flow)
+	return cntlr.GetController().DelFlows(cntx, vs.Port, device.Name, flow, delFlowsInDevice)
 }
 
 // CheckAndDeleteService - remove service from DB is there are no pending flows to be removed
@@ -1967,13 +1967,13 @@ func (vs *VoltService) TriggerAssociatedFlowDelete(cntx context.Context) bool {
 	// This case happens only in case of some race condition
 	logger.Infow(ctx, "Trigger Associated Flow Delete", log.Fields{"Device": vs.Device, "Service": vs.Name})
 	if vs.UsHSIAFlowsApplied {
-		if err := vs.DelUsHsiaFlows(cntx); err != nil {
+		if err := vs.DelUsHsiaFlows(cntx, false); err != nil {
 			logger.Warnw(ctx, "DelUsHsiaFlows Failed", log.Fields{"Device": vs.Device, "Service": vs.Name, "Error": err})
 		}
 	}
 
 	if vs.DsHSIAFlowsApplied {
-		if err := vs.DelDsHsiaFlows(cntx); err != nil {
+		if err := vs.DelDsHsiaFlows(cntx, false); err != nil {
 			logger.Warnw(ctx, "DelDsHsiaFlows Failed", log.Fields{"Device": vs.Device, "Service": vs.Name, "Error": err})
 		}
 	}
@@ -1998,7 +1998,7 @@ func (vs *VoltService) TriggerAssociatedFlowDelete(cntx context.Context) bool {
 			subFlow.Cookie = cookie
 			flow.SubFlows[cookie] = subFlow
 			logger.Infow(ctx, "Retriggering Service Delete Flow", log.Fields{"Device": vs.Device, "Service": vs.Name, "Cookie": cookie})
-			if err := vs.DelFlows(cntx, vd, flow); err != nil {
+			if err := vs.DelFlows(cntx, vd, flow, false); err != nil {
 				logger.Warnw(ctx, "DelFlows Failed", log.Fields{"Device": vs.Device, "Service": vs.Name, "Cookie": cookie, "Error": err})
 			}
 		}
@@ -2184,7 +2184,7 @@ func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, por
 			if p != nil && (p.State == PortStateUp || !va.OltFlowServiceConfig.RemoveFlowsOnDisable) {
 				if vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan); vpv != nil {
 					// Port down call internally deletes all the flows
-					vpv.PortDownInd(cntx, deviceID, portNo, true)
+					vpv.PortDownInd(cntx, deviceID, portNo, true, false)
 					if vpv.IgmpEnabled {
 						va.ReceiverDownInd(cntx, deviceID, portNo)
 					}

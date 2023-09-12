@@ -318,7 +318,7 @@ func (mvp *MvlanProfile) DelFlows(cntx context.Context, device *VoltDevice, flow
 	if err := mvp.WriteToDb(cntx); err != nil {
 		logger.Errorw(ctx, "Mvlan profile write to DB failed", log.Fields{"ProfileName": mvp.Name})
 	}
-	return cntlr.GetController().DelFlows(cntx, device.NniPort, device.Name, flow)
+	return cntlr.GetController().DelFlows(cntx, device.NniPort, device.Name, flow, false)
 }
 
 // FlowRemoveSuccess - Process flow success indication
