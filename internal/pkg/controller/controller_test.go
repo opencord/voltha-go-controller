@@ -238,7 +238,7 @@ func TestVoltController_DelFlows(t *testing.T) {
 			v := &VoltController{
 				devices: dev,
 			}
-			if err := v.DelFlows(tt.args.cntx, tt.args.port, tt.args.device, tt.args.flow); (err != nil) != tt.wantErr {
+			if err := v.DelFlows(tt.args.cntx, tt.args.port, tt.args.device, tt.args.flow, false); (err != nil) != tt.wantErr {
 				t.Errorf("VoltController.DelFlows() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

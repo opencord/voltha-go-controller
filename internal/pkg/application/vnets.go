@@ -674,9 +674,9 @@ func (vpv *VoltPortVnet) ProcessDhcpResult(cntx context.Context, res *layers.DHC
 }
 
 // RangeOnServices to call a function on all services on the vpv
-func (vpv *VoltPortVnet) RangeOnServices(cntx context.Context, callback func(cntx context.Context, key, value interface{}) bool) {
+func (vpv *VoltPortVnet) RangeOnServices(cntx context.Context, callback func(cntx context.Context, key, value interface{}, flag bool) bool, delFlowsInDevice bool) {
 	vpv.services.Range(func(key, value interface{}) bool {
-		return callback(cntx, key, value)
+		return callback(cntx, key, value, delFlowsInDevice)
 	})
 }
 
@@ -689,7 +689,7 @@ func (vpv *VoltPortVnet) ProcessDhcpSuccess(cntx context.Context, res *layers.DH
 	vpv.Ipv4Addr, _ = GetIpv4Addr(res)
 	logger.Debugw(ctx, "Received IPv4 Address and Services Configured", log.Fields{"IP Address": vpv.Ipv4Addr.String(), "Count": vpv.servicesCount.Load()})
 
-	vpv.RangeOnServices(cntx, vpv.updateIPv4AndProvisionFlows)
+	vpv.RangeOnServices(cntx, vpv.updateIPv4AndProvisionFlows, false)
 	vpv.ProcessDhcpv4Options(res)
 }
 
@@ -717,12 +717,12 @@ func (vpv *VoltPortVnet) ProcessDhcpv6Result(cntx context.Context, ipv6Addr net.
 	vpv.Dhcp6ExpiryTime = time.Now().Add((time.Duration(leaseTime) * time.Second))
 	vpv.Ipv6Addr = ipv6Addr
 
-	vpv.RangeOnServices(cntx, vpv.updateIPv6AndProvisionFlows)
+	vpv.RangeOnServices(cntx, vpv.updateIPv6AndProvisionFlows, false)
 	vpv.WriteToDb(cntx)
 }
 
 // AddSvcUsMeterToDevice to add service upstream meter info to device
-func AddSvcUsMeterToDevice(cntx context.Context, key, value interface{}) bool {
+func AddSvcUsMeterToDevice(cntx context.Context, key, value interface{}, flag bool) bool {
 	svc := value.(*VoltService)
 	logger.Infow(ctx, "Adding upstream meter profile to device", log.Fields{"ServiceName": svc.Name})
 	if device, _ := GetApplication().GetDeviceFromPort(svc.Port); device != nil {
@@ -794,23 +794,23 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 		logger.Infow(ctx, "Port Up - Trap Flows", log.Fields{"Device": device.Name, "Port": port})
 		// no HSIA flows for multicast service and DPU_MGMT Service
 		if !vpv.McastService && vpv.VnetType != DpuMgmtTraffic {
-			vpv.RangeOnServices(cntx, AddUsHsiaFlows)
+			vpv.RangeOnServices(cntx, AddUsHsiaFlows, false)
 		}
 		if vpv.VnetType == DpuMgmtTraffic {
-			vpv.RangeOnServices(cntx, AddMeterToDevice)
+			vpv.RangeOnServices(cntx, AddMeterToDevice, false)
 		}
 		vpv.AddTrapFlows(cntx)
 		if vpv.MacLearning == MacLearningNone || NonZeroMacAddress(vpv.MacAddr) {
 			logger.Infow(ctx, "Port Up - DS Flows", log.Fields{"Device": device.Name, "Port": port})
 			/*In case of DPU_MGMT_TRAFFIC, need to install both US and DS traffic */
 			if vpv.VnetType == DpuMgmtTraffic {
-				vpv.RangeOnServices(cntx, AddUsHsiaFlows)
+				vpv.RangeOnServices(cntx, AddUsHsiaFlows, false)
 			}
 			// US & DS DHCP, US HSIA flows are already installed
 			// install only DS HSIA flow here.
 			// no HSIA flows for multicast service
 			if !vpv.McastService {
-				vpv.RangeOnServices(cntx, AddDsHsiaFlows)
+				vpv.RangeOnServices(cntx, AddDsHsiaFlows, false)
 			}
 		}
 	} else {
@@ -821,25 +821,25 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 		// however is not seen as a real use case.
 		logger.Infow(ctx, "Port Up - Service Flows", log.Fields{"Device": device.Name, "Port": port})
 		if !vpv.McastService {
-			vpv.RangeOnServices(cntx, AddUsHsiaFlows)
+			vpv.RangeOnServices(cntx, AddUsHsiaFlows, false)
 		}
 		vpv.AddTrapFlows(cntx)
 		if !vpv.McastService {
-			vpv.RangeOnServices(cntx, AddDsHsiaFlows)
+			vpv.RangeOnServices(cntx, AddDsHsiaFlows, false)
 		}
 	}
 
 	// Process IGMP proxy - install IGMP trap rules before DHCP trap rules
 	if vpv.IgmpEnabled {
 		logger.Infow(ctx, "Port Up - IGMP Flows", log.Fields{"Device": device.Name, "Port": port})
-		vpv.RangeOnServices(cntx, AddSvcUsMeterToDevice)
+		vpv.RangeOnServices(cntx, AddSvcUsMeterToDevice, false)
 		if err := vpv.AddIgmpFlows(cntx); err != nil {
 			statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 			vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 		}
 
 		if vpv.McastService {
-			vpv.RangeOnServices(cntx, PostAccessConfigSuccessInd)
+			vpv.RangeOnServices(cntx, PostAccessConfigSuccessInd, false)
 		}
 	}
 
@@ -849,7 +849,8 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 // PortDownInd : When the port status changes to down, we delete all configured flows
 // The same indication is also passed to the services enqueued for them
 // to take appropriate actions
-func (vpv *VoltPortVnet) PortDownInd(cntx context.Context, device string, port string, nbRequest bool) {
+// delFlowsInDevice flag indicates that flows should be deleted only in DB/device and should not be forwarded to core
+func (vpv *VoltPortVnet) PortDownInd(cntx context.Context, device string, port string, nbRequest bool, delFlowsInDevice bool) {
 	if !nbRequest && !GetApplication().OltFlowServiceConfig.RemoveFlowsOnDisable {
 		logger.Info(ctx, "VPV Port DOWN Ind, Not deleting flows since RemoveOnDisable is disabled")
 		return
@@ -859,7 +860,7 @@ func (vpv *VoltPortVnet) PortDownInd(cntx context.Context, device string, port s
 
 	//vpv.RangeOnServices(cntx, DelAllFlows)
 	vpv.DelTrapFlows(cntx)
-	vpv.DelHsiaFlows(cntx)
+	vpv.DelHsiaFlows(cntx, delFlowsInDevice)
 	vpv.WriteToDb(cntx)
 	vpv.ClearServiceCounters(cntx)
 }
@@ -895,15 +896,15 @@ func (vpv *VoltPortVnet) SetMacAddr(cntx context.Context, addr net.HardwareAddr)
 			// may have been changed
 			// Atleast one HSIA flow should be present in adapter to retain the TP and GEM
 			// hence delete one after the other
-			vpv.RangeOnServices(cntx, DelUsHsiaFlows)
+			vpv.RangeOnServices(cntx, DelUsHsiaFlows, false)
 			vpv.MacAddr = addr
-			vpv.RangeOnServices(cntx, vpv.setLearntMAC)
-			vpv.RangeOnServices(cntx, AddUsHsiaFlows)
-			vpv.RangeOnServices(cntx, DelDsHsiaFlows)
+			vpv.RangeOnServices(cntx, vpv.setLearntMAC, false)
+			vpv.RangeOnServices(cntx, AddUsHsiaFlows, false)
+			vpv.RangeOnServices(cntx, DelDsHsiaFlows, false)
 			GetApplication().DeleteMacInPortMap(vpv.MacAddr)
 		} else {
 			vpv.MacAddr = addr
-			vpv.RangeOnServices(cntx, vpv.setLearntMAC)
+			vpv.RangeOnServices(cntx, vpv.setLearntMAC, false)
 			logger.Infow(ctx, "MAC Address learnt from DHCP or ARP", log.Fields{"Learnt MAC": addr.String(), "Port": vpv.Port})
 		}
 		GetApplication().UpdateMacInPortMap(vpv.MacAddr, vpv.Port)
@@ -922,11 +923,11 @@ func (vpv *VoltPortVnet) SetMacAddr(cntx context.Context, addr net.HardwareAddr)
 	if vpv.FlowsApplied {
 		// In case of DPU_MGMT_TRAFFIC install both US and DS Flows
 		if vpv.VnetType == DpuMgmtTraffic {
-			vpv.RangeOnServices(cntx, AddUsHsiaFlows)
+			vpv.RangeOnServices(cntx, AddUsHsiaFlows, false)
 		}
 		// no HSIA flows for multicast service
 		if !vpv.McastService {
-			vpv.RangeOnServices(cntx, AddDsHsiaFlows)
+			vpv.RangeOnServices(cntx, AddDsHsiaFlows, false)
 		}
 	}
 	vpv.WriteToDb(cntx)
@@ -1105,14 +1106,14 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 
 		if vpv.McastService {
 			// For McastService, send Service Activated indication once IGMP US flow is pushed
-			vpv.RangeOnServices(cntx, PostAccessConfigSuccessInd)
+			vpv.RangeOnServices(cntx, PostAccessConfigSuccessInd, false)
 		}
 	}
 	vpv.WriteToDb(cntx)
 }
 
 // setLearntMAC to set learnt mac
-func (vpv *VoltPortVnet) setLearntMAC(cntx context.Context, key, value interface{}) bool {
+func (vpv *VoltPortVnet) setLearntMAC(cntx context.Context, key, value interface{}, flag bool) bool {
 	svc := value.(*VoltService)
 	svc.SetMacAddr(vpv.MacAddr)
 	svc.WriteToDb(cntx)
@@ -1120,12 +1121,12 @@ func (vpv *VoltPortVnet) setLearntMAC(cntx context.Context, key, value interface
 }
 
 // PostAccessConfigSuccessInd for posting access config success indication
-func PostAccessConfigSuccessInd(cntx context.Context, key, value interface{}) bool {
+func PostAccessConfigSuccessInd(cntx context.Context, key, value interface{}, flag bool) bool {
 	return true
 }
 
 // updateIPv4AndProvisionFlows to update ipv4 and provisional flows
-func (vpv *VoltPortVnet) updateIPv4AndProvisionFlows(cntx context.Context, key, value interface{}) bool {
+func (vpv *VoltPortVnet) updateIPv4AndProvisionFlows(cntx context.Context, key, value interface{}, flag bool) bool {
 	svc := value.(*VoltService)
 	logger.Debugw(ctx, "Updating Ipv4 address for service", log.Fields{"ServiceName": svc.Name})
 	svc.SetIpv4Addr(vpv.Ipv4Addr)
@@ -1135,7 +1136,7 @@ func (vpv *VoltPortVnet) updateIPv4AndProvisionFlows(cntx context.Context, key, 
 }
 
 // updateIPv6AndProvisionFlows to update ipv6 and provisional flow
-func (vpv *VoltPortVnet) updateIPv6AndProvisionFlows(cntx context.Context, key, value interface{}) bool {
+func (vpv *VoltPortVnet) updateIPv6AndProvisionFlows(cntx context.Context, key, value interface{}, flag bool) bool {
 	svc := value.(*VoltService)
 	logger.Debugw(ctx, "Updating Ipv6 address for service", log.Fields{"ServiceName": svc.Name})
 	svc.SetIpv6Addr(vpv.Ipv6Addr)
@@ -1145,7 +1146,7 @@ func (vpv *VoltPortVnet) updateIPv6AndProvisionFlows(cntx context.Context, key, 
 }
 
 // AddUsHsiaFlows to add upstream hsia flows
-func AddUsHsiaFlows(cntx context.Context, key, value interface{}) bool {
+func AddUsHsiaFlows(cntx context.Context, key, value interface{}, flag bool) bool {
 	svc := value.(*VoltService)
 	logger.Debugw(ctx, "Add US Hsia Flows", log.Fields{"ServiceName": svc.Name})
 	if err := svc.AddUsHsiaFlows(cntx); err != nil {
@@ -1155,7 +1156,7 @@ func AddUsHsiaFlows(cntx context.Context, key, value interface{}) bool {
 }
 
 // AddDsHsiaFlows to add downstream hsia flows
-func AddDsHsiaFlows(cntx context.Context, key, value interface{}) bool {
+func AddDsHsiaFlows(cntx context.Context, key, value interface{}, flag bool) bool {
 	svc := value.(*VoltService)
 	logger.Debugw(ctx, "Add DS Hsia Flows", log.Fields{"ServiceName": svc.Name})
 	if err := svc.AddDsHsiaFlows(cntx); err != nil {
@@ -1165,7 +1166,7 @@ func AddDsHsiaFlows(cntx context.Context, key, value interface{}) bool {
 }
 
 // ClearFlagsInService to clear the flags used in service
-func ClearFlagsInService(cntx context.Context, key, value interface{}) bool {
+func ClearFlagsInService(cntx context.Context, key, value interface{}, flag bool) bool {
 	svc := value.(*VoltService)
 	logger.Debugw(ctx, "Received Cleared Flow Flags for service", log.Fields{"name": svc.Name})
 	svc.ServiceLock.Lock()
@@ -1184,27 +1185,29 @@ func ClearFlagsInService(cntx context.Context, key, value interface{}) bool {
 }
 
 // DelDsHsiaFlows to delete hsia flows
-func DelDsHsiaFlows(cntx context.Context, key, value interface{}) bool {
+// delFlowsInDevice flag indicates that flows should be deleted only in DB/device and should not be forwarded to core
+func DelDsHsiaFlows(cntx context.Context, key, value interface{}, delFlowsInDevice bool) bool {
 	svc := value.(*VoltService)
 	logger.Debugw(ctx, "Delete DS Hsia Flows", log.Fields{"ServiceName": svc.Name})
-	if err := svc.DelDsHsiaFlows(cntx); err != nil {
+	if err := svc.DelDsHsiaFlows(cntx, delFlowsInDevice); err != nil {
 		logger.Warnw(ctx, "Delete DS hsia flow failed", log.Fields{"service": svc.Name, "Error": err})
 	}
 	return true
 }
 
 // DelUsHsiaFlows to delete upstream hsia flows
-func DelUsHsiaFlows(cntx context.Context, key, value interface{}) bool {
+// delFlowsInDevice flag indicates that flows should be deleted only in DB/device and should not be forwarded to core
+func DelUsHsiaFlows(cntx context.Context, key, value interface{}, delFlowsInDevice bool) bool {
 	svc := value.(*VoltService)
 	logger.Debugw(ctx, "Delete US Hsia Flows", log.Fields{"ServiceName": svc.Name})
-	if err := svc.DelUsHsiaFlows(cntx); err != nil {
+	if err := svc.DelUsHsiaFlows(cntx, delFlowsInDevice); err != nil {
 		logger.Warnw(ctx, "Delete US hsia flow failed", log.Fields{"service": svc.Name, "Error": err})
 	}
 	return true
 }
 
 // ClearServiceCounters to clear the service counters
-func ClearServiceCounters(cntx context.Context, key, value interface{}) bool {
+func ClearServiceCounters(cntx context.Context, key, value interface{}, flag bool) bool {
 	svc := value.(*VoltService)
 	logger.Debugw(ctx, "Received Clear Service Counters", log.Fields{"ServiceName": svc.Name})
 	//Delete the per service counter too
@@ -1216,7 +1219,7 @@ func ClearServiceCounters(cntx context.Context, key, value interface{}) bool {
 }
 
 // AddMeterToDevice to add meter config to device, used in FTTB case
-func AddMeterToDevice(cntx context.Context, key, value interface{}) bool {
+func AddMeterToDevice(cntx context.Context, key, value interface{}, flag bool) bool {
 	svc := value.(*VoltService)
 	logger.Debugw(ctx, "Received Add Meter To Device", log.Fields{"ServiceName": svc.Name})
 	if err := svc.AddMeterToDevice(cntx); err != nil {
@@ -1304,19 +1307,19 @@ func (vpv *VoltPortVnet) DelTrapFlows(cntx context.Context) {
 }
 
 // DelHsiaFlows deletes the service flows
-func (vpv *VoltPortVnet) DelHsiaFlows(cntx context.Context) {
+func (vpv *VoltPortVnet) DelHsiaFlows(cntx context.Context, delFlowsInDevice bool) {
 	logger.Infow(ctx, "Received Delete Hsia Flows", log.Fields{"McastService": vpv.McastService})
 	// no HSIA flows for multicast service
 	if !vpv.McastService {
-		vpv.RangeOnServices(cntx, DelUsHsiaFlows)
-		vpv.RangeOnServices(cntx, DelDsHsiaFlows)
+		vpv.RangeOnServices(cntx, DelUsHsiaFlows, delFlowsInDevice)
+		vpv.RangeOnServices(cntx, DelDsHsiaFlows, delFlowsInDevice)
 	}
 }
 
 // ClearServiceCounters - Removes all igmp counters for a service
 func (vpv *VoltPortVnet) ClearServiceCounters(cntx context.Context) {
 	//send flows deleted indication to submgr
-	vpv.RangeOnServices(cntx, ClearServiceCounters)
+	vpv.RangeOnServices(cntx, ClearServiceCounters, false)
 }
 
 // AddUsDhcpFlows pushes the DHCP flows to the VOLTHA via the controller
@@ -2155,7 +2158,7 @@ func (vpv *VoltPortVnet) DelFromDb(cntx context.Context) {
 
 // ClearAllServiceFlags to clear all service flags
 func (vpv *VoltPortVnet) ClearAllServiceFlags(cntx context.Context) {
-	vpv.RangeOnServices(cntx, ClearFlagsInService)
+	vpv.RangeOnServices(cntx, ClearFlagsInService, false)
 }
 
 // ClearAllVpvFlags to clear all vpv flags
@@ -2312,7 +2315,7 @@ func (va *VoltApplication) DelVnetFromPort(cntx context.Context, port string, vp
 
 			va.VnetsByPort.Store(port, vpvs)
 			vpv.DelTrapFlows(cntx)
-			vpv.DelHsiaFlows(cntx)
+			vpv.DelHsiaFlows(cntx, false)
 			va.DisassociateVpvsFromDevice(vpv.Device, vpv)
 			vpv.PendingFlowLock.RLock()
 			if len(vpv.PendingDeleteFlow) == 0 {
@@ -2926,7 +2929,7 @@ func (vpv *VoltPortVnet) RemoveFlows(cntx context.Context, device *VoltDevice, f
 		device.RegisterFlowDelEvent(cookie, fe)
 		vpv.PendingDeleteFlow[cookie] = true
 	}
-	return cntlr.GetController().DelFlows(cntx, vpv.Port, device.Name, flow)
+	return cntlr.GetController().DelFlows(cntx, vpv.Port, device.Name, flow, false)
 }
 
 // CheckAndDeleteVpv - remove VPV from DB is there are no pending flows to be removed
@@ -3005,7 +3008,7 @@ func (vv *VoltVnet) RemoveFlows(cntx context.Context, device *VoltDevice, flow *
 		vv.PendingDeleteFlow[device.Name] = flowMap
 	}
 	vv.WriteToDb(cntx)
-	return cntlr.GetController().DelFlows(cntx, device.NniPort, device.Name, flow)
+	return cntlr.GetController().DelFlows(cntx, device.NniPort, device.Name, flow, false)
 }
 
 // CheckAndDeleteVnet - remove Vnet from DB is there are no pending flows to be removed

@@ -940,7 +940,8 @@ func (va *VoltApplication) PortDelInd(cntx context.Context, device string, port 
 			} else {
 				for _, vpv := range vpvs.([]*VoltPortVnet) {
 					vpv.VpvLock.Lock()
-					vpv.PortDownInd(cntx, device, port, true)
+					// Set delFlowsInDevice to true to delete flows only in DB/device during Port Delete.
+					vpv.PortDownInd(cntx, device, port, true, true)
 					vpv.VpvLock.Unlock()
 				}
 			}
@@ -1501,7 +1502,7 @@ func (va *VoltApplication) PortDownInd(cntx context.Context, device string, port
 
 	for _, vpv := range vpvs.([]*VoltPortVnet) {
 		vpv.VpvLock.Lock()
-		vpv.PortDownInd(cntx, device, port, false)
+		vpv.PortDownInd(cntx, device, port, false, false)
 		if vpv.IgmpEnabled {
 			va.ReceiverDownInd(cntx, device, port)
 		}
