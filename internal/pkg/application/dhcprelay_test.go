@@ -605,6 +605,27 @@ func TestVoltApplication_GetMacLearnerInfo(t *testing.T) {
 		portNumber string
 		vlanID     string
 	}
+	vpv := &VoltPortVnet{
+		Device:  "SDX6320031",
+		Port:    "SDX6320031-1",
+		SVlan:   of.VlanAny,
+		MacAddr: BroadcastMAC,
+	}
+	sessions := map[[6]byte]IDhcpRelaySession{}
+	key := [6]byte{1, 2, 3, 4, 5, 6}
+	sessions[key] = vpv
+	network := make(map[uint32]*DhcpRelayVnet)
+	network[uint32(256)] = &DhcpRelayVnet{
+		sessions: sessions,
+	}
+	dhcpNws.Networks = network
+	svlan := of.VlanAny
+	macLearning := MacLearnerInfo{
+		DeviceID:   "SDX6320031",
+		PortNumber: "SDX6320031-1",
+		VlanID:     svlan.String(),
+		MacAddress: BroadcastMAC.String(),
+	}
 	tests := []struct {
 		name    string
 		args    args
@@ -615,10 +636,21 @@ func TestVoltApplication_GetMacLearnerInfo(t *testing.T) {
 			name: "VoltApplication_GetMacLearnerInfo",
 			args: args{
 				cntx:       context.Background(),
-				deviceID:   test_device,
-				portNumber: "test_port_number",
-				vlanID:     "test_vlanID",
+				deviceID:   "SDX6320031",
+				portNumber: "SDX6320031-1",
+				vlanID:     svlan.String(),
 			},
+			want: macLearning,
+		},
+		{
+			name: "VoltApplication_GetMacLearnerInfo_svlan_empty",
+			args: args{
+				cntx:       context.Background(),
+				deviceID:   "SDX6320031",
+				portNumber: "SDX6320031-1",
+				vlanID:     "",
+			},
+			want: macLearning,
 		},
 	}
 	for _, tt := range tests {
@@ -631,6 +663,128 @@ func TestVoltApplication_GetMacLearnerInfo(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("VoltApplication.GetMacLearnerInfo() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestVoltApplication_GetAllocations(t *testing.T) {
+	type args struct {
+		cntx     context.Context
+		deviceID string
+	}
+	allocation := []DhcpAllocation{}
+	vpv := &VoltPortVnet{
+		Device:   "SDX6320031",
+		services: sync.Map{},
+	}
+	voltServ := &VoltService{
+		VoltServiceOper: VoltServiceOper{
+			Device: "SDX6320031",
+		},
+		VoltServiceCfg: VoltServiceCfg{
+			Name: "SDX6320031-1_SDX6320031-1-4096-2310-4096-65",
+		},
+	}
+	sessions := map[[6]byte]IDhcpRelaySession{}
+	key := [6]byte{1, 2, 3, 4, 5, 6}
+	sessions[key] = vpv
+	network := make(map[uint32]*DhcpRelayVnet)
+	network[uint32(256)] = &DhcpRelayVnet{
+		sessions: sessions,
+	}
+	dhcpNws.Networks = network
+	tests := []struct {
+		name    string
+		args    args
+		want    []DhcpAllocation
+		wantErr bool
+	}{
+		{
+			name: "VoltApplication_GetAllocations",
+			args: args{
+				cntx:     context.Background(),
+				deviceID: "SDX6320031",
+			},
+			want: allocation,
+		},
+		{
+			name: "GetAllocations_with_Services",
+			args: args{
+				cntx:     context.Background(),
+				deviceID: "SDX6320031",
+			},
+			want: allocation,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{}
+			switch tt.name {
+			case "VoltApplication_GetAllocations":
+				got, err := va.GetAllocations(tt.args.cntx, tt.args.deviceID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("VoltApplication.GetAllocations() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				assert.NotNil(t, got)
+			case "GetAllocations_with_Services":
+				vpv.services.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", voltServ)
+				got, err := va.GetAllocations(tt.args.cntx, tt.args.deviceID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("VoltApplication.GetAllocations() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				assert.NotNil(t, got)
+			}
+		})
+	}
+}
+
+func TestVoltApplication_GetAllMacLearnerInfo(t *testing.T) {
+	vpv := &VoltPortVnet{
+		Device:  "SDX6320031",
+		Port:    "SDX6320031-1",
+		SVlan:   of.VlanAny,
+		MacAddr: BroadcastMAC,
+	}
+	sessions := map[[6]byte]IDhcpRelaySession{}
+	key := [6]byte{1, 2, 3, 4, 5, 6}
+	sessions[key] = vpv
+	network := make(map[uint32]*DhcpRelayVnet)
+	network[uint32(256)] = &DhcpRelayVnet{
+		sessions: sessions,
+	}
+	dhcpNws.Networks = network
+	svlan := of.VlanAny
+	macLearningList := []MacLearnerInfo{}
+	macLearning := MacLearnerInfo{
+		DeviceID:   "SDX6320031",
+		PortNumber: "SDX6320031-1",
+		VlanID:     svlan.String(),
+		MacAddress: BroadcastMAC.String(),
+	}
+	macLearningList = append(macLearningList, macLearning)
+	tests := []struct {
+		name    string
+		want    []MacLearnerInfo
+		wantErr bool
+	}{
+		{
+			name: "VoltApplication_GetAllMacLearnerInfo",
+			want: macLearningList,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{}
+			got, err := va.GetAllMacLearnerInfo()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("VoltApplication.GetAllMacLearnerInfo() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("VoltApplication.GetAllMacLearnerInfo() = %v, want %v", got, tt.want)
 			}
 		})
 	}

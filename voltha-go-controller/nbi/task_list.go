@@ -45,7 +45,9 @@ func (dh *TaskListHandle) GetTaskList(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	va := app.GetApplication()
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
 	var deviceID string
 	taskListResp := map[string]map[int]*app.TaskInfo{}
 	logger.Infow(ctx, "Received get TaskList", log.Fields{"DeviceID": id})
@@ -53,9 +55,9 @@ func (dh *TaskListHandle) GetTaskList(w http.ResponseWriter, r *http.Request) {
 	if len(id) > 0 {
 		// If Get for single Device
 		deviceID = id
-		voltDevice := va.GetDevice(deviceID)
+		voltDevice := voltAppIntr.GetDevice(deviceID)
 		if voltDevice != nil {
-			taskList := va.GetTaskList(deviceID)
+			taskList := voltAppIntr.GetTaskList(deviceID)
 			taskListResp[deviceID] = taskList
 		} else {
 			logger.Warnw(ctx, "Invalid Device Id", log.Fields{"Device": id})
@@ -66,11 +68,11 @@ func (dh *TaskListHandle) GetTaskList(w http.ResponseWriter, r *http.Request) {
 		getDeviceTaskList := func(key, value interface{}) bool {
 			voltDevice := value.(*app.VoltDevice)
 			deviceID = voltDevice.Name
-			taskList := va.GetTaskList(deviceID)
+			taskList := voltAppIntr.GetTaskList(deviceID)
 			taskListResp[deviceID] = taskList
 			return true
 		}
-		va.DevicesDisc.Range(getDeviceTaskList)
+		voltApp.DevicesDisc.Range(getDeviceTaskList)
 	}
 
 	taskListJSON, err := json.Marshal(taskListResp)

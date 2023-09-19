@@ -78,7 +78,10 @@ func (oh *DeviceConfigHandle) FetchDeviceConfig(cntx context.Context, w http.Res
 	serialNum := vars["serialNumber"]
 	logger.Infow(cntx, "Inside FetchDeviceConfig method", log.Fields{"serialNum": serialNum})
 	deviceInfo := DeviceConfigPayload{}
-	dc := app.GetApplication().GetDeviceConfig(serialNum)
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	dc := voltAppIntr.GetDeviceConfig(serialNum)
 	if dc != nil {
 		deviceInfo.DeviceConfig = dc
 		oltInfoJSON, err := json.Marshal(deviceInfo)

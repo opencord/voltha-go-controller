@@ -83,7 +83,10 @@ func (pfh *PendingFlowHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 func (pfh *PendingFlowHandle) GetPendingFlows(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	logger.Debug(ctx, "Received Get Pending Flows request")
 
-	flows, err := cntlr.GetController().GetAllPendingFlows()
+	var voltContrIntr cntlr.VoltControllerInterface
+	cntrlr := cntlr.GetController()
+	voltContrIntr = cntrlr
+	flows, err := voltContrIntr.GetAllPendingFlows()
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get Pending flows", log.Fields{"Error": err})
 		w.WriteHeader(http.StatusInternalServerError)
@@ -160,12 +163,18 @@ func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *h
 }
 
 func (fh *FlowHandle) getAllFlows(deviceID string) ([]*of.VoltSubFlow, error) {
+	var voltContrIntr cntlr.VoltControllerInterface
+	cntrlr := cntlr.GetController()
+	voltContrIntr = cntrlr
 	if len(deviceID) == 0 {
-		return cntlr.GetController().GetAllFlows()
+		return voltContrIntr.GetAllFlows()
 	}
-	return cntlr.GetController().GetFlows(deviceID)
+	return voltContrIntr.GetFlows(deviceID)
 }
 
 func (fh *FlowHandle) getFlow(deviceID string, flowID uint64) (*of.VoltSubFlow, error) {
-	return cntlr.GetController().GetFlow(deviceID, flowID)
+	var voltContrIntr cntlr.VoltControllerInterface
+	cntrlr := cntlr.GetController()
+	voltContrIntr = cntrlr
+	return voltContrIntr.GetFlow(deviceID, flowID)
 }

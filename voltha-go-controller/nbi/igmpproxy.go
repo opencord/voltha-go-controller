@@ -93,8 +93,10 @@ func (iph *IgmpProxyHandle) DelIgmpProxyInfo(cntx context.Context, w http.Respon
 
 func (iph *IgmpProxyHandle) addIgmpProxy(cntx context.Context, w http.ResponseWriter, req *IgmpProxy) {
 	var config McastConfig
-
-	if mvp := app.GetApplication().GetMvlanProfileByTag(of.VlanType(req.OutgoingIgmpVlanID)); mvp == nil {
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	if mvp := voltAppIntr.GetMvlanProfileByTag(of.VlanType(req.OutgoingIgmpVlanID)); mvp == nil {
 		logger.Errorw(ctx, "MVLAN ID not configured", log.Fields{"mvlan": req.OutgoingIgmpVlanID})
 		http.Error(w, "MVLAN profile does not exists", http.StatusConflict)
 		return
@@ -106,7 +108,7 @@ func (iph *IgmpProxyHandle) addIgmpProxy(cntx context.Context, w http.ResponseWr
 
 	logger.Infow(ctx, "northbound-add-igmpProxy-request", log.Fields{"config": config})
 
-	if err := app.GetApplication().AddMcastConfig(cntx, config.MvlanProfileID, config.IgmpProfileID,
+	if err := voltAppIntr.AddMcastConfig(cntx, config.MvlanProfileID, config.IgmpProfileID,
 		config.IgmpProxyIP, config.OltSerialNum); err != nil {
 		logger.Errorw(ctx, "northbound-add-mcast-config-failed", log.Fields{"config": config, "Error": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)

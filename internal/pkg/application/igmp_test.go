@@ -16,7 +16,17 @@
 package application
 
 import (
+	"context"
+	"net"
 	"testing"
+	"time"
+	"voltha-go-controller/internal/pkg/of"
+	common "voltha-go-controller/internal/pkg/types"
+	"voltha-go-controller/internal/test/mocks"
+
+	"github.com/golang/mock/gomock"
+	"github.com/google/gopacket/layers"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestVoltApplication_InitIgmpSrcMac(t *testing.T) {
@@ -31,6 +41,514 @@ func TestVoltApplication_InitIgmpSrcMac(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			va := &VoltApplication{}
 			va.InitIgmpSrcMac()
+		})
+	}
+}
+
+func TestVoltApplication_UpdateIgmpProfile(t *testing.T) {
+	type args struct {
+		cntx              context.Context
+		igmpProfileConfig *common.IGMPConfig
+	}
+	igmpConfig := &common.IGMPConfig{
+		ProfileID:      "test_profile_id",
+		FastLeave:      &vgcRebooted,
+		PeriodicQuery:  &isUpgradeComplete,
+		WithRAUpLink:   &isUpgradeComplete,
+		WithRADownLink: &isUpgradeComplete,
+	}
+	igmpProfile_data := &IgmpProfile{
+		ProfileID: "test_profile_id",
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "UpdateIgmpProfile",
+			args: args{
+				cntx:              context.Background(),
+				igmpProfileConfig: igmpConfig,
+			},
+		},
+		{
+			name: "UpdateIgmpProfile_Profile_not_found",
+			args: args{
+				cntx:              context.Background(),
+				igmpProfileConfig: igmpConfig,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{}
+			switch tt.name {
+			case "UpdateIgmpProfile":
+				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+				db = dbintf
+				dbintf.EXPECT().PutIgmpProfile(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				va.IgmpProfilesByName.Store("test_profile_id", igmpProfile_data)
+				if err := va.UpdateIgmpProfile(tt.args.cntx, tt.args.igmpProfileConfig); (err != nil) != tt.wantErr {
+					t.Errorf("VoltApplication.UpdateIgmpProfile() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "UpdateIgmpProfile_Profile_not_found":
+				igmpConfig.ProfileID = ""
+				if err := va.UpdateIgmpProfile(tt.args.cntx, tt.args.igmpProfileConfig); (err != nil) != tt.wantErr {
+					t.Errorf("VoltApplication.UpdateIgmpProfile() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			}
+		})
+	}
+}
+
+func TestVoltApplication_resetIgmpProfileToDefault(t *testing.T) {
+	type args struct {
+		cntx context.Context
+	}
+	igmpProfile_data := &IgmpProfile{
+		ProfileID: "test_profile_id",
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "resetIgmpProfileToDefault",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{}
+			va.IgmpProfilesByName.Store("", igmpProfile_data)
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().PutIgmpProfile(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+			va.resetIgmpProfileToDefault(tt.args.cntx)
+		})
+	}
+}
+
+func Test_ipv4ToUint(t *testing.T) {
+	type args struct {
+		ip net.IP
+	}
+	tests := []struct {
+		name string
+		args args
+		want uint32
+	}{
+		{
+			name: "ipv4ToUint",
+			args: args{
+				ip: AllSystemsMulticastGroupIP,
+			},
+			want: 3758096385,
+		},
+		{
+			name: "ipv4ToUint",
+			args: args{
+				ip: nil,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ipv4ToUint(tt.args.ip); got != tt.want {
+				t.Errorf("ipv4ToUint() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIgmpUsEthLayer(t *testing.T) {
+	type args struct {
+		mcip net.IP
+	}
+	tests := []struct {
+		name string
+		args args
+		want *layers.Ethernet
+	}{
+		{
+			name: "IgmpUsEthLayer",
+			args: args{
+				mcip: AllSystemsMulticastGroupIP,
+			},
+			want: &layers.Ethernet{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IgmpUsEthLayer(tt.args.mcip)
+			assert.NotNil(t, got)
+		})
+	}
+}
+
+func TestIgmpUsDot1qLayer(t *testing.T) {
+	type args struct {
+		vlan     of.VlanType
+		priority uint8
+	}
+	tests := []struct {
+		name string
+		args args
+		want *layers.Dot1Q
+	}{
+		{
+			name: "IgmpUsDot1qLayer",
+			args: args{
+				vlan:     of.VlanAny,
+				priority: 0,
+			},
+			want: &layers.Dot1Q{},
+		},
+		{
+			name: "IgmpDsDot1qLayer",
+			args: args{
+				vlan:     of.VlanAny,
+				priority: 0,
+			},
+			want: &layers.Dot1Q{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "IgmpUsDot1qLayer":
+				got := IgmpUsDot1qLayer(tt.args.vlan, tt.args.priority)
+				assert.NotNil(t, got)
+			case "IgmpDsDot1qLayer":
+				got := IgmpDsDot1qLayer(tt.args.vlan, tt.args.priority)
+				assert.NotNil(t, got)
+			}
+		})
+	}
+}
+
+func TestIgmpv2UsIpv4Layer(t *testing.T) {
+	type args struct {
+		src  net.IP
+		mcip net.IP
+	}
+	tests := []struct {
+		name string
+		args args
+		want *layers.IPv4
+	}{
+		{
+			name: "Igmpv2UsIpv4Layer",
+			args: args{
+				src:  AllSystemsMulticastGroupIP,
+				mcip: AllSystemsMulticastGroupIP,
+			},
+			want: &layers.IPv4{},
+		},
+		{
+			name: "IgmpDsIpv4Layer",
+			args: args{
+				src:  AllSystemsMulticastGroupIP,
+				mcip: net.ParseIP("0.0.0.0"),
+			},
+			want: &layers.IPv4{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Igmpv2UsIpv4Layer":
+				got := Igmpv2UsIpv4Layer(tt.args.src, tt.args.mcip)
+				assert.NotNil(t, got)
+			case "IgmpDsIpv4Layer":
+				got := IgmpDsIpv4Layer(tt.args.src, tt.args.mcip)
+				assert.NotNil(t, got)
+			}
+		})
+	}
+}
+
+func TestIgmpv3UsIpv4Layer(t *testing.T) {
+	type args struct {
+		src net.IP
+	}
+	tests := []struct {
+		name string
+		args args
+		want *layers.IPv4
+	}{
+		{
+			name: "Igmpv3UsIpv4Layer",
+			args: args{
+				src: AllSystemsMulticastGroupIP,
+			},
+			want: &layers.IPv4{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := Igmpv3UsIpv4Layer(tt.args.src)
+			assert.NotNil(t, got)
+		})
+	}
+}
+
+func TestIgmpDsEthLayer(t *testing.T) {
+	type args struct {
+		mcip net.IP
+	}
+	tests := []struct {
+		name string
+		args args
+		want *layers.Ethernet
+	}{
+		{
+			name: "IgmpDsEthLayer",
+			args: args{
+				mcip: AllSystemsMulticastGroupIP,
+			},
+			want: &layers.Ethernet{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IgmpDsEthLayer(tt.args.mcip)
+			assert.NotNil(t, got)
+		})
+	}
+}
+
+func TestIgmpQueryv2Layer(t *testing.T) {
+	type args struct {
+		mcip     net.IP
+		resptime time.Duration
+	}
+	tests := []struct {
+		name string
+		args args
+		want *layers.IGMPv1or2
+	}{
+		{
+			name: "IgmpQueryv2Laye",
+			args: args{
+				mcip:     AllSystemsMulticastGroupIP,
+				resptime: time.Microsecond,
+			},
+			want: &layers.IGMPv1or2{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IgmpQueryv2Layer(tt.args.mcip, tt.args.resptime)
+			assert.NotNil(t, got)
+		})
+	}
+}
+
+func TestIgmpQueryv3Layer(t *testing.T) {
+	type args struct {
+		mcip     net.IP
+		resptime time.Duration
+	}
+	tests := []struct {
+		name string
+		args args
+		want *layers.IGMP
+	}{
+		{
+			name: "IgmpQueryv3Layer",
+			args: args{
+				mcip:     AllSystemsMulticastGroupIP,
+				resptime: time.Microsecond,
+			},
+			want: &layers.IGMP{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IgmpQueryv3Layer(tt.args.mcip, tt.args.resptime)
+			assert.NotNil(t, got)
+		})
+	}
+}
+
+func TestIgmpReportv2Layer(t *testing.T) {
+	type args struct {
+		mcip net.IP
+	}
+	tests := []struct {
+		name string
+		args args
+		want *layers.IGMPv1or2
+	}{
+		{
+			name: "IgmpReportv2Layer",
+			args: args{
+				mcip: AllSystemsMulticastGroupIP,
+			},
+			want: &layers.IGMPv1or2{},
+		},
+		{
+			name: "IgmpLeavev2Layer",
+			args: args{
+				mcip: AllSystemsMulticastGroupIP,
+			},
+			want: &layers.IGMPv1or2{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "IgmpReportv2Layer":
+				got := IgmpReportv2Layer(tt.args.mcip)
+				assert.NotNil(t, got)
+			case "IgmpLeavev2Layer":
+				got := IgmpLeavev2Layer(tt.args.mcip)
+				assert.NotNil(t, got)
+			}
+		})
+	}
+}
+
+func TestIgmpReportv3Layer(t *testing.T) {
+	type args struct {
+		mcip    net.IP
+		incl    bool
+		srclist []net.IP
+	}
+	tests := []struct {
+		name string
+		args args
+		want *layers.IGMP
+	}{
+		{
+			name: "IgmpReportv3Layer",
+			args: args{
+				mcip: AllSystemsMulticastGroupIP,
+				incl: true,
+			},
+			want: &layers.IGMP{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IgmpReportv3Layer(tt.args.mcip, tt.args.incl, tt.args.srclist)
+			assert.NotNil(t, got)
+		})
+	}
+}
+
+//func TestIgmpv2QueryPacket(t *testing.T) {
+// 	type args struct {
+// 		mcip    net.IP
+// 		vlan    of.VlanType
+// 		selfip  net.IP
+// 		pbit    uint8
+// 		maxResp uint32
+// 	}
+// 	tests := []struct {
+// 		name    string
+// 		args    args
+// 		want    []byte
+// 		wantErr bool
+// 	}{
+// 		{
+// 			name: "IgmpReportv3Layer",
+// 			args: args{
+// 				vlan:    22,
+// 				selfip:  net.ParseIP("224.0.0.1"),
+// 				pbit:    0,
+// 				maxResp: 1,
+// 				mcip:    net.ParseIP("0.0.0.0"),
+// 			},
+// 			wantErr: true,
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			got, err := Igmpv2QueryPacket(tt.args.mcip, tt.args.vlan, tt.args.selfip, tt.args.pbit, tt.args.maxResp)
+// 			if (err != nil) != tt.wantErr {
+// 				t.Errorf("Igmpv2QueryPacket() error = %v, wantErr %v", err, tt.wantErr)
+// 				return
+// 			}
+// 			if !reflect.DeepEqual(got, tt.want) {
+// 				t.Errorf("Igmpv2QueryPacket() = %v, want %v", got, tt.want)
+// 			}
+// 		})
+// 	}
+// }
+
+func Test_getVersion(t *testing.T) {
+	type args struct {
+		ver string
+	}
+	tests := []struct {
+		name string
+		args args
+		want uint8
+	}{
+		{
+			name: "getVersion_IgmpVersion2",
+			args: args{
+				ver: "2",
+			},
+			want: IgmpVersion2,
+		},
+		{
+			name: "getVersion_IgmpVersion2",
+			args: args{
+				ver: "0",
+			},
+			want: IgmpVersion3,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getVersion(tt.args.ver); got != tt.want {
+				t.Errorf("getVersion() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsIPPresent(t *testing.T) {
+	type args struct {
+		i   net.IP
+		ips []net.IP
+	}
+	ips := []net.IP{}
+	ips = append(ips, AllSystemsMulticastGroupIP)
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "TestIsIPPresent_True",
+			args: args{
+				i:   AllSystemsMulticastGroupIP,
+				ips: ips,
+			},
+			want: true,
+		},
+		{
+			name: "TestIsIPPresent_False",
+			args: args{
+				ips: ips,
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsIPPresent(tt.args.i, tt.args.ips); got != tt.want {
+				t.Errorf("IsIPPresent() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

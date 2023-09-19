@@ -61,7 +61,10 @@ func (mlh *MacLearnerHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mlh *MacLearnerHandle) GetAllMacLearnerInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-	MacLearnerInfo, err := app.GetApplication().GetAllMacLearnerInfo()
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	MacLearnerInfo, err := voltAppIntr.GetAllMacLearnerInfo()
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get mac learning info", log.Fields{"Reason": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
@@ -86,7 +89,10 @@ func (mlh *MacLearnerHandle) GetAllMacLearnerInfo(cntx context.Context, w http.R
 }
 
 func (mlh *MacLearnerHandle) GetMacLearnerInfo(cntx context.Context, deviceID, portNum, vlanID string, w http.ResponseWriter, r *http.Request) {
-	MacLearnerInfo, err := app.GetApplication().GetMacLearnerInfo(cntx, deviceID, portNum, vlanID)
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	MacLearnerInfo, err := voltAppIntr.GetMacLearnerInfo(cntx, deviceID, portNum, vlanID)
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get mac learning info", log.Fields{"Reason": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)

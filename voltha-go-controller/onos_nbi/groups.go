@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	app "voltha-go-controller/internal/pkg/controller"
+	cntlr "voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/log"
 
 	"github.com/gorilla/mux"
@@ -68,7 +68,10 @@ func (gh *GroupsHandle) GetGroupInfo(cntx context.Context, groupID string, w htt
 		return
 	}
 	id := uint32(grpID)
-	Groups, err := app.GetController().GetGroups(ctx, id)
+	var voltContrIntr cntlr.VoltControllerInterface
+	cntrlr := cntlr.GetController()
+	voltContrIntr = cntrlr
+	Groups, err := voltContrIntr.GetGroups(ctx, id)
 	if err != nil {
 		logger.Errorw(ctx, "Failed to fetch group info from Device through grpID", log.Fields{"groupID": groupID, "Reason": err.Error()})
 		w.WriteHeader(http.StatusNotFound)
@@ -99,7 +102,10 @@ func (gh *GroupsHandle) GetAllGroups(cntx context.Context, w http.ResponseWriter
 	groupListResp := GroupList{}
 	groupListResp.Groups = []*GroupsInfo{}
 
-	GroupsInfo, err := app.GetController().GetGroupList()
+	var voltContrIntr cntlr.VoltControllerInterface
+	cntrlr := cntlr.GetController()
+	voltContrIntr = cntrlr
+	GroupsInfo, err := voltContrIntr.GetGroupList()
 	if err != nil {
 		logger.Errorw(ctx, "Failed to fetch group info from VoltController Device", log.Fields{"Reason": err.Error()})
 		w.WriteHeader(http.StatusNotFound)

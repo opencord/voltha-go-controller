@@ -57,7 +57,9 @@ func (dh *DeviceInfoHandle) getDeviceInfo(w http.ResponseWriter, r *http.Request
 	id := vars["id"]
 	logger.Infow(ctx, "Received get Device Info from Device Id", log.Fields{"Device ID": id})
 
-	va := app.GetApplication()
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
 	var deviceID string
 	deviceInfoOnSN := map[string]*DeviceInfo{}
 	deviceInfoResp := map[string]map[string]*DeviceInfo{}
@@ -65,7 +67,7 @@ func (dh *DeviceInfoHandle) getDeviceInfo(w http.ResponseWriter, r *http.Request
 	if len(id) > 0 {
 		// If Get for single Device
 		deviceID = id
-		voltDevice := va.GetDevice(deviceID)
+		voltDevice := voltAppIntr.GetDevice(deviceID)
 		if voltDevice != nil {
 			serialNumber := voltDevice.SerialNum
 			deviceInfoOnSN[serialNumber] = getDeviceFields(string(voltDevice.State))
@@ -84,7 +86,7 @@ func (dh *DeviceInfoHandle) getDeviceInfo(w http.ResponseWriter, r *http.Request
 			deviceInfoResp[deviceID] = deviceInfoOnSN
 			return true
 		}
-		va.DevicesDisc.Range(getDeviceInfo)
+		voltApp.DevicesDisc.Range(getDeviceInfo)
 	}
 
 	deviceInfoJSON, err := json.Marshal(deviceInfoResp)

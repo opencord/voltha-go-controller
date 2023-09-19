@@ -94,8 +94,9 @@ func (nch *NetConfigHandle) AddNetConfigInfo(cntx context.Context, w http.Respon
 	}
 	logger.Infow(ctx, "Received-northbound-network-configuration-request", log.Fields{"req": req})
 
-	//va := app.VoltApplication{}
-
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
 	for _, bwprofile := range req.App.SubscriberBW.Bandwidthprofile.BWInfo {
 		metercfg := app.VoltMeter{
 			Name: bwprofile.ID,
@@ -108,7 +109,7 @@ func (nch *NetConfigHandle) AddNetConfigInfo(cntx context.Context, w http.Respon
 			Eir:  bwprofile.ExceededInformationRate,
 			Ebs:  bwprofile.ExceededBurstSize,
 		}
-		app.GetApplication().AddMeterProf(cntx, metercfg)
+		voltAppIntr.AddMeterProf(cntx, metercfg)
 	}
 
 	for i := range req.App.SubscriberBW.Subscriber.SubscriberInfo {

@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	app "voltha-go-controller/internal/pkg/controller"
+	cntlr "voltha-go-controller/internal/pkg/controller"
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/log"
 
@@ -71,7 +71,10 @@ func (mh *MetersHandle) GetMeter(cntx context.Context, meterID string, w http.Re
 	}
 	id := uint32(mID)
 	logger.Infow(ctx, "Meter Id", log.Fields{"metreId": id})
-	meterInfo, err := app.GetController().GetMeterInfo(cntx, id)
+	var voltContrIntr cntlr.VoltControllerInterface
+	cntrlr := cntlr.GetController()
+	voltContrIntr = cntrlr
+	meterInfo, err := voltContrIntr.GetMeterInfo(cntx, id)
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get meter info from device with Meter Id", log.Fields{"Meter ID": mID, "Reason": err.Error()})
 		w.WriteHeader(http.StatusNotFound)
@@ -101,7 +104,10 @@ func (mh *MetersHandle) GetMeter(cntx context.Context, meterID string, w http.Re
 func (mh *MetersHandle) GetAllMeters(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	metersList := MeterList{}
 	metersList.Meters = []Meters{}
-	meterInfo, err := app.GetController().GetAllMeterInfo()
+	var voltContrIntr cntlr.VoltControllerInterface
+	cntrlr := cntlr.GetController()
+	voltContrIntr = cntrlr
+	meterInfo, err := voltContrIntr.GetAllMeterInfo()
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get meter info", log.Fields{"Reason": err.Error()})
 		w.WriteHeader(http.StatusNotFound)
