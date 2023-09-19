@@ -112,28 +112,33 @@ func (sa *ServiceAdapter) ActivateService(cntx context.Context, w http.ResponseW
 		return
 	}
 
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	var devIntr app.VoltDevInterface
+
 	if len(deviceID) > 0 && len(portNo) > 0 {
-		va := app.GetApplication()
 		port, err := strconv.Atoi(portNo)
 		if err != nil {
 			logger.Errorw(ctx, "Wrong port number value", log.Fields{"portNo": portNo, "Error": err})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
-		device := va.GetDevice(deviceID)
+		device := voltAppIntr.GetDevice(deviceID)
 		if device == nil {
 			logger.Errorw(ctx, "Device does not exists", log.Fields{"deviceID": deviceID})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
-		portName := device.GetPortNameFromPortID(uint32(port))
+		devIntr = device
+		portName := devIntr.GetPortNameFromPortID(uint32(port))
 		if len(portName) == 0 {
 			logger.Errorw(ctx, "Port does not exists", log.Fields{"portNo": portNo})
 			err := errorCodes.ErrPortNotFound
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
-		if err := va.ActivateService(cntx, deviceID, portName, of.VlanNone, of.VlanNone, 0); err != nil {
+		if err := voltAppIntr.ActivateService(cntx, deviceID, portName, of.VlanNone, of.VlanNone, 0); err != nil {
 			logger.Errorw(ctx, "ActivateService Failed", log.Fields{"deviceID": deviceID, "Port": portNo, "Error": err})
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
@@ -154,28 +159,32 @@ func (sa *ServiceAdapter) DeactivateService(cntx context.Context, w http.Respons
 		return
 	}
 
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	var devIntr app.VoltDevInterface
 	if len(deviceID) > 0 && len(portNo) > 0 {
-		va := app.GetApplication()
 		port, err := strconv.Atoi(portNo)
 		if err != nil {
 			logger.Errorw(ctx, "Wrong port number value", log.Fields{"portNo": portNo, "Error": err})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
-		device := va.GetDevice(deviceID)
+		device := voltAppIntr.GetDevice(deviceID)
 		if device == nil {
 			logger.Errorw(ctx, "Device does not exists", log.Fields{"deviceID": deviceID})
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
-		portName := device.GetPortNameFromPortID(uint32(port))
+		devIntr = device
+		portName := devIntr.GetPortNameFromPortID(uint32(port))
 		if len(portName) == 0 {
 			logger.Errorw(ctx, "Port does not exists", log.Fields{"portNo": portNo})
 			err := errorCodes.ErrPortNotFound
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
-		if err := va.DeactivateService(cntx, deviceID, portName, of.VlanNone, of.VlanNone, 0); err != nil {
+		if err := voltAppIntr.DeactivateService(cntx, deviceID, portName, of.VlanNone, of.VlanNone, 0); err != nil {
 			logger.Errorw(ctx, "DeactivateService Failed", log.Fields{"deviceID": deviceID, "Port": portNo, "Error": err})
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
@@ -220,9 +229,11 @@ func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w ht
 		}
 		techProfile = uint16(tp)
 	}
-
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
 	if len(portNo) > 0 {
-		if err := app.GetApplication().ActivateService(cntx, app.DeviceAny, portNo, sVlan, cVlan, techProfile); err != nil {
+		if err := voltAppIntr.ActivateService(cntx, app.DeviceAny, portNo, sVlan, cVlan, techProfile); err != nil {
 			logger.Errorw(ctx, "ActivateService Failed", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile, "Reason": err.Error()})
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -269,9 +280,11 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 		}
 		techProfile = uint16(tp)
 	}
-
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
 	if len(portNo) > 0 {
-		if err := app.GetApplication().DeactivateService(cntx, app.DeviceAny, portNo, sVlan, cVlan, techProfile); err != nil {
+		if err := voltAppIntr.DeactivateService(cntx, app.DeviceAny, portNo, sVlan, cVlan, techProfile); err != nil {
 			logger.Errorw(ctx, "DeactivateService Failed", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile, "Reason": err.Error()})
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -288,7 +301,10 @@ func (sa *ServiceAdapter) GetProgrammedSubscribers(cntx context.Context, w http.
 
 	subsbr := SubscribersList{}
 	subsbr.Subscribers = []SubscriberInfo{}
-	svcs, err := app.GetApplication().GetProgrammedSubscribers(cntx, deviceID, portNo)
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	svcs, err := voltAppIntr.GetProgrammedSubscribers(cntx, deviceID, portNo)
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get subscribers", log.Fields{"portNo": portNo, "deviceID": deviceID, "Reason": err.Error()})
 		w.WriteHeader(http.StatusNotFound)

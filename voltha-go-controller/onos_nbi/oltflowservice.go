@@ -53,7 +53,9 @@ func (oh *OltFlowServiceHandle) configureOltFlowService(cntx context.Context, w 
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
-
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
 	// Unmarshal the request into service configuration structure
 	req := &app.OltFlowService{}
 	if err := json.Unmarshal(d.Bytes(), req); err != nil {
@@ -61,7 +63,7 @@ func (oh *OltFlowServiceHandle) configureOltFlowService(cntx context.Context, w 
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
-	app.GetApplication().UpdateOltFlowService(cntx, *req)
+	voltAppIntr.UpdateOltFlowService(cntx, *req)
 }
 
 func (oh *OltFlowServiceHandle) fetchOltFlowService(cntx context.Context, w http.ResponseWriter, r *http.Request) {

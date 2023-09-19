@@ -101,7 +101,9 @@ func (dh *DHCPSessionInfoHandle) getDhcpSessionInfo(w http.ResponseWriter, r *ht
 
 	logger.Infow(ctx, "Received get Dhcp Session Info", log.Fields{"DeviceID": id})
 
-	va := app.GetApplication()
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
 	dhcpSessionInfoResp := []*DhcpSessionInfo{}
 
 	getPorts := func(key, value interface{}) bool {
@@ -115,7 +117,7 @@ func (dh *DHCPSessionInfoHandle) getDhcpSessionInfo(w http.ResponseWriter, r *ht
 		}
 
 		// Obtain all VPVs associated with the port
-		vnets, ok := va.VnetsByPort.Load(port)
+		vnets, ok := voltApp.VnetsByPort.Load(port)
 		if !ok {
 			return true
 		}
@@ -141,7 +143,7 @@ func (dh *DHCPSessionInfoHandle) getDhcpSessionInfo(w http.ResponseWriter, r *ht
 		logger.Warnw(ctx, "No Device Id Provided for Dhcp session Info", log.Fields{"DeviceID": id})
 		return
 	}
-	voltDevice := va.GetDevice(id)
+	voltDevice := voltAppIntr.GetDevice(id)
 	if voltDevice != nil {
 		voltDevice.Ports.Range(getPorts)
 	}

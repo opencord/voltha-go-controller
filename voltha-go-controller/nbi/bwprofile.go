@@ -102,7 +102,10 @@ func (mh *ProfileHandle) AddProfile(cntx context.Context, w http.ResponseWriter,
 		Eir:  req.ExceededInformationRate,
 		Ebs:  req.ExceededBurstSize,
 	}
-	app.GetApplication().AddMeterProf(cntx, metercfg)
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	voltAppIntr.AddMeterProf(cntx, metercfg)
 	logger.Debugw(ctx, "northbound-add-meter-successful", log.Fields{"req": req})
 }
 
@@ -112,8 +115,10 @@ func (mh *ProfileHandle) GetProfile(cntx context.Context, w http.ResponseWriter,
 	profileName := vars["id"]
 
 	logger.Infow(ctx, "Received-northbound-get-meter-request", log.Fields{"ProfileName": profileName})
-
-	cfg, ok := app.GetApplication().GetMeterByName(profileName)
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	cfg, ok := voltAppIntr.GetMeterByName(profileName)
 	if !ok {
 		logger.Warnw(ctx, "Meter profile does not exist", log.Fields{"Name": profileName})
 		w.WriteHeader(http.StatusConflict)
@@ -167,9 +172,11 @@ func (mh *ProfileHandle) DelProfile(cntx context.Context, w http.ResponseWriter,
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
-
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
 	meterName := profileName
-	if err := app.GetApplication().DelMeterProf(cntx, meterName); err != nil {
+	if err := voltAppIntr.DelMeterProf(cntx, meterName); err != nil {
 		logger.Errorw(ctx, "northbound-del-meter-failed", log.Fields{"Req": req, "Error": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return

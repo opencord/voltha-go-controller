@@ -209,3 +209,73 @@ func TestDevice_GetAllFlows(t *testing.T) {
 		})
 	}
 }
+
+func TestDevice_PacketOutReq(t *testing.T) {
+	type args struct {
+		outport     string
+		inport      string
+		data        []byte
+		isCustomPkt bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Device_PacketOutReq",
+			args: args{
+				outport: "test_out_port",
+				inport:  "test_in_port",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			portByName := make(map[string]*DevicePort)
+			portByName["test_in_port"] = &DevicePort{
+				Name: "test_device",
+			}
+			portByName["test_out_port"] = &DevicePort{
+				Name: "test_device",
+			}
+			packetOutChannel := make(chan *ofp.PacketOut, 2)
+
+			d := &Device{
+				packetOutChannel: packetOutChannel,
+				PortsByName:      portByName,
+			}
+			if err := d.PacketOutReq(tt.args.outport, tt.args.inport, tt.args.data, tt.args.isCustomPkt); (err != nil) != tt.wantErr {
+				t.Errorf("Device.PacketOutReq() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestDevice_SetFlowHash(t *testing.T) {
+	type args struct {
+		cntx context.Context
+		hash uint32
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Device_SetFlowHash",
+			args: args{
+				cntx: context.Background(),
+				hash: uint32(2),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &Device{}
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().PutFlowHash(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			d.SetFlowHash(tt.args.cntx, tt.args.hash)
+		})
+	}
+}

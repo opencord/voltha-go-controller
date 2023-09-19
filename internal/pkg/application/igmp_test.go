@@ -16,7 +16,12 @@
 package application
 
 import (
+	"context"
 	"testing"
+	common "voltha-go-controller/internal/pkg/types"
+	"voltha-go-controller/internal/test/mocks"
+
+	"github.com/golang/mock/gomock"
 )
 
 func TestVoltApplication_InitIgmpSrcMac(t *testing.T) {
@@ -31,6 +36,95 @@ func TestVoltApplication_InitIgmpSrcMac(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			va := &VoltApplication{}
 			va.InitIgmpSrcMac()
+		})
+	}
+}
+
+func TestVoltApplication_UpdateIgmpProfile(t *testing.T) {
+	type args struct {
+		cntx              context.Context
+		igmpProfileConfig *common.IGMPConfig
+	}
+	igmpConfig := &common.IGMPConfig{
+		ProfileID:      "test_profile_id",
+		FastLeave:      &vgcRebooted,
+		PeriodicQuery:  &isUpgradeComplete,
+		WithRAUpLink:   &isUpgradeComplete,
+		WithRADownLink: &isUpgradeComplete,
+	}
+	igmpProfile_data := &IgmpProfile{
+		ProfileID: "test_profile_id",
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "UpdateIgmpProfile",
+			args: args{
+				cntx:              context.Background(),
+				igmpProfileConfig: igmpConfig,
+			},
+		},
+		{
+			name: "UpdateIgmpProfile_Profile_not_found",
+			args: args{
+				cntx:              context.Background(),
+				igmpProfileConfig: igmpConfig,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{}
+			switch tt.name {
+			case "UpdateIgmpProfile":
+				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+				db = dbintf
+				dbintf.EXPECT().PutIgmpProfile(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				va.IgmpProfilesByName.Store("test_profile_id", igmpProfile_data)
+				if err := va.UpdateIgmpProfile(tt.args.cntx, tt.args.igmpProfileConfig); (err != nil) != tt.wantErr {
+					t.Errorf("VoltApplication.UpdateIgmpProfile() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "UpdateIgmpProfile_Profile_not_found":
+				igmpConfig.ProfileID = ""
+				if err := va.UpdateIgmpProfile(tt.args.cntx, tt.args.igmpProfileConfig); (err != nil) != tt.wantErr {
+					t.Errorf("VoltApplication.UpdateIgmpProfile() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			}
+		})
+	}
+}
+
+func TestVoltApplication_resetIgmpProfileToDefault(t *testing.T) {
+	type args struct {
+		cntx context.Context
+	}
+	igmpProfile_data := &IgmpProfile{
+		ProfileID: "test_profile_id",
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "resetIgmpProfileToDefault",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{}
+			va.IgmpProfilesByName.Store("", igmpProfile_data)
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().PutIgmpProfile(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+			va.resetIgmpProfileToDefault(tt.args.cntx)
 		})
 	}
 }
