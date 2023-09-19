@@ -16,6 +16,7 @@
 package onosnbi
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -51,6 +52,27 @@ func TestOltFlowServiceHandle_ServeHTTP(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			oh := &OltFlowServiceHandle{}
 			oh.ServeHTTP(tt.args.w, tt.args.r)
+		})
+	}
+}
+
+func TestOltFlowServiceHandle_configureOltFlowService(t *testing.T) {
+	type args struct {
+		cntx context.Context
+		w    http.ResponseWriter
+		r    *http.Request
+	}
+	tests := []struct {
+		name string
+		oh   *OltFlowServiceHandle
+		args args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			oh := &OltFlowServiceHandle{}
+			oh.configureOltFlowService(tt.args.cntx, tt.args.w, tt.args.r)
 		})
 	}
 }

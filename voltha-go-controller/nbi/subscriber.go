@@ -23,7 +23,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"voltha-go-controller/internal/pkg/application"
 	app "voltha-go-controller/internal/pkg/application"
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/of"
@@ -133,18 +132,19 @@ func (sh *SubscriberHandle) AddSubscriberInfo(cntx context.Context, w http.Respo
 }
 
 func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
-	//vsCfgList := getVoltServiceFromSrvInfo(srvInfo)
-	va := app.GetApplication()
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
 	if len(srvInfo.UniTagList) == 0 {
 		logger.Infow(ctx, "Received OLT configuration", log.Fields{"req": srvInfo})
-		err := va.AddDeviceConfig(cntx, srvInfo.ID, srvInfo.HardwareIdentifier, srvInfo.NasID, srvInfo.IPAddress, srvInfo.UplinkPort, srvInfo.NniDhcpTrapVid)
+		err := voltAppIntr.AddDeviceConfig(cntx, srvInfo.ID, srvInfo.HardwareIdentifier, srvInfo.NasID, srvInfo.IPAddress, srvInfo.UplinkPort, srvInfo.NniDhcpTrapVid)
 		if err != nil {
 			logger.Warnw(ctx, "Device config addition failed :", log.Fields{"req": srvInfo, "Reason": err.Error()})
 		}
 		return
 	}
 	for _, uniTagInfo := range srvInfo.UniTagList {
-		var vs application.VoltServiceCfg
+		var vs app.VoltServiceCfg
 
 		svcname := srvInfo.ID + "_"
 		svcname = svcname + srvInfo.NasPortID + "-"
@@ -242,11 +242,10 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 		} else if vs.CVlan == of.VlanAny && vs.UniVlan == of.VlanAny {
 			vnetcfg.VlanControl = app.OLTSVlan
 		}
-
-		if err := app.GetApplication().AddVnet(cntx, vnetcfg, nil); err != nil {
+		if err := voltAppIntr.AddVnet(cntx, vnetcfg, nil); err != nil {
 			logger.Errorw(ctx, "AddVnet Failed", log.Fields{"VnetName": vnetName, "Error": err})
 		}
-		if err := app.GetApplication().AddService(cntx, vs, nil); err != nil {
+		if err := voltAppIntr.AddService(cntx, vs, nil); err != nil {
 			logger.Errorw(ctx, "AddService Failed", log.Fields{"Service": vs.Name, "Error": err.Error()})
 		}
 	}
@@ -302,7 +301,10 @@ func (sh *SubscriberHandle) GetSubscriberAndFlowProvisionStatus(cntx context.Con
 	vars := mux.Vars(r)
 	portName := vars["portName"]
 	logger.Debugw(ctx, "Received-northbound-GetSubscriberProvisionStatus-request", log.Fields{"req": portName})
-	flowProvisionStatus := app.GetApplication().GetFlowProvisionStatus(portName)
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	flowProvisionStatus := voltAppIntr.GetFlowProvisionStatus(portName)
 	flowProvisionStatusRes, err := json.Marshal(flowProvisionStatus)
 	if err != nil {
 		logger.Errorw(ctx, "Error occurred while marshaling flowProvisionStatus response", log.Fields{"Error": err})

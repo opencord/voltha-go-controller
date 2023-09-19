@@ -61,7 +61,10 @@ func (dh *DhcpRelayHandle) GetAllocations(cntx context.Context, w http.ResponseW
 	vars := mux.Vars(r)
 	deviceID := vars[DeviceID]
 	logger.Debugw(ctx, "Received Get DhcpAllocation info for device ID", log.Fields{"deviceID": deviceID})
-	Allocations, err := app.GetApplication().GetAllocations(cntx, deviceID)
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	Allocations, err := voltAppIntr.GetAllocations(cntx, deviceID)
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get dhcp allocations", log.Fields{"deviceID": deviceID, "Reason": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)

@@ -314,13 +314,13 @@ func (va *VoltApplication) DelMeterProf(cntx context.Context, name string) error
 	mm := &va.MeterMgr
 	if _, ok := mm.GetMeterByName(name); !ok {
 		logger.Warnw(ctx, "Meter profile does not exist", log.Fields{"Name": name})
-		return errors.New("Meter profile doesn't exist")
+		return errors.New("meter profile doesn't exist")
 	}
 	cfg, _ := mm.GetMeterByName(name)
 	if cfg.AssociatedServices != 0 {
 		logger.Warnw(ctx, "Mismatch in submgr and vgc oeter profile service reference",
 			log.Fields{"MeterProfile": name, "serviceCount": cfg.AssociatedServices})
-		return errors.New("Service reference is not 0")
+		return errors.New("service reference is not 0")
 	}
 	// TODO : delete from all devices
 	delmeterFromDevice := func(key interface{}, value interface{}) bool {

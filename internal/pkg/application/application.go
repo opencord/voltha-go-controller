@@ -37,6 +37,7 @@ import (
 	"voltha-go-controller/internal/pkg/intf"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/tasks"
+	common "voltha-go-controller/internal/pkg/types"
 	"voltha-go-controller/internal/pkg/util"
 	"voltha-go-controller/log"
 )
@@ -216,6 +217,11 @@ type VoltDevice struct {
 	NniDhcpTrapVid               of.VlanType
 	GlobalDhcpFlowAdded          bool
 	icmpv6GroupAdded             bool
+	VoltDeviceIntr               VoltDevInterface
+}
+
+type VoltDevInterface interface {
+	GetPortNameFromPortID(portID uint32) string
 }
 
 // NewVoltDevice : Constructor for the device
@@ -398,6 +404,33 @@ func (d *VoltDevice) pushFlowsForUnis(cntx context.Context) {
 // to all other components within the controller
 // The declaration of the singleton object
 var vapplication *VoltApplication
+
+type VoltAppInterface interface {
+	AddVnet(cntx context.Context, cfg VnetConfig, oper *VnetOper) error
+	AddService(cntx context.Context, cfg VoltServiceCfg, oper *VoltServiceOper) error
+	AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID int) error
+	GetFlowProvisionStatus(portNo string) FlowProvisionStatus
+	DelServiceWithPrefix(cntx context.Context, prefix string) error
+	GetDevice(device string) *VoltDevice
+	GetTaskList(device string) map[int]*TaskInfo
+	AddMeterProf(cntx context.Context, cfg VoltMeter)
+	AddMvlanProfile(cntx context.Context, name string, mvlan of.VlanType, ponVlan of.VlanType, groups map[string][]string, isChannelBasedGroup bool, OLTSerialNum []string, activeChannelsPerPon int, proxy map[string]common.MulticastGroupProxy) error
+	DelMvlanProfile(cntx context.Context, name string) error
+	GetMvlanProfileByTag(vlan of.VlanType) *MvlanProfile
+	AddMcastConfig(cntx context.Context, MvlanProfileID string, IgmpProfileID string, IgmpProxyIP string, OltSerialNum string) error
+	DelMeterProf(cntx context.Context, name string) error
+	GetMeterByName(name string) (*VoltMeter, bool)
+	UpdateDeviceConfig(cntx context.Context, deviceConfig *DeviceConfig)
+	GetDeviceConfig(serNum string) *DeviceConfig
+	GetAllocations(cntx context.Context, deviceID string) ([]DhcpAllocation, error)
+	GetAllMacLearnerInfo() ([]MacLearnerInfo, error)
+	GetMacLearnerInfo(cntx context.Context, deviceID, portNumber, vlanID string) (MacLearnerInfo, error)
+	ActivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) error
+	DeactivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) error
+	GetProgrammedSubscribers(cntx context.Context, deviceID, portNo string) ([]*VoltService, error)
+	UpdateOltFlowService(cntx context.Context, oltFlowService OltFlowService)
+	GetIgnoredPorts() (map[string][]string, error)
+}
 
 // VoltApplication fields :
 // ServiceByName - Stores the services by the name as key
@@ -669,6 +702,7 @@ func newVoltApplication() *VoltApplication {
 	go va.Start(context.Background(), TimerCfg{tick: time.Duration(GroupExpiryTime) * time.Minute}, pendingPoolTimer)
 	InitEventFuncMapper()
 	db = database.GetDatabase()
+
 	return &va
 }
 

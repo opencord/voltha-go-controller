@@ -48,6 +48,19 @@ func init() {
 
 var db database.DBIntf
 
+type VoltControllerInterface interface {
+	GetDevice(id string) (*Device, error)
+	GetAllPendingFlows() ([]*of.VoltSubFlow, error)
+	GetAllFlows() ([]*of.VoltSubFlow, error)
+	GetFlows(deviceID string) ([]*of.VoltSubFlow, error)
+	GetFlow(deviceID string, cookie uint64) (*of.VoltSubFlow, error)
+	GetGroups(cntx context.Context, id uint32) (*of.Group, error)
+	GetGroupList() ([]*of.Group, error)
+	GetMeterInfo(cntx context.Context, id uint32) (map[string]*of.Meter, error)
+	GetAllMeterInfo() (map[string][]*of.Meter, error)
+	GetTaskList(device string) []tasks.Task
+}
+
 // VoltController structure
 type VoltController struct {
 	ctx                     context.Context
@@ -517,7 +530,7 @@ func (v *VoltController) GetTaskList(device string) []tasks.Task {
 	return d.GetTaskList()
 }
 
-// AddBlockedDevices to add devices to blocked devices list
+// AddBlockedDevices to add Devices to blocked Devices list
 func (v *VoltController) AddBlockedDevices(deviceSerialNumber string) {
 	v.BlockedDeviceList.Set(deviceSerialNumber, deviceSerialNumber)
 }
