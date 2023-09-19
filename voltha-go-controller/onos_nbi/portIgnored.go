@@ -50,7 +50,10 @@ func (pih *PortIgnoredHandle) PortsIgnoredServeHTTP(w http.ResponseWriter, r *ht
 }
 
 func (pih *PortIgnoredHandle) GetIgnoredPortsInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-	PortIgnoredInfo, err := app.GetApplication().GetIgnoredPorts()
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	PortIgnoredInfo, err := voltAppIntr.GetIgnoredPorts()
 	if err != nil {
 		logger.Errorw(ctx, "Failed to get ignored port info", log.Fields{"Reason": err.Error()})
 		w.WriteHeader(http.StatusInternalServerError)

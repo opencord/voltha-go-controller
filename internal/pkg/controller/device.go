@@ -119,6 +119,10 @@ const (
 	DeviceStateDELETED DeviceState = "DELETED"
 )
 
+type DeviceInterface interface {
+	SetFlowHash(cntx context.Context, hash uint32)
+}
+
 // Device structure
 type Device struct {
 	ctx              context.Context

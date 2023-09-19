@@ -120,7 +120,10 @@ func (iph *MulticastHandle) DelMvlanInfo(cntx context.Context, w http.ResponseWr
 	w.WriteHeader(http.StatusAccepted)
 
 	logger.Infow(ctx, "Request for DelMvlanInfo for mvlan", log.Fields{"name": name})
-	err := app.GetApplication().DelMvlanProfile(cntx, name)
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	err := voltAppIntr.DelMvlanProfile(cntx, name)
 	if err != nil {
 		logger.Errorw(cntx, "Failed to delete Mvlan profile", log.Fields{"name": name, "Error": err.Error()})
 		w.WriteHeader(http.StatusNotFound)
@@ -140,8 +143,10 @@ func (iph *MulticastHandle) addMvlan(cntx context.Context, w http.ResponseWriter
 	config.Groups["default"] = groups
 
 	logger.Infow(ctx, "northbound-add-mvlan-received", log.Fields{"Config": config})
-
-	if err := app.GetApplication().AddMvlanProfile(cntx, config.Name, config.Mvlan, config.PonVlan, config.Groups,
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	if err := voltAppIntr.AddMvlanProfile(cntx, config.Name, config.Mvlan, config.PonVlan, config.Groups,
 		config.IsChannelBasedGroup, config.OLTSerialNum,
 		255, config.Proxy); err != nil {
 		logger.Errorw(ctx, "northbound-add-mvlan-failed", log.Fields{"mvlan": config.Name, "Reason": err.Error()})

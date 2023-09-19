@@ -120,8 +120,11 @@ func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.
 		devicePortListResp.Ports = append(devicePortListResp.Ports, port)
 		return true
 	}
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
 	if len(deviceID) > 0 {
-		voltDevice := app.GetApplication().GetDevice(deviceID)
+		voltDevice := voltAppIntr.GetDevice(deviceID)
 		if voltDevice != nil {
 			logger.Debugw(ctx, "Fetch volt device from voltApplication", log.Fields{"voltDevice": voltDevice})
 			devicePortListResp.Device = convertVoltDeviceToDevice(voltDevice)
