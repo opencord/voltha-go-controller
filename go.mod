@@ -12,7 +12,7 @@ replace (
 require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang/mock v1.4.4
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.3
 	github.com/google/gopacket v0.0.0-00010101000000-000000000000
 	github.com/gorilla/mux v1.8.0
 	github.com/guumaster/tablewriter v0.0.10
