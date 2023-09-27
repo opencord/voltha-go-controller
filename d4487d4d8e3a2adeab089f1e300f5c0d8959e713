@@ -16,6 +16,40 @@
       "message": "\u003e Patch Set 3: Verified-1\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-go-controller_unit-test/194/ : FAILURE\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-go-controller_licensed/194/ : SUCCESS\n\nrecheck",
       "revId": "d4487d4d8e3a2adeab089f1e300f5c0d8959e713",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8c683f15_bac76e2e",
+        "filename": "internal/pkg/controller/controller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-09-27T06:21:40Z",
+      "side": 1,
+      "message": "why exported this ?",
+      "revId": "d4487d4d8e3a2adeab089f1e300f5c0d8959e713",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "585fc156_9681ff26",
+        "filename": "voltha-go-controller/nbi/subscriber_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-09-27T06:21:40Z",
+      "side": 1,
+      "message": "remove commented code",
+      "revId": "d4487d4d8e3a2adeab089f1e300f5c0d8959e713",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
