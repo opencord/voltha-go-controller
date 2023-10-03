@@ -15,10 +15,10 @@ http://www.apache.org/licenses/LICENSE-2.0
 
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-	<testsuite tests="666" failures="0" time="0.306" name="voltha-go-controller/internal/pkg/application">
+	<testsuite tests="730" failures="0" time="0.084" name="voltha-go-controller/internal/pkg/application">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
-			<property name="coverage.statements.pct" value="47.5"></property>
+			<property name="coverage.statements.pct" value="51.9"></property>
 		</properties>
 		<testcase classname="application" name="TestVoltApplication_RestoreNbDeviceFromDb" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_RestoreNbDeviceFromDb/VoltApplication_RestoreNbDeviceFromDb" time="0.000"></testcase>
@@ -56,7 +56,7 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="application" name="TestNewVoltPort/Positive_Case2_TestNewVoltPort" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltPort_SetPortID" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltPort_SetPortID/Positive_Case_TestNewVoltPort" time="0.000"></testcase>
-		<testcase classname="application" name="TestNewVoltDevice" time="0.010"></testcase>
+		<testcase classname="application" name="TestNewVoltDevice" time="0.000"></testcase>
 		<testcase classname="application" name="TestNewVoltDevice/Positive_Case_TestNewVoltDevice" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_GetAssociatedVpvsForDevice" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_GetAssociatedVpvsForDevice/Positive_Case_GetAssociatedVpvsForDevice" time="0.000"></testcase>
@@ -84,8 +84,8 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="application" name="TestNewNbDevice/Positive_Case_pushFlowsForUnis" time="0.000"></testcase>
 		<testcase classname="application" name="TestNbDevice_WriteToDb" time="0.000"></testcase>
 		<testcase classname="application" name="TestNbDevice_WriteToDb/Positive_Case_pushFlowsForUnis" time="0.000"></testcase>
-		<testcase classname="application" name="TestNbDevice_AddPortToNbDevice" time="0.020"></testcase>
-		<testcase classname="application" name="TestNbDevice_AddPortToNbDevice/Positive_Case_AddPortToNbDevice" time="0.020"></testcase>
+		<testcase classname="application" name="TestNbDevice_AddPortToNbDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestNbDevice_AddPortToNbDevice/Positive_Case_AddPortToNbDevice" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_AddDeviceConfig" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_AddDeviceConfig/Positive_Case_AddDeviceConfig" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_GetDeviceConfig" time="0.000"></testcase>
@@ -162,8 +162,8 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="application" name="TestVoltApplication_DeleteMacInPortMap/Positive_Case_DeleteMacInPortMap" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_TriggerPendingServiceDeactivateReq" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_TriggerPendingServiceDeactivateReq/Positive_Case_DeleteMacInPortMap" time="0.000"></testcase>
-		<testcase classname="application" name="TestVoltApplication_ReadAllFromDb" time="0.010"></testcase>
-		<testcase classname="application" name="TestVoltApplication_ReadAllFromDb/Positive_Case_ReadAllFromDb" time="0.010"></testcase>
+		<testcase classname="application" name="TestVoltApplication_ReadAllFromDb" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_ReadAllFromDb/Positive_Case_ReadAllFromDb" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_RemoveGroupDevicesFromPendingPool" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_RemoveGroupDevicesFromPendingPool/VoltApplication_RemoveGroupDevicesFromPendingPool" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltDevice_AddPort" time="0.000"></testcase>
@@ -190,8 +190,8 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="application" name="TestVoltApplication_removeExpiredGroups/removeExpiredGroups" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_GetTaskList" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_GetTaskList/GetTaskList" time="0.000"></testcase>
-		<testcase classname="application" name="TestVoltApplication_UpdateMvlanProfilesForDevice" time="0.020"></testcase>
-		<testcase classname="application" name="TestVoltApplication_UpdateMvlanProfilesForDevice/UpdateMvlanProfilesForDevice" time="0.010"></testcase>
+		<testcase classname="application" name="TestVoltApplication_UpdateMvlanProfilesForDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_UpdateMvlanProfilesForDevice/UpdateMvlanProfilesForDevice" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_HandleFlowClearFlag" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_HandleFlowClearFlag/HandleFlowClearFlag" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_PacketInInd" time="0.000"></testcase>
@@ -317,6 +317,70 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="application" name="TestIsIPPresent" time="0.000"></testcase>
 		<testcase classname="application" name="TestIsIPPresent/TestIsIPPresent_True" time="0.000"></testcase>
 		<testcase classname="application" name="TestIsIPPresent/TestIsIPPresent_False" time="0.000"></testcase>
+		<testcase classname="application" name="TestAddToPendingPool" time="0.000"></testcase>
+		<testcase classname="application" name="TestAddToPendingPool/AddToPendingPool_true" time="0.000"></testcase>
+		<testcase classname="application" name="TestAddToPendingPool/AddToPendingPool_false" time="0.000"></testcase>
+		<testcase classname="application" name="TestGetMcastServiceForSubAlarm" time="0.000"></testcase>
+		<testcase classname="application" name="TestGetMcastServiceForSubAlarm/GetMcastServiceForSubAlarm" time="0.000"></testcase>
+		<testcase classname="application" name="TestSendQueryExpiredEventGroupSpecific" time="0.000"></testcase>
+		<testcase classname="application" name="TestSendQueryExpiredEventGroupSpecific/SendQueryExpiredEventGroupSpecific" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_GetPonPortID" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltApplication_GetPonPortID/RestoreIgmpGroupsFromDb" time="0.000"></testcase>
+		<testcase classname="application" name="TestNewIgmpGroup" time="0.000"></testcase>
+		<testcase classname="application" name="TestNewIgmpGroup/NewIgmpGroup" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_IgmpGroupInit" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_IgmpGroupInit/IgmpGroupInit" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_IgmpGroupReInit" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_IgmpGroupReInit/IgmpGroupInit" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_DeleteIgmpGroupDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_DeleteIgmpGroupDevice/DeleteIgmpGroupDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_removeExpiredGroupFromDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_removeExpiredGroupFromDevice/DeleteIgmpGroupDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_GetAllIgmpChannel" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_GetAllIgmpChannel/GetAllIgmpChannel" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_GetAllIgmpChannelForDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroup_GetAllIgmpChannelForDevice/GetAllIgmpChannelForDevice" time="0.000"></testcase>
+		<testcase classname="application" name="TestNewIgmpGroupPort" time="0.000"></testcase>
+		<testcase classname="application" name="TestNewIgmpGroupPort/NewIgmpGroupPort" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupPort_DelExclSource" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupPort_DelExclSource/DelExclSource" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupPort_DelExclSource/AddExclSource" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupPort_DelExclSource/DelInclSource" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupPort_DelExclSource/AddInclSource" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupPort_DelExclSource/InclSourceIsIn" time="0.000"></testcase>
+		<testcase classname="application" name="TestIgmpGroupPort_DelExclSource/ExclSourceIsIn" time="0.000"></testcase>
+		<testcase classname="application" name="Test_newIgmpProfile" time="0.000"></testcase>
+		<testcase classname="application" name="Test_newIgmpProfile/DelExclSource" time="0.000"></testcase>
+		<testcase classname="application" name="TestNewMvlanProfile" time="0.000"></testcase>
+		<testcase classname="application" name="TestNewMvlanProfile/DelExclSource" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_AddMvlanProxy" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_AddMvlanProxy/AddMvlanProxy" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_AddMvlanGroup" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_AddMvlanGroup/AddMvlanProxy" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_GetUsMatchVlan" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_GetUsMatchVlan/GetUsMatchVlan" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_GetUsMatchVlan/GetUsMatchVlan_IsPonVlanPresent" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_isChannelStatic" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_isChannelStatic/isChannelStatic" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_isChannelStatic/isChannelStatic_false" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_isChannelStatic/containsStaticChannels" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_getAllStaticChannels" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_getAllStaticChannels/getAllStaticChannels" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_getAllStaticChannels/getAllOldGroupStaticChannels" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_DelFlows" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_DelFlows/getAllStaticChannels" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_generateGroupKey" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_generateGroupKey/generateGroupKey" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_generateGroupKey/generateGroupKey_IsChannelBasedGroup" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_GetStaticGroupName" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_GetStaticGroupName/GetStaticGroupName" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_GetStaticGroupName/GetStaticGroupName#01" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_pushIgmpMcastFlows" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_pushIgmpMcastFlows/GetStaticGroupName" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_updateStaticGroups" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_updateStaticGroups/updateStaticGroups" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_updateDynamicGroups" time="0.000"></testcase>
+		<testcase classname="application" name="TestMvlanProfile_updateDynamicGroups/updateDynamicGroups" time="0.000"></testcase>
 		<testcase classname="application" name="TestDeleteDbPathKeys" time="0.000"></testcase>
 		<testcase classname="application" name="TestDeleteDbPathKeys/Positive_Case_DeleteDbPathKeys" time="0.000"></testcase>
 		<testcase classname="application" name="TestMigrateVnets" time="0.000"></testcase>
@@ -463,8 +527,8 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="application" name="TestVoltApplication_GetServiceNameFromCookie/VoltApplication_GetServiceNameFromCookie" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltService_SvcUpInd" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltService_SvcUpInd/VoltService_SvcUpInd" time="0.000"></testcase>
-		<testcase classname="application" name="TestVoltService_SvcDownInd" time="0.010"></testcase>
-		<testcase classname="application" name="TestVoltService_SvcDownInd/VoltService_SvcDownInd" time="0.010"></testcase>
+		<testcase classname="application" name="TestVoltService_SvcDownInd" time="0.000"></testcase>
+		<testcase classname="application" name="TestVoltService_SvcDownInd/VoltService_SvcDownInd" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_AddService" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_AddService/VoltApplication_AddService" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_DelService" time="0.000"></testcase>
@@ -687,16 +751,16 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="application" name="TestVoltApplication_PushDevFlowForDevice/device.VlanPortStatus_is_false" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_PushDevFlowForDevice/device.VlanPortStatus_is_true" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="112" failures="0" time="0.244" name="voltha-go-controller/internal/pkg/controller">
+	<testsuite tests="112" failures="0" time="0.054" name="voltha-go-controller/internal/pkg/controller">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="41.1"></property>
 		</properties>
 		<testcase classname="controller" name="Test_isFlowOperSuccess" time="0.000"></testcase>
 		<testcase classname="controller" name="Test_isFlowOperSuccess/test" time="0.000"></testcase>
-		<testcase classname="controller" name="TestAddFlowsTask_Start" time="0.030"></testcase>
-		<testcase classname="controller" name="TestAddFlowsTask_Start/AddFlowsTask_Start" time="0.010"></testcase>
-		<testcase classname="controller" name="TestAddFlowsTask_Start/DeleteFlowsTask_Start" time="0.010"></testcase>
+		<testcase classname="controller" name="TestAddFlowsTask_Start" time="0.000"></testcase>
+		<testcase classname="controller" name="TestAddFlowsTask_Start/AddFlowsTask_Start" time="0.000"></testcase>
+		<testcase classname="controller" name="TestAddFlowsTask_Start/DeleteFlowsTask_Start" time="0.000"></testcase>
 		<testcase classname="controller" name="TestNewAddFlowsTask" time="0.000"></testcase>
 		<testcase classname="controller" name="TestNewAddFlowsTask/NewAddFlowsTask" time="0.000"></testcase>
 		<testcase classname="controller" name="TestAuditDevice_DelExcessPorts" time="0.000"></testcase>
@@ -733,10 +797,10 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="controller" name="TestVoltController_GetPortState" time="0.000"></testcase>
 		<testcase classname="controller" name="TestVoltController_GetPortState/GetPortState" time="0.000"></testcase>
 		<testcase classname="controller" name="TestVoltController_GetPortState/GetPortState_Device_Not_found" time="0.000"></testcase>
-		<testcase classname="controller" name="TestVoltController_ModMeter" time="0.010"></testcase>
+		<testcase classname="controller" name="TestVoltController_ModMeter" time="0.000"></testcase>
 		<testcase classname="controller" name="TestVoltController_ModMeter/ModMeter" time="0.000"></testcase>
 		<testcase classname="controller" name="TestVoltController_ModMeter/ModMeter_device_not_found" time="0.000"></testcase>
-		<testcase classname="controller" name="TestVoltController_ModMeter/ModMeter_port_not_found" time="0.010"></testcase>
+		<testcase classname="controller" name="TestVoltController_ModMeter/ModMeter_port_not_found" time="0.000"></testcase>
 		<testcase classname="controller" name="TestVoltController_VPAgent" time="0.000"></testcase>
 		<testcase classname="controller" name="TestVoltController_VPAgent/VPAgent" time="0.000"></testcase>
 		<testcase classname="controller" name="TestVoltController_VPAgent/VPAgent_Error" time="0.000"></testcase>
@@ -749,8 +813,8 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="controller" name="TestVoltController_ReSetRebootInProgressForDevice/ReSetRebootInProgressForDevice" time="0.000"></testcase>
 		<testcase classname="controller" name="TestVoltController_IsBlockedDevice" time="0.000"></testcase>
 		<testcase classname="controller" name="TestVoltController_IsBlockedDevice/IsBlockedDevice" time="0.000"></testcase>
-		<testcase classname="controller" name="TestVoltController_IsBlockedDevice/deviceSerialNumber" time="0.000"></testcase>
-		<testcase classname="controller" name="TestVoltController_IsBlockedDevice/AddBlockedDevices" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_IsBlockedDevice/deviceserialNumber" time="0.000"></testcase>
+		<testcase classname="controller" name="TestVoltController_IsBlockedDevice/AddBlockeddevices" time="0.000"></testcase>
 		<testcase classname="controller" name="TestVoltController_SetDeviceTableSyncDuration" time="0.000"></testcase>
 		<testcase classname="controller" name="TestVoltController_SetDeviceTableSyncDuration/SetDeviceTableSyncDuration" time="0.000"></testcase>
 		<testcase classname="controller" name="TestVoltController_IsRebootInProgressForDevice" time="0.000"></testcase>
@@ -776,8 +840,8 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="controller" name="TestDevice_PacketOutReq/Device_PacketOutReq" time="0.000"></testcase>
 		<testcase classname="controller" name="TestDevice_SetFlowHash" time="0.000"></testcase>
 		<testcase classname="controller" name="TestDevice_SetFlowHash/Device_SetFlowHash" time="0.000"></testcase>
-		<testcase classname="controller" name="TestModMeterTask_Start" time="0.010"></testcase>
-		<testcase classname="controller" name="TestModMeterTask_Start/mmt.command_==_of.MeterCommandAdd" time="0.010"></testcase>
+		<testcase classname="controller" name="TestModMeterTask_Start" time="0.000"></testcase>
+		<testcase classname="controller" name="TestModMeterTask_Start/mmt.command_==_of.MeterCommandAdd" time="0.000"></testcase>
 		<testcase classname="controller" name="TestNewModMeterTask" time="0.000"></testcase>
 		<testcase classname="controller" name="TestNewModMeterTask/NewModMeterTask" time="0.000"></testcase>
 		<testcase classname="controller" name="TestModMeterTask_Name" time="0.000"></testcase>
@@ -805,7 +869,7 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="controller" name="TestGetXid" time="0.000"></testcase>
 		<testcase classname="controller" name="TestGetXid/GetXid" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="2" failures="0" time="0.064" name="voltha-go-controller/internal/pkg/of">
+	<testsuite tests="2" failures="0" time="0.043" name="voltha-go-controller/internal/pkg/of">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="1.1"></property>
@@ -813,7 +877,7 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="of" name="TestMatch_SetTableMetadata" time="0.000"></testcase>
 		<testcase classname="of" name="TestMatch_SetTableMetadata/test" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="10" failures="0" time="0.047" name="voltha-go-controller/internal/pkg/tasks">
+	<testsuite tests="10" failures="0" time="0.049" name="voltha-go-controller/internal/pkg/tasks">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="70.4"></property>
@@ -829,7 +893,7 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="tasks" name="TestTaskSet_Start" time="0.000"></testcase>
 		<testcase classname="tasks" name="TestTaskSet_Start/Tasks_TaskSet_Start" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="4" failures="0" time="0.250" name="voltha-go-controller/internal/pkg/vpagent">
+	<testsuite tests="4" failures="0" time="0.077" name="voltha-go-controller/internal/pkg/vpagent">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="4.2"></property>
@@ -839,13 +903,13 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="vpagent" name="Test_isConnCanceled/error_nil" time="0.000"></testcase>
 		<testcase classname="vpagent" name="Test_isConnCanceled/the_client_connection_is_closing" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="40" failures="0" time="10.193" name="voltha-go-controller/voltha-go-controller/nbi">
+	<testsuite tests="40" failures="0" time="1.804" name="voltha-go-controller/voltha-go-controller/nbi">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="40.4"></property>
 		</properties>
-		<testcase classname="nbi" name="TestProfileHandle_GetProfile" time="0.020"></testcase>
-		<testcase classname="nbi" name="TestProfileHandle_GetProfile/GetProfile" time="0.020"></testcase>
+		<testcase classname="nbi" name="TestProfileHandle_GetProfile" time="0.010"></testcase>
+		<testcase classname="nbi" name="TestProfileHandle_GetProfile/GetProfile" time="0.010"></testcase>
 		<testcase classname="nbi" name="TestProfileHandle_DelProfile" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestProfileHandle_DelProfile/DelProfile" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestProfileHandle_DelProfile/DelProfile_unmarshal_error" time="0.000"></testcase>
@@ -861,7 +925,7 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="nbi" name="TestDHCPSessionInfoHandle_ServeHTTP/DHCPSessionInfoHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="nbi" name="Test_validateArgs" time="0.000"></testcase>
 		<testcase classname="nbi" name="Test_validateArgs/DHCPSessionInfoHandle_ServeHTTP" time="0.000"></testcase>
-		<testcase classname="nbi" name="Test_getDhcpSessionFields" time="10.010"></testcase>
+		<testcase classname="nbi" name="Test_getDhcpSessionFields" time="1.730"></testcase>
 		<testcase classname="nbi" name="Test_getDhcpSessionFields/getDhcpSessionFields" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestFlowHashHandle_PutFlowHash" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestFlowHashHandle_PutFlowHash/PutFlowHash_Success" time="0.000"></testcase>
@@ -885,18 +949,18 @@ http://www.apache.org/licenses/LICENSE-2.0
 		<testcase classname="nbi" name="TestTaskListHandle_GetTaskList" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestTaskListHandle_GetTaskList/GetTaskList_invalid_input" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="25" failures="0" time="0.241" name="voltha-go-controller/voltha-go-controller/onos_nbi">
+	<testsuite tests="25" failures="0" time="0.040" name="voltha-go-controller/voltha-go-controller/onos_nbi">
 		<properties>
 			<property name="go.version" value="go1.16.3"></property>
 			<property name="coverage.statements.pct" value="24.7"></property>
 		</properties>
-		<testcase classname="onos_nbi" name="TestDeviceConfigHandle_ServeHTTP" time="0.020"></testcase>
-		<testcase classname="onos_nbi" name="TestDeviceConfigHandle_ServeHTTP/DeviceConfigHandle_ServeHTTP" time="0.020"></testcase>
+		<testcase classname="onos_nbi" name="TestDeviceConfigHandle_ServeHTTP" time="0.010"></testcase>
+		<testcase classname="onos_nbi" name="TestDeviceConfigHandle_ServeHTTP/DeviceConfigHandle_ServeHTTP" time="0.010"></testcase>
 		<testcase classname="onos_nbi" name="TestDeviceHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestDeviceHandle_ServeHTTP/DeviceHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestDevicePortHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestDevicePortHandle_ServeHTTP/DevicePortHandle_ServeHTTP" time="0.000"></testcase>
-		<testcase classname="onos_nbi" name="TestDevicePortHandle_ServeHTTPWithDeviceID" time="0.010"></testcase>
+		<testcase classname="onos_nbi" name="TestDevicePortHandle_ServeHTTPWithDeviceID" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestDevicePortHandle_ServeHTTPWithDeviceID/DevicePortHandle_ServeHTTPWithDeviceID" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestDhcpRelayHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestDhcpRelayHandle_ServeHTTP/DhcpRelayHandle_ServeHTTP" time="0.000"></testcase>
