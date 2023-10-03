@@ -17,7 +17,9 @@ package application
 
 import (
 	"context"
+	"errors"
 	"net"
+	"sync"
 	"testing"
 	"time"
 	"voltha-go-controller/internal/pkg/of"
@@ -548,6 +550,256 @@ func TestIsIPPresent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := IsIPPresent(tt.args.i, tt.args.ips); got != tt.want {
 				t.Errorf("IsIPPresent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAddToPendingPool(t *testing.T) {
+	type args struct {
+		cntx     context.Context
+		device   string
+		groupKey string
+	}
+
+	group := &IgmpGroup{
+		GroupName:             "test_key",
+		GroupID:               uint32(256),
+		PendingGroupForDevice: make(map[string]time.Time),
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "AddToPendingPool_true",
+			args: args{
+				device:   "SDX6320031",
+				cntx:     context.Background(),
+				groupKey: "test_key",
+			},
+			want: true,
+		},
+		{
+			name: "AddToPendingPool_false",
+			args: args{
+				device:   "SDX6320031",
+				cntx:     context.Background(),
+				groupKey: "test_key",
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "AddToPendingPool_true":
+				va := GetApplication()
+				va.IgmpGroups.Store("test_key", group)
+				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+				db = dbintf
+				dbintf.EXPECT().PutIgmpGroup(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+				if got := AddToPendingPool(tt.args.cntx, tt.args.device, tt.args.groupKey); got != tt.want {
+					t.Errorf("AddToPendingPool() = %v, want %v", got, tt.want)
+				}
+			case "AddToPendingPool_false":
+				va := GetApplication()
+				va.IgmpGroups.Store("test_key", group)
+				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+				db = dbintf
+				dbintf.EXPECT().PutIgmpGroup(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("failed")).Times(1)
+				if got := AddToPendingPool(tt.args.cntx, tt.args.device, tt.args.groupKey); got != tt.want {
+					t.Errorf("AddToPendingPool() = %v, want %v", got, tt.want)
+				}
+
+			}
+		})
+	}
+}
+
+func TestGetMcastServiceForSubAlarm(t *testing.T) {
+	type args struct {
+		uniPort *VoltPort
+		mvp     *MvlanProfile
+	}
+	mvp := &MvlanProfile{
+		Name: "mvlan_test",
+	}
+	voltPort := &VoltPort{
+		Name:   "16777472",
+		Device: "SDX6320031",
+		ID:     16777472,
+		State:  PortStateUp,
+	}
+	voltServ := &VoltService{
+		VoltServiceOper: VoltServiceOper{
+			Device: "SDX6320031",
+		},
+		VoltServiceCfg: VoltServiceCfg{
+			IgmpEnabled:      true,
+			MvlanProfileName: "mvlan_test",
+			Name:             "SDX6320031-1_SDX6320031-1-4096-2310-4096-65",
+		},
+	}
+	voltPortVnets := make([]*VoltPortVnet, 0)
+	voltPortVnet := &VoltPortVnet{
+		Device:      "SDX6320031",
+		Port:        "16777472",
+		IgmpEnabled: true,
+		services:    sync.Map{},
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "GetMcastServiceForSubAlarm",
+			args: args{
+				uniPort: voltPort,
+				mvp:     mvp,
+			},
+			want: "SDX6320031-1_SDX6320031-1-4096-2310-4096-65",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "GetMcastServiceForSubAlarm":
+				va := GetApplication()
+				voltPortVnets = append(voltPortVnets, voltPortVnet)
+				voltPortVnet.services.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", voltServ)
+				va.VnetsByPort.Store("16777472", voltPortVnets)
+				if got := GetMcastServiceForSubAlarm(tt.args.uniPort, tt.args.mvp); got != tt.want {
+					t.Errorf("GetMcastServiceForSubAlarm() = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
+
+func TestSendQueryExpiredEventGroupSpecific(t *testing.T) {
+	type args struct {
+		portKey string
+		igd     *IgmpGroupDevice
+		igc     *IgmpGroupChannel
+	}
+	mvp := &MvlanProfile{
+		Name: "mvlan_test",
+	}
+	voltServ := &VoltService{
+		VoltServiceOper: VoltServiceOper{
+			Device: "SDX6320031",
+		},
+		VoltServiceCfg: VoltServiceCfg{
+			IgmpEnabled:      true,
+			MvlanProfileName: "mvlan_test",
+			Name:             "SDX6320031-1_SDX6320031-1-4096-2310-4096-65",
+		},
+	}
+	voltPortVnets := make([]*VoltPortVnet, 0)
+	voltPortVnet := &VoltPortVnet{
+		Device:      "SDX6320031",
+		Port:        "16777472",
+		IgmpEnabled: true,
+		services:    sync.Map{},
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "SendQueryExpiredEventGroupSpecific",
+			args: args{
+				portKey: "16777472",
+				igd: &IgmpGroupDevice{
+					Mvlan: of.VlanAny,
+				},
+				igc: &IgmpGroupChannel{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := GetApplication()
+			voltPortVnets = append(voltPortVnets, voltPortVnet)
+			voltPortVnet.services.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", voltServ)
+			va.VnetsByPort.Store("16777472", voltPortVnets)
+			va.MvlanProfilesByTag.Store(of.VlanAny, mvp)
+			SendQueryExpiredEventGroupSpecific(tt.args.portKey, tt.args.igd, tt.args.igc)
+		})
+	}
+}
+
+// func TestVoltApplication_RestoreIgmpGroupsFromDb(t *testing.T) {
+// 	type args struct {
+// 		cntx context.Context
+// 	}
+// 	group := &IgmpGroup{
+// 		GroupName:             "test_key",
+// 		GroupID:               uint32(256),
+// 		PendingGroupForDevice: make(map[string]time.Time),
+// 	}
+// 	dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+// 	db = dbintf
+// 	b, err := json.Marshal(group)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	kvpair := map[string]*kvstore.KVPair{}
+// 	kvpair["test_key"] = &kvstore.KVPair{
+// 		Key:   "test_key",
+// 		Value: b,
+// 	}
+
+// 	kvpair1 := map[string]*kvstore.KVPair{}
+// 	kvpair1["SDX6320031"] = &kvstore.KVPair{
+// 		Key:   "SDX6320031",
+// 		Value: "failed",
+// 	}
+// 	dbintf.EXPECT().GetIgmpGroups(gomock.Any()).Return(kvpair, nil).Times(1)
+// 	dbintf.EXPECT().GetPrevIgmpDevices(gomock.Any(), gomock.Any(), gomock.Any()).Return(kvpair1, nil).Times(1)
+// 	tests := []struct {
+// 		name string
+// 		args args
+// 	}{
+// 		{
+// 			name: "RestoreIgmpGroupsFromDb",
+// 			args: args{
+// 				cntx: context.Background(),
+// 			},
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			va := &VoltApplication{}
+// 			va.RestoreIgmpGroupsFromDb(tt.args.cntx)
+// 		})
+// 	}
+// }
+
+func TestVoltApplication_GetPonPortID(t *testing.T) {
+	type args struct {
+		device    string
+		uniPortID string
+	}
+	tests := []struct {
+		name string
+		args args
+		want uint32
+	}{
+		{
+			name: "RestoreIgmpGroupsFromDb",
+			args: args{},
+			want: uint32(255),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{}
+			if got := va.GetPonPortID(tt.args.device, tt.args.uniPortID); got != tt.want {
+				t.Errorf("VoltApplication.GetPonPortID() = %v, want %v", got, tt.want)
 			}
 		})
 	}
