@@ -1,0 +1,8 @@
+Verified+1: Jenkins Technical User <do-not-reply@opennetworking.org>
+Code-Review+1: Sridhar Ravindra <sridhar.ravindra@radisys.com>
+Code-Review+2: Amit Ghosh <amit.ghosh@radisys.com>
+Submitted-by: Amit Ghosh <amit.ghosh@radisys.com>
+Submitted-at: Wed, 04 Oct 2023 07:00:12 +0000
+Reviewed-on: https://gerrit.opencord.org/c/voltha-go-controller/+/34775
+Project: voltha-go-controller
+Branch: refs/heads/master
