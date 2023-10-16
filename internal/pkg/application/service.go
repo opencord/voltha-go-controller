@@ -2085,7 +2085,7 @@ func (va *VoltApplication) GetFlowProvisionStatus(portNo string) FlowProvisionSt
 			} else if !vs.DsHSIAFlowsApplied && !vs.UsHSIAFlowsApplied {
 				flowProvisionStatus.FlowProvisionStatus = NO_FLOWS_PROVISIONED
 				return false
-			} else if vs.LenOfPendingFlows() > 0 {
+			} else if vs.DsHSIAFlowsApplied && vs.UsHSIAFlowsApplied && vs.LenOfPendingFlows() > 0 {
 				flowProvisionStatus.FlowProvisionStatus = FLOWS_PROVISIONED_PARTIALLY
 				return false
 			}
