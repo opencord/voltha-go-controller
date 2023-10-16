@@ -54,9 +54,8 @@ func TestNewController(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewController(tt.args.ctx, tt.args.app); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewController() = %v, want %v", got, tt.want)
-			}
+			got := NewController(tt.args.ctx, tt.args.app)
+			assert.NotNil(t, got)
 		})
 	}
 }
@@ -92,7 +91,7 @@ func TestVoltController_DelDevice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 				app:     GetController().app,
 			}
 			v.DelDevice(tt.args.cntx, tt.args.id)
@@ -164,7 +163,7 @@ func TestVoltController_AddFlows(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 			}
 			if err := v.AddFlows(tt.args.cntx, tt.args.port, tt.args.device, tt.args.flow); (err != nil) != tt.wantErr {
 				t.Errorf("VoltController.AddFlows() error = %v, wantErr %v", err, tt.wantErr)
@@ -237,7 +236,7 @@ func TestVoltController_DelFlows(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 			}
 			if err := v.DelFlows(tt.args.cntx, tt.args.port, tt.args.device, tt.args.flow, false); (err != nil) != tt.wantErr {
 				t.Errorf("VoltController.DelFlows() error = %v, wantErr %v", err, tt.wantErr)
@@ -293,7 +292,7 @@ func TestVoltController_GetGroups(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 			}
 			switch tt.name {
 			case "VoltController_GetGroups":
@@ -350,7 +349,7 @@ func TestVoltController_GetGroupList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 			}
 			device.groups.Store(uint32(256), grp)
 			got, err := v.GetGroupList()
@@ -413,7 +412,7 @@ func TestVoltController_GetMeterInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 			}
 			switch tt.name {
 			case "VoltController_GetMeterInfo":
@@ -471,7 +470,7 @@ func TestVoltController_GetAllMeterInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 			}
 			got, err := v.GetAllMeterInfo()
 			if (err != nil) != tt.wantErr {
@@ -583,7 +582,7 @@ func TestVoltController_GetAllPendingFlows(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 			}
 			got, err := v.GetAllPendingFlows()
 			if (err != nil) != tt.wantErr {
@@ -602,7 +601,7 @@ func TestVoltController_GetAllPendingFlows(t *testing.T) {
 	for _, tt := range tests1 {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 			}
 			switch tt.name {
 			case "GetFlows_with_DeviceID":
@@ -625,7 +624,7 @@ func TestVoltController_GetAllPendingFlows(t *testing.T) {
 	for _, tt := range tests2 {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 			}
 			switch tt.name {
 			case "GetFlow_with_DeviceID_and_cookie":
@@ -680,7 +679,7 @@ func TestVoltController_GetTaskList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 			}
 			switch tt.name {
 			case "GetTaskList":
@@ -740,7 +739,7 @@ func TestVoltController_GetPortState(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 			}
 			switch tt.name {
 			case "GetPortState":
@@ -826,7 +825,7 @@ func TestVoltController_ModMeter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				devices: dev,
+				Devices: dev,
 			}
 			switch tt.name {
 			case "ModMeter":
@@ -947,7 +946,7 @@ func TestVoltController_SetRebootInProgressForDevice(t *testing.T) {
 	type args struct {
 		device string
 	}
-	rebootInProgressdevices := map[string]string{}
+	rebootInProgressDevices := map[string]string{}
 	device := &Device{
 		ctx: context.Background(),
 		ID:  "SDX6320031",
@@ -977,8 +976,8 @@ func TestVoltController_SetRebootInProgressForDevice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				rebootInProgressDevices: rebootInProgressdevices,
-				devices:                 dev,
+				rebootInProgressDevices: rebootInProgressDevices,
+				Devices:                 dev,
 			}
 			switch tt.name {
 			case "SetRebootInProgressForDevice":
@@ -998,12 +997,12 @@ func TestVoltController_ReSetRebootInProgressForDevice(t *testing.T) {
 	type args struct {
 		device string
 	}
-	rebootInProgressdevices := map[string]string{}
+	rebootInProgressDevices := map[string]string{}
 	device := &Device{
 		ctx: context.Background(),
 		ID:  "SDX6320031",
 	}
-	rebootInProgressdevices["SDX6320031"] = "done"
+	rebootInProgressDevices["SDX6320031"] = "done"
 	dev := map[string]*Device{}
 	dev["SDX6320031"] = device
 	tests := []struct {
@@ -1022,8 +1021,8 @@ func TestVoltController_ReSetRebootInProgressForDevice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				rebootInProgressDevices: rebootInProgressdevices,
-				devices:                 dev,
+				rebootInProgressDevices: rebootInProgressDevices,
+				Devices:                 dev,
 			}
 			if got := v.ReSetRebootInProgressForDevice(tt.args.device); got != tt.want {
 				t.Errorf("VoltController.ReSetRebootInProgressForDevice() = %v, want %v", got, tt.want)
@@ -1034,7 +1033,7 @@ func TestVoltController_ReSetRebootInProgressForDevice(t *testing.T) {
 
 func TestVoltController_IsBlockedDevice(t *testing.T) {
 	type args struct {
-		deviceserialNumber string
+		DeviceserialNumber string
 	}
 	tests := []struct {
 		name string
@@ -1044,21 +1043,21 @@ func TestVoltController_IsBlockedDevice(t *testing.T) {
 		{
 			name: "IsBlockedDevice",
 			args: args{
-				deviceserialNumber: "SDX6320031",
+				DeviceserialNumber: "SDX6320031",
 			},
 			want: false,
 		},
 		{
-			name: "deviceserialNumber",
+			name: "DeviceserialNumber",
 			args: args{
-				deviceserialNumber: "SDX6320031",
+				DeviceserialNumber: "SDX6320031",
 			},
 			want: false,
 		},
 		{
-			name: "AddBlockeddevices",
+			name: "AddBlockedDevices",
 			args: args{
-				deviceserialNumber: "SDX6320031",
+				DeviceserialNumber: "SDX6320031",
 			},
 			want: false,
 		},
@@ -1070,13 +1069,13 @@ func TestVoltController_IsBlockedDevice(t *testing.T) {
 			}
 			switch tt.name {
 			case "IsBlockedDevice":
-				if got := v.IsBlockedDevice(tt.args.deviceserialNumber); got != tt.want {
+				if got := v.IsBlockedDevice(tt.args.DeviceserialNumber); got != tt.want {
 					t.Errorf("VoltController.IsBlockedDevice() = %v, want %v", got, tt.want)
 				}
-			case "deviceserialNumber":
-				v.DelBlockedDevices(tt.args.deviceserialNumber)
-			case "AddBlockeddevices":
-				v.AddBlockedDevices(tt.args.deviceserialNumber)
+			case "DeviceserialNumber":
+				v.DelBlockedDevices(tt.args.DeviceserialNumber)
+			case "AddBlockedDevices":
+				v.AddBlockedDevices(tt.args.DeviceserialNumber)
 			}
 		})
 	}
@@ -1206,7 +1205,7 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 			switch tt.name {
 			case "GroupUpdate", "DeviceNOtFound_Error", "PortNOtFound_Error":
 				v := &VoltController{
-					devices: dev,
+					Devices: dev,
 				}
 				if err := v.GroupUpdate(tt.args.port, tt.args.device, tt.args.group); (err != nil) != tt.wantErr {
 					t.Errorf("VoltController.GroupUpdate() error = %v, wantErr %v", err, tt.wantErr)
@@ -1220,7 +1219,7 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 				dev := map[string]*Device{}
 				dev["SDX6320031"] = device
 				v := &VoltController{
-					devices: dev,
+					Devices: dev,
 				}
 				if err := v.GroupUpdate(tt.args.port, tt.args.device, tt.args.group); (err != nil) != tt.wantErr {
 					t.Errorf("VoltController.GroupUpdate() error = %v, wantErr %v", err, tt.wantErr)

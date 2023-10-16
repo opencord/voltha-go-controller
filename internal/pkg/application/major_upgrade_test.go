@@ -140,6 +140,9 @@ func TestMigrateVpvs(t *testing.T) {
 		data []byte
 	}
 	vpvmap := make(map[string]interface{})
+	vpvmap["MacLearning"] = true
+	vpvmap["UsFlowsApplied"] = true
+	vpvmap["DsFlowsApplied"] = true
 	byteData, _ := json.Marshal(&vpvmap)
 	tests := []struct {
 		name string

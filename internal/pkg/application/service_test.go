@@ -3073,3 +3073,100 @@ func TestVoltService_IPAssigned(t *testing.T) {
 		})
 	}
 }
+
+func TestVoltApplication_GetFlowProvisionStatus(t *testing.T) {
+	type args struct {
+		portNo string
+	}
+	voltServ := &VoltService{
+		VoltServiceCfg: VoltServiceCfg{
+			Port:        "SDX6320031-1",
+			IsActivated: true,
+		},
+		VoltServiceOper: VoltServiceOper{
+			Device:             "SDX6320031",
+			DsHSIAFlowsApplied: true,
+			UsHSIAFlowsApplied: true,
+		},
+	}
+	tests := []struct {
+		name string
+		args args
+		want FlowProvisionStatus
+	}{
+		{
+			name: "ALL_FLOWS_PROVISIONED",
+			args: args{
+				portNo: "SDX6320031-1",
+			},
+			want: FlowProvisionStatus{
+				FlowProvisionStatus: "ALL_FLOWS_PROVISIONED",
+			},
+		},
+		{
+			name: "SUBSCRIBER_DISABLED_IN_CONTROLLER",
+			args: args{
+				portNo: "SDX6320031-1",
+			},
+			want: FlowProvisionStatus{
+				FlowProvisionStatus: "DISABLED_IN_CONTROLLER",
+			},
+		},
+		{
+			name: "FLOWS_PROVISIONED_PARTIALLY",
+			args: args{
+				portNo: "SDX6320031-1",
+			},
+			want: FlowProvisionStatus{
+				FlowProvisionStatus: "FLOWS_PROVISIONED_PARTIALLY",
+			},
+		},
+		{
+			name: "NO_FLOWS_PROVISIONED",
+			args: args{
+				portNo: "SDX6320031-1",
+			},
+			want: FlowProvisionStatus{
+				FlowProvisionStatus: "NO_FLOWS_PROVISIONED",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{}
+			switch tt.name {
+			case "ALL_FLOWS_PROVISIONED":
+				va.ServiceByName.Store("SCOM00001c75-1_SCOM00001c75-1-4096-2310-4096-65", voltServ)
+				if got := va.GetFlowProvisionStatus(tt.args.portNo); !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("VoltApplication.GetFlowProvisionStatus() = %v, want %v", got, tt.want)
+				}
+			case "SUBSCRIBER_DISABLED_IN_CONTROLLER":
+				voltServ := &VoltService{
+					VoltServiceCfg: VoltServiceCfg{
+						Port:        "SDX6320031-1",
+						IsActivated: false,
+					},
+				}
+				va.ServiceByName.Store("SCOM00001c75-1_SCOM00001c75-1-4096-2310-4096-65", voltServ)
+				if got := va.GetFlowProvisionStatus(tt.args.portNo); !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("VoltApplication.GetFlowProvisionStatus() = %v, want %v", got, tt.want)
+				}
+			case "FLOWS_PROVISIONED_PARTIALLY":
+				pendingFlows := map[string]bool{}
+				pendingFlows["test"] = true
+				voltServ.PendingFlows = pendingFlows
+				va.ServiceByName.Store("SCOM00001c75-1_SCOM00001c75-1-4096-2310-4096-65", voltServ)
+				if got := va.GetFlowProvisionStatus(tt.args.portNo); !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("VoltApplication.GetFlowProvisionStatus() = %v, want %v", got, tt.want)
+				}
+			case "NO_FLOWS_PROVISIONED":
+				voltServ.UsHSIAFlowsApplied = false
+				voltServ.DsHSIAFlowsApplied = false
+				va.ServiceByName.Store("SCOM00001c75-1_SCOM00001c75-1-4096-2310-4096-65", voltServ)
+				if got := va.GetFlowProvisionStatus(tt.args.portNo); !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("VoltApplication.GetFlowProvisionStatus() = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}

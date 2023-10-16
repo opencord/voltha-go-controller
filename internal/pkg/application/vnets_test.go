@@ -28,8 +28,10 @@ import (
 	"voltha-go-controller/internal/test/mocks"
 
 	"github.com/golang/mock/gomock"
+	"github.com/google/gopacket/layers"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/atomic"
 )
 
 func TestVoltPortVnet_JSONMarshal(t *testing.T) {
@@ -890,6 +892,473 @@ func TestVoltApplication_PushDevFlowForDevice(t *testing.T) {
 				})
 				tt.args.device.VlanPortStatus.Store(uint16(of.VlanAny), true)
 				va.PushDevFlowForDevice(tt.args.cntx, tt.args.device)
+			}
+		})
+	}
+}
+
+func TestNewVoltPortVnet(t *testing.T) {
+	type args struct {
+		vnet *VoltVnet
+	}
+	usDhcpPbit := []of.PbitType{}
+	usDhcpPbit = append(usDhcpPbit, PbitMatchNone)
+	tests := []struct {
+		name string
+		args args
+		want *VoltPortVnet
+	}{
+		{
+			name: "NewVoltPortVnet",
+			args: args{
+				vnet: &VoltVnet{
+					VnetConfig: VnetConfig{
+						UsDhcpPbit: usDhcpPbit,
+					},
+				},
+			},
+			want: &VoltPortVnet{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NewVoltPortVnet(tt.args.vnet)
+			assert.NotNil(t, got)
+		})
+	}
+}
+
+func TestVoltPortVnet_GetCircuitID(t *testing.T) {
+	vpv := &VoltPortVnet{}
+	got := vpv.GetCircuitID()
+	assert.Nil(t, got)
+	got1 := vpv.GetRemoteID()
+	assert.Nil(t, got1)
+	got3 := vpv.GetDhcpState()
+	assert.NotNil(t, got3)
+	got4 := vpv.GetPppoeIaState()
+	assert.NotNil(t, got4)
+	got5 := vpv.GetDhcpv6State()
+	assert.NotNil(t, got5)
+}
+
+func TestVoltPortVnet_GetNniVlans(t *testing.T) {
+	tests := []struct {
+		name  string
+		want  uint16
+		want1 uint16
+	}{
+		{
+			name:  "GetNniVlans",
+			want:  uint16(of.VlanAny),
+			want1: uint16(of.VlanAny),
+		},
+		{
+			name:  "GetNniVlans_OLTSVlan",
+			want:  uint16(of.VlanAny),
+			want1: uint16(of.VlanNone),
+		},
+		{
+			name:  "GetNniVlans_Default",
+			want:  uint16(of.VlanNone),
+			want1: uint16(of.VlanNone),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vpv := &VoltPortVnet{
+				VlanControl: ONUCVlanOLTSVlan,
+				SVlan:       of.VlanAny,
+				CVlan:       of.VlanAny,
+			}
+			switch tt.name {
+			case "GetNniVlans":
+				got, got1 := vpv.GetNniVlans()
+				if got != tt.want {
+					t.Errorf("VoltPortVnet.GetNniVlans() got = %v, want %v", got, tt.want)
+				}
+				if got1 != tt.want1 {
+					t.Errorf("VoltPortVnet.GetNniVlans() got1 = %v, want %v", got1, tt.want1)
+				}
+			case "GetNniVlans_OLTSVlan":
+				vpv.VlanControl = OLTSVlan
+				got, got1 := vpv.GetNniVlans()
+				if got != tt.want {
+					t.Errorf("VoltPortVnet.GetNniVlans() got = %v, want %v", got, tt.want)
+				}
+				if got1 != tt.want1 {
+					t.Errorf("VoltPortVnet.GetNniVlans() got1 = %v, want %v", got1, tt.want1)
+				}
+			case "GetNniVlans_Default":
+				vpv.VlanControl = opt82
+				got, got1 := vpv.GetNniVlans()
+				if got != tt.want {
+					t.Errorf("VoltPortVnet.GetNniVlans() got = %v, want %v", got, tt.want)
+				}
+				if got1 != tt.want1 {
+					t.Errorf("VoltPortVnet.GetNniVlans() got1 = %v, want %v", got1, tt.want1)
+				}
+			}
+		})
+	}
+}
+
+func TestVoltPortVnet_GetService(t *testing.T) {
+	type args struct {
+		name string
+	}
+	voltServ := &VoltService{
+		VoltServiceOper: VoltServiceOper{
+			Device: "SDX6320031",
+		},
+		VoltServiceCfg: VoltServiceCfg{
+			IsActivated: true,
+		},
+	}
+	tests := []struct {
+		name  string
+		args  args
+		want  *VoltService
+		want1 bool
+	}{
+		{
+			name: "GetService",
+			args: args{
+				name: "SDX6320031-1_SDX6320031-1-4096-2310-4096-65",
+			},
+			want:  voltServ,
+			want1: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vpv := &VoltPortVnet{}
+			vpv.services.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", voltServ)
+			got, got1 := vpv.GetService(tt.args.name)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("VoltPortVnet.GetService() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("VoltPortVnet.GetService() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}
+
+func TestVoltPortVnet_ProcessDhcpSuccess(t *testing.T) {
+	type args struct {
+		cntx context.Context
+		res  *layers.DHCPv4
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "ProcessDhcpSuccess",
+			args: args{
+				cntx: context.Background(),
+				res:  &layers.DHCPv4{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vpv := &VoltPortVnet{
+				servicesCount: atomic.NewUint64(0),
+			}
+			vpv.ProcessDhcpSuccess(tt.args.cntx, tt.args.res)
+		})
+	}
+}
+
+func TestVoltPortVnet_ProcessDhcpResult(t *testing.T) {
+	type args struct {
+		cntx context.Context
+		res  *layers.DHCPv4
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "ProcessDhcpResult",
+			args: args{
+				cntx: context.Background(),
+				res:  &layers.DHCPv4{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vpv := &VoltPortVnet{}
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			vpv.ProcessDhcpResult(tt.args.cntx, tt.args.res)
+		})
+	}
+}
+
+func TestVoltVnet_associatePortToVnet(t *testing.T) {
+	type args struct {
+		port string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "ProcessDhcpResult",
+			args: args{
+				port: "SDX6320031-1",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vv := &VoltVnet{}
+			vv.associatePortToVnet(tt.args.port)
+		})
+	}
+}
+
+func TestVoltPortVnet_ProcessDhcpv6Result(t *testing.T) {
+	type args struct {
+		cntx      context.Context
+		ipv6Addr  net.IP
+		leaseTime uint32
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "ProcessDhcpResult",
+			args: args{
+				cntx:      context.Background(),
+				ipv6Addr:  AllSystemsMulticastGroupIP,
+				leaseTime: uint32(128),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vpv := &VoltPortVnet{}
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			vpv.ProcessDhcpv6Result(tt.args.cntx, tt.args.ipv6Addr, tt.args.leaseTime)
+		})
+	}
+}
+
+func TestAddSvcUsMeterToDevice(t *testing.T) {
+	type args struct {
+		cntx  context.Context
+		key   interface{}
+		value interface{}
+		flag  bool
+	}
+	vpv := &VoltApplication{}
+	voltServ := &VoltService{
+		VoltServiceOper: VoltServiceOper{
+			Device:      test_device,
+			ForceDelete: true,
+		},
+	}
+	vpv.ServiceByName.Store(test_device, voltServ)
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "ProcessDhcpResult",
+			args: args{
+				cntx:  context.Background(),
+				key:   test_device,
+				value: voltServ,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := AddSvcUsMeterToDevice(tt.args.cntx, tt.args.key, tt.args.value, tt.args.flag); got != tt.want {
+				t.Errorf("AddSvcUsMeterToDevice() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestClearFlagsInService(t *testing.T) {
+	type args struct {
+		cntx  context.Context
+		key   interface{}
+		value interface{}
+		flag  bool
+	}
+	vpv := &VoltPortVnet{}
+	voltServ := &VoltService{
+		VoltServiceOper: VoltServiceOper{
+			Device: "SDX6320031",
+		},
+		VoltServiceCfg: VoltServiceCfg{
+			IsActivated: true,
+		},
+	}
+	vpv.services.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", voltServ)
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "ClearFlagsInService",
+			args: args{
+				cntx:  context.Background(),
+				key:   test_device,
+				value: voltServ,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
+			db = dbintf
+			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			got := ClearFlagsInService(tt.args.cntx, tt.args.key, tt.args.value, tt.args.flag)
+			assert.NotNil(t, got)
+		})
+	}
+}
+
+func TestVoltPortVnet_DelDhcpFlows(t *testing.T) {
+	type args struct {
+		cntx context.Context
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "DelDhcpFlows",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vpv := &VoltPortVnet{}
+			vpv.DelDhcpFlows(tt.args.cntx)
+		})
+	}
+}
+
+func TestVoltPortVnet_AddDsDhcpFlows(t *testing.T) {
+	type args struct {
+		cntx context.Context
+	}
+	va := GetApplication()
+	voltDev := &VoltDevice{
+		Name:            "49686e2d-618f-4e8e-bca0-442ab850a63a",
+		SerialNum:       "SDX6320031",
+		NniDhcpTrapVid:  123,
+		State:           cntlr.DeviceStateUP,
+		FlowAddEventMap: util.NewConcurrentMap(),
+	}
+	va.DevicesDisc.Store("SDX6320031", voltDev)
+	voltPort := &VoltPort{
+		Name:                     "49686e2d-618f-4e8e-bca0-442ab850a63a",
+		Device:                   "SDX6320031",
+		ID:                       16777472,
+		State:                    PortStateDown,
+		ChannelPerSubAlarmRaised: false,
+		Type:                     VoltPortTypeNni,
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "AddDsDhcpFlows",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+		{
+			name: "AddDsDhcpFlows_DeviceNotFound",
+			args: args{
+				cntx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "AddDsDhcpFlows_StateDown",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+		{
+			name: "AddDsDhcpFlows_GlobalDhcpFlowAdded",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+		{
+			name: "AddDsDhcpFlows_PositiveSenario",
+			args: args{
+				cntx: context.Background(),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vpv := &VoltPortVnet{
+				Device: "SDX6320031",
+			}
+			switch tt.name {
+			case "AddDsDhcpFlows":
+				if err := vpv.AddDsDhcpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
+					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "AddDsDhcpFlows_DeviceNotFound":
+				vpv.Device = ""
+				if err := vpv.AddDsDhcpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
+					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "AddDsDhcpFlows_StateDown":
+				voltDev.State = cntlr.DeviceStateDOWN
+				if err := vpv.AddDsDhcpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
+					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "AddDsDhcpFlows_GlobalDhcpFlowAdded":
+				vpv.Device = "SDX6320031"
+				voltDev.State = cntlr.DeviceStateUP
+				voltDev.GlobalDhcpFlowAdded = true
+				if err := vpv.AddDsDhcpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
+					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "AddDsDhcpFlows_PositiveSenario":
+				vpv.Device = "SDX6320031"
+				voltDev.State = cntlr.DeviceStateUP
+				voltDev.GlobalDhcpFlowAdded = false
+				voltDev.NniPort = "16777472"
+				va.PortsDisc.Store("16777472", voltPort)
+				appMock := mocks.NewMockApp(gomock.NewController(t))
+				cntlr.NewController(ctx, appMock)
+				vc := cntlr.GetController()
+				device := &cntlr.Device{
+					ID: "SDX6320031",
+				}
+				dev := map[string]*cntlr.Device{}
+				dev["SDX6320031"] = device
+				vc.Devices = dev
+				if err := vpv.AddDsDhcpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
+					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
+				}
 			}
 		})
 	}

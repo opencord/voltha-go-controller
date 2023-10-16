@@ -296,3 +296,42 @@ func TestAddIaOption(t *testing.T) {
 		})
 	}
 }
+
+func TestNewPppoeIaPacketTask(t *testing.T) {
+	type args struct {
+		pkt  gopacket.Packet
+		dev  string
+		port string
+	}
+	pkt := mocks.NewMockPacket(gomock.NewController(t))
+	tests := []struct {
+		name string
+		args args
+		want *PppoeIaPacketTask
+	}{
+		{
+			name: "NewPppoeIaPacketTask",
+			args: args{
+				pkt:  pkt,
+				dev:  test_device,
+				port: "test_port",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NewPppoeIaPacketTask(tt.args.pkt, tt.args.dev, tt.args.port)
+			assert.NotNil(t, got)
+		})
+	}
+}
+
+func TestPppoeIaPacketTask_Name(t *testing.T) {
+	dpt := &PppoeIaPacketTask{}
+	got := dpt.Name()
+	assert.NotNil(t, got)
+	got1 := dpt.TaskID()
+	assert.NotNil(t, got1)
+	got2 := dpt.Timestamp()
+	assert.NotNil(t, got2)
+}
