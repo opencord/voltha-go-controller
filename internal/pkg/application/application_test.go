@@ -2876,7 +2876,7 @@ func TestVoltApplication_ReadAllFromDb(t *testing.T) {
 	macPortMap := map[string]string{}
 	voltPortVnetsToDelete := map[*VoltPortVnet]bool{}
 	voltPortVnetsToDelete[voltPortVnet] = true
-	macPortMap[macAdd.String()] = "16777472"
+	macPortMap[macAdd.String()] = voltPortVnet.Port
 
 	tests := []struct {
 		name string
