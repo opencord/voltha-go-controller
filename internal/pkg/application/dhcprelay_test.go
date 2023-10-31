@@ -29,6 +29,7 @@ import (
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/atomic"
 )
 
 func TestVoltApplication_GetIgnoredPorts(t *testing.T) {
@@ -786,6 +787,362 @@ func TestVoltApplication_GetAllMacLearnerInfo(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("VoltApplication.GetAllMacLearnerInfo() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func Test_raiseDHCPv4Indication(t *testing.T) {
+	voltServ := &VoltService{
+		VoltServiceOper: VoltServiceOper{
+			Device: "SDX6320031",
+		},
+		VoltServiceCfg: VoltServiceCfg{
+			IsActivated: true,
+			Pbits: []of.PbitType{
+				of.PbitNone,
+			},
+		},
+	}
+	voltPortVnet := &VoltPortVnet{
+		Device:           "SDX6320031",
+		Port:             "16777472",
+		DeleteInProgress: false,
+		services:         sync.Map{},
+		SVlan:            4096,
+		CVlan:            2310,
+		UniVlan:          4096,
+		SVlanTpid:        65,
+		servicesCount:    atomic.NewUint64(1),
+	}
+	voltPortVnet.services.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", voltServ)
+	type args struct {
+		msgType   layers.DHCPMsgType
+		vpv       *VoltPortVnet
+		smac      net.HardwareAddr
+		ip        net.IP
+		pktPbit   uint8
+		device    string
+		leaseTime int64
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "raiseDHCPv4Indication_DHCPMsgTypeDiscover",
+			args: args{
+				msgType: layers.DHCPMsgTypeDiscover,
+				vpv:     voltPortVnet,
+				device:  "SDX6320031",
+			},
+		},
+		{
+			name: "raiseDHCPv4Indication_DHCPMsgTypeRequest",
+			args: args{
+				msgType: layers.DHCPMsgTypeRequest,
+				vpv:     voltPortVnet,
+			},
+		},
+		{
+			name: "raiseDHCPv4Indication_DHCPMsgTypeRelease",
+			args: args{
+				msgType: layers.DHCPMsgTypeRelease,
+				vpv:     voltPortVnet,
+			},
+		},
+		{
+			name: "raiseDHCPv4Indication_DHCPMsgTypeAck",
+			args: args{
+				msgType: layers.DHCPMsgTypeAck,
+				vpv:     voltPortVnet,
+			},
+		},
+		{
+			name: "raiseDHCPv4Indication_DHCPMsgTypeNak",
+			args: args{
+				msgType: layers.DHCPMsgTypeNak,
+				vpv:     voltPortVnet,
+			},
+		},
+		{
+			name: "raiseDHCPv4Indication_DHCPMsgTypeOffer",
+			args: args{
+				msgType: layers.DHCPMsgTypeOffer,
+				vpv:     voltPortVnet,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			raiseDHCPv4Indication(tt.args.msgType, tt.args.vpv, tt.args.smac, tt.args.ip, tt.args.pktPbit, tt.args.device, tt.args.leaseTime)
+		})
+	}
+}
+
+func Test_raiseDHCPv6Indication(t *testing.T) {
+	voltServ := &VoltService{
+		VoltServiceOper: VoltServiceOper{
+			Device: "SDX6320031",
+		},
+		VoltServiceCfg: VoltServiceCfg{
+			IsActivated: true,
+			Pbits: []of.PbitType{
+				of.PbitNone,
+			},
+		},
+	}
+	voltPortVnet := &VoltPortVnet{
+		Device:           "SDX6320031",
+		Port:             "16777472",
+		DeleteInProgress: false,
+		services:         sync.Map{},
+		SVlan:            4096,
+		CVlan:            2310,
+		UniVlan:          4096,
+		SVlanTpid:        65,
+		servicesCount:    atomic.NewUint64(1),
+	}
+	voltPortVnet.services.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", voltServ)
+	type args struct {
+		msgType   layers.DHCPv6MsgType
+		vpv       *VoltPortVnet
+		smac      net.HardwareAddr
+		ip        net.IP
+		pktPbit   uint8
+		device    string
+		leaseTime uint32
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "raiseDHCPv6Indication_DHCPv6MsgTypeSolicit",
+			args: args{
+				msgType: layers.DHCPv6MsgTypeSolicit,
+				vpv:     voltPortVnet,
+				device:  "SDX6320031",
+			},
+		},
+		{
+			name: "raiseDHCPv4Indication_DHCPv6MsgTypeRelease",
+			args: args{
+				msgType: layers.DHCPv6MsgTypeRelease,
+				vpv:     voltPortVnet,
+			},
+		},
+		{
+			name: "raiseDHCPv4Indication_DHCPv6MsgTypeReply",
+			args: args{
+				msgType: layers.DHCPv6MsgTypeReply,
+				vpv:     voltPortVnet,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			raiseDHCPv6Indication(tt.args.msgType, tt.args.vpv, tt.args.smac, tt.args.ip, tt.args.pktPbit, tt.args.device, tt.args.leaseTime)
+		})
+	}
+}
+
+func TestVoltApplication_ProcessUDP6Packet(t *testing.T) {
+	type args struct {
+		cntx   context.Context
+		device string
+		port   string
+		pkt    gopacket.Packet
+	}
+	pkt := mocks.NewMockPacket(gomock.NewController(t))
+	dhcpv6 := &layers.DHCPv6{
+		MsgType: layers.DHCPv6MsgTypeSolicit,
+	}
+	ipv6 := &layers.IPv6{
+		Version: EtherType8100,
+	}
+	uup := &layers.UDP{
+		SrcPort: opt82,
+	}
+	tests := []struct {
+		name string
+		args args
+		want []byte
+	}{
+		{
+			name: "ProcessUDP6Packet_DHCPv6MsgTypeSolicit",
+			args: args{
+				cntx:   context.Background(),
+				device: "SDX6320031",
+				port:   "16777472",
+				pkt:    pkt,
+			},
+		},
+		{
+			name: "ProcessUDP6Packet_DHCPv6MsgTypeAdvertise",
+			args: args{
+				cntx:   context.Background(),
+				device: "SDX6320031",
+				port:   "16777472",
+				pkt:    pkt,
+			},
+		},
+		{
+			name: "ProcessUDP6Packet_DHCPv6MsgTypeRelayForward",
+			args: args{
+				cntx:   context.Background(),
+				device: "SDX6320031",
+				port:   "16777472",
+				pkt:    pkt,
+			},
+		},
+		{
+			name: "ProcessUDP6Packet_DHCPv6MsgTypeRelayReply",
+			args: args{
+				cntx:   context.Background(),
+				device: "SDX6320031",
+				port:   "16777472",
+				pkt:    pkt,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{}
+			switch tt.name {
+			case "ProcessUDP6Packet_DHCPv6MsgTypeSolicit":
+				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).Times(2)
+				pkt.EXPECT().Data().Times(1)
+				pkt.EXPECT().Layers().Return(LayerTypeDot2Q).Times(2)
+				if got := va.ProcessUDP6Packet(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt); !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("VoltApplication.ProcessUDP6Packet() = %v, want %v", got, tt.want)
+				}
+			case "ProcessUDP6Packet_DHCPv6MsgTypeAdvertise":
+				dhcpv6.MsgType = layers.DHCPv6MsgTypeAdvertise
+				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).Times(2)
+				if got := va.ProcessUDP6Packet(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt); !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("VoltApplication.ProcessUDP6Packet() = %v, want %v", got, tt.want)
+				}
+			case "ProcessUDP6Packet_DHCPv6MsgTypeRelayForward":
+				dhcpv6.MsgType = layers.DHCPv6MsgTypeRelayForward
+				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).Times(2)
+				if got := va.ProcessUDP6Packet(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt); !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("VoltApplication.ProcessUDP6Packet() = %v, want %v", got, tt.want)
+				}
+			case "ProcessUDP6Packet_DHCPv6MsgTypeRelayReply":
+				dhcpv6.MsgType = layers.DHCPv6MsgTypeRelayReply
+				pkt.EXPECT().Data().Times(1)
+				pkt.EXPECT().Layer(layers.LayerTypeEthernet).Return(eth).Times(1)
+				pkt.EXPECT().Layer(layers.LayerTypeIPv6).Return(ipv6).Times(1)
+				pkt.EXPECT().Layer(layers.LayerTypeUDP).Return(uup).Times(1)
+				if got := va.ProcessUDP6Packet(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt); !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("VoltApplication.ProcessUDP6Packet() = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
+
+func TestBuildRelayFwd(t *testing.T) {
+	type args struct {
+		paddr             net.IP
+		intfID            []byte
+		remoteID          []byte
+		payload           []byte
+		isOption82Enabled bool
+		dhcpRelay         bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want *layers.DHCPv6
+	}{
+		{
+			name: "BuildRelayFwd",
+			args: args{
+				paddr:             AllSystemsMulticastGroupIP,
+				intfID:            AllSystemsMulticastGroupIP,
+				remoteID:          AllSystemsMulticastGroupIP,
+				payload:           AllSystemsMulticastGroupIP,
+				isOption82Enabled: true,
+				dhcpRelay:         true,
+			},
+			want: &layers.DHCPv6{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := BuildRelayFwd(tt.args.paddr, tt.args.intfID, tt.args.remoteID, tt.args.payload, tt.args.isOption82Enabled, tt.args.dhcpRelay)
+			assert.NotNil(t, got)
+		})
+	}
+}
+
+func TestGetRelayReplyBytes(t *testing.T) {
+	type args struct {
+		dhcp6 *layers.DHCPv6
+	}
+	tests := []struct {
+		name string
+		args args
+		want []byte
+	}{
+		{
+			name: "BuildRelayFwd",
+			args: args{
+				dhcp6: &layers.DHCPv6{
+					Options: make(layers.DHCPv6Options, 1),
+				},
+			},
+			want: AllSystemsMulticastGroupIP,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetRelayReplyBytes(tt.args.dhcp6)
+			assert.Nil(t, got)
+		})
+	}
+}
+
+func TestVoltApplication_ProcessUsDhcpv6Packet(t *testing.T) {
+	type args struct {
+		cntx   context.Context
+		device string
+		port   string
+		pkt    gopacket.Packet
+	}
+	voltDevice := &VoltDevice{
+		Name:         "11c3175b-50f3-4220-9555-93df733ded1d",
+		SerialNum:    "SDX6320031",
+		SouthBoundID: "68580342-6b3e-57cb-9ea4-06125594e330",
+		NniPort:      "16777472",
+		Ports:        sync.Map{},
+		PonPortList:  sync.Map{},
+	}
+	pkt := mocks.NewMockPacket(gomock.NewController(t))
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "ProcessUsDhcpv6Packet",
+			args: args{
+				cntx:   context.Background(),
+				device: "SDX6320031",
+				port:   "16777472",
+				pkt:    pkt,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			va := &VoltApplication{
+				DevicesDisc: sync.Map{},
+			}
+			va.DevicesDisc.Store("SDX6320031", voltDevice)
+			pkt.EXPECT().Data().Times(1)
+			pkt.EXPECT().Layers().Return(LayerTypeDot2Q).Times(2)
+			va.ProcessUsDhcpv6Packet(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt)
 		})
 	}
 }
