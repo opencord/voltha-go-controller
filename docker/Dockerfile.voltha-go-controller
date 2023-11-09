@@ -12,18 +12,25 @@ WORKDIR /tmp
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
 # Set the working directory
-WORKDIR /home/voltha-go-controller
+WORKDIR /go/src/voltha-go-controller
 # Copy required files
-COPY . /home/voltha-go-controller/
+COPY database ./database
+COPY vendor ./vendor
+COPY voltha-go-controller ./voltha-go-controller
+COPY internal ./internal
+COPY log ./log
+COPY infra ./infra
+COPY go.mod ./
+COPY go.sum ./
 
 
-WORKDIR /home/voltha-go-controller/voltha-go-controller
+WORKDIR /go/src/voltha-go-controller/voltha-go-controller
 #RUN go build
 #Set CGO_ENABLED flag to 0 to avoid DNS issue in alpine release
-RUN CGO_ENABLED=0 go build -a -v
+RUN CGO_ENABLED=0 go build -a -v -o /app/voltha-go-controller
 
-WORKDIR /home/voltha-go-controller/voltha-go-controller/cli/
-RUN CGO_ENABLED=0 go build -a -v -o vgcctl
+WORKDIR /go/src/voltha-go-controller/voltha-go-controller/cli
+RUN CGO_ENABLED=0 go build -a -v -o /app/vgcctl
 
 FROM --platform=linux/amd64 golang:1.16.3-alpine3.13 AS prod
 
@@ -31,15 +38,13 @@ RUN adduser -h /home/voltha-go-controller -s /bin/bash -D voltha-go-controller
 
 RUN apk add --no-cache bash=5.1.16-r0
 # Set the working directory
-WORKDIR /home/voltha-go-controller
+WORKDIR /app
 
 # Copy required files
-COPY --from=dev /home/voltha-go-controller/voltha-go-controller/voltha-go-controller /home/voltha-go-controller/
-COPY --from=dev /home/voltha-go-controller/voltha-go-controller/cli/vgcctl /home/voltha-go-controller/
-COPY entryscript.sh /home/voltha-go-controller/
+COPY --from=dev /app/voltha-go-controller /app
+COPY --from=dev /app/vgcctl /app
 
-RUN chown -R voltha-go-controller.voltha-go-controller /home/voltha-go-controller/ /usr/local/bin/
-RUN chmod +x /home/voltha-go-controller/entryscript.sh
+RUN chown -R voltha-go-controller.voltha-go-controller /app/voltha-go-controller /usr/local/bin/
 RUN apk add --no-cache openssh=8.4_p1-r4
 RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
@@ -48,5 +53,3 @@ ENV NOTVISIBLE "in users profile"
 RUN echo "export VISIBLE=now" >> /etc/profile
 
 EXPOSE 22
-
-CMD ["/home/voltha-go-controller/entryscript.sh"]
