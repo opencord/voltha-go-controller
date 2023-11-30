@@ -1103,6 +1103,6 @@ func (d *Device) triggerFlowResultNotification(cntx context.Context, cookie uint
 		AdditionalData: bwDetails,
 	}
 
-	logger.Infow(ctx, "Sending Flow Notification", log.Fields{"Cookie": cookie, "Error Code": statusCode, "FlowOp": oper})
+	logger.Debugw(ctx, "Sending Flow Notification", log.Fields{"Cookie": cookie, "Error Code": statusCode, "FlowOp": oper})
 	GetController().ProcessFlowModResultIndication(cntx, flowResult)
 }

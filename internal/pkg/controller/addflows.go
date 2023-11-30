@@ -53,7 +53,7 @@ func NewAddFlowsTask(ctx context.Context, flow *of.VoltFlow, device *Device) *Ad
 // Name to add flow task
 func (aft *AddFlowsTask) Name() string {
 	for _, flow := range aft.flow.SubFlows {
-		logger.Infow(ctx, "Flow Cookies", log.Fields{"Cookie": flow.Cookie})
+		logger.Debugw(ctx, "Flow Cookies", log.Fields{"Cookie": flow.Cookie})
 	}
 	return "Add Flows Task"
 }
@@ -81,7 +81,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 	flowsPresent := 0
 	// First add/delete the flows first locally before passing them to actual device
 	for _, flow := range aft.flow.SubFlows {
-		logger.Infow(ctx, "Flow Mod Request", log.Fields{"Cookie": flow.Cookie, "Oper": aft.flow.Command, "Port": aft.flow.PortID})
+		logger.Debugw(ctx, "Flow Mod Request", log.Fields{"Cookie": flow.Cookie, "Oper": aft.flow.Command, "Port": aft.flow.PortID})
 		if aft.flow.Command == of.CommandAdd {
 			flow.State = of.FlowAddPending
 			if err = aft.device.AddFlow(ctx, flow); err != nil {
