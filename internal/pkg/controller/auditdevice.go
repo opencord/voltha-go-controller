@@ -84,7 +84,7 @@ func (ad *AuditDevice) Stop() {
 
 // Start to start the task
 func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
-	logger.Infow(ctx, "Audit Device Task Triggered", log.Fields{"Context": ctx, "taskId": taskID, "Device": ad.device.ID})
+	logger.Debugw(ctx, "Audit Device Task Triggered", log.Fields{"Context": ctx, "taskId": taskID, "Device": ad.device.ID})
 	ad.taskID = taskID
 	ad.ctx = ctx
 
@@ -125,7 +125,7 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 			} else {
 				//To ensure the flows are in sync with port status and no mismatch due to reboot,
 				// repush/delete flows based on current port status
-				logger.Infow(ctx, "Port State Processing", log.Fields{"Port": vgcPort.ID, "OfpPort": ofpPort.PortNo, "ReceivedState": ofpPort.State, "CurrentState": vgcPort.State})
+				logger.Debugw(ctx, "Port State Processing", log.Fields{"Port": vgcPort.ID, "OfpPort": ofpPort.PortNo, "ReceivedState": ofpPort.State, "CurrentState": vgcPort.State})
 				ad.device.ProcessPortStateAfterReboot(ctx, ofpPort.PortNo, ofpPort.State)
 			}
 			delete(missingPorts, id)
@@ -139,7 +139,7 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 
 	// 1st process the NNI port before all other ports so that the device state can be updated.
 	if vgcPort, ok := ad.device.PortsByID[NNIPortID]; ok {
-		logger.Infow(ctx, "Processing NNI port state", log.Fields{"PortNo": vgcPort.ID, "PortName": vgcPort.Name, "PortState": vgcPort.State})
+		logger.Debugw(ctx, "Processing NNI port state", log.Fields{"PortNo": vgcPort.ID, "PortName": vgcPort.Name, "PortState": vgcPort.State})
 		processPortState(NNIPortID, vgcPort)
 	}
 
@@ -162,7 +162,7 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 	ad.AddMissingPorts(ctx, missingPorts)
 	ad.DelExcessPorts(ctx, excessPorts)
 	ad.device.deviceAuditInProgress = false
-	logger.Infow(ctx, "Audit Device Task Completed", log.Fields{"Context": ctx, "taskId": taskID, "Device": ad.device.ID})
+	logger.Debugw(ctx, "Audit Device Task Completed", log.Fields{"Context": ctx, "taskId": taskID, "Device": ad.device.ID})
 	return nil
 }
 
@@ -174,7 +174,7 @@ func (ad *AuditDevice) AddMissingPorts(cntx context.Context, mps map[uint32]*ofp
 		logger.Debugw(ctx, "Process Port Add Ind", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name})
 
 		// Error is ignored as it only drops duplicate ports
-		logger.Infow(ctx, "Calling AddPort", log.Fields{"No": mp.PortNo, "Name": mp.Name})
+		logger.Debugw(ctx, "Calling AddPort", log.Fields{"No": mp.PortNo, "Name": mp.Name})
 		if err := ad.device.AddPort(cntx, mp); err != nil {
 			logger.Warnw(ctx, "AddPort Failed", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name, "Reason": err})
 		}
@@ -202,7 +202,7 @@ func (ad *AuditDevice) DelExcessPorts(cntx context.Context, eps []uint32) {
 	logger.Debugw(ctx, "Device Audit - Delete Excess Ports", log.Fields{"NumPorts": len(eps)})
 	for _, id := range eps {
 		// Now delete the port from the device @ VGC
-		logger.Infow(ctx, "Device Audit - Deleting Port", log.Fields{"PortId": id})
+		logger.Debugw(ctx, "Device Audit - Deleting Port", log.Fields{"PortId": id})
 		if err := ad.device.DelPort(cntx, id); err != nil {
 			logger.Warnw(ctx, "DelPort Failed", log.Fields{"PortId": id, "Reason": err})
 		}
