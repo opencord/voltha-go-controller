@@ -79,7 +79,7 @@ func (att *AuditTablesTask) Stop() {
 // Start is called by the framework and is responsible for implementing
 // the actual task.
 func (att *AuditTablesTask) Start(ctx context.Context, taskID uint8) error {
-	logger.Infow(ctx, "Audit Table Task Triggered", log.Fields{"Context": ctx, "taskId": taskID, "Device": att.device.ID})
+	logger.Debugw(ctx, "Audit Table Task Triggered", log.Fields{"Context": ctx, "taskId": taskID, "Device": att.device.ID})
 	att.taskID = taskID
 	att.ctx = ctx
 	var errInfo error
@@ -113,7 +113,7 @@ func (att *AuditTablesTask) Start(ctx context.Context, taskID uint8) error {
 	// to avoid flow dependency error during group deletion
 	logger.Debugw(ctx, "Excess Groups", log.Fields{"Groups": rcvdGroups})
 	att.DelExcessGroups(rcvdGroups)
-	logger.Infow(ctx, "Audit Table Task Completed", log.Fields{"Context": ctx, "taskId": taskID, "Device": att.device.ID})
+	logger.Debugw(ctx, "Audit Table Task Completed", log.Fields{"Context": ctx, "taskId": taskID, "Device": att.device.ID})
 	return errInfo
 }
 
@@ -398,18 +398,18 @@ func (att *AuditTablesTask) AuditGroups() (map[uint32]*ofp.OfpGroupDesc, error) 
 	for _, group := range g.Items {
 		rcvdGroups[group.Desc.GroupId] = group.Desc
 	}
-	logger.Infow(ctx, "Received Groups", log.Fields{"Groups": rcvdGroups})
+	logger.Debugw(ctx, "Received Groups", log.Fields{"Groups": rcvdGroups})
 
 	// Verify all groups that are in the controller but not in the device
 	att.device.groups.Range(att.compareGroupEntries)
 
 	if !att.stop {
 		// Add the groups missing at the device
-		logger.Infow(ctx, "Missing Groups", log.Fields{"Groups": groupsToAdd})
+		logger.Debugw(ctx, "Missing Groups", log.Fields{"Groups": groupsToAdd})
 		att.AddMissingGroups(groupsToAdd)
 
 		// Update groups with group member mismatch
-		logger.Infow(ctx, "Modify Groups", log.Fields{"Groups": groupsToMod})
+		logger.Debugw(ctx, "Modify Groups", log.Fields{"Groups": groupsToMod})
 		att.UpdateMismatchGroups(groupsToMod)
 
 		// Note: Excess groups will be deleted after ensuring the connected
@@ -601,13 +601,13 @@ func (att *AuditTablesTask) AuditPorts() error {
 
 // AddMissingPorts to add the missing ports
 func (att *AuditTablesTask) AddMissingPorts(cntx context.Context, mps map[uint32]*ofp.OfpPort) {
-	logger.Infow(ctx, "Device Audit - Add Missing Ports", log.Fields{"NumPorts": len(mps)})
+	logger.Debugw(ctx, "Device Audit - Add Missing Ports", log.Fields{"NumPorts": len(mps)})
 
 	addMissingPort := func(mp *ofp.OfpPort) {
 		logger.Debugw(ctx, "Process Port Add Ind", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name})
 
 		// Error is ignored as it only drops duplicate ports
-		logger.Infow(ctx, "Calling AddPort", log.Fields{"No": mp.PortNo, "Name": mp.Name})
+		logger.Debugw(ctx, "Calling AddPort", log.Fields{"No": mp.PortNo, "Name": mp.Name})
 		if err := att.device.AddPort(cntx, mp); err != nil {
 			logger.Warnw(ctx, "AddPort Failed", log.Fields{"No": mp.PortNo, "Name": mp.Name, "Reason": err})
 		}
@@ -635,7 +635,7 @@ func (att *AuditTablesTask) DelExcessPorts(cntx context.Context, eps []uint32) {
 	logger.Debugw(ctx, "Device Audit - Delete Excess Ports", log.Fields{"NumPorts": len(eps)})
 	for _, id := range eps {
 		// Now delete the port from the device @ VGC
-		logger.Infow(ctx, "Device Audit - Deleting Port", log.Fields{"PortId": id})
+		logger.Debugw(ctx, "Device Audit - Deleting Port", log.Fields{"PortId": id})
 		if err := att.device.DelPort(cntx, id); err != nil {
 			logger.Warnw(ctx, "DelPort Failed", log.Fields{"PortId": id, "Reason": err})
 		}
