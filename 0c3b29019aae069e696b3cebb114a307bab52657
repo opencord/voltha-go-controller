@@ -34,6 +34,24 @@
       "parentUuid": "d5e6314a_b66b0f86",
       "revId": "0c3b29019aae069e696b3cebb114a307bab52657",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "423262d6_3f017d97",
+        "filename": "internal/pkg/controller/audittables.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 604,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-12-04T07:19:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0dbfb7b2_884f318c",
+      "revId": "0c3b29019aae069e696b3cebb114a307bab52657",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
