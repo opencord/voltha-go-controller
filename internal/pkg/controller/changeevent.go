@@ -80,7 +80,7 @@ func (cet *ChangeEventTask) Start(ctx context.Context, taskID uint8) error {
 				cet.device.ProcessPortState(ctx, portNo, state)
 			}
 		} else if status.PortStatus.Reason == ofp.OfpPortReason_OFPPR_DELETE {
-			if err := cet.device.DelPort(ctx, portNo); err != nil {
+			if err := cet.device.DelPort(ctx, portNo, portName); err != nil {
 				logger.Warnw(ctx, "DelPort Failed", log.Fields{"Port No": portNo, "Error": err})
 			}
 		} else if status.PortStatus.Reason == ofp.OfpPortReason_OFPPR_MODIFY {

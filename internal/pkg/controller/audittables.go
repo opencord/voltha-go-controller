@@ -554,7 +554,7 @@ func (att *AuditTablesTask) AuditPorts() error {
 		missingPorts[ofpp.OfpPort.PortNo] = ofpp.OfpPort
 	}
 
-	var excessPorts []uint32
+	excessPorts := make(map[uint32]*DevicePort)
 	processPortState := func(id uint32, vgcPort *DevicePort) {
 		logger.Debugw(ctx, "Process Port State Ind", log.Fields{"Port No": vgcPort.ID, "Port Name": vgcPort.Name})
 
@@ -569,7 +569,7 @@ func (att *AuditTablesTask) AuditPorts() error {
 		} else {
 			// This port is missing from the received list. This is an
 			// excess port at VGC. This must be added to excess ports
-			excessPorts = append(excessPorts, id)
+			excessPorts[id] = vgcPort
 		}
 		logger.Debugw(ctx, "Processed Port State Ind", log.Fields{"Port No": vgcPort.ID, "Port Name": vgcPort.Name})
 	}
@@ -631,13 +631,13 @@ func (att *AuditTablesTask) AddMissingPorts(cntx context.Context, mps map[uint32
 }
 
 // DelExcessPorts to delete the excess ports
-func (att *AuditTablesTask) DelExcessPorts(cntx context.Context, eps []uint32) {
+func (att *AuditTablesTask) DelExcessPorts(cntx context.Context, eps map[uint32]*DevicePort) {
 	logger.Debugw(ctx, "Device Audit - Delete Excess Ports", log.Fields{"NumPorts": len(eps)})
-	for _, id := range eps {
+	for portNo, ep := range eps {
 		// Now delete the port from the device @ VGC
-		logger.Debugw(ctx, "Device Audit - Deleting Port", log.Fields{"PortId": id})
-		if err := att.device.DelPort(cntx, id); err != nil {
-			logger.Warnw(ctx, "DelPort Failed", log.Fields{"PortId": id, "Reason": err})
+		logger.Debugw(ctx, "Device Audit - Deleting Port", log.Fields{"PortId": portNo})
+		if err := att.device.DelPort(cntx, ep.ID, ep.Name); err != nil {
+			logger.Warnw(ctx, "DelPort Failed", log.Fields{"PortId": portNo, "Reason": err})
 		}
 	}
 }

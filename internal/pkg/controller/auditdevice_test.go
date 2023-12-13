@@ -30,7 +30,7 @@ import (
 func TestAuditDevice_DelExcessPorts(t *testing.T) {
 	type args struct {
 		cntx context.Context
-		eps  []uint32
+		eps  map[uint32]*DevicePort
 	}
 	subFlows := map[uint64]*of.VoltSubFlow{}
 	vltSubFlow := &of.VoltSubFlow{
@@ -58,7 +58,7 @@ func TestAuditDevice_DelExcessPorts(t *testing.T) {
 		ID:    256,
 		State: PortStateUp,
 	}
-	eps := []uint32{256}
+	eps := make(map[uint32]*DevicePort)
 	device := &Device{
 		flows:     subFlows,
 		PortsByID: portsByID,

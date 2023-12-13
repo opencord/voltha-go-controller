@@ -508,10 +508,15 @@ func (d *Device) AddPort(cntx context.Context, mp *ofp.OfpPort) error {
 
 // DelPort to delete the port as requested by the device/VOLTHA
 // Inform the application if the port is successfully deleted
-func (d *Device) DelPort(cntx context.Context, id uint32) error {
+func (d *Device) DelPort(cntx context.Context, id uint32, portName string) error {
 	p := d.GetPortByID(id)
 	if p == nil {
-		return errors.New("unknown port")
+		p = d.GetPortByName(portName)
+		if p == nil {
+			return errors.New("unknown port")
+		} else {
+			logger.Infow(ctx, "Found port by name", log.Fields{"PortName": p.Name, "PortID": p.ID})
+		}
 	}
 	if p.State == PortStateUp {
 		GetController().PortDownInd(cntx, d.ID, p.Name)
