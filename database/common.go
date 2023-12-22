@@ -151,3 +151,4 @@ func GetModuleKeypath(key, ver string) string {
 func GetKeyPath(key string) string {
 	return fmt.Sprintf(BasePath, PresentVersionMap[key]) + key
 }
+# [EOF] - delta:force

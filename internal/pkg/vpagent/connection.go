@@ -87,3 +87,4 @@ func (vpa *VPAgent) CloseConnectionToVoltha() {
 	logger.Debug(ctx, "Closing voltha grpc connection")
 	vpa.volthaConnection.Close()
 }
+# [EOF] - delta:force

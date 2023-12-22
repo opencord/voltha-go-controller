@@ -650,3 +650,4 @@ func (v *VoltController) GetGroups(cntx context.Context, id uint32) (*of.Group, 
 	}
 	return groups, nil
 }
+# [EOF] - delta:force

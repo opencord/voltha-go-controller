@@ -81,3 +81,4 @@ func main() {
 
 // Options struct
 type Options struct{}
+# [EOF] - delta:force

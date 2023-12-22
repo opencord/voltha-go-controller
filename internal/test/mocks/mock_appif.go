@@ -253,3 +253,4 @@ func (mr *MockAppMockRecorder) UpdateMvlanProfilesForDevice(arg0, arg1 interface
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMvlanProfilesForDevice", reflect.TypeOf((*MockApp)(nil).UpdateMvlanProfilesForDevice), arg0, arg1)
 }
+# [EOF] - delta:force

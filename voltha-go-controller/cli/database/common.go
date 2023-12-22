@@ -70,3 +70,4 @@ func GetRedisClient() (*RedisClient, error) {
 	}
 	return rc, nil
 }
+# [EOF] - delta:force

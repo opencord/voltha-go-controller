@@ -115,3 +115,4 @@ func (mlh *MacLearnerHandle) GetMacLearnerInfo(cntx context.Context, deviceID, p
 	}
 	logger.Debugw(cntx, "Get MacLearnerInfo from DHCP Networks specific to deviceID, portNum and vlanID", log.Fields{"MacLearnerInfo": MacLearnerInfo, "deviceID": deviceID, "portNum": portNum, "vlanId": vlanID})
 }
+# [EOF] - delta:force

@@ -111,3 +111,4 @@ func checkPrime(number int) bool {
 	}
 	return true
 }
+# [EOF] - delta:force

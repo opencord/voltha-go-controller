@@ -40,3 +40,4 @@ func sortData(data map[string]interface{}) PairList {
 	sort.Sort(pl)
 	return pl
 }
+# [EOF] - delta:force

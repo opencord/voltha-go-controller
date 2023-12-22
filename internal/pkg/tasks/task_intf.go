@@ -31,3 +31,4 @@ type Task interface {
 	Start(context.Context, uint8) error
 	Stop()
 }
+# [EOF] - delta:force

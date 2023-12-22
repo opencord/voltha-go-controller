@@ -98,3 +98,4 @@ func parseAndAppendRowNewForDeviceInfo(t *tablewriter.Table, deviceID string, se
 func parseAndAppendRowNewForDhcpCmd(t *tablewriter.Table, deviceID string, port string, svlan string, cvlan string, univlan string, macAddress string, ipAddress string, ipv6Address string, state string, statev6 string, leaseTime string, leaseTimev6 string, tab string, row *[][][][][][][][][][][][]string) {
 	t.Append([]string{tab + string(deviceID), fmt.Sprintf("%v", port), fmt.Sprintf("%v", svlan), fmt.Sprintf("%v", cvlan), fmt.Sprintf("%v", univlan), fmt.Sprintf("%v", macAddress), fmt.Sprintf("%v", ipAddress), fmt.Sprintf("%v", ipv6Address), fmt.Sprintf("%v", state), fmt.Sprintf("%v", statev6), fmt.Sprintf("%v", leaseTime), fmt.Sprintf("%v", leaseTimev6)})
 }
+# [EOF] - delta:force

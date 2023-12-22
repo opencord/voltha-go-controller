@@ -233,3 +233,4 @@ func (vpa *VPAgent) Run(ctx context.Context) {
 		}
 	}
 }
+# [EOF] - delta:force

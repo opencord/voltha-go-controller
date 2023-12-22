@@ -149,3 +149,4 @@ func (vpa *VPAgent) getVPClient(deviceID string) intf.IVPClient {
 	}
 	return nil
 }
+# [EOF] - delta:force

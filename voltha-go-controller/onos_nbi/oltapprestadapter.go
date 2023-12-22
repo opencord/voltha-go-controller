@@ -328,3 +328,4 @@ func (sa *ServiceAdapter) GetProgrammedSubscribers(cntx context.Context, w http.
 	}
 	logger.Debugw(ctx, "Programmed Subscribers request specific for portNo and deviceID", log.Fields{"Subsbr": subsbr, "portNo": portNo, "deviceID": deviceID})
 }
+# [EOF] - delta:force

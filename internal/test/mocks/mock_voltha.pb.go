@@ -3056,3 +3056,4 @@ func (mr *MockVolthaService_ReceiveChangeEventsServerMockRecorder) SetTrailer(ar
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTrailer", reflect.TypeOf((*MockVolthaService_ReceiveChangeEventsServer)(nil).SetTrailer), arg0)
 }
+# [EOF] - delta:force

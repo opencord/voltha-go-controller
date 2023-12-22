@@ -3245,3 +3245,4 @@ func (vpv *VoltPortVnet) IsServiceActivated(cntx context.Context) bool {
 	})
 	return isActivated
 }
+# [EOF] - delta:force

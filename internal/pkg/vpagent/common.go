@@ -51,3 +51,4 @@ func isConnCanceled(err error) bool {
 	// <= gRPC v1.7.x returns 'errors.New("grpc: the client connection is closing")'
 	return strings.Contains(err.Error(), "grpc: the client connection is closing")
 }
+# [EOF] - delta:force

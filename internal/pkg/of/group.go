@@ -147,3 +147,4 @@ func CreateGroupTableUpdate(g *Group) *ofp.FlowGroupTableUpdate {
 	logger.Debugw(ctx, "Group Constructed", log.Fields{"Group": groupUpdate})
 	return groupUpdate
 }
+# [EOF] - delta:force

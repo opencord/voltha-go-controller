@@ -116,3 +116,4 @@ func (mr *MockTaskMockRecorder) Timestamp() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Timestamp", reflect.TypeOf((*MockTask)(nil).Timestamp))
 }
+# [EOF] - delta:force

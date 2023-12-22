@@ -54,3 +54,4 @@ func (h *VolthaServiceClientHolder) Get() voltha.VolthaServiceClient {
 	defer h.mutex.RUnlock()
 	return h.VolthaSvcClient
 }
+# [EOF] - delta:force

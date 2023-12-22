@@ -29,3 +29,4 @@ type Tasks interface {
 	AddTask(tasks.Task)
 	Initialize(cxt context.Context)
 }
+# [EOF] - delta:force

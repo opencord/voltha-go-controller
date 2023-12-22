@@ -625,3 +625,4 @@ func (dpt *PppoeIaPacketTask) Start(ctx context.Context, taskID uint8) error {
 	GetApplication().ProcessPPPoEIaPacket(ctx, dpt.device, dpt.port, dpt.pkt)
 	return nil
 }
+# [EOF] - delta:force

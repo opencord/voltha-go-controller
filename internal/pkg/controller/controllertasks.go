@@ -74,3 +74,4 @@ func (adt *AddDeviceTask) Start(ctx context.Context, taskID uint8) error {
 
 	return nil
 }
+# [EOF] - delta:force

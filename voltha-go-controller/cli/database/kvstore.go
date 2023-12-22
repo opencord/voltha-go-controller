@@ -184,3 +184,4 @@ func (rc *RedisClient) GetValue(basePath interface{}) (*Data, error) {
 
 	return &Data{Value: []byte(resp)}, nil
 }
+# [EOF] - delta:force

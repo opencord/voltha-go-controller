@@ -200,3 +200,4 @@ func (mr *MockVoltControllerInterfaceMockRecorder) GetTaskList(device interface{
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTaskList", reflect.TypeOf((*MockVoltControllerInterface)(nil).GetTaskList), device)
 }
+# [EOF] - delta:force

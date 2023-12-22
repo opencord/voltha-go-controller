@@ -72,3 +72,4 @@ func Test_isConnCanceled(t *testing.T) {
 		})
 	}
 }
+# [EOF] - delta:force

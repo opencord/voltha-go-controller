@@ -104,3 +104,4 @@ func (oh *DeviceConfigHandle) FetchDeviceConfig(cntx context.Context, w http.Res
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
+# [EOF] - delta:force

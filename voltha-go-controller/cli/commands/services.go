@@ -74,3 +74,4 @@ func (serv *ServiceCommand) Execute(args []string) error {
 	}
 	return nil
 }
+# [EOF] - delta:force

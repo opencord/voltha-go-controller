@@ -2217,3 +2217,4 @@ func (va *VoltApplication) UpdateDeviceConfig(cntx context.Context, deviceConfig
 		va.DevicesDisc.Store(id, device)
 	}
 }
+# [EOF] - delta:force

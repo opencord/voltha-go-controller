@@ -37,3 +37,4 @@ type App interface {
 	TriggerPendingProfileDeleteReq(context.Context, string)
 	TriggerPendingMigrateServicesReq(context.Context, string)
 }
+# [EOF] - delta:force

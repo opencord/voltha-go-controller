@@ -417,3 +417,4 @@ func TestProcessDeviceFlowDelEvent(t *testing.T) {
 		})
 	}
 }
+# [EOF] - delta:force

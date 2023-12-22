@@ -62,3 +62,4 @@ func NewTable(title models.TableTitle, orientation models.Orientation) Table {
 	}
 	return newHorizontalTable(title, os.Stdout)
 }
+# [EOF] - delta:force

@@ -420,3 +420,4 @@ func TestVoltMeter_AddToDevice(t *testing.T) {
 		})
 	}
 }
+# [EOF] - delta:force

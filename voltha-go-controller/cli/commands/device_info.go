@@ -95,3 +95,4 @@ func (ic *DeviceInfoCommand) Execute(args []string) error {
 	}
 	return nil
 }
+# [EOF] - delta:force

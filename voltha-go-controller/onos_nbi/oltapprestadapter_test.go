@@ -103,3 +103,4 @@ func TestServiceAdapter_DeactivateService_ServeHTTP(t *testing.T) {
 		})
 	}
 }
+# [EOF] - delta:force

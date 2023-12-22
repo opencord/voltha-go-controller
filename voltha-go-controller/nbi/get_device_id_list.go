@@ -69,3 +69,4 @@ func (dh *DeviceIDListHandle) GetDeviceIDList(w http.ResponseWriter, r *http.Req
 	}
 	logger.Debugw(ctx, "Fetch DeviceIDList response", log.Fields{"DeviceIDList": deviceIDListResp})
 }
+# [EOF] - delta:force

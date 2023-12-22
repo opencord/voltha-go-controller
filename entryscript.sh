@@ -73,3 +73,4 @@ chown voltha-go-controller.voltha-go-controller /home/voltha-go-controller/.bash
 ssh-keygen -A
 /usr/sbin/sshd -D &
 /home/voltha-go-controller/voltha-go-controller
+# [EOF] - delta:force

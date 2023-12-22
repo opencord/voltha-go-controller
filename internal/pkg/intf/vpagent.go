@@ -71,3 +71,4 @@ type IVPClientAgent interface {
 	AddBlockedDevices(string)
 	DelBlockedDevices(string)
 }
+# [EOF] - delta:force

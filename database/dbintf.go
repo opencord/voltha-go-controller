@@ -169,3 +169,4 @@ func GetDatabase() DBIntf {
 func SetDatabase(df DBIntf) {
 	dbObj = df
 }
+# [EOF] - delta:force

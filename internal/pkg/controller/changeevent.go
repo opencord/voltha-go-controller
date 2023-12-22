@@ -91,3 +91,4 @@ func (cet *ChangeEventTask) Start(ctx context.Context, taskID uint8) error {
 	}
 	return errors.New("invalid message received")
 }
+# [EOF] - delta:force

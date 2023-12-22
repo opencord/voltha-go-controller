@@ -239,3 +239,4 @@ func parseCommandLineArguments() (*VGCFlags, error) {
 func getContainerInfo() string {
 	return os.Getenv("HOSTNAME")
 }*/
+# [EOF] - delta:force
