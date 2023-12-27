@@ -38,6 +38,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "5d18c65a_83ed6ce4",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9dbc98c1_9647235a",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "b0f1180f_d2a6f3c7",
         "filename": "internal/pkg/application/vnets.go",
         "patchSetId": 1
@@ -73,6 +91,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "628b1ed4_bf7c267b",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1312,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b0f1180f_d2a6f3c7",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d461de77_1b1fa599",
         "filename": "internal/pkg/application/vnets.go",
         "patchSetId": 1
@@ -99,6 +135,24 @@
         "id": 1000537
       },
       "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d461de77_1b1fa599",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bcbf86e4_4b9ddff5",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1366,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "d461de77_1b1fa599",
@@ -161,6 +215,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "f8d1e975_17cff8a9",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2083,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "42ef5170_e0ccb282",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "6fe89c3c_69f9ce09",
         "filename": "voltha-go-controller/nbi/netConfig.go",
         "patchSetId": 1
@@ -196,6 +268,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "dd902eeb_ea8f5484",
+        "filename": "voltha-go-controller/nbi/netConfig.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6fe89c3c_69f9ce09",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "37173ab0_8c47f6c3",
         "filename": "voltha-go-controller/nbi/netConfig.go",
         "patchSetId": 1
@@ -222,6 +312,24 @@
         "id": 1000537
       },
       "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37173ab0_8c47f6c3",
+      "revId": "0e87d9daf0650166cfe9f780d64810270f5997af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e08d6d72_7a367a7a",
+        "filename": "voltha-go-controller/nbi/netConfig.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "37173ab0_8c47f6c3",

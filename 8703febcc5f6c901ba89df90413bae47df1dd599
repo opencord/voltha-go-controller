@@ -38,6 +38,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a5f685f1_fc59d5c5",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 435,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
+      "side": 1,
+      "message": "This is a north bound Device configuration so that\u0027s why we keep it here.",
+      "parentUuid": "6bdffa12_b99a679a",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4ccf329b_d7945e6b",
         "filename": "internal/pkg/application/application.go",
         "patchSetId": 4
@@ -64,6 +82,24 @@
         "id": 1000537
       },
       "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ccf329b_d7945e6b",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6c46e578_ba13c822",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 549,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "4ccf329b_d7945e6b",
@@ -108,6 +144,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "68b31b17_d5b5f670",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1352,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb3aa811_3051c1fc",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e160da7b_8bf52ccf",
         "filename": "internal/pkg/application/application.go",
         "patchSetId": 4
@@ -134,6 +188,24 @@
         "id": 1000537
       },
       "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e160da7b_8bf52ccf",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b8330f36_c40c0070",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1465,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "e160da7b_8bf52ccf",
@@ -178,6 +250,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "f0a86dae_41d93c00",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1711,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc5a302d_d6371837",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "a95e8089_7a949da2",
         "filename": "internal/pkg/application/application.go",
         "patchSetId": 4
@@ -204,6 +294,24 @@
         "id": 1000537
       },
       "writtenOn": "2023-02-20T05:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a95e8089_7a949da2",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "50347131_2f9172a7",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2084,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "a95e8089_7a949da2",
@@ -241,6 +349,24 @@
       "writtenOn": "2023-02-20T05:48:47Z",
       "side": 1,
       "message": "Done",
+      "parentUuid": "11e9633a_ac9155a8",
+      "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9bab80da_cdc2acf3",
+        "filename": "voltha-go-controller/nbi/netConfig.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2023-12-27T13:42:16Z",
+      "side": 1,
+      "message": "This function is to to populate the network configuration information corrected the comment.\nDone",
       "parentUuid": "11e9633a_ac9155a8",
       "revId": "8703febcc5f6c901ba89df90413bae47df1dd599",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
