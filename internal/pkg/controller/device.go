@@ -1059,12 +1059,12 @@ func (d *Device) isSBOperAllowed(forceAction bool) bool {
 	return false
 }
 
-func (d *Device) triggerFlowNotification(cntx context.Context, cookie uint64, oper of.Command, bwDetails of.BwAvailDetails, err error) {
+func (d *Device) triggerFlowNotification(cntx context.Context, cookie uint64, oper of.Command, bwDetails of.BwAvailDetails, err error, sendFlowNotif bool) {
 	flow, _ := d.GetFlow(cookie)
-	d.triggerFlowResultNotification(cntx, cookie, flow, oper, bwDetails, err)
+	d.triggerFlowResultNotification(cntx, cookie, flow, oper, bwDetails, err, sendFlowNotif)
 }
 
-func (d *Device) triggerFlowResultNotification(cntx context.Context, cookie uint64, flow *of.VoltSubFlow, oper of.Command, bwDetails of.BwAvailDetails, err error) {
+func (d *Device) triggerFlowResultNotification(cntx context.Context, cookie uint64, flow *of.VoltSubFlow, oper of.Command, bwDetails of.BwAvailDetails, err error, sendFlowNotif bool) {
 	statusCode, statusMsg := infraerror.GetErrorInfo(err)
 	success := isFlowOperSuccess(statusCode, oper)
 
@@ -1108,6 +1108,8 @@ func (d *Device) triggerFlowResultNotification(cntx context.Context, cookie uint
 		AdditionalData: bwDetails,
 	}
 
-	logger.Debugw(ctx, "Sending Flow Notification", log.Fields{"Cookie": cookie, "Error Code": statusCode, "FlowOp": oper})
-	GetController().ProcessFlowModResultIndication(cntx, flowResult)
+	if sendFlowNotif {
+		logger.Debugw(ctx, "Sending Flow Notification", log.Fields{"Cookie": cookie, "Error Code": statusCode, "FlowOp": oper})
+		GetController().ProcessFlowModResultIndication(cntx, flowResult)
+	}
 }

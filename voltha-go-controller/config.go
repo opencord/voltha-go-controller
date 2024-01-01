@@ -35,6 +35,7 @@ const (
 	defaultMemProfile                = ""
 	defaultDeviceListRefreshInterval = 10
 	defaultDeviceSyncDuration        = 5
+	defaultMaxFlowRetryDuration      = 60
 	/*
 		FIXME(At RWCORE) Problem: VGC comes up fast by that time RWCORE may not be up and will retry after 10 sec
 		but rwcore could come up before the 10 second expiry and post indications to VGC which can't be consumed by
@@ -107,7 +108,8 @@ type VGCFlags struct {
 	DeviceListRefreshInterval int // in seconds
 	ConnectionRetryDelay      int // in seconds
 	ConnectionMaxRetries      int
-	DeviceSyncDuration        int
+	DeviceSyncDuration        int // Time interval between each cycle of audit task
+	MaxFlowRetryDuration      int // Maximum duration for which flows will be retried upon failures
 	Banner                    bool
 	DisplayVersion            bool
 }
@@ -141,6 +143,7 @@ func (cf *VGCFlags) parseEnvironmentVariables() {
 	cf.VolthaAPIEndPoint = cf.VolthaHost + ":" + strconv.Itoa(cf.VolthaPort)
 
 	cf.DeviceSyncDuration = int(envutils.ParseIntEnvVariable(envutils.DeviceSyncDuration, defaultDeviceSyncDuration))
+	cf.MaxFlowRetryDuration = int(envutils.ParseIntEnvVariable(envutils.MaxFlowRetryDuration, defaultMaxFlowRetryDuration))
 }
 
 type multiFlag []string

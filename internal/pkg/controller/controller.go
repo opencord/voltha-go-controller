@@ -72,7 +72,9 @@ type VoltController struct {
 	rebootInProgressDevices map[string]string
 	deviceLock              sync.RWMutex
 	rebootLock              sync.Mutex
-	deviceTableSyncDuration time.Duration
+	deviceTableSyncDuration time.Duration // Time interval between each cycle of audit task
+	maxFlowRetryDuration    time.Duration // Maximum duration for which flows will be retried upon failures
+	maxFlowRetryAttempts    uint32        // maxFlowRetryAttempt = maxFlowRetryDuration / deviceTableSyncDuration
 	RebootFlow              bool
 }
 
@@ -100,9 +102,24 @@ func (v *VoltController) SetDeviceTableSyncDuration(duration int) {
 	v.deviceTableSyncDuration = time.Duration(duration) * time.Second
 }
 
+// SetMaxFlowRetryDuration - sets max flow retry interval
+func (v *VoltController) SetMaxFlowRetryDuration(duration int) {
+	v.maxFlowRetryDuration = time.Duration(duration) * time.Second
+}
+
+// SetMaxFlowRetryAttempts - sets max flow retry attempts
+func (v *VoltController) SetMaxFlowRetryAttempts() {
+	v.maxFlowRetryAttempts = uint32((v.maxFlowRetryDuration / v.deviceTableSyncDuration))
+}
+
 // GetDeviceTableSyncDuration - returns configured device table sync duration
 func (v *VoltController) GetDeviceTableSyncDuration() time.Duration {
 	return v.deviceTableSyncDuration
+}
+
+// GetMaxFlowRetryAttempt - returns max flow retry attempst
+func (v *VoltController) GetMaxFlowRetryAttempt() uint32 {
+	return v.maxFlowRetryAttempts
 }
 
 // AddDevice to add device
@@ -247,6 +264,11 @@ func (v *VoltController) ResetAuditFlags(device *Device) {
 // ProcessFlowModResultIndication - send flow mod result notification
 func (v *VoltController) ProcessFlowModResultIndication(cntx context.Context, flowStatus intf.FlowStatus) {
 	v.app.ProcessFlowModResultIndication(cntx, flowStatus)
+}
+
+// IsFlowDelThresholdReached - check if the attempts for flow delete has reached threshold or not
+func (v *VoltController) IsFlowDelThresholdReached(cntx context.Context, cookie string, device string) bool {
+	return v.app.IsFlowDelThresholdReached(cntx, cookie, device)
 }
 
 // AddVPAgent to add the vpagent

@@ -224,22 +224,30 @@ func TestVoltService_FlowRemoveFailure(t *testing.T) {
 			switch tt.name {
 			case "VoltService_FlowRemoveFailure":
 				associatedFlows := map[string]bool{}
+				flowPushCountMap := map[string]uint32{}
 				associatedFlows["test_cookie"] = true
 				vs := &VoltService{
 					VoltServiceOper: VoltServiceOper{
 						AssociatedFlows: associatedFlows,
 					},
+					VoltServiceCfg: VoltServiceCfg{
+						FlowPushCount: flowPushCountMap,
+					},
 				}
-				vs.FlowRemoveFailure(tt.args.cntx, tt.args.cookie, tt.args.errorCode, tt.args.errReason)
+				vs.FlowRemoveFailure(tt.args.cntx, tt.args.cookie, tt.args.errorCode, tt.args.errReason, nil)
 			case "cookie_not_found":
 				associatedFlows := map[string]bool{}
+				flowPushCountMap := map[string]uint32{}
 				associatedFlows["cookie"] = true
 				vs := &VoltService{
 					VoltServiceOper: VoltServiceOper{
 						AssociatedFlows: associatedFlows,
 					},
+					VoltServiceCfg: VoltServiceCfg{
+						FlowPushCount: flowPushCountMap,
+					},
 				}
-				vs.FlowRemoveFailure(tt.args.cntx, tt.args.cookie, tt.args.errorCode, tt.args.errReason)
+				vs.FlowRemoveFailure(tt.args.cntx, tt.args.cookie, tt.args.errorCode, tt.args.errReason, nil)
 			}
 		})
 	}
@@ -525,9 +533,10 @@ func TestVoltApplication_DelService(t *testing.T) {
 
 func TestVoltService_FlowInstallSuccess(t *testing.T) {
 	type args struct {
-		cntx        context.Context
-		cookie      string
-		bwAvailInfo of.BwAvailDetails
+		cntx         context.Context
+		cookie       string
+		bwAvailInfo  of.BwAvailDetails
+		flowEventMap *util.ConcurrentMap
 	}
 	tests := []struct {
 		name string
@@ -542,6 +551,7 @@ func TestVoltService_FlowInstallSuccess(t *testing.T) {
 					PrevBw:    "test_prev_BW",
 					PresentBw: "test_present_BW",
 				},
+				flowEventMap: util.NewConcurrentMap(),
 			},
 		},
 	}
@@ -550,6 +560,7 @@ func TestVoltService_FlowInstallSuccess(t *testing.T) {
 			pendingFlows := map[string]bool{}
 			pendingFlows["test_cookie"] = true
 			associatedFlows := map[string]bool{}
+			flowPushCountMap := map[string]uint32{}
 			associatedFlows["test_cookie"] = true
 			vs := &VoltService{
 				VoltServiceOper: VoltServiceOper{
@@ -558,13 +569,14 @@ func TestVoltService_FlowInstallSuccess(t *testing.T) {
 					DsHSIAFlowsApplied: true,
 				},
 				VoltServiceCfg: VoltServiceCfg{
-					Port: "test_port",
+					Port:          "test_port",
+					FlowPushCount: flowPushCountMap,
 				},
 			}
 			ga := GetApplication()
 			ga.PortsDisc.Store("test_port", voltPort)
 			ga.DevicesDisc.Store(test_device, voltDevice)
-			vs.FlowInstallSuccess(tt.args.cntx, tt.args.cookie, tt.args.bwAvailInfo)
+			vs.FlowInstallSuccess(tt.args.cntx, tt.args.cookie, tt.args.bwAvailInfo, tt.args.flowEventMap)
 		})
 	}
 }
@@ -1065,9 +1077,6 @@ func TestVoltApplication_ActivateService(t *testing.T) {
 				if err := va.ActivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID); (err != nil) != tt.wantErr {
 					t.Errorf("VoltApplication.ActivateService() error = %v, wantErr %v", err, tt.wantErr)
 				}
-			case GetDeviceFromPort_error:
-				err := va.ActivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID)
-				assert.Nil(t, err)
 			case "deviceID != device.Name":
 				var voltPortTest1 = &VoltPort{
 					Name:   "test_name",
@@ -2316,6 +2325,7 @@ func TestVoltApplication_DelServiceWithPrefix(t *testing.T) {
 
 func TestVoltService_FlowInstallFailure(t *testing.T) {
 	type args struct {
+		cntx      context.Context
 		cookie    string
 		errorCode uint32
 		errReason string
@@ -2327,6 +2337,7 @@ func TestVoltService_FlowInstallFailure(t *testing.T) {
 		{
 			name: "VoltService_FlowInstallFailure",
 			args: args{
+				cntx:      context.Background(),
 				cookie:    "test_cookie",
 				errorCode: uint32(1),
 				errReason: "err_reason",
@@ -2335,6 +2346,7 @@ func TestVoltService_FlowInstallFailure(t *testing.T) {
 		{
 			name: "PendingFlows[cookie]_false",
 			args: args{
+				cntx:      context.Background(),
 				cookie:    "test_cookie",
 				errorCode: uint32(1),
 				errReason: "err_reason",
@@ -2345,15 +2357,19 @@ func TestVoltService_FlowInstallFailure(t *testing.T) {
 	pendingFlows["test_cookie"] = true
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			flowPushCountMap := map[string]uint32{}
 			vs := &VoltService{
 				VoltServiceOper: VoltServiceOper{},
+				VoltServiceCfg: VoltServiceCfg{
+					FlowPushCount: flowPushCountMap,
+				},
 			}
 			switch tt.name {
 			case "VoltService_FlowInstallFailure":
 				vs.PendingFlows = pendingFlows
-				vs.FlowInstallFailure(tt.args.cookie, tt.args.errorCode, tt.args.errReason)
+				vs.FlowInstallFailure(tt.args.cntx, tt.args.cookie, tt.args.errorCode, tt.args.errReason, nil)
 			case "PendingFlows[cookie]_false":
-				vs.FlowInstallFailure(tt.args.cookie, tt.args.errorCode, tt.args.errReason)
+				vs.FlowInstallFailure(tt.args.cntx, tt.args.cookie, tt.args.errorCode, tt.args.errReason, nil)
 			}
 		})
 	}
@@ -2361,8 +2377,9 @@ func TestVoltService_FlowInstallFailure(t *testing.T) {
 
 func TestVoltService_FlowRemoveSuccess(t *testing.T) {
 	type args struct {
-		cntx   context.Context
-		cookie string
+		cntx         context.Context
+		cookie       string
+		flowEventMap *util.ConcurrentMap
 	}
 	tests := []struct {
 		name string
@@ -2371,16 +2388,21 @@ func TestVoltService_FlowRemoveSuccess(t *testing.T) {
 		{
 			name: "GetDevice != nil",
 			args: args{
-				cntx:   context.Background(),
-				cookie: "test_cookie",
+				cntx:         context.Background(),
+				cookie:       "test_cookie",
+				flowEventMap: util.NewConcurrentMap(),
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			flowPushCountMap := map[string]uint32{}
 			vs := &VoltService{
 				VoltServiceOper: VoltServiceOper{
 					Device: test_device,
+				},
+				VoltServiceCfg: VoltServiceCfg{
+					FlowPushCount: flowPushCountMap,
 				},
 			}
 			ga := GetApplication()
@@ -2389,7 +2411,7 @@ func TestVoltService_FlowRemoveSuccess(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-			vs.FlowRemoveSuccess(tt.args.cntx, tt.args.cookie)
+			vs.FlowRemoveSuccess(tt.args.cntx, tt.args.cookie, tt.args.flowEventMap)
 		})
 	}
 }

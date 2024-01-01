@@ -1767,6 +1767,35 @@ func (va *VoltApplication) ProcessFlowModResultIndication(cntx context.Context, 
 	}
 }
 
+// IsFlowDelThresholdReached - check if the attempts for flow delete has reached threshold or not
+func (va *VoltApplication) IsFlowDelThresholdReached(cntx context.Context, cookie string, device string) bool {
+	logger.Debugw(ctx, "Check flow delete threshold", log.Fields{"Cookie": cookie, "Device": device})
+	d := va.GetDevice(device)
+	if d == nil {
+		logger.Warnw(ctx, "Failed to get device during flow delete threshold check", log.Fields{"Cookie": cookie, "Device": device})
+		return false
+	}
+
+	flowEventMap, err := d.GetFlowEventRegister(of.CommandDel)
+	if err != nil {
+		logger.Warnw(ctx, "Flow event map does not exists", log.Fields{"flowMod": of.CommandDel, "Error": err})
+		return false
+	}
+	flowEventMap.MapLock.Lock()
+	var event interface{}
+	if event, _ = flowEventMap.Get(cookie); event == nil {
+		logger.Warnw(ctx, "Event does not exist during flow delete threshold check", log.Fields{"Cookie": cookie})
+		flowEventMap.MapLock.Unlock()
+		return false
+	}
+	flowEventMap.MapLock.Unlock()
+	flowEvent := event.(*FlowEvent)
+	vs := flowEvent.eventData.(*VoltService)
+	vs.ServiceLock.RLock()
+	defer vs.ServiceLock.RUnlock()
+	return vs.FlowPushCount[cookie] == controller.GetController().GetMaxFlowRetryAttempt()
+}
+
 func pushFlowFailureNotif(flowStatus intf.FlowStatus) {
 	subFlow := flowStatus.Flow
 	cookie := subFlow.Cookie

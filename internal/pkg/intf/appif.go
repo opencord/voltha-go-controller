@@ -31,6 +31,7 @@ type App interface {
 	DelDevice(context.Context, string)
 	SetRebootFlag(bool)
 	ProcessFlowModResultIndication(context.Context, FlowStatus)
+	IsFlowDelThresholdReached(context.Context, string, string) bool
 	DeviceRebootInd(context.Context, string, string, string)
 	DeviceDisableInd(context.Context, string)
 	UpdateMvlanProfilesForDevice(context.Context, string)
