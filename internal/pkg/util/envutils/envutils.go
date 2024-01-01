@@ -81,6 +81,7 @@ const (
 	MemProfile                = "MEM_PROFILE"
 	VendorID                  = "VENDOR_ID"
 	DeviceSyncDuration        = "DEVICE_SYNC_DURATION"
+	MaxFlowRetryDuration      = "MAX_FLOW_RETRY_DURATION"
 	// openonu environment variables
 
 	OmciPacketCapture = "SAVE_OMCI_PACKET_CAPTURE"

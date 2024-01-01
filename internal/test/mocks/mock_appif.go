@@ -206,6 +206,20 @@ func (mr *MockAppMockRecorder) ProcessFlowModResultIndication(arg0, arg1 interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessFlowModResultIndication", reflect.TypeOf((*MockApp)(nil).ProcessFlowModResultIndication), arg0, arg1)
 }
 
+
+// IsFlowDelThresholdReached mocks base method.
+func (m *MockApp) IsFlowDelThresholdReached(arg0 context.Context, arg1 string, arg2 string) bool {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "IsFlowDelThresholdReached", arg0, arg1, arg2)
+	return false
+}
+
+// IsFlowDelThresholdReached indicates an expected call of IsFlowDelThresholdReached.
+func (mr *MockAppMockRecorder) IsFlowDelThresholdReached(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsFlowDelThresholdReached", reflect.TypeOf((*MockApp)(nil).IsFlowDelThresholdReached), arg0, arg1, arg2)
+}
+
 // SetRebootFlag mocks base method.
 func (m *MockApp) SetRebootFlag(arg0 bool) {
 	m.ctrl.T.Helper()
