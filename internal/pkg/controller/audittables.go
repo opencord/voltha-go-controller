@@ -267,8 +267,6 @@ func (att *AuditTablesTask) AuditFlows(cntx context.Context) error {
 				delete(rcvdFlows, flow.Cookie)
 			}
 			defaultSuccessFlowStatus.Cookie = strconv.FormatUint(flow.Cookie, 10)
-
-			GetController().ProcessFlowModResultIndication(cntx, defaultSuccessFlowStatus)
 		} else {
 			// The flow exists at the controller but not at the device
 			// Push the flow to the device
@@ -315,7 +313,7 @@ func (att *AuditTablesTask) AddMissingFlows(cntx context.Context, mflow *of.Volt
 		if _, err = vc.UpdateLogicalDeviceFlowTable(att.ctx, flow); err != nil {
 			logger.Errorw(ctx, "Update Flow Table Failed", log.Fields{"Reason": err.Error()})
 		}
-		att.device.triggerFlowResultNotification(cntx, flow.FlowMod.Cookie, dbFlow, of.CommandAdd, bwConsumedInfo, err)
+		att.device.triggerFlowResultNotification(cntx, flow.FlowMod.Cookie, dbFlow, of.CommandAdd, bwConsumedInfo, err, true)
 	}
 }
 
@@ -333,6 +331,11 @@ func (att *AuditTablesTask) DelExcessFlows(cntx context.Context, flows map[uint6
 	for _, flow := range flows {
 		if _, present := att.device.GetFlow(flow.Cookie); present {
 			logger.Warnw(ctx, "Flow Present in DB. Ignoring Delete Excess Flow", log.Fields{"Device": att.device.ID, "Cookie": flow.Cookie})
+			continue
+		}
+
+		if flag := GetController().IsFlowDelThresholdReached(cntx, strconv.FormatUint(flow.Cookie, 10), att.device.ID); flag {
+			logger.Warnw(ctx, "Flow delete threshold reached, skipping flow delete", log.Fields{"Device": att.device.ID, "Cookie": flow.Cookie})
 			continue
 		}
 
@@ -362,7 +365,7 @@ func (att *AuditTablesTask) DelExcessFlows(cntx context.Context, flows map[uint6
 		if _, err = vc.UpdateLogicalDeviceFlowTable(att.ctx, flowUpdate); err != nil {
 			logger.Errorw(ctx, "Flow Audit Delete Failed", log.Fields{"Reason": err.Error()})
 		}
-		att.device.triggerFlowResultNotification(cntx, flow.Cookie, nil, of.CommandDel, of.BwAvailDetails{}, err)
+		att.device.triggerFlowResultNotification(cntx, flow.Cookie, nil, of.CommandDel, of.BwAvailDetails{}, err, true)
 	}
 }
 
@@ -601,13 +604,11 @@ func (att *AuditTablesTask) AuditPorts() error {
 
 // AddMissingPorts to add the missing ports
 func (att *AuditTablesTask) AddMissingPorts(cntx context.Context, mps map[uint32]*ofp.OfpPort) {
-	logger.Infow(ctx, "Device Audit - Add Missing Ports", log.Fields{"NumPorts": len(mps)})
+	logger.Debugw(ctx, "Device Audit - Add Missing Ports", log.Fields{"NumPorts": len(mps)})
 
 	addMissingPort := func(mp *ofp.OfpPort) {
 		logger.Debugw(ctx, "Process Port Add Ind", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name})
 
-		// Error is ignored as it only drops duplicate ports
-		logger.Debugw(ctx, "Calling AddPort", log.Fields{"No": mp.PortNo, "Name": mp.Name})
 		if err := att.device.AddPort(cntx, mp); err != nil {
 			logger.Warnw(ctx, "AddPort Failed", log.Fields{"No": mp.PortNo, "Name": mp.Name, "Reason": err})
 		}
