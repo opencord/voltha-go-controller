@@ -1054,7 +1054,10 @@ func (va *VoltApplication) AddService(cntx context.Context, cfg VoltServiceCfg, 
 		vs.DeactivateInProgress = oper.DeactivateInProgress
 		vs.BwAvailInfo = oper.BwAvailInfo
 		vs.Device = oper.Device
-		vs.FlowPushCount = cfg.FlowPushCount
+		// FlowPushCount is newly introduced map and it can be nil when VGC is upgraded. Hence adding a nil check to handle backward compatibility
+		if cfg.FlowPushCount != nil {
+			vs.FlowPushCount = cfg.FlowPushCount
+		}
 		vs.ServiceDeactivateReason = cfg.ServiceDeactivateReason
 	} else {
 		// Sorting Pbit from highest
