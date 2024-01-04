@@ -1790,10 +1790,12 @@ func (va *VoltApplication) IsFlowDelThresholdReached(cntx context.Context, cooki
 	}
 	flowEventMap.MapLock.Unlock()
 	flowEvent := event.(*FlowEvent)
-	vs := flowEvent.eventData.(*VoltService)
-	vs.ServiceLock.RLock()
-	defer vs.ServiceLock.RUnlock()
-	return vs.FlowPushCount[cookie] == controller.GetController().GetMaxFlowRetryAttempt()
+	if vs, ok := flowEvent.eventData.(*VoltService); ok {
+		vs.ServiceLock.RLock()
+		defer vs.ServiceLock.RUnlock()
+		return vs.FlowPushCount[cookie] == controller.GetController().GetMaxFlowRetryAttempt()
+	}
+	return false
 }
 
 func pushFlowFailureNotif(flowStatus intf.FlowStatus) {
