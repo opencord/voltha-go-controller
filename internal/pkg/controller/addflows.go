@@ -95,6 +95,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 					if dbFlow.State == of.FlowAddSuccess {
 						aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil, true)
 						flowsPresent++
+						continue
 					}
 				}
 			}
@@ -114,6 +115,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 
 	if flowsPresent == len(aft.flow.SubFlows) {
 		logger.Warn(ctx, "All Flows already present in database. Skipping Flow Push to SB")
+		return nil
 	}
 
 	// PortName and PortID are used for validation of PortID, whether it is still valid and associated with old PortName or
