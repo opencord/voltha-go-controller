@@ -59,7 +59,7 @@ github.com/google/gopacket
 github.com/google/gopacket/layers
 # github.com/google/uuid v1.3.0
 github.com/google/uuid
-# github.com/gorilla/mux v1.8.0
+# github.com/gorilla/mux v1.8.1
 ## explicit
 github.com/gorilla/mux
 # github.com/guumaster/tablewriter v0.0.10
@@ -76,7 +76,7 @@ github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore
 github.com/opencord/voltha-lib-go/v7/pkg/flows
 github.com/opencord/voltha-lib-go/v7/pkg/log
 github.com/opencord/voltha-lib-go/v7/pkg/probe
-# github.com/opencord/voltha-protos/v5 v5.2.4
+# github.com/opencord/voltha-protos/v5 v5.5.0
 ## explicit
 github.com/opencord/voltha-protos/v5/go/common
 github.com/opencord/voltha-protos/v5/go/ext/config
@@ -84,6 +84,8 @@ github.com/opencord/voltha-protos/v5/go/extension
 github.com/opencord/voltha-protos/v5/go/health
 github.com/opencord/voltha-protos/v5/go/omci
 github.com/opencord/voltha-protos/v5/go/openflow_13
+github.com/opencord/voltha-protos/v5/go/voip_system_profile
+github.com/opencord/voltha-protos/v5/go/voip_user_profile
 github.com/opencord/voltha-protos/v5/go/voltha
 # github.com/opentracing/opentracing-go v1.2.0
 github.com/opentracing/opentracing-go

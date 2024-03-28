@@ -14,11 +14,11 @@ require (
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.5.3
 	github.com/google/gopacket v0.0.0-00010101000000-000000000000
-	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/mux v1.8.1
 	github.com/guumaster/tablewriter v0.0.10
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/opencord/voltha-lib-go/v7 v7.2.1
-	github.com/opencord/voltha-protos/v5 v5.2.4
+	github.com/opencord/voltha-protos/v5 v5.5.0
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/stretchr/testify v1.8.2
 	go.uber.org/atomic v1.9.0

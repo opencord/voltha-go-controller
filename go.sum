@@ -118,8 +118,8 @@ github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm4
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/gordonklaus/ineffassign v0.0.0-20200309095847-7953dde2c7bf/go.mod h1:cuNKsD1zp2v6XfE/orVX2QE1LC+i254ceGcVeDT3pTU=
-github.com/gorilla/mux v1.8.0 h1:i40aqfkR1h2SlN9hojwV5ZA91wcXFOvkdNIeFDP5koI=
-github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB71So=
+github.com/gorilla/mux v1.8.1 h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=
+github.com/gorilla/mux v1.8.1/go.mod h1:AKf9I4AEqPTmMytcMc0KkNouC66V3BtZ4qD5fmWSiMQ=
 github.com/gorilla/securecookie v1.1.1/go.mod h1:ra0sb63/xPlUeL+yeDciTfxMRAA+MP+HVt/4epWDjd4=
 github.com/gorilla/sessions v1.2.1/go.mod h1:dk2InVEVJ0sfLlnXv9EAgkf6ecYs/i80K/zI+bUmuGM=
 github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
@@ -201,8 +201,8 @@ github.com/onsi/gomega v1.18.1/go.mod h1:0q+aL8jAiMXy9hbwj2mr5GziHiwhAIQpFmmtT5h
 github.com/opencord/voltha-lib-go/v7 v7.2.1 h1:dPXWLFHfAuiNkimGkLQ6ChXBwPdpG9dup8ZW7wopJ90=
 github.com/opencord/voltha-lib-go/v7 v7.2.1/go.mod h1:+X6jdL5SauRC4YkUBxO5H1oinZvxqTP7gzE1keE6wN8=
 github.com/opencord/voltha-protos/v5 v5.2.2/go.mod h1:ZGcyW79kQKIo7AySo1LRu613E6uiozixrCF0yNB/4x8=
-github.com/opencord/voltha-protos/v5 v5.2.4 h1:gokXh1SAGH/fkpQGl6taMmLXYlK+jUkQs/61h8Icl98=
-github.com/opencord/voltha-protos/v5 v5.2.4/go.mod h1:ZGcyW79kQKIo7AySo1LRu613E6uiozixrCF0yNB/4x8=
+github.com/opencord/voltha-protos/v5 v5.5.0 h1:1qW+ATF+0KupL7IJJygJeg77XNKokHiA0zkj84tGDGU=
+github.com/opencord/voltha-protos/v5 v5.5.0/go.mod h1:E/Jn3DNu8VGRBCgIWSSg4sWtTBiNuQGSFvHyNH1XlyM=
 github.com/opentracing/opentracing-go v1.1.0/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
 github.com/opentracing/opentracing-go v1.2.0 h1:uEJPy/1a5RIPAJ0Ov+OIO8OxWu77jEv+1B0VhjKrZUs=
 github.com/opentracing/opentracing-go v1.2.0/go.mod h1:GxEUsuufX4nBwe+T+Wl9TAgYrxe9dPLANfrWvHYVTgc=
