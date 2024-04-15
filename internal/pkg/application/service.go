@@ -77,7 +77,8 @@ const (
 // MacAddress -	The MAC hardware address learnt on the UNI interface
 // MacAddresses - Not yet implemented. To be used to learn more MAC addresses
 type VoltServiceCfg struct {
-	Pbits                      []of.PbitType
+	FlowPushCount              map[string]uint32 // Tracks the number of flow install/delete failure attempts per cookie in order to throttle flow auditing
+	DsRemarkPbitsMap           map[int]int       // Ex: Remark case {0:0,1:0} and No-remark case {1:1}
 	Name                       string
 	CircuitID                  string
 	Port                       string
@@ -89,20 +90,20 @@ type VoltServiceCfg struct {
 	RemoteIDType               string
 	DataRateAttr               string
 	ServiceType                string
-	DsRemarkPbitsMap           map[int]int // Ex: Remark case {0:0,1:0} and No-remark case {1:1}
-	RemoteID                   []byte
 	MacAddr                    net.HardwareAddr
-	ONTEtherTypeClassification int
-	SchedID                    int
+	RemoteID                   []byte
+	Pbits                      []of.PbitType
 	Trigger                    ServiceTrigger
 	MacLearning                MacLearningType
+	ONTEtherTypeClassification int
+	SchedID                    int
 	PonPort                    uint32
 	MinDataRateUs              uint32
 	MinDataRateDs              uint32
 	MaxDataRateUs              uint32
 	MaxDataRateDs              uint32
-	TechProfileID              uint16
 	SVlanTpid                  layers.EthernetType
+	TechProfileID              uint16
 	UniVlan                    of.VlanType
 	CVlan                      of.VlanType
 	SVlan                      of.VlanType
@@ -110,6 +111,7 @@ type VoltServiceCfg struct {
 	UsPonSTagPriority          of.PbitType
 	DsPonSTagPriority          of.PbitType
 	DsPonCTagPriority          of.PbitType
+	ServiceDeactivateReason    SvcDeactivateReason // Mentions why the service was deactivated
 	VlanControl                VlanControl
 	IsOption82Enabled          bool
 	IgmpEnabled                bool
@@ -117,8 +119,6 @@ type VoltServiceCfg struct {
 	AllowTransparent           bool
 	EnableMulticastKPI         bool
 	IsActivated                bool
-	FlowPushCount              map[string]uint32   // Tracks the number of flow install/delete failure attempts per cookie in order to throttle flow auditing
-	ServiceDeactivateReason    SvcDeactivateReason // Mentions why the service was deactivated
 }
 
 // VoltServiceOper structure
