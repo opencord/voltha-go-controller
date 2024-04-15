@@ -115,7 +115,7 @@ func (iph *MulticastHandle) DelMvlanInfo(cntx context.Context, w http.ResponseWr
 	vars := mux.Vars(r)
 	egressvlan := vars["egressvlan"]
 
-	name := "mvlan" + egressvlan
+	name := mvlan + egressvlan
 	// HTTP response with 202 accepted for service delete request
 	w.WriteHeader(http.StatusAccepted)
 
@@ -136,7 +136,7 @@ func (iph *MulticastHandle) addMvlan(cntx context.Context, w http.ResponseWriter
 	var groups []string
 
 	groups = append(groups, "225.0.0.0-239.255.255.255")
-	config.Name = "mvlan" + strconv.Itoa(req.EgressVlan)
+	config.Name = mvlan + strconv.Itoa(req.EgressVlan)
 	config.Mvlan = of.VlanType(req.EgressVlan)
 	config.PonVlan = of.VlanType(req.EgressInnerVlan)
 	config.Groups = make(map[string][]string)
@@ -149,9 +149,9 @@ func (iph *MulticastHandle) addMvlan(cntx context.Context, w http.ResponseWriter
 	if err := voltAppIntr.AddMvlanProfile(cntx, config.Name, config.Mvlan, config.PonVlan, config.Groups,
 		config.IsChannelBasedGroup, config.OLTSerialNum,
 		255, config.Proxy); err != nil {
-		logger.Errorw(ctx, "northbound-add-mvlan-failed", log.Fields{"mvlan": config.Name, "Reason": err.Error()})
+		logger.Errorw(ctx, "northbound-add-mvlan-failed", log.Fields{mvlan: config.Name, "Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
-	logger.Debugw(ctx, "northbound-add-mvlan-successful", log.Fields{"mvlan": config.Name})
+	logger.Debugw(ctx, "northbound-add-mvlan-successful", log.Fields{mvlan: config.Name})
 }
