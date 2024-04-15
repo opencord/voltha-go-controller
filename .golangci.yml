@@ -55,6 +55,11 @@ linters:
 run:
   issues-exit-code: 1
   timeout: 10m
+  skip-files:
+    - _test\.go$
+  skip-dirs:
+    - voltha-go-controller/tests/mocks
+    - internal/test/mocks
 
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration

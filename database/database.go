@@ -34,6 +34,10 @@ import (
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 )
 
+const (
+	PonPort = "/pon-port/"
+)
+
 var logger log.CLogger
 
 // Database structure
@@ -739,7 +743,7 @@ func (db *Database) DelAllRoutesForDevice(ctx context.Context, device string) er
 
 // PutNbDevicePort to add device port info
 func (db *Database) PutNbDevicePort(ctx context.Context, device string, ponPortID uint32, value string) {
-	key := GetKeyPath(NbDevicePath) + device + "/pon-port/" + fmt.Sprintf("%v", ponPortID)
+	key := GetKeyPath(NbDevicePath) + device + PonPort + fmt.Sprintf("%v", ponPortID)
 
 	if err := db.kvc.Put(ctx, key, value); err != nil {
 		logger.Warnw(ctx, "Put Device Port failed", log.Fields{"key": key})
@@ -765,7 +769,7 @@ func (db *Database) PutDeviceConfig(ctx context.Context, serialNum string, value
 
 // DelNbDevicePort to delete device port
 func (db *Database) DelNbDevicePort(ctx context.Context, device string, ponPortID uint32) {
-	key := GetKeyPath(NbDevicePath) + device + "/pon-port/" + fmt.Sprintf("%v", ponPortID)
+	key := GetKeyPath(NbDevicePath) + device + PonPort + fmt.Sprintf("%v", ponPortID)
 
 	if err := db.kvc.Delete(ctx, key); err != nil {
 		logger.Warnw(ctx, "Delete Device Port failed", log.Fields{"key": key})
@@ -774,7 +778,7 @@ func (db *Database) DelNbDevicePort(ctx context.Context, device string, ponPortI
 
 // GetAllNbPorts to get all ports info
 func (db *Database) GetAllNbPorts(ctx context.Context, deviceID string) (map[string]*kvstore.KVPair, error) {
-	key := GetKeyPath(NbDevicePath) + deviceID + "/pon-port/"
+	key := GetKeyPath(NbDevicePath) + deviceID + PonPort
 	return db.List(ctx, key)
 }
 
