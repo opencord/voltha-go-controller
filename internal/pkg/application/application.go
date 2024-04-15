@@ -198,6 +198,7 @@ func (vp *VoltPort) SetPortID(id uint32) {
 // NniPort:      The identity of the NNI port
 // Ports:        List of all ports added to the device
 type VoltDevice struct {
+	VoltDeviceIntr               VoltDevInterface
 	FlowAddEventMap              *util.ConcurrentMap //map[string]*FlowEvent
 	FlowDelEventMap              *util.ConcurrentMap //map[string]*FlowEvent
 	MigratingServices            *util.ConcurrentMap //<vnetID,<RequestID, MigrateServicesRequest>>
@@ -217,7 +218,6 @@ type VoltDevice struct {
 	NniDhcpTrapVid               of.VlanType
 	GlobalDhcpFlowAdded          bool
 	icmpv6GroupAdded             bool
-	VoltDeviceIntr               VoltDevInterface
 }
 
 type VoltDevInterface interface {
