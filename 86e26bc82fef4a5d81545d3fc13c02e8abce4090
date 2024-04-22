@@ -35,6 +35,40 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "00f13a12_5115d1af",
+        "filename": ".golangci.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-22T15:12:38Z",
+      "side": 1,
+      "message": "Question:\nWhy are we excluding sources from linting ?\nAre these test files derived from source beneath /vendor and we may not have control over the original ?\n\nIf yes:\n   An inline comment documenting this why would be helpful\n\nIf no:\n   Open a ticket/project to cleanup affected sources so they can lint cleanly.\n   Linting and code cleanups have potential for bug detection and we lose that\n   ability with exclusions.",
+      "revId": "86e26bc82fef4a5d81545d3fc13c02e8abce4090",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "93c88312_f918c804",
+        "filename": ".golangci.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-22T15:12:38Z",
+      "side": 1,
+      "message": "Thumbs up on the linter update.\n\nIf you are familiar with source cleanups involved consider propagating this edit out to other repositories.",
+      "revId": "86e26bc82fef4a5d81545d3fc13c02e8abce4090",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "aff0f686_7ee32ea2",
