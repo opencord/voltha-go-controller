@@ -1,6 +1,40 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "8b016b7a_4707d1ad",
+        "filename": ".gitignore",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-22T15:02:03Z",
+      "side": 1,
+      "message": "Silly but can you insert a copyright notice at the top of this config file.\nLint license checking (% make lint-reuse or % pre-commit) will complain about it.\n\nhttps://github.com/joey-onf/copyright",
+      "revId": "86e26bc82fef4a5d81545d3fc13c02e8abce4090",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "db522114_0169b198",
+        "filename": ".gitignore",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-22T15:02:03Z",
+      "side": 1,
+      "message": "Is this directory exclusion still being used ?\n\nPath is absolute (/bin/), asterisks will need to be added if the intent is to filter bin/ as a subdir.\n\nI did not find bin/ mentioned in Makefile,\nA few make targets were also unable to create it:\n   % make build test\n\nIf there is a need to compile/generate content, placing content beneath arbitrary revision control directories can be problematic.  Instead create a dedicated derived directory at the top level of the sandbox\n\nie: voltha-go-controller/build/\nvoltha-go-controller/build/bin (...) can be used for storage.\n\nLater a Makefile clean target can simply $(RM) -r build/ VS having to traverse or find derived directories to remvoe.",
+      "revId": "86e26bc82fef4a5d81545d3fc13c02e8abce4090",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "aff0f686_7ee32ea2",
@@ -48,6 +82,23 @@
       "writtenOn": "2024-04-22T11:42:03Z",
       "side": 1,
       "message": "recheck",
+      "revId": "86e26bc82fef4a5d81545d3fc13c02e8abce4090",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5b24cd3f_1a96ff4d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-22T15:02:03Z",
+      "side": 1,
+      "message": "All patch submissions require a jira ticket, can you update the commit message to include one ?\n\nhttps://docs.voltha.org/master/overview/contributing.html#submitting-code\nhttps://docs.voltha.org/master/overview/contributing/jira_tickets.html\n\nThanks",
       "revId": "86e26bc82fef4a5d81545d3fc13c02e8abce4090",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
