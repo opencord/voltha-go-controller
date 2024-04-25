@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a09cf8ac_1e1c9f7c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-25T14:05:30Z",
+      "side": 1,
+      "message": "https://jira.opencord.org/browse/VOL-5324\n\nJira ticket created for this patch.  Notes, thoughts, etc copied in from slack for posterity.\nLast re-ch-eck attempt failed for a new problem that is not obvious from the logs.",
+      "revId": "eb12222dd3a5dd6a0632b2e7a2197081c3848d29",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
