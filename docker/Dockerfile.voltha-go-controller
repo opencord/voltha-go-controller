@@ -46,7 +46,6 @@ COPY --from=dev /app/vgcctl /app
 
 RUN chown -R voltha-go-controller.voltha-go-controller /app/voltha-go-controller /usr/local/bin/
 RUN apk add --no-cache openssh=8.4_p1-r4
-RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
 RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/init.d/sshd
 ENV NOTVISIBLE "in users profile"
