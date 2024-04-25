@@ -16,6 +16,24 @@
       "message": "https://jira.opencord.org/browse/VOL-5324\n\nJira ticket created for this patch.  Notes, thoughts, etc copied in from slack for posterity.\nLast re-ch-eck attempt failed for a new problem that is not obvious from the logs.",
       "revId": "eb12222dd3a5dd6a0632b2e7a2197081c3848d29",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e78d00c4_983d06ab",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-25T14:10:59Z",
+      "side": 1,
+      "message": "New ticket opened for that failure as well:\nhttps://jira.opencord.org/browse/VOL-5325",
+      "parentUuid": "a09cf8ac_1e1c9f7c",
+      "revId": "eb12222dd3a5dd6a0632b2e7a2197081c3848d29",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
