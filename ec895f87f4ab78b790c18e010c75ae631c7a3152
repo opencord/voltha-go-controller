@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e9dd68bb_a99e87e6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-30T14:16:48Z",
+      "side": 1,
+      "message": "Abhilash gave +1 in the voltha-tst channel.\n\nPublish .pre-commit* so we can run more pre-commit linters on the repository.",
+      "revId": "ec895f87f4ab78b790c18e010c75ae631c7a3152",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
