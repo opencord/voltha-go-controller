@@ -36,6 +36,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "06700f66_61ea39b2",
+        "filename": ".gitignore",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-30T13:28:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8e06cced_75809b85",
+      "revId": "86e26bc82fef4a5d81545d3fc13c02e8abce4090",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "db522114_0169b198",
@@ -67,6 +85,24 @@
       "side": 1,
       "message": "Yes, before we have added this while testing. Now we have removed the changes in gitignore file.",
       "parentUuid": "db522114_0169b198",
+      "revId": "86e26bc82fef4a5d81545d3fc13c02e8abce4090",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "082cbe9c_4a3329a9",
+        "filename": ".gitignore",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-30T13:28:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8b06ebec_600a3d33",
       "revId": "86e26bc82fef4a5d81545d3fc13c02e8abce4090",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -106,6 +142,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7e4a3bba_d19bed95",
+        "filename": ".golangci.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-30T13:28:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b63ae7c_14a8402e",
+      "revId": "86e26bc82fef4a5d81545d3fc13c02e8abce4090",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "93c88312_f918c804",
@@ -137,6 +191,24 @@
       "side": 1,
       "message": "We have started to update the linter first for voltha-go-controller and fix the issues. In coming days, we will be working on the other repositories as well.",
       "parentUuid": "93c88312_f918c804",
+      "revId": "86e26bc82fef4a5d81545d3fc13c02e8abce4090",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3357fbef_00f98e3b",
+        "filename": ".golangci.yml",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-30T13:28:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c1c0dd48_dcd7d487",
       "revId": "86e26bc82fef4a5d81545d3fc13c02e8abce4090",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },

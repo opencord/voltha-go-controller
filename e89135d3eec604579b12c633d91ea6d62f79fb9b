@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e58767c7_c65cb59d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-04-30T13:28:27Z",
+      "side": 1,
+      "message": "recheck\n\nClicked [done] to finalize state on the \u0027unresolved\u0027 items.\nRun the job again for good measure, just curios if the failure is intermittent and may persist.",
+      "revId": "e89135d3eec604579b12c633d91ea6d62f79fb9b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
