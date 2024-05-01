@@ -33,6 +33,23 @@
       "message": "LGTM\n\n\nOne item { not going to ding this patch given the test failure has been interesting :) }\nIn the future can you update the copyright notice in files modified to span the current year.\n\nReplace \u0027-present\u0027 with an ending date, have been told *-present is not valid in some legal contexts.\nAdd \u0027SPDX\u0027 tokens, these can be checked programatically by the reuse tool.\n\n\n# Example notice w/SPDX tokens\nhttps://gerrit.opencord.org/plugins/gitiles/bbsim/+/refs/heads/master/Makefile\n\n# Docs need to be enhanced but license info can also be found here\nhttps://docs.voltha.org/master/overview/contributing/copyright.html",
       "revId": "e89135d3eec604579b12c633d91ea6d62f79fb9b",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7f12e068_74b889d3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-05-01T15:05:38Z",
+      "side": 1,
+      "message": "Post job re-run looks like this failure is intermittent:\n\n09:45:14 coverage: 24.7% of statements\n09:45:14 ok  \tvoltha-go-controller/voltha-go-controller/onos_nbi\t0.051s\tcoverage: 24.7% of statements\n09:45:14 ?   \tvoltha-go-controller/voltha-go-controller/tests/mocks\t[no test files]\n09:45:14 FAIL\n09:45:14 Makefile:122: recipe for target \u0027test\u0027 failed\n09:45:14 make: *** [test] Error 1\n09:45:14 Build step \u0027Execute shell\u0027 marked build as failure",
+      "revId": "e89135d3eec604579b12c633d91ea6d62f79fb9b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
