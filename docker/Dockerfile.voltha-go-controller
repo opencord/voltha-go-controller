@@ -20,11 +20,6 @@
 FROM --platform=linux/amd64 golang:1.16.3-alpine3.13 AS dev
 
 RUN adduser -h /home/voltha-go-controller -s /bin/bash -D voltha-go-controller
-# Install required packages
-RUN apk add --no-cache build-base=0.5-r3
-
-#adding git
-#RUN apk add --no-cache bash=5.1.16-r0
 
 #chnaging the working dir to tmp
 WORKDIR /tmp
@@ -64,12 +59,5 @@ COPY --from=dev /app/voltha-go-controller /app
 COPY --from=dev /app/vgcctl /app
 
 RUN chown -R voltha-go-controller.voltha-go-controller /app/voltha-go-controller /usr/local/bin/
-RUN apk add --no-cache openssh=8.4_p1-r4
-
-RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/init.d/sshd
-ENV NOTVISIBLE "in users profile"
-RUN echo "export VISIBLE=now" >> /etc/profile
-
-EXPOSE 22
 
 # [EOF]
