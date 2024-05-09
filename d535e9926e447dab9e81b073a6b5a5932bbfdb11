@@ -16,6 +16,23 @@
       "message": "recheck",
       "revId": "d535e9926e447dab9e81b073a6b5a5932bbfdb11",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b523d3a7_45093e6b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-05-09T14:00:00Z",
+      "side": 1,
+      "message": "A jira ticket is required in the commit message for all patches:\n  o https://docs.voltha.org/master/howto/code/commit-message.html#pull-request-commit-message\n  o https://docs.voltha.org/master/overview/contributing/jira_tickets.html",
+      "revId": "d535e9926e447dab9e81b073a6b5a5932bbfdb11",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
