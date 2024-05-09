@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bcc6bcdd_7a8c09b2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-05-09T14:17:52Z",
+      "side": 1,
+      "message": "Just noticed this patch will likely fail for a different reason\nafter the \"timeout during profiling\" failure has been identified.\nSee 35241 below\n\nhttps://jira.opencord.org/browse/VOL-5346\n  * https://gerrit.opencord.org/c/voltha-go-controller/+/35217\n  * jobs: 30, PASS: 2, FAIL: 28\n  * REASON: timeout\n\nComparison (NOP) job: gerrit-35241\n  * https://gerrit.opencord.org/c/voltha-go-controller/+/35241\n  * https://jenkins.opencord.org/job/verify_voltha-go-controller_unit-test/251/console\n  * jobs: 1, FAIL: 1\n  * REASON: test coverage, VGC/tests/mocks/ directory is empty\n",
+      "revId": "fca766a19d258b5e996840d26dade52e3e602060",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
