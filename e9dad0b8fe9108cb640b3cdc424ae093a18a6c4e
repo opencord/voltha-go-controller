@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7d67fbe0_f134fa3e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 15
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-05-10T15:29:24Z",
+      "side": 1,
+      "message": "Ugh something definitely going on with the job timeouts for patch 35217.\n\n** golang-ci is a wrapper that launches multiple linters ** IN PARALLEL **.\n\nhttps://gerrit.opencord.org/plugins/gitiles/voltha-go-controller/+/refs/heads/master/.golangci.yml#57\nrun:\nissues-exit-code: 1\ntimeout: 10m\n\n\n** Default timeout for the tool is 10 minutes!\n\nThis repo is not large, analysis and linting by individual tools launched by golang-ci should not require 10 minutes of runtime.\n\nIt may be time to try running code complexity tools on the repo and see if any cleanup is needed.\nBlocks with high scores could easily give analysis tools indigestion.\n\n[TODO] - determine if golang-ci can report runtime for individual linters launched to isolate the problem.  Failing that manually iterate and run linters by hand.\n[TODO] - also look at threaded linting as a potential problem source.  Several linters competing for the filesystem, locks and resources might serialize and/or starve each other.\n",
+      "revId": "e9dad0b8fe9108cb640b3cdc424ae093a18a6c4e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
