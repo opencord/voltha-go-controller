@@ -55,7 +55,7 @@ func init() {
 }
 
 const (
-	// TODO - Need to identify a right place for this
+	// TODO - Need to identify a right place for this.
 
 	// PriorityNone constant.
 	PriorityNone uint8 = 8
