@@ -62,6 +62,9 @@ func Initialize(ctx context.Context, storeType string, address string, timeout i
 	case "redis":
 		database.kvc, err = kvstore.NewRedisClient(address, time.Duration(timeout), false)
 		return &database, err
+	case "redis-sentinel":
+		database.kvc, err = kvstore.NewRedisClient(address, time.Duration(timeout), true)
+		return &database, err
 	case "etcd":
 		database.kvc, err = kvstore.NewEtcdClient(ctx, address, time.Duration(timeout), log.ErrorLevel)
 		return &database, err
