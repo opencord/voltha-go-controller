@@ -76,10 +76,12 @@ func stop(ctx context.Context, kvClient kvstore.Client, vpa *vpagent.VPAgent) {
 func newKVClient(ctx context.Context, storeType, address string, timeout int) (kvstore.Client, error) {
 	logger.Infow(ctx, "kv-store-type", log.Fields{"store": storeType})
 	switch storeType {
-	case "redis":
-		return kvstore.NewRedisClient(address, time.Duration(timeout), false)
 	case "etcd":
 		return kvstore.NewEtcdClient(ctx, address, time.Duration(timeout), log.ErrorLevel)
+	case "redis":
+		return kvstore.NewRedisClient(address, time.Duration(timeout), false)
+	case "redis-sentinel":
+		return kvstore.NewRedisClient(address, time.Duration(timeout), true)
 	}
 	return nil, errors.New("unsupported-kv-store")
 }
