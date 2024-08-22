@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6787ef53_e83847b2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-08-22T14:50:20Z",
+      "side": 1,
+      "message": "recheck\n\nRerun patch using the replace AMI image (ubuntu 24.04)",
+      "revId": "d5a2298e1ec6fd3d110b87e65bbdbe9806f63b7f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
