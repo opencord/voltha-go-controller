@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ca5c62af_722a1bf2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000971
+      },
+      "writtenOn": "2024-08-28T10:17:36Z",
+      "side": 1,
+      "message": "\u003e Patch Set 4:\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-go-controller_unit-test/272/ : FAILURE\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-go-controller_licensed/272/ : SUCCESS\n\nrecheck",
+      "revId": "a61d329a19d480c58f83bf70864c83b4f17a7d60",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
