@@ -79,7 +79,7 @@ func updateVnets(cntx context.Context, hash string, value interface{}) error {
 		}
 	}
 	param.Name = newKey
-	if param.DevicesList == nil || len(param.DevicesList) == 0 {
+	if len(param.DevicesList) == 0 {
 		param.DevicesList = append(param.DevicesList, "") // Empty OLT serial number as of now since submgr won't have proper serial num
 	}
 	return nil
@@ -115,7 +115,7 @@ func updateVpvs(cntx context.Context, hash string, value interface{}) error {
 func updateMvlans(cntx context.Context, hash string, value interface{}) error {
 	logger.Debugw(ctx, "Update Mvlans", log.Fields{"Hash": hash})
 	param := value.(*MvlanProfile)
-	if param.DevicesList == nil || len(param.DevicesList) == 0 {
+	if len(param.DevicesList) == 0 {
 		param.DevicesList = make(map[string]OperInProgress) // Empty OLT serial number as of now since submgr won't have proper serial num
 		if err := param.WriteToDb(cntx); err != nil {
 			logger.Errorw(ctx, "Mvlan profile write to DB failed", log.Fields{"ProfileName": param.Name})

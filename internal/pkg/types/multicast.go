@@ -34,19 +34,19 @@ type IGMPConfig struct {
 	IgmpSourceIP string `json:"igmpSourceIp"`
 	// FastLeave represents IGMP fast leave enabled or not.
 	// UnsolicitedTimeOut represents unsolicited timeout.
-	UnsolicitedTimeOut int `json:"UnsolicitedTimeOut"`
+	UnsolicitedTimeOut uint32 `json:"UnsolicitedTimeOut"`
 	// MaxResp represents IGMP max response time.
-	MaxResp int `json:"MaxResp"`
+	MaxResp uint32 `json:"MaxResp"`
 	// KeepAliveInterval represents IGMP keep alive interval.
-	KeepAliveInterval int `json:"KeepAliveInterval"`
+	KeepAliveInterval uint32 `json:"KeepAliveInterval"`
 	// KeepAliveCount represents IGMP keep alive count.
-	KeepAliveCount int `json:"KeepAliveCount"`
+	KeepAliveCount uint32 `json:"KeepAliveCount"`
 	// LastQueryInterval represents IGMP last query interval.
-	LastQueryInterval int `json:"LastQueryInterval"`
+	LastQueryInterval uint32 `json:"LastQueryInterval"`
 	// LastQueryCount represents IGMP last query count.
-	LastQueryCount int `json:"LastQueryCount"`
+	LastQueryCount uint32 `json:"LastQueryCount"`
 	// IgmpCos represents IGMP COS value(0-7).
-	IgmpCos int `json:"IgmpCos"`
+	IgmpCos uint8 `json:"IgmpCos"`
 }
 
 // MulticastSrcListMode represents mode of source list

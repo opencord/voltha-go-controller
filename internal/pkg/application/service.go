@@ -82,7 +82,8 @@ const (
 // MacAddress -	The MAC hardware address learnt on the UNI interface
 // MacAddresses - Not yet implemented. To be used to learn more MAC addresses
 type VoltServiceCfg struct {
-	DsRemarkPbitsMap           map[int]int // Ex: Remark case {0:0,1:0} and No-remark case {1:1}
+	FlowPushCount              map[string]int64 // Tracks the number of flow install/delete failure attempts per cookie in order to throttle flow auditing
+	DsRemarkPbitsMap           map[int]int      // Ex: Remark case {0:0,1:0} and No-remark case {1:1}
 	Name                       string
 	CircuitID                  string
 	Port                       string
@@ -94,9 +95,9 @@ type VoltServiceCfg struct {
 	RemoteIDType               string
 	DataRateAttr               string
 	ServiceType                string
-	MacAddr                    net.HardwareAddr
-	RemoteID                   []byte
 	Pbits                      []of.PbitType
+	RemoteID                   []byte
+	MacAddr                    net.HardwareAddr
 	Trigger                    ServiceTrigger
 	MacLearning                MacLearningType
 	ONTEtherTypeClassification int
@@ -155,8 +156,8 @@ type VoltServiceOper struct {
 
 // VoltService structure
 type VoltService struct {
-	VoltServiceOper
 	Version string
+	VoltServiceOper
 	VoltServiceCfg
 }
 
@@ -214,6 +215,7 @@ func NewVoltService(cfg *VoltServiceCfg) *VoltService {
 	vs.Ipv6Addr = net.ParseIP("::")
 	vs.PendingFlows = make(map[string]bool)
 	vs.AssociatedFlows = make(map[string]bool)
+	vs.FlowPushCount = make(map[string]int64)
 	return &vs
 }
 
