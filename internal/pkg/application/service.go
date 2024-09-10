@@ -82,7 +82,8 @@ const (
 // MacAddress -	The MAC hardware address learnt on the UNI interface
 // MacAddresses - Not yet implemented. To be used to learn more MAC addresses
 type VoltServiceCfg struct {
-	Pbits                      []of.PbitType
+	FlowPushCount              map[string]int64 // Tracks the number of flow install/delete failure attempts per cookie in order to throttle flow auditing
+	DsRemarkPbitsMap           map[int]int      // Ex: Remark case {0:0,1:0} and No-remark case {1:1}
 	Name                       string
 	CircuitID                  string
 	Port                       string
@@ -94,7 +95,7 @@ type VoltServiceCfg struct {
 	RemoteIDType               string
 	DataRateAttr               string
 	ServiceType                string
-	DsRemarkPbitsMap           map[int]int // Ex: Remark case {0:0,1:0} and No-remark case {1:1}
+	Pbits                      []of.PbitType
 	RemoteID                   []byte
 	MacAddr                    net.HardwareAddr
 	ONTEtherTypeClassification int
@@ -116,14 +117,13 @@ type VoltServiceCfg struct {
 	DsPonSTagPriority          of.PbitType
 	DsPonCTagPriority          of.PbitType
 	VlanControl                VlanControl
+	ServiceDeactivateReason    SvcDeactivateReason // Mentions why the service was deactivated
 	IsOption82Enabled          bool
 	IgmpEnabled                bool
 	McastService               bool
 	AllowTransparent           bool
 	EnableMulticastKPI         bool
 	IsActivated                bool
-	FlowPushCount              map[string]uint32   // Tracks the number of flow install/delete failure attempts per cookie in order to throttle flow auditing
-	ServiceDeactivateReason    SvcDeactivateReason // Mentions why the service was deactivated
 }
 
 // VoltServiceOper structure
@@ -156,8 +156,8 @@ type VoltServiceOper struct {
 
 // VoltService structure
 type VoltService struct {
-	VoltServiceOper
 	Version string
+	VoltServiceOper
 	VoltServiceCfg
 }
 
@@ -215,7 +215,7 @@ func NewVoltService(cfg *VoltServiceCfg) *VoltService {
 	vs.Ipv6Addr = net.ParseIP("::")
 	vs.PendingFlows = make(map[string]bool)
 	vs.AssociatedFlows = make(map[string]bool)
-	vs.FlowPushCount = make(map[string]uint32)
+	vs.FlowPushCount = make(map[string]int64)
 	return &vs
 }
 

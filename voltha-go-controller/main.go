@@ -131,7 +131,7 @@ func main() {
 	if logLevel, err = log.StringToLogLevel(config.LogLevel); err != nil {
 		logLevel = log.DebugLevel
 	}
-	if err = log.SetDefaultLogger(ctx, int(logLevel), log.Fields{"instanceId": config.InstanceID}); err != nil {
+	if err = log.SetDefaultLogger(ctx, int8(logLevel), log.Fields{"instanceId": config.InstanceID}); err != nil {
 		logger.With(ctx, log.Fields{"error": err}, "Cannot setup logging")
 	}
 
@@ -139,7 +139,7 @@ func main() {
 	if err = log.UpdateAllLoggers(log.Fields{"instanceId": config.InstanceID}); err != nil {
 		logger.With(ctx, log.Fields{"error": err}, "Cannot setup logging")
 	}
-	log.SetAllLogLevel(int(logLevel))
+	log.SetAllLogLevel(int8(logLevel))
 
 	if vgcInfo.kvClient, err = newKVClient(ctx, config.KVStoreType, config.KVStoreEndPoint, config.KVStoreTimeout); err != nil {
 		logger.Errorw(ctx, "KVClient Establishment Failure", log.Fields{"Reason": err})
@@ -165,8 +165,8 @@ func main() {
 	if dblogLevel, err = dbHandler.Get(ctx, db.GetKeyPath(db.LogLevelPath)); err == nil {
 		logger.Infow(ctx, "Read log-level from db", log.Fields{"logLevel": logLevel})
 		storedLogLevel, _ := log.StringToLogLevel(dblogLevel)
-		log.SetAllLogLevel(int(storedLogLevel))
-		log.SetDefaultLogLevel(int(storedLogLevel))
+		log.SetAllLogLevel(int8(storedLogLevel))
+		log.SetDefaultLogLevel(int8(storedLogLevel))
 	}
 
 	// Check if Data Migration is required
