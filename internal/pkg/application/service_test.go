@@ -224,7 +224,7 @@ func TestVoltService_FlowRemoveFailure(t *testing.T) {
 			switch tt.name {
 			case "VoltService_FlowRemoveFailure":
 				associatedFlows := map[string]bool{}
-				flowPushCountMap := map[string]uint32{}
+				flowPushCountMap := map[string]int64{}
 				associatedFlows["test_cookie"] = true
 				vs := &VoltService{
 					VoltServiceOper: VoltServiceOper{
@@ -237,7 +237,7 @@ func TestVoltService_FlowRemoveFailure(t *testing.T) {
 				vs.FlowRemoveFailure(tt.args.cntx, tt.args.cookie, tt.args.errorCode, tt.args.errReason, nil)
 			case "cookie_not_found":
 				associatedFlows := map[string]bool{}
-				flowPushCountMap := map[string]uint32{}
+				flowPushCountMap := map[string]int64{}
 				associatedFlows["cookie"] = true
 				vs := &VoltService{
 					VoltServiceOper: VoltServiceOper{
@@ -560,7 +560,7 @@ func TestVoltService_FlowInstallSuccess(t *testing.T) {
 			pendingFlows := map[string]bool{}
 			pendingFlows["test_cookie"] = true
 			associatedFlows := map[string]bool{}
-			flowPushCountMap := map[string]uint32{}
+			flowPushCountMap := map[string]int64{}
 			associatedFlows["test_cookie"] = true
 			vs := &VoltService{
 				VoltServiceOper: VoltServiceOper{
@@ -2357,7 +2357,7 @@ func TestVoltService_FlowInstallFailure(t *testing.T) {
 	pendingFlows["test_cookie"] = true
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowPushCountMap := map[string]uint32{}
+			flowPushCountMap := map[string]int64{}
 			vs := &VoltService{
 				VoltServiceOper: VoltServiceOper{},
 				VoltServiceCfg: VoltServiceCfg{
@@ -2396,7 +2396,7 @@ func TestVoltService_FlowRemoveSuccess(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowPushCountMap := map[string]uint32{}
+			flowPushCountMap := map[string]int64{}
 			vs := &VoltService{
 				VoltServiceOper: VoltServiceOper{
 					Device: test_device,

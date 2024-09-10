@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -48,7 +47,7 @@ func DeviceIDForGetAll() []string {
 		defer resp.Body.Close()
 	}
 
-	body, readErr := ioutil.ReadAll(resp.Body)
+	body, readErr := io.ReadAll(resp.Body)
 	if readErr != nil {
 		//fmt.Errorf("Error while reading device id list details: %s", readErr)
 		return nil
@@ -89,7 +88,7 @@ func GetAPIData(path string) ([]byte, error) {
 		defer resp.Body.Close()
 	}
 
-	body, readErr := ioutil.ReadAll(resp.Body)
+	body, readErr := io.ReadAll(resp.Body)
 	if readErr != nil {
 		return nil, fmt.Errorf("Error while reading api command output details: %s", readErr)
 	}
