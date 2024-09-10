@@ -163,7 +163,7 @@ func TestProcessServiceFlowAddEvent(t *testing.T) {
 		flowEventMap *util.ConcurrentMap
 	}
 
-	flowPushCountMap := make(map[string]uint32)
+	flowPushCountMap := make(map[string]int64)
 	vs := &VoltService{
 		VoltServiceCfg: VoltServiceCfg{
 			FlowPushCount: flowPushCountMap,
@@ -254,7 +254,7 @@ func TestProcessServiceFlowDelEvent(t *testing.T) {
 		flowEventMap *util.ConcurrentMap
 	}
 
-	flowPushCountMap := make(map[string]uint32)
+	flowPushCountMap := make(map[string]int64)
 	vs := &VoltService{
 		VoltServiceCfg: VoltServiceCfg{
 			FlowPushCount: flowPushCountMap,

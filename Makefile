@@ -52,7 +52,7 @@ TEST_TARGETS := test-default test-verbose test-short
 test-short: ARGS=-short
 test-verbose: ARGS=-v
 # tool containers
-VOLTHA_TOOLS_VERSION ?= 2.4.0
+VOLTHA_TOOLS_VERSION ?= 3.1.0
 
 HADOLINT          = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-hadolint hadolint
 GOLANGCI_LINT     = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golangci-lint golangci-lint
@@ -93,7 +93,7 @@ vgcctl:
 
 docker: exe vgcctl
 	@echo Building Docker $(DOCKER_NAME)....
-	sudo docker build -t $(IMAGENAME) -f docker/Dockerfile.voltha-go-controller .
+	sudo docker build --platform=linux/amd64 -t $(IMAGENAME) -f docker/Dockerfile.voltha-go-controller .
 
 ## Docker targets
 build:	local-protos local-lib-go docker  ## Build voltha-go-controller image
@@ -106,7 +106,7 @@ sca: ## Runs static code analysis with the golangci-lint tool
 	@rm -rf ./sca-report
 	@mkdir -p ./sca-report
 	@echo "Running static code analysis..."
-	@${GOLANGCI_LINT} run -vv --deadline=6m --out-format junit-xml ./... | tee ./sca-report/sca-report.xml
+	@${GOLANGCI_LINT} run -vv --out-format junit-xml ./... | tee ./sca-report/sca-report.xml
 	@echo ""
 	@echo "Static code analysis OK"
 

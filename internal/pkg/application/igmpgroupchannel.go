@@ -674,6 +674,7 @@ func (igc *IgmpGroupChannel) SendLeaveToServer() {
 }
 
 // NumReceivers returns total number of receivers left on the group
+// #nosec G115
 func (igc *IgmpGroupChannel) NumReceivers() uint32 {
 	return uint32(len(igc.CurReceivers) + len(igc.NewReceivers))
 }

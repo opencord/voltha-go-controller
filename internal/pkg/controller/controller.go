@@ -74,7 +74,7 @@ type VoltController struct {
 	rebootLock              sync.Mutex
 	deviceTableSyncDuration time.Duration // Time interval between each cycle of audit task
 	maxFlowRetryDuration    time.Duration // Maximum duration for which flows will be retried upon failures
-	maxFlowRetryAttempts    uint32        // maxFlowRetryAttempt = maxFlowRetryDuration / deviceTableSyncDuration
+	maxFlowRetryAttempts    int64         // maxFlowRetryAttempt = maxFlowRetryDuration / deviceTableSyncDuration
 	RebootFlow              bool
 }
 
@@ -109,7 +109,7 @@ func (v *VoltController) SetMaxFlowRetryDuration(duration int) {
 
 // SetMaxFlowRetryAttempts - sets max flow retry attempts
 func (v *VoltController) SetMaxFlowRetryAttempts() {
-	v.maxFlowRetryAttempts = uint32((v.maxFlowRetryDuration / v.deviceTableSyncDuration))
+	v.maxFlowRetryAttempts = int64((v.maxFlowRetryDuration / v.deviceTableSyncDuration))
 }
 
 // GetDeviceTableSyncDuration - returns configured device table sync duration
@@ -118,7 +118,7 @@ func (v *VoltController) GetDeviceTableSyncDuration() time.Duration {
 }
 
 // GetMaxFlowRetryAttempt - returns max flow retry attempst
-func (v *VoltController) GetMaxFlowRetryAttempt() uint32 {
+func (v *VoltController) GetMaxFlowRetryAttempt() int64 {
 	return v.maxFlowRetryAttempts
 }
 
