@@ -30,7 +30,7 @@ import (
 )
 
 // PbitType type
-type PbitType uint16
+type PbitType uint8
 
 // TODO: Port related constants - OF specifies a different value
 // for controller. Need to make sure this is correct

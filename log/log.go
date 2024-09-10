@@ -58,7 +58,7 @@ func AddPackageWithDefaultParam() (CLogger, error) {
 }
 
 // AddPackage registers a package to the log map
-func AddPackage(level int) (*CLogger, error) {
+func AddPackage(level int8) (*CLogger, error) {
 	var cLogger *CLogger
 	logger, err := log.RegisterPackage(log.JSON, log.LogLevel(level), log.Fields{})
 	if err == nil {
@@ -84,12 +84,12 @@ func (cl CLogger) With(ctx context.Context, keysAndValues Fields, msg string) {
 }
 
 // SetAllLogLevel sets the log level of all registered packages to level
-func SetAllLogLevel(level int) {
+func SetAllLogLevel(level int8) {
 	log.SetAllLogLevel(log.LogLevel(level))
 }
 
 // SetDefaultLogLevel sets the log level used for packages that don't have specific loggers
-func SetDefaultLogLevel(level int) {
+func SetDefaultLogLevel(level int8) {
 	log.SetDefaultLogLevel(log.LogLevel(level))
 }
 
@@ -101,7 +101,7 @@ func UpdateAllLoggers(defaultFields Fields) error {
 
 // SetDefaultLogger needs to be invoked before the logger API can be invoked.  This function
 // initialize the default logger (zap's sugaredlogger)
-func SetDefaultLogger(ctx context.Context, level int, defaultFields Fields) error {
+func SetDefaultLogger(ctx context.Context, level int8, defaultFields Fields) error {
 	_, err := log.SetDefaultLogger(log.JSON, log.LogLevel(level), log.Fields(defaultFields))
 	return err
 }

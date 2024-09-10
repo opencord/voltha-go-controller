@@ -1080,13 +1080,13 @@ func (d *Device) isSBOperAllowed(forceAction bool) bool {
 // IsFlowDelThresholdReached - check if the attempts for flow delete has reached threshold or not
 func (d *Device) IsFlowDelThresholdReached(flowCount uint32, cookie uint64) bool {
 	logger.Debugw(ctx, "Check flow delete threshold", log.Fields{"Cookie": cookie, "FlowCount": flowCount})
-	return flowCount >= GetController().GetMaxFlowRetryAttempt()
+	return flowCount >= uint32(GetController().GetMaxFlowRetryAttempt())
 }
 
 // IsFlowAddThresholdReached - check if the attempts for flow add has reached threshold or not
 func (d *Device) IsFlowAddThresholdReached(flowCount uint32, cookie uint64) bool {
 	logger.Debugw(ctx, "Check flow add threshold", log.Fields{"Cookie": cookie, "FlowCount": flowCount})
-	return flowCount >= GetController().GetMaxFlowRetryAttempt()
+	return flowCount >= uint32(GetController().GetMaxFlowRetryAttempt())
 }
 
 func (d *Device) UpdateFlowCount(cntx context.Context, cookie uint64) {

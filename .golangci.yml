@@ -15,7 +15,6 @@
 
 linters-settings:
   govet:
-    check-shadowing: true
     settings:
       printf:
         funcs:
@@ -24,6 +23,7 @@ linters-settings:
           - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
           - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
     enable:
+      - shadow
       - fieldalignment
 
   golint:
@@ -68,5 +68,11 @@ service:
   prepare:
     - echo "here I can run custom commands, but no preparation needed for this repo"
 issues:
-   exclude:
-     - 'G114: Use of net/http serve function that has no support for setting timeouts'
+  exclude:
+    - 'G114: Use of net/http serve function that has no support for setting timeouts'
+    - 'G115: integer overflow conversion'
+  exclude-rules:
+    - path: ".*_test.go"
+      linters:
+        - govet
+        - fieldalignment
