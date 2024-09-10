@@ -408,7 +408,7 @@ var vapplication *VoltApplication
 type VoltAppInterface interface {
 	AddVnet(cntx context.Context, cfg VnetConfig, oper *VnetOper) error
 	AddService(cntx context.Context, cfg VoltServiceCfg, oper *VoltServiceOper) error
-	AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID int) error
+	AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID uint16) error
 	GetFlowProvisionStatus(portNo string) FlowProvisionStatus
 	DelServiceWithPrefix(cntx context.Context, prefix string) error
 	GetDevice(device string) *VoltDevice
@@ -493,7 +493,7 @@ type DeviceConfig struct {
 	IPAddress          string `json:"ipAddress"`
 	UplinkPort         string `json:"uplinkPort"`
 	NasID              string `json:"nasId"`
-	NniDhcpTrapVid     int    `json:"nniDhcpTrapVid"`
+	NniDhcpTrapVid     uint16 `json:"nniDhcpTrapVid"`
 }
 
 // PonPortCfg contains NB port config and activeIGMPChannels count
@@ -532,7 +532,10 @@ func (va *VoltApplication) RestoreNbDeviceFromDb(cntx context.Context, deviceID 
 			continue
 		}
 		logger.Debugw(ctx, "Port recovered", log.Fields{"port": port})
-		ponPortID, _ := strconv.Atoi(key)
+		ponPortID, err := strconv.ParseUint(key, 10, 32)
+		if err != nil {
+			logger.Errorw(ctx, "Error converting string to uint32:", log.Fields{"deviceID": deviceID, "error": err})
+		}
 		nbDevice.PonPorts.Store(uint32(ponPortID), &port)
 	}
 	va.NbDevice.Store(deviceID, nbDevice)
@@ -607,7 +610,7 @@ func (dc *DeviceConfig) WriteDeviceConfigToDb(cntx context.Context, serialNum st
 	return nil
 }
 
-func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID int) error {
+func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID uint16) error {
 	logger.Debugw(ctx, "Received Add device config", log.Fields{"SerialNumber": serialNum, "HardwareIdentifier": hardwareIdentifier, "NasID": nasID, "IPAddress": ipAddress, "UplinkPort": uplinkPort, "NniDhcpTrapID": nniDhcpTrapID})
 	var dc *DeviceConfig
 
@@ -751,11 +754,12 @@ func (d *VoltDevice) UnRegisterFlowEvent(cookie string, flowModType of.Command) 
 // AddIgmpGroups to add Igmp groups.
 func (va *VoltApplication) AddIgmpGroups(numOfGroups uint32) {
 	logger.Debugw(ctx, "AddIgmpGroups", log.Fields{"NumOfGroups": numOfGroups})
+	var i uint32
 	//TODO: Temp change to resolve group id issue in pOLT
 	//for i := 1; uint32(i) <= numOfGroups; i++ {
-	for i := 2; uint32(i) <= (numOfGroups + 1); i++ {
+	for i = 2; i <= (numOfGroups + 1); i++ {
 		ig := IgmpGroup{}
-		ig.GroupID = uint32(i)
+		ig.GroupID = i
 		va.IgmpGroupIds = append(va.IgmpGroupIds, &ig)
 	}
 }

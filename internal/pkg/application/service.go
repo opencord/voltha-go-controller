@@ -117,7 +117,7 @@ type VoltServiceCfg struct {
 	AllowTransparent           bool
 	EnableMulticastKPI         bool
 	IsActivated                bool
-	FlowPushCount              map[string]uint32   // Tracks the number of flow install/delete failure attempts per cookie in order to throttle flow auditing
+	FlowPushCount              map[string]int64    // Tracks the number of flow install/delete failure attempts per cookie in order to throttle flow auditing
 	ServiceDeactivateReason    SvcDeactivateReason // Mentions why the service was deactivated
 }
 
@@ -210,7 +210,7 @@ func NewVoltService(cfg *VoltServiceCfg) *VoltService {
 	vs.Ipv6Addr = net.ParseIP("::")
 	vs.PendingFlows = make(map[string]bool)
 	vs.AssociatedFlows = make(map[string]bool)
-	vs.FlowPushCount = make(map[string]uint32)
+	vs.FlowPushCount = make(map[string]int64)
 	return &vs
 }
 
