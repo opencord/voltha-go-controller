@@ -659,7 +659,12 @@ func (va *VoltApplication) AggActiveChannelsCountPerSub(device, uniPort string, 
 		}
 		if portChannels, ok := igd.PortChannelMap.Load(uniPort); ok {
 			channelList := portChannels.([]net.IP)
-			activeChannelCount += uint32(len(channelList))
+			channelLength := len(channelList)
+			// Check if the length exceeds uint32's maximum value
+			if channelLength > int(^uint32(0)) {
+				logger.Error(ctx, "Error converting string to uint32")
+			}
+			activeChannelCount += uint32(channelLength)
 		}
 		return true
 	}
@@ -1207,7 +1212,7 @@ func (va *VoltApplication) GetMvlanProfileByName(name string) *MvlanProfile {
 }
 
 // UpdateMvlanProfile - only channel groups be updated
-func (va *VoltApplication) UpdateMvlanProfile(cntx context.Context, name string, vlan of.VlanType, groups map[string][]string, activeChannelCount int, proxy map[string]common.MulticastGroupProxy) error {
+func (va *VoltApplication) UpdateMvlanProfile(cntx context.Context, name string, vlan of.VlanType, groups map[string][]string, activeChannelCount uint32, proxy map[string]common.MulticastGroupProxy) error {
 	mvpIntf, ok := va.MvlanProfilesByName.Load(name)
 	if !ok {
 		logger.Error(ctx, "Update Mvlan Failed: Profile does not exist")
@@ -1485,7 +1490,7 @@ func (va *VoltApplication) RestoreMcastConfigsFromDb(cntx context.Context) {
 
 // AddMvlanProfile for addition of a MVLAN profile
 func (va *VoltApplication) AddMvlanProfile(cntx context.Context, name string, mvlan of.VlanType, ponVlan of.VlanType,
-	groups map[string][]string, isChannelBasedGroup bool, OLTSerialNum []string, activeChannelsPerPon int, proxy map[string]common.MulticastGroupProxy) error {
+	groups map[string][]string, isChannelBasedGroup bool, OLTSerialNum []string, activeChannelsPerPon uint32, proxy map[string]common.MulticastGroupProxy) error {
 	var mvp *MvlanProfile
 
 	if mvp = va.GetMvlanProfileByTag(mvlan); mvp != nil {
@@ -1504,7 +1509,7 @@ func (va *VoltApplication) AddMvlanProfile(cntx context.Context, name string, mv
 	}
 
 	if mvp == nil {
-		mvp = NewMvlanProfile(name, mvlan, ponVlan, isChannelBasedGroup, OLTSerialNum, uint32(activeChannelsPerPon))
+		mvp = NewMvlanProfile(name, mvlan, ponVlan, isChannelBasedGroup, OLTSerialNum, activeChannelsPerPon)
 	}
 
 	va.storeMvlansMap(mvlan, name, mvp)
@@ -1712,10 +1717,10 @@ func (va *VoltApplication) UpdateIgmpProfile(cntx context.Context, igmpProfileCo
 	}
 
 	igmpProfile.ProfileID = igmpProfileConfig.ProfileID
-	igmpProfile.UnsolicitedTimeOut = uint32(igmpProfileConfig.UnsolicitedTimeOut)
-	igmpProfile.MaxResp = uint32(igmpProfileConfig.MaxResp)
+	igmpProfile.UnsolicitedTimeOut = igmpProfileConfig.UnsolicitedTimeOut
+	igmpProfile.MaxResp = igmpProfileConfig.MaxResp
 
-	keepAliveInterval := uint32(igmpProfileConfig.KeepAliveInterval)
+	keepAliveInterval := igmpProfileConfig.KeepAliveInterval
 
 	// KeepAliveInterval should have a min of 10 seconds
 	if keepAliveInterval < MinKeepAliveInterval {
@@ -1724,12 +1729,12 @@ func (va *VoltApplication) UpdateIgmpProfile(cntx context.Context, igmpProfileCo
 	}
 	igmpProfile.KeepAliveInterval = keepAliveInterval
 
-	igmpProfile.KeepAliveCount = uint32(igmpProfileConfig.KeepAliveCount)
-	igmpProfile.LastQueryInterval = uint32(igmpProfileConfig.LastQueryInterval)
-	igmpProfile.LastQueryCount = uint32(igmpProfileConfig.LastQueryCount)
+	igmpProfile.KeepAliveCount = igmpProfileConfig.KeepAliveCount
+	igmpProfile.LastQueryInterval = igmpProfileConfig.LastQueryInterval
+	igmpProfile.LastQueryCount = igmpProfileConfig.LastQueryCount
 	igmpProfile.FastLeave = *igmpProfileConfig.FastLeave
 	igmpProfile.PeriodicQuery = *igmpProfileConfig.PeriodicQuery
-	igmpProfile.IgmpCos = uint8(igmpProfileConfig.IgmpCos)
+	igmpProfile.IgmpCos = igmpProfileConfig.IgmpCos
 	igmpProfile.WithRAUpLink = *igmpProfileConfig.WithRAUpLink
 	igmpProfile.WithRADownLink = *igmpProfileConfig.WithRADownLink
 
