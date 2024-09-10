@@ -6,8 +6,8 @@ package mocks
 
 import (
 	context "context"
-	reflect "reflect"
 	voltha "github.com/opencord/voltha-protos/v5/go/voltha"
+	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
 	empty "github.com/golang/protobuf/ptypes/empty"

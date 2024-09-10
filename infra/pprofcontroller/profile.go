@@ -1,3 +1,4 @@
+//go:build profile
 // +build profile
 
 /*
@@ -21,9 +22,9 @@ import (
 	"net/http"
 
 	// using for init
+	"context"
 	_ "net/http/pprof"
 	"voltha-go-controller/log"
-	"context"
 )
 
 var logger log.CLogger

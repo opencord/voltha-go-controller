@@ -17,7 +17,7 @@ package nbi
 
 import (
 	//"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -48,7 +48,7 @@ func (fh *FlowHashHandle) PutFlowHash(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 	logger.Infow(ctx, "Received Put Device flow hash", log.Fields{"DeviceID": id})
 
-	reqBody, readErr := ioutil.ReadAll(r.Body)
+	reqBody, readErr := io.ReadAll(r.Body)
 	if readErr != nil {
 		logger.Errorw(ctx, "Failed to read put flowhash request", log.Fields{"DeviceID": id, "Error": readErr.Error()})
 		w.WriteHeader(http.StatusInternalServerError)
