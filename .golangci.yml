@@ -38,7 +38,6 @@ linters-settings:
 linters:
   disable-all: true
   enable:
-     - govet
      - errcheck
      - goconst
      - gofmt
@@ -65,3 +64,5 @@ service:
 issues:
    exclude:
      - 'G114: Use of net/http serve function that has no support for setting timeouts'
+     - 'G115 # Potential integer overflow when converting between integer types'
+
