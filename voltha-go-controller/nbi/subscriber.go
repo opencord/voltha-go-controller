@@ -43,7 +43,7 @@ type SubscriberDeviceInfo struct {
 	CircuitID          string              `json:"circuitId"`
 	RemoteID           string              `json:"remoteId"`
 	UniTagList         []UniTagInformation `json:"uniTagList"`
-	NniDhcpTrapVid     int                 `json:"nniDhcpTrapVid"`
+	NniDhcpTrapVid     uint16              `json:"nniDhcpTrapVid"`
 	Slot               int                 `json:"slot"`
 }
 

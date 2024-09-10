@@ -1309,7 +1309,7 @@ func TestVoltApplication_AddDeviceConfig(t *testing.T) {
 		nasID              string
 		ipAddress          string
 		uplinkPort         string
-		nniDhcpTrapID      int
+		nniDhcpTrapID      uint16
 	}
 	dvcConfg := &DeviceConfig{
 		SerialNumber:       "SDX6320031",

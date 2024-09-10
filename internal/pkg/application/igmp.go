@@ -659,7 +659,12 @@ func (va *VoltApplication) AggActiveChannelsCountPerSub(device, uniPort string, 
 		}
 		if portChannels, ok := igd.PortChannelMap.Load(uniPort); ok {
 			channelList := portChannels.([]net.IP)
-			activeChannelCount += uint32(len(channelList))
+			channelLength := len(channelList)
+			// Check if the length exceeds uint32's maximum value
+			if channelLength > int(^uint32(0)) {
+				logger.Error(ctx, "Error converting string to uint32")
+			}
+			activeChannelCount += uint32(channelLength)
 		}
 		return true
 	}
