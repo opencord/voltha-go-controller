@@ -153,7 +153,7 @@ func (iph *MulticastHandle) addMvlan(cntx context.Context, w http.ResponseWriter
 	voltAppIntr = voltApp
 	if err := voltAppIntr.AddMvlanProfile(cntx, config.Name, config.Mvlan, config.PonVlan, config.Groups,
 		config.IsChannelBasedGroup, config.OLTSerialNum,
-		255, config.Proxy); err != nil {
+		uint32(255), config.Proxy); err != nil {
 		logger.Errorw(ctx, "northbound-add-mvlan-failed", log.Fields{"mvlan": config.Name, "Reason": err.Error()})
 		http.Error(w, err.Error(), http.StatusConflict)
 		return

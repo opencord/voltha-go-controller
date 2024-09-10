@@ -162,6 +162,7 @@ func TestProcessServiceFlowAddEvent(t *testing.T) {
 		flowStatus   intf.FlowStatus
 		flowEventMap *util.ConcurrentMap
 	}
+
 	vs := &VoltService{
 		VoltServiceCfg: VoltServiceCfg{},
 	}
@@ -249,6 +250,7 @@ func TestProcessServiceFlowDelEvent(t *testing.T) {
 		flowStatus   intf.FlowStatus
 		flowEventMap *util.ConcurrentMap
 	}
+
 	vs := &VoltService{
 		VoltServiceCfg: VoltServiceCfg{},
 	}

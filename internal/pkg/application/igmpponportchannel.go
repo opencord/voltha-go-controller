@@ -56,6 +56,7 @@ func NewPonPortChannels() *PonPortChannels {
 
 // GetActiveChannelCount returns the number of active channel count
 // for this pon port in the current group.
+// #nosec G115
 func (ponPortChannels *PonPortChannels) GetActiveChannelCount() uint32 {
 	return uint32(ponPortChannels.ChannelList.Length())
 }
