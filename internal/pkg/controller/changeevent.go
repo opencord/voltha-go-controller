@@ -68,7 +68,6 @@ func (cet *ChangeEventTask) Stop() {
 func (cet *ChangeEventTask) Start(ctx context.Context, taskID uint8) error {
 	cet.taskID = taskID
 	cet.ctx = ctx
-
 	if status, ok := cet.event.Event.(*ofp.ChangeEvent_PortStatus); ok {
 		portNo := status.PortStatus.Desc.PortNo
 		portName := status.PortStatus.Desc.Name
@@ -77,12 +76,10 @@ func (cet *ChangeEventTask) Start(ctx context.Context, taskID uint8) error {
 		if status.PortStatus.Reason == ofp.OfpPortReason_OFPPR_ADD {
 			_ = cet.device.AddPort(ctx, status.PortStatus.Desc)
 			if state == uint32(ofp.OfpPortState_OFPPS_LIVE) {
-				cet.device.ProcessPortState(ctx, portNo, state)
+				cet.device.ProcessPortState(ctx, portNo, state, portName)
 			}
 		} else if status.PortStatus.Reason == ofp.OfpPortReason_OFPPR_DELETE {
-			if err := cet.device.DelPort(ctx, portNo, portName); err != nil {
-				logger.Warnw(ctx, "DelPort Failed", log.Fields{"Port No": portNo, "Error": err})
-			}
+			cet.device.CheckAndDeletePort(ctx, portNo, portName)
 		} else if status.PortStatus.Reason == ofp.OfpPortReason_OFPPR_MODIFY {
 			cet.device.ProcessPortUpdate(ctx, portName, portNo, state)
 		}

@@ -22,6 +22,7 @@ import (
 	onosnbi "voltha-go-controller/voltha-go-controller/onos_nbi"
 
 	"github.com/gorilla/mux"
+	"github.com/opencord/voltha-lib-go/v7/pkg/probe"
 
 	"voltha-go-controller/log"
 )
@@ -29,6 +30,9 @@ import (
 var logger log.CLogger
 var ctx = context.TODO()
 
+const (
+	VGCService = "vgc-nbi-rest"
+)
 const (
 	BasePath                          string = "/vgc/v1"
 	SubscribersPath                   string = "/subscribers/{id}"
@@ -67,6 +71,11 @@ const (
 
 // RestStart to execute for API
 func RestStart() {
+	// If the context contains a k8s probe then register services
+	p := probe.GetProbeFromContext(ctx)
+	if p != nil {
+		p.RegisterService(ctx, VGCService)
+	}
 	mu := mux.NewRouter()
 	logger.Info(ctx, "Rest Server Starting...")
 	mu.HandleFunc(BasePath+SubscribersPath, (&SubscriberHandle{}).ServeHTTP)
@@ -103,6 +112,9 @@ func RestStart() {
 	mu.HandleFunc(BasePath+FlowProvisionStatus, (&SubscriberHandle{}).StatusServeHTTP)
 
 	err := http.ListenAndServe(":8181", mu)
+	if p != nil {
+		p.UpdateStatus(ctx, VGCService, probe.ServiceStatusRunning)
+	}
 	logger.Infow(ctx, "Rest Server Started", log.Fields{"Error": err})
 }
 

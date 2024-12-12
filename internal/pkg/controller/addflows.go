@@ -93,7 +93,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 				if err.Error() == ErrDuplicateFlow {
 					dbFlow, _ := aft.device.GetFlow(flow.Cookie)
 					if dbFlow.State == of.FlowAddSuccess {
-						aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil, true)
+						aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
 						flowsPresent++
 						continue
 					}
@@ -109,7 +109,8 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 				// aft.device.AddFlowToDb(dbFlow)
 				flowsToProcess[flow.Cookie] = dbFlow
 			}
-			aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil, false)
+			// Below call will delete flow from DB and will not allow to maintain flow count and state. Hence commenting the below call.
+			//aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil, false)
 		}
 	}
 
@@ -126,7 +127,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 			for _, flow := range aft.flow.SubFlows {
 				logger.Warnw(ctx, "Skip Flow Update", log.Fields{"Reason": "Port Deleted", "PortName": aft.flow.PortName, "PortNo": aft.flow.PortID, "Cookie": flow.Cookie, "Operation": aft.flow.Command})
 				if aft.flow.Command == of.CommandDel {
-					aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil, true)
+					aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
 				}
 			}
 			return nil
@@ -162,7 +163,7 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 				}
 				break
 			}
-			aft.device.triggerFlowNotification(ctx, flow.FlowMod.Cookie, aft.flow.Command, of.BwAvailDetails{}, err, true)
+			aft.device.triggerFlowNotification(ctx, flow.FlowMod.Cookie, aft.flow.Command, of.BwAvailDetails{}, err)
 		} else {
 			logger.Errorw(ctx, "Update Flow Table Failed: Voltha Client Unavailable", log.Fields{"Flow": flow})
 		}

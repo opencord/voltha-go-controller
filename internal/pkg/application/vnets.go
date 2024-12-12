@@ -314,7 +314,7 @@ func (va *VoltApplication) AddVnet(cntx context.Context, cfg VnetConfig, oper *V
 			devicesToHandle = append(devicesToHandle, serialNum)
 		}
 		if len(devicesToHandle) == 0 {
-			logger.Debugw(ctx, "Ignoring Duplicate VNET by name ", log.Fields{"Vnet": cfg.Name})
+			logger.Warnw(ctx, "Ignoring Duplicate VNET by name ", log.Fields{"Vnet": cfg.Name})
 			AppMutex.VnetMutex.Unlock()
 			return nil
 		}
@@ -761,7 +761,7 @@ func (vpv *VoltPortVnet) PushFlowsForPortVnet(cntx context.Context, d *VoltDevic
 func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, port string) {
 	logger.Infow(ctx, "Port UP Ind, pushing flows for the port", log.Fields{"Device": device, "Port": port, "VnetDhcp": vpv.DhcpRelay, "McastService": vpv.McastService})
 	if vpv.DeleteInProgress {
-		logger.Warnw(ctx, "Ignoring VPV Port UP Ind, VPV deleteion In-Progress", log.Fields{"Device": device, "Port": port, "Vnet": vpv.VnetName})
+		logger.Warnw(ctx, "Ignoring VPV Port UP Ind, VPV deletion In-Progress", log.Fields{"Device": device, "Port": port, "Vnet": vpv.VnetName})
 		return
 	}
 	vpv.setDevice(device.Name)
@@ -856,7 +856,7 @@ func (vpv *VoltPortVnet) PortDownInd(cntx context.Context, device string, port s
 		return
 	}
 	logger.Infow(ctx, "VPV Port DOWN Ind, deleting all flows for services",
-		log.Fields{"service count": vpv.servicesCount.Load()})
+		log.Fields{"service count": vpv.servicesCount.Load(), "Port": port})
 
 	//vpv.RangeOnServices(cntx, DelAllFlows)
 	vpv.DelTrapFlows(cntx)
@@ -977,6 +977,16 @@ func (vpv *VoltPortVnet) MatchesPriority(priority uint8) *VoltService {
 	return service
 }
 
+func (vpv *VoltPortVnet) GetSvcFromVPV() *VoltService {
+	var service *VoltService
+	vpv.services.Range(func(key, value interface{}) bool {
+		service = value.(*VoltService)
+		logger.Debugw(ctx, "Get Service from VPV", log.Fields{"Service": value})
+		return false
+	})
+	return service
+}
+
 // GetRemarkedPriority : If the VNET matches priority of the incoming packet with any service, return true. Else, return false
 func (vpv *VoltPortVnet) GetRemarkedPriority(priority uint8) uint8 {
 	logger.Debugw(ctx, "Get Remarked Priority", log.Fields{"Priority": priority})
@@ -1064,7 +1074,7 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 
 	voltDevice, err := GetApplication().GetDeviceFromPort(vpv.Port)
 	if err != nil {
-		logger.Warnw(ctx, "Not pushing Service Flows: Error Getting Device", log.Fields{"Reason": err.Error()})
+		logger.Errorw(ctx, "Not pushing Service Flows: Error Getting Device", log.Fields{"Reason": err.Error()})
 		// statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		// TODO-COMM: 		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 		return
@@ -1078,7 +1088,7 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 	devConfig := GetApplication().GetDeviceConfig(voltDevice.SerialNum)
 
 	if devConfig.UplinkPort != voltDevice.NniPort {
-		logger.Warnw(ctx, "NNI port mismatch", log.Fields{"NB NNI Port": devConfig.UplinkPort, "SB NNI port": voltDevice.NniPort})
+		logger.Errorw(ctx, "NNI port mismatch", log.Fields{"NB NNI Port": devConfig.UplinkPort, "SB NNI port": voltDevice.NniPort})
 		return
 	}
 	// Push Service Flows if DHCP relay is not configured
@@ -1308,7 +1318,7 @@ func (vpv *VoltPortVnet) DelTrapFlows(cntx context.Context) {
 
 // DelHsiaFlows deletes the service flows
 func (vpv *VoltPortVnet) DelHsiaFlows(cntx context.Context, delFlowsInDevice bool) {
-	logger.Infow(ctx, "Received Delete Hsia Flows", log.Fields{"McastService": vpv.McastService})
+	logger.Debugw(ctx, "Received Delete Hsia Flows", log.Fields{"McastService": vpv.McastService})
 	// no HSIA flows for multicast service
 	if !vpv.McastService {
 		vpv.RangeOnServices(cntx, DelUsHsiaFlows, delFlowsInDevice)
@@ -1597,7 +1607,7 @@ func (vpv *VoltPortVnet) DelUsPppoeFlows(cntx context.Context) error {
 // Write the status of the VPV to the DB once the delete is scheduled
 // for dispatch
 func (vpv *VoltPortVnet) DelDsPppoeFlows(cntx context.Context) error {
-	logger.Debugw(ctx, "Deleting DS PPPoE flows", log.Fields{"STAG": vpv.SVlan, "CTAG": vpv.CVlan, "Device": vpv.Device})
+	logger.Infow(ctx, "Deleting DS PPPoE flows", log.Fields{"STAG": vpv.SVlan, "CTAG": vpv.CVlan, "Device": vpv.Device})
 	device, err := GetApplication().GetDeviceFromPort(vpv.Port)
 	if err != nil {
 		return fmt.Errorf("DS PPPoE Flow Delete Failed : DeviceName %s : %w", device.Name, err)
@@ -2401,15 +2411,20 @@ func (va *VoltApplication) GetServiceFromCvlan(device, port string, vlans []of.V
 		case ONUCVlan,
 			None:
 			service = vnet.MatchesPriority(priority)
-			// In case of DHCP Flow - cvlan == VlanNone
 			// In case of HSIA Flow - cvlan == Svlan
-			if len(vlans) == 1 && (vlans[0] == vnet.SVlan || vlans[0] == of.VlanNone) && service != nil {
+			// In case of DHCP flow, match for cvlan as we are setting cvlan for DHCP flows
+			if len(vlans) == 1 && (vlans[0] == vnet.CVlan || vlans[0] == of.VlanNone) && (service != nil && service.IsActivated) {
 				return service
 			}
-		case OLTCVlanOLTSVlan,
-			OLTSVlan:
+		case OLTCVlanOLTSVlan:
 			service = vnet.MatchesPriority(priority)
 			if len(vlans) == 1 && vlans[0] == vnet.UniVlan && service != nil {
+				return service
+			}
+		case OLTSVlan:
+			// For OLTSVlan, return only the active service attached to the VPV.
+			service = vnet.GetSvcFromVPV()
+			if service != nil && service.IsActivated {
 				return service
 			}
 		default:
@@ -2696,7 +2711,7 @@ func (va *VoltApplication) DeleteDevFlowForDevice(cntx context.Context, device *
 
 // DeleteDevFlowForVlanFromDevice to delete icmpv6 flow for vlan from device
 func (va *VoltApplication) DeleteDevFlowForVlanFromDevice(cntx context.Context, vnet *VoltVnet, deviceSerialNum string) {
-	logger.Debugw(ctx, "DeleteDevFlowForVlanFromDevice", log.Fields{"Device-serialNum": deviceSerialNum, "SVlan": vnet.SVlan, "CVlan": vnet.CVlan})
+	logger.Infow(ctx, "DeleteDevFlowForVlanFromDevice", log.Fields{"Device-serialNum": deviceSerialNum, "SVlan": vnet.SVlan, "CVlan": vnet.CVlan})
 	delflows := func(key interface{}, value interface{}) bool {
 		device := value.(*VoltDevice)
 		if device.SerialNum != deviceSerialNum {

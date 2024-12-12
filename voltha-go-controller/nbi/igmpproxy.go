@@ -34,6 +34,10 @@ import (
 	"voltha-go-controller/log"
 )
 
+const (
+	mvlan = "mvlan"
+)
+
 // IgmpProxy - configurations
 type IgmpProxy struct {
 	FastLeave               string `json:"fastleave"`
@@ -103,14 +107,14 @@ func (iph *IgmpProxyHandle) addIgmpProxy(cntx context.Context, w http.ResponseWr
 	voltApp := app.GetApplication()
 	voltAppIntr = voltApp
 	if mvp := voltAppIntr.GetMvlanProfileByTag(of.VlanType(req.OutgoingIgmpVlanID)); mvp == nil {
-		logger.Errorw(ctx, "MVLAN ID not configured", log.Fields{"mvlan": req.OutgoingIgmpVlanID})
+		logger.Errorw(ctx, "MVLAN ID not configured", log.Fields{mvlan: req.OutgoingIgmpVlanID})
 		http.Error(w, "MVLAN profile does not exists", http.StatusConflict)
 		return
 	}
 	config.OltSerialNum = req.SourceDeviceAndPort
 	var splits = strings.Split(req.SourceDeviceAndPort, "/")
 	config.OltSerialNum = splits[0]
-	config.MvlanProfileID = "mvlan" + strconv.Itoa(req.OutgoingIgmpVlanID)
+	config.MvlanProfileID = mvlan + strconv.Itoa(req.OutgoingIgmpVlanID)
 
 	logger.Infow(ctx, "northbound-add-igmpProxy-request", log.Fields{"config": config})
 

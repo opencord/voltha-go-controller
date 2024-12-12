@@ -150,7 +150,7 @@ func TestProcessUsIgmpFlowAddEvent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ProcessUsIgmpFlowAddEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus, nil)
+			ProcessUsIgmpFlowAddEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 		})
 	}
 }
@@ -162,12 +162,8 @@ func TestProcessServiceFlowAddEvent(t *testing.T) {
 		flowStatus   intf.FlowStatus
 		flowEventMap *util.ConcurrentMap
 	}
-
-	flowPushCountMap := make(map[string]uint32)
 	vs := &VoltService{
-		VoltServiceCfg: VoltServiceCfg{
-			FlowPushCount: flowPushCountMap,
-		},
+		VoltServiceCfg: VoltServiceCfg{},
 	}
 
 	tests := []struct {
@@ -202,7 +198,7 @@ func TestProcessServiceFlowAddEvent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ProcessServiceFlowAddEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus, tt.args.flowEventMap)
+			ProcessServiceFlowAddEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 		})
 	}
 }
@@ -241,7 +237,7 @@ func TestProcessControlFlowAddEvent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ProcessControlFlowAddEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus, nil)
+			ProcessControlFlowAddEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 		})
 	}
 }
@@ -253,12 +249,8 @@ func TestProcessServiceFlowDelEvent(t *testing.T) {
 		flowStatus   intf.FlowStatus
 		flowEventMap *util.ConcurrentMap
 	}
-
-	flowPushCountMap := make(map[string]uint32)
 	vs := &VoltService{
-		VoltServiceCfg: VoltServiceCfg{
-			FlowPushCount: flowPushCountMap,
-		},
+		VoltServiceCfg: VoltServiceCfg{},
 	}
 
 	tests := []struct {
@@ -294,7 +286,7 @@ func TestProcessServiceFlowDelEvent(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
-			ProcessServiceFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus, tt.args.flowEventMap)
+			ProcessServiceFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 		})
 	}
 }
@@ -336,7 +328,7 @@ func TestProcessControlFlowDelEvent(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
-			ProcessControlFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus, nil)
+			ProcessControlFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 		})
 	}
 }
@@ -381,7 +373,7 @@ func TestProcessMcastFlowDelEvent(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutMvlan(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
-			ProcessMcastFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus, nil)
+			ProcessMcastFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 		})
 	}
 }
@@ -431,9 +423,9 @@ func TestProcessDeviceFlowDelEvent(t *testing.T) {
 				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 				db = dbintf
 				dbintf.EXPECT().PutVnet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil).AnyTimes()
-				ProcessDeviceFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus, nil)
+				ProcessDeviceFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 			case "ProcessDeviceFlowDelEvent_else_condition":
-				ProcessDeviceFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus, nil)
+				ProcessDeviceFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 			}
 		})
 	}

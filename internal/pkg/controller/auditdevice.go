@@ -121,7 +121,7 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 				// This port exists in the received list and the map at
 				// VGC. This is common so delete it
 				logger.Infow(ctx, "Port State Mismatch", log.Fields{"Port": vgcPort.ID, "OfpPort": ofpPort.PortNo, "ReceivedState": ofpPort.State, "CurrentState": vgcPort.State})
-				ad.device.ProcessPortState(ctx, ofpPort.PortNo, ofpPort.State)
+				ad.device.ProcessPortState(ctx, ofpPort.PortNo, ofpPort.State, ofpPort.Name)
 			} else {
 				//To ensure the flows are in sync with port status and no mismatch due to reboot,
 				// repush/delete flows based on current port status
@@ -179,7 +179,7 @@ func (ad *AuditDevice) AddMissingPorts(cntx context.Context, mps map[uint32]*ofp
 			logger.Warnw(ctx, "AddPort Failed", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name, "Reason": err})
 		}
 		if mp.State == uint32(ofp.OfpPortState_OFPPS_LIVE) {
-			ad.device.ProcessPortState(cntx, mp.PortNo, mp.State)
+			ad.device.ProcessPortState(cntx, mp.PortNo, mp.State, mp.Name)
 		}
 		logger.Debugw(ctx, "Processed Port Add Ind", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name})
 	}

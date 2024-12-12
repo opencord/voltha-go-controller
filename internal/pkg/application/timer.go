@@ -17,6 +17,7 @@ package application
 
 import (
 	"context"
+	"sync"
 	"time"
 	"voltha-go-controller/log"
 )
@@ -34,7 +35,7 @@ var timerMap = map[TimerType]bool{
 	pendingPoolTimer: false,
 }
 
-var timerChannels = make(map[TimerType](chan bool))
+var timerChannels = sync.Map{}
 
 // TimerCfg structure
 type TimerCfg struct {
@@ -49,7 +50,8 @@ func (va *VoltApplication) Start(cntx context.Context, cfg TimerCfg, timerType T
 		return
 	}
 	timerMap[timerType] = true
-	timerChannels[timerType] = make(chan bool)
+	ch := make(chan bool)
+	timerChannels.Store(timerType, ch)
 	for {
 		select {
 		case <-time.After(cfg.tick):
@@ -59,7 +61,7 @@ func (va *VoltApplication) Start(cntx context.Context, cfg TimerCfg, timerType T
 			case pendingPoolTimer:
 				va.removeExpiredGroups(cntx)
 			}
-		case <-timerChannels[timerType]:
+		case <-ch:
 			return
 		}
 	}
@@ -67,7 +69,11 @@ func (va *VoltApplication) Start(cntx context.Context, cfg TimerCfg, timerType T
 
 // StopTimer to stop timers
 func StopTimer() {
-	for _, ch := range timerChannels {
+	timerChannels.Range(func(key, value interface{}) bool {
+		ch := value.(chan bool)
 		ch <- true
-	}
+		/* Range calls function sequentially for each key and value present in the map.
+		If function returns false, range stops the iteration. */
+		return true
+	})
 }
