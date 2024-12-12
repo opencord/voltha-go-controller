@@ -428,6 +428,7 @@ type VoltSubFlow struct {
 	TableID   uint32
 	Priority  uint32
 	State     uint8
+	FlowCount uint32
 }
 
 // NewVoltSubFlow is constructor for VoltSubFlow
@@ -741,7 +742,7 @@ func NewSetVlanAction(vlan uint16) *ofp.OfpAction {
 	and := (vlan & 0xfff)
 	or := and + 0x1000
 	v := uint32(vlan&0x0fff + 0x1000)
-	logger.Infow(ctx, "Vlan Construction", log.Fields{"Vlan": vlan, "vlan&0x0fff": and, "OR": or, "final": v})
+	logger.Debugw(ctx, "Vlan Construction", log.Fields{"Vlan": vlan, "vlan&0x0fff": and, "OR": or, "final": v})
 	setField.Value = &ofp.OfpOxmOfbField_VlanVid{
 		VlanVid: uint32(vlan&0x0fff + 0x1000),
 	}

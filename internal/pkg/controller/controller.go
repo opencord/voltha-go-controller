@@ -266,9 +266,8 @@ func (v *VoltController) ProcessFlowModResultIndication(cntx context.Context, fl
 	v.app.ProcessFlowModResultIndication(cntx, flowStatus)
 }
 
-// IsFlowDelThresholdReached - check if the attempts for flow delete has reached threshold or not
-func (v *VoltController) IsFlowDelThresholdReached(cntx context.Context, cookie string, device string) bool {
-	return v.app.IsFlowDelThresholdReached(cntx, cookie, device)
+func (v *VoltController) CheckAndDeactivateService(ctx context.Context, flow *of.VoltSubFlow, devSerialNum string, devID string) {
+	v.app.CheckAndDeactivateService(ctx, flow, devSerialNum, devID)
 }
 
 // AddVPAgent to add the vpagent

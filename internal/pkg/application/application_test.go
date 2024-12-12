@@ -332,9 +332,6 @@ func TestVoltApplication_TriggerPendingServiceDeleteReq(t *testing.T) {
 		},
 	}
 
-	servicesToDel := map[string]bool{}
-	servicesToDel["SCOM00001c75-1_SCOM00001c75-1-4096-2310-4096-65"] = true
-
 	tests := []struct {
 		name string
 		args args
@@ -350,12 +347,13 @@ func TestVoltApplication_TriggerPendingServiceDeleteReq(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			va := &VoltApplication{
-				ServicesToDelete: servicesToDel,
+				ServicesToDelete: sync.Map{},
 				ServiceByName:    sync.Map{},
 				DevicesDisc:      sync.Map{},
 			}
 
 			va.ServiceByName.Store("SCOM00001c75-1_SCOM00001c75-1-4096-2310-4096-65", voltServ)
+			va.ServicesToDelete.Store("SCOM00001c75-1_SCOM00001c75-1-4096-2310-4096-65", true)
 
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
@@ -2767,8 +2765,7 @@ func TestVoltApplication_TriggerPendingServiceDeactivateReq(t *testing.T) {
 		cntx   context.Context
 		device string
 	}
-	ServicesDeactivate := map[string]bool{}
-	ServicesDeactivate["SDX6320031-1_SDX6320031-1-4096-2310-4096-65"] = true
+
 	voltServ := &VoltService{
 		VoltServiceOper: VoltServiceOper{
 			Device: "SDX6320031",
@@ -2813,12 +2810,13 @@ func TestVoltApplication_TriggerPendingServiceDeactivateReq(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			va := &VoltApplication{
-				ServicesToDeactivate: ServicesDeactivate,
+				ServicesToDeactivate: sync.Map{},
 				ServiceByName:        sync.Map{},
 				VnetsByPort:          sync.Map{},
 			}
 			va.ServiceByName.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", voltServ)
 			va.VnetsByPort.Store("16777472", voltPortVnets)
+			va.ServicesToDeactivate.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", true)
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()

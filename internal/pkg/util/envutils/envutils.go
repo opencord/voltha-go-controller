@@ -87,14 +87,16 @@ const (
 	MaxFlowRetryDuration      = "MAX_FLOW_RETRY_DURATION"
 	// openonu environment variables
 
-	OmciPacketCapture = "SAVE_OMCI_PACKET_CAPTURE"
+	OmciPacketCapture   = "SAVE_OMCI_PACKET_CAPTURE"
+	Undefined           = " undefined"
+	EnvironmentVariable = "Environment variable "
 )
 
 // ParseStringEnvVariable reads the environment variable and returns env as string
 func ParseStringEnvVariable(envVarName string, defaultVal string) string {
 	envValue := os.Getenv(envVarName)
 	if envValue == "" {
-		fmt.Println("Environment variable " + envVarName + " undefined")
+		fmt.Println(EnvironmentVariable + envVarName + Undefined)
 		return defaultVal
 	}
 	return envValue
@@ -104,7 +106,7 @@ func ParseStringEnvVariable(envVarName string, defaultVal string) string {
 func ParseIntEnvVariable(envVarName string, defaultVal int64) int64 {
 	envValue := os.Getenv(envVarName)
 	if envValue == "" {
-		fmt.Println("Environment variable "+envVarName+" undefined", envVarName)
+		fmt.Println(EnvironmentVariable+envVarName+Undefined, envVarName)
 		return defaultVal
 	}
 	returnVal, err := strconv.Atoi(envValue)
@@ -119,7 +121,7 @@ func ParseIntEnvVariable(envVarName string, defaultVal int64) int64 {
 func ParseBoolEnvVariable(envVarName string, defaultVal bool) bool {
 	envValue := os.Getenv(envVarName)
 	if envValue == "" {
-		fmt.Println("Environment variable " + envVarName + " undefined")
+		fmt.Println(EnvironmentVariable + envVarName + Undefined)
 		return defaultVal
 	}
 	if envValue == "true" || envValue == "True" {

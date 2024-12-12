@@ -18,6 +18,7 @@ package util
 import (
 	"encoding/binary"
 	"net"
+	"strconv"
 	"strings"
 
 	"voltha-go-controller/internal/pkg/of"
@@ -130,6 +131,34 @@ func GetExpIPList(ips []string) []net.IP {
 		}
 	}
 	return ipList
+}
+
+// GetUniFromMetadata returns uni port from write metadata of DS flows.
+func GetUniFromMetadata(metadata uint64) uint32 {
+	return uint32(metadata & 0xFFFFFFFF)
+}
+
+// GetUniFromDSDhcpFlow returns uni port from the flow cookie
+func GetUniFromDSDhcpFlow(cookie uint64) uint32 {
+	uniport := uint32(cookie >> 16)
+	uniport = uniport & 0xFFFFFFFF
+	return uniport
+}
+
+// GetUniPortFromFlow returns uni port from the flow data
+func GetUniPortFromFlow(nniPort string, flow *of.VoltSubFlow) uint32 {
+	var portNo uint32
+	if nniPort == strconv.Itoa(int(flow.Match.InPort)) {
+		if of.IPProtocolUDP == flow.Match.L4Protocol {
+			// For DHCP DS flow, uniport is not part of metadata. Hence retrieve it from cookie
+			portNo = GetUniFromDSDhcpFlow(flow.Cookie)
+		} else {
+			portNo = GetUniFromMetadata(flow.Action.Metadata)
+		}
+	} else {
+		portNo = flow.Match.InPort
+	}
+	return portNo
 }
 
 // MacAddrsMatch for comparison of MAC addresses and return true if MAC addresses matches

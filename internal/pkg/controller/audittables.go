@@ -257,7 +257,7 @@ func (att *AuditTablesTask) AuditFlows(cntx context.Context) error {
 			break
 		}
 
-		logger.Debugw(ctx, "Auditing Flow", log.Fields{"Cookie": flow.Cookie})
+		logger.Debugw(ctx, "Auditing Flow", log.Fields{"Cookie": flow.Cookie, "State": flow.State})
 		if _, ok := rcvdFlows[flow.Cookie]; ok {
 			// The flow exists in the device too. Just remove it from
 			// the received flows & trigger flow success indication unless
@@ -265,13 +265,26 @@ func (att *AuditTablesTask) AuditFlows(cntx context.Context) error {
 
 			if flow.State != of.FlowDelFailure && flow.State != of.FlowDelPending {
 				delete(rcvdFlows, flow.Cookie)
+			} else {
+				// Update flow delete count since we are retrying the flow delete due to failure
+				att.device.UpdateFlowCount(cntx, flow.Cookie)
 			}
 			defaultSuccessFlowStatus.Cookie = strconv.FormatUint(flow.Cookie, 10)
 		} else {
 			// The flow exists at the controller but not at the device
 			// Push the flow to the device
 			logger.Debugw(ctx, "Adding Flow To Missing Flows", log.Fields{"Cookie": flow.Cookie})
-			flowsToAdd.SubFlows[flow.Cookie] = flow
+			if !att.device.IsFlowAddThresholdReached(flow.FlowCount, flow.Cookie) {
+				flowsToAdd.SubFlows[flow.Cookie] = flow
+				att.device.UpdateFlowCount(cntx, flow.Cookie)
+			} else if flow.State != of.FlowDelFailure {
+				// Release the lock before deactivating service, as we acquire the same lock to delete flows
+				att.device.flowLock.Unlock()
+				// If flow add threshold has reached, deactivate the service corresponding to the UNI
+				GetController().CheckAndDeactivateService(cntx, flow, att.device.SerialNum, att.device.ID)
+				// Acquire the lock again for processing remaining flows
+				att.device.flowLock.Lock()
+			}
 		}
 	}
 	att.device.flowLock.Unlock()
@@ -301,10 +314,8 @@ func (att *AuditTablesTask) AddMissingFlows(cntx context.Context, mflow *of.Volt
 		return
 	}
 	for _, flow := range ofFlows {
-		var dbFlow *of.VoltSubFlow
-		var present bool
 		if flow.FlowMod != nil {
-			if dbFlow, present = att.device.GetFlow(flow.FlowMod.Cookie); !present {
+			if _, present := att.device.GetFlow(flow.FlowMod.Cookie); !present {
 				logger.Warnw(ctx, "Flow Removed from DB. Ignoring Add Missing Flow", log.Fields{"Device": att.device.ID, "Cookie": flow.FlowMod.Cookie})
 				continue
 			}
@@ -313,7 +324,7 @@ func (att *AuditTablesTask) AddMissingFlows(cntx context.Context, mflow *of.Volt
 		if _, err = vc.UpdateLogicalDeviceFlowTable(att.ctx, flow); err != nil {
 			logger.Errorw(ctx, "Update Flow Table Failed", log.Fields{"Reason": err.Error()})
 		}
-		att.device.triggerFlowResultNotification(cntx, flow.FlowMod.Cookie, dbFlow, of.CommandAdd, bwConsumedInfo, err, true)
+		att.device.triggerFlowNotification(cntx, flow.FlowMod.Cookie, of.CommandAdd, bwConsumedInfo, err)
 	}
 }
 
@@ -329,13 +340,13 @@ func (att *AuditTablesTask) DelExcessFlows(cntx context.Context, flows map[uint6
 
 	// Let's cycle through the flows to delete the excess flows
 	for _, flow := range flows {
-		if _, present := att.device.GetFlow(flow.Cookie); present {
-			logger.Warnw(ctx, "Flow Present in DB. Ignoring Delete Excess Flow", log.Fields{"Device": att.device.ID, "Cookie": flow.Cookie})
-			continue
-		}
-
-		if flag := GetController().IsFlowDelThresholdReached(cntx, strconv.FormatUint(flow.Cookie, 10), att.device.ID); flag {
-			logger.Warnw(ctx, "Flow delete threshold reached, skipping flow delete", log.Fields{"Device": att.device.ID, "Cookie": flow.Cookie})
+		if dbFlow, present := att.device.GetFlow(flow.Cookie); present {
+			if dbFlow.State != of.FlowDelFailure && dbFlow.State != of.FlowDelPending {
+				logger.Warnw(ctx, "Flow Present in DB. Ignoring Delete Excess Flow", log.Fields{"Device": att.device.ID, "Cookie": flow.Cookie})
+				continue
+			}
+		} else {
+			logger.Debugw(ctx, "Flow removed from DB after delete threshold reached. Ignoring Delete Excess Flow", log.Fields{"Device": att.device.ID, "Cookie": flow.Cookie})
 			continue
 		}
 
@@ -365,7 +376,7 @@ func (att *AuditTablesTask) DelExcessFlows(cntx context.Context, flows map[uint6
 		if _, err = vc.UpdateLogicalDeviceFlowTable(att.ctx, flowUpdate); err != nil {
 			logger.Errorw(ctx, "Flow Audit Delete Failed", log.Fields{"Reason": err.Error()})
 		}
-		att.device.triggerFlowResultNotification(cntx, flow.Cookie, nil, of.CommandDel, of.BwAvailDetails{}, err, true)
+		att.device.triggerFlowNotification(cntx, flow.Cookie, of.CommandDel, of.BwAvailDetails{}, err)
 	}
 }
 
@@ -562,11 +573,16 @@ func (att *AuditTablesTask) AuditPorts() error {
 		logger.Debugw(ctx, "Process Port State Ind", log.Fields{"Port No": vgcPort.ID, "Port Name": vgcPort.Name})
 
 		if ofpPort, ok := missingPorts[id]; ok {
+			if vgcPort.Name != ofpPort.Name {
+				logger.Infow(ctx, "Port Name Mismatch", log.Fields{"vgcPort": vgcPort.Name, "ofpPort": ofpPort.Name, "ID": id})
+				att.DeleteMismatchPorts(ctx, vgcPort, ofpPort.Name)
+				return
+			}
 			if ((vgcPort.State == PortStateDown) && (ofpPort.State == uint32(ofp.OfpPortState_OFPPS_LIVE))) || ((vgcPort.State == PortStateUp) && (ofpPort.State != uint32(ofp.OfpPortState_OFPPS_LIVE))) {
 				// This port exists in the received list and the map at
 				// VGC. This is common so delete it
 				logger.Infow(ctx, "Port State Mismatch", log.Fields{"Port": vgcPort.ID, "OfpPort": ofpPort.PortNo, "ReceivedState": ofpPort.State, "CurrentState": vgcPort.State})
-				att.device.ProcessPortState(ctx, ofpPort.PortNo, ofpPort.State)
+				att.device.ProcessPortState(ctx, ofpPort.PortNo, ofpPort.State, ofpPort.Name)
 			}
 			delete(missingPorts, id)
 		} else {
@@ -613,7 +629,7 @@ func (att *AuditTablesTask) AddMissingPorts(cntx context.Context, mps map[uint32
 			logger.Warnw(ctx, "AddPort Failed", log.Fields{"No": mp.PortNo, "Name": mp.Name, "Reason": err})
 		}
 		if mp.State == uint32(ofp.OfpPortState_OFPPS_LIVE) {
-			att.device.ProcessPortState(cntx, mp.PortNo, mp.State)
+			att.device.ProcessPortState(cntx, mp.PortNo, mp.State, mp.Name)
 		}
 		logger.Debugw(ctx, "Processed Port Add Ind", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name})
 	}
@@ -640,5 +656,14 @@ func (att *AuditTablesTask) DelExcessPorts(cntx context.Context, eps map[uint32]
 		if err := att.device.DelPort(cntx, ep.ID, ep.Name); err != nil {
 			logger.Warnw(ctx, "DelPort Failed", log.Fields{"PortId": portNo, "Reason": err})
 		}
+	}
+}
+
+func (att *AuditTablesTask) DeleteMismatchPorts(cntx context.Context, vgcPort *DevicePort, ofpPortName string) {
+	logger.Infow(ctx, "Deleting port in VGC due to mismatch with voltha", log.Fields{"vgcPortID": vgcPort.ID, "vgcPortName": vgcPort.Name})
+	_ = att.device.DelPort(cntx, vgcPort.ID, vgcPort.Name)
+	if p := att.device.GetPortByName(ofpPortName); p != nil {
+		logger.Infow(ctx, "Delete port by name in VGC due to mismatch with voltha", log.Fields{"portID": p.ID, "portName": p.Name})
+		_ = att.device.DelPort(cntx, p.ID, p.Name)
 	}
 }

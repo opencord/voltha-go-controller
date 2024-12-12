@@ -200,7 +200,7 @@ func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w ht
 	sVlan := of.VlanNone
 	cVlan := of.VlanNone
 	techProfile := uint16(0)
-	logger.Infow(ctx, "Received ActivateService request specific for portNo, sVlan, cVlan and techProfile", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile})
+	logger.Infow(ctx, "Received ActivateService request specific for portNo, sTag, cTag and tpID", log.Fields{"Port": portNo, "STag": sTag, "CTag": cTag, "TPID": tpID})
 
 	if len(sTag) > 0 {
 		sv, err := strconv.Atoi(sTag)
@@ -251,7 +251,7 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 	sVlan := of.VlanNone
 	cVlan := of.VlanNone
 	techProfile := uint16(0)
-	logger.Infow(ctx, "Received DeactivateService request specific for portNo, sVlan, cVlan and techProfile", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile})
+	logger.Infow(ctx, "Received DeactivateService request specific for portNo, sVlan, cVlan and techProfile", log.Fields{"Port": portNo, "SVlan": sTag, "CVlan": cTag, "techProfile": tpID})
 
 	if len(sTag) > 0 {
 		sv, err := strconv.Atoi(sTag)
@@ -290,7 +290,7 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 			return
 		}
 	}
-	logger.Debugw(ctx, "DeactivateService request specific for portNo, sVlan, cVlan and techProfile", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile})
+	logger.Debugw(ctx, "DeactivateService request specific for portNo, sVlan, cVlan and techProfile", log.Fields{"Port": portNo, "SVlan": sTag, "CVlan": cTag, "techProfile": tpID})
 }
 
 func (sa *ServiceAdapter) GetProgrammedSubscribers(cntx context.Context, w http.ResponseWriter, r *http.Request) {
