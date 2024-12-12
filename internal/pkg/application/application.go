@@ -203,6 +203,7 @@ func (vp *VoltPort) SetPortID(id uint32) {
 // NniPort:      The identity of the NNI port
 // Ports:        List of all ports added to the device
 type VoltDevice struct {
+	VoltDeviceIntr               VoltDevInterface
 	FlowAddEventMap              *util.ConcurrentMap //map[string]*FlowEvent
 	FlowDelEventMap              *util.ConcurrentMap //map[string]*FlowEvent
 	MigratingServices            *util.ConcurrentMap //<vnetID,<RequestID, MigrateServicesRequest>>
@@ -222,7 +223,6 @@ type VoltDevice struct {
 	NniDhcpTrapVid               of.VlanType
 	GlobalDhcpFlowAdded          bool
 	icmpv6GroupAdded             bool
-	VoltDeviceIntr               VoltDevInterface
 }
 
 type VoltDevInterface interface {
@@ -459,8 +459,8 @@ type VoltApplication struct {
 	IgmpPendingPool       map[string]map[*IgmpGroup]bool //[grpkey, map[groupObj]bool]  //mvlan_grpName/IP
 	macPortMap            map[string]string
 	VnetsToDelete         map[string]bool
-	ServicesToDelete      map[string]bool
-	ServicesToDeactivate  map[string]bool
+	ServicesToDelete      sync.Map
+	ServicesToDeactivate  sync.Map
 	PortAlarmProfileCache map[string]map[string]int // [portAlarmID][ThresholdLevelString]ThresholdLevel
 	vendorID              string
 	ServiceByName         sync.Map // [serName]*VoltService
@@ -700,8 +700,6 @@ func newVoltApplication() *VoltApplication {
 	va.IgmpPendingPool = make(map[string]map[*IgmpGroup]bool)
 	va.VnetsBySvlan = util.NewConcurrentMap()
 	va.VnetsToDelete = make(map[string]bool)
-	va.ServicesToDelete = make(map[string]bool)
-	va.ServicesToDeactivate = make(map[string]bool)
 	va.VoltPortVnetsToDelete = make(map[*VoltPortVnet]bool)
 	go va.Start(context.Background(), TimerCfg{tick: 100 * time.Millisecond}, tickTimer)
 	go va.Start(context.Background(), TimerCfg{tick: time.Duration(GroupExpiryTime) * time.Minute}, pendingPoolTimer)
@@ -924,6 +922,21 @@ func (va *VoltApplication) DelDevice(cntx context.Context, device string) {
 	} else {
 		logger.Warnw(ctx, "Device Doesn't Exist", log.Fields{"Device": device})
 	}
+}
+
+// CheckServiceExists to check if service exists for the given uniport and tech profile ID.
+func (va *VoltApplication) CheckServiceExists(port string, techProfID uint16) bool {
+	var serviceExists bool
+	va.ServiceByName.Range(func(key, existingServiceIntf interface{}) bool {
+		existingService := existingServiceIntf.(*VoltService)
+		if existingService.Port == port && existingService.TechProfileID == techProfID {
+			logger.Warnw(ctx, "Service already exists for same Port and TP. Ignoring add service request", log.Fields{"ExistingService": existingService.Name})
+			serviceExists = true
+			return false
+		}
+		return true
+	})
+	return serviceExists
 }
 
 // GetDeviceBySerialNo to get a device by serial number.
@@ -1772,35 +1785,60 @@ func (va *VoltApplication) ProcessFlowModResultIndication(cntx context.Context, 
 	}
 }
 
-// IsFlowDelThresholdReached - check if the attempts for flow delete has reached threshold or not
-func (va *VoltApplication) IsFlowDelThresholdReached(cntx context.Context, cookie string, device string) bool {
-	logger.Debugw(ctx, "Check flow delete threshold", log.Fields{"Cookie": cookie, "Device": device})
-	d := va.GetDevice(device)
-	if d == nil {
-		logger.Warnw(ctx, "Failed to get device during flow delete threshold check", log.Fields{"Cookie": cookie, "Device": device})
-		return false
+// CheckAndDeactivateService - check if the attempts for flow delete has reached threshold or not
+func (va *VoltApplication) CheckAndDeactivateService(ctx context.Context, flow *of.VoltSubFlow, devSerialNum string, devID string) {
+	logger.Debugw(ctx, "Check and Deactivate service", log.Fields{"Cookie": flow.Cookie, "FlowCount": flow.FlowCount, "DeviceSerial": devSerialNum})
+	if flow.FlowCount >= controller.GetController().GetMaxFlowRetryAttempt() {
+		devConfig := va.GetDeviceConfig(devSerialNum)
+		if devConfig != nil {
+			portNo := util.GetUniPortFromFlow(devConfig.UplinkPort, flow)
+			portName, err := va.GetPortName(portNo)
+			if err != nil {
+				logger.Warnw(ctx, "Error getting port name", log.Fields{"Reason": err.Error(), "PortID": portNo})
+				return
+			} else if portName == "" {
+				logger.Warnw(ctx, "Port does not exist", log.Fields{"PortID": portNo})
+				return
+			}
+			svc := va.GetServiceNameFromCookie(flow.Cookie, portName, uint8(of.PbitMatchNone), devID, flow.Match.TableMetadata)
+			if svc != nil {
+				va.DeactivateServiceForPort(ctx, svc, devID, portName)
+			}
+		}
 	}
+}
 
-	flowEventMap, err := d.GetFlowEventRegister(of.CommandDel)
-	if err != nil {
-		logger.Warnw(ctx, "Flow event map does not exists", log.Fields{"flowMod": of.CommandDel, "Error": err})
-		return false
+// DeactivateServiceForPort - deactivate service for given UNI and remove flows from DB, after max flow install threshold has reached
+func (va *VoltApplication) DeactivateServiceForPort(cntx context.Context, vs *VoltService, devID string, portName string) {
+	logger.Debugw(ctx, "Flow install threshold reached. Deactivating service", log.Fields{"Service": vs.Name, "Port": portName})
+
+	if devID == vs.Device && portName == vs.Port && vs.IsActivated {
+		vs.SetSvcDeactivationFlags(SvcDeacRsn_Controller)
+		va.ServiceByName.Store(vs.Name, vs)
+		vs.WriteToDb(cntx)
+		device, err := va.GetDeviceFromPort(portName)
+		if err != nil {
+			// Even if the port/device does not exists at this point in time, the deactivate request is succss.
+			// So no error is returned
+			logger.Warnw(ctx, "Error Getting Device", log.Fields{"Reason": err.Error(), "Port": portName})
+		}
+		p := device.GetPort(vs.Port)
+		if p != nil && (p.State == PortStateUp || !va.OltFlowServiceConfig.RemoveFlowsOnDisable) {
+			if vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan); vpv != nil {
+				// Port down call internally deletes all the flows
+				vpv.PortDownInd(cntx, device.Name, portName, true, true)
+				if vpv.IgmpEnabled {
+					va.ReceiverDownInd(cntx, device.Name, portName)
+				}
+			} else {
+				logger.Warnw(ctx, "VPV does not exists!!!", log.Fields{"Device": device.Name, "port": portName, "SvcName": vs.Name})
+			}
+			logger.Infow(ctx, "Service deactivated after flow install threshold", log.Fields{"Device": device.Name, "Service": vs.Name, "Port": portName})
+		}
+		vs.DeactivateInProgress = false
+		va.ServiceByName.Store(vs.Name, vs)
+		vs.WriteToDb(cntx)
 	}
-	flowEventMap.MapLock.Lock()
-	var event interface{}
-	if event, _ = flowEventMap.Get(cookie); event == nil {
-		logger.Warnw(ctx, "Event does not exist during flow delete threshold check", log.Fields{"Cookie": cookie})
-		flowEventMap.MapLock.Unlock()
-		return false
-	}
-	flowEventMap.MapLock.Unlock()
-	flowEvent := event.(*FlowEvent)
-	if vs, ok := flowEvent.eventData.(*VoltService); ok {
-		vs.ServiceLock.RLock()
-		defer vs.ServiceLock.RUnlock()
-		return vs.FlowPushCount[cookie] == controller.GetController().GetMaxFlowRetryAttempt()
-	}
-	return false
 }
 
 func pushFlowFailureNotif(flowStatus intf.FlowStatus) {
@@ -2131,46 +2169,51 @@ func (va *VoltApplication) TriggerPendingProfileDeleteReq(cntx context.Context, 
 
 // TriggerPendingServiceDeactivateReq - trigger pending service deactivate request
 func (va *VoltApplication) TriggerPendingServiceDeactivateReq(cntx context.Context, device string) {
-	logger.Infow(ctx, "Pending Services to be deactivated", log.Fields{"Count": len(va.ServicesToDeactivate)})
-	for serviceName := range va.ServicesToDeactivate {
-		logger.Debugw(ctx, "Trigger Service Deactivate", log.Fields{"Service": serviceName})
+	va.ServicesToDeactivate.Range(func(key, value interface{}) bool {
+		serviceName := key.(string)
 		if vs := va.GetService(serviceName); vs != nil {
 			if vs.Device == device {
 				logger.Infow(ctx, "Triggering Pending Service Deactivate", log.Fields{"Service": vs.Name})
 				vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan)
 				if vpv == nil {
 					logger.Warnw(ctx, "Vpv Not found for Service", log.Fields{"vs": vs.Name, "port": vs.Port, "Vnet": vs.VnetID})
-					continue
+					return true
 				}
-
 				vpv.DelTrapFlows(cntx)
 				vs.DelHsiaFlows(cntx)
+				// Set the flag to false and clear the SevicesToDeactivate map entry so that when core restarts, VGC will not
+				// try to deactivate the service again
+				vs.DeactivateInProgress = false
+				va.ServicesToDeactivate.Delete(serviceName)
 				vs.WriteToDb(cntx)
 				vpv.ClearServiceCounters(cntx)
 			}
 		} else {
-			logger.Warnw(ctx, "Pending Service Not found", log.Fields{"Service": serviceName})
+			logger.Warnw(ctx, "Pending Service Not found during Deactivate", log.Fields{"Service": serviceName})
 		}
-	}
+		return true
+	})
 }
 
 // TriggerPendingServiceDeleteReq - trigger pending service delete request
 func (va *VoltApplication) TriggerPendingServiceDeleteReq(cntx context.Context, device string) {
-	logger.Infow(ctx, "Pending Services to be deleted", log.Fields{"Count": len(va.ServicesToDelete)})
-	for serviceName := range va.ServicesToDelete {
-		logger.Debugw(ctx, "Trigger Service Delete", log.Fields{"Service": serviceName})
+	va.ServicesToDelete.Range(func(key, value interface{}) bool {
+		serviceName := key.(string)
 		if vs := va.GetService(serviceName); vs != nil {
 			if vs.Device == device {
 				logger.Infow(ctx, "Triggering Pending Service delete", log.Fields{"Service": vs.Name})
 				vs.DelHsiaFlows(cntx)
+				// Clear the SevicesToDelete map so that when core restarts, VGC will not try to deactivate the service again
+				va.ServicesToDelete.Delete(serviceName)
 				if vs.ForceDelete {
 					vs.DelFromDb(cntx)
 				}
 			}
 		} else {
-			logger.Warnw(ctx, "Pending Service Not found", log.Fields{"Service": serviceName})
+			logger.Warnw(ctx, "Pending Service Not found during Delete", log.Fields{"Service": serviceName})
 		}
-	}
+		return true
+	})
 }
 
 // TriggerPendingVpvDeleteReq - trigger pending VPV delete request

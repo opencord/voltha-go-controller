@@ -26,7 +26,6 @@ import (
 
 	"voltha-go-controller/log"
 
-	"github.com/opencord/voltha-lib-go/v7/pkg/probe"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc"
@@ -137,12 +136,6 @@ func (vpa *VPAgent) Run(ctx context.Context) {
 		log.Fields{
 			"voltha-endpoint": vpa.VolthaAPIEndPoint})
 
-	// If the context contains a k8s probe then register services
-	p := probe.GetProbeFromContext(ctx)
-	if p != nil {
-		p.RegisterService(ctx, "voltha")
-	}
-
 	vpa.events <- vpaEventStart
 
 	/*
@@ -185,7 +178,7 @@ func (vpa *VPAgent) Run(ctx context.Context) {
 				// connection to voltha
 				state = vpaStateConnecting
 				go func() {
-					if err := vpa.establishConnectionToVoltha(hdlCtx, p); err != nil {
+					if err := vpa.establishConnectionToVoltha(hdlCtx); err != nil {
 						logger.Fatalw(ctx, "voltha-connection-failed", log.Fields{"error": err})
 					}
 				}()
@@ -204,9 +197,6 @@ func (vpa *VPAgent) Run(ctx context.Context) {
 				}
 
 			case vpaEventVolthaDisconnected:
-				if p != nil {
-					p.UpdateStatus(ctx, "voltha", probe.ServiceStatusNotReady)
-				}
 				logger.Debug(ctx, "vpagent-voltha-disconnect-event")
 				if state == vpaStateConnected {
 					state = vpaStateDisconnected
@@ -218,7 +208,7 @@ func (vpa *VPAgent) Run(ctx context.Context) {
 					state = vpaStateConnecting
 					go func() {
 						hdlCtx, hdlDone = context.WithCancel(context.Background())
-						if err := vpa.establishConnectionToVoltha(hdlCtx, p); err != nil {
+						if err := vpa.establishConnectionToVoltha(hdlCtx); err != nil {
 							logger.Fatalw(ctx, "voltha-connection-failed", log.Fields{"error": err})
 						}
 					}()

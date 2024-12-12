@@ -39,6 +39,10 @@ import (
 	"github.com/opencord/voltha-lib-go/v7/pkg/probe"
 )
 
+const (
+	KVService = "kv-service"
+)
+
 // VgcInfo structure
 type VgcInfo struct {
 	kvClient kvstore.Client
@@ -110,6 +114,99 @@ func waitUntilKVStoreReachableOrMaxTries(ctx context.Context, config *VGCFlags) 
 	return nil
 }
 
+// This function checks the liveliness and readiness of the kv-store service and update the status in the probe.
+func MonitorKVStoreReadiness(ctx context.Context, config *VGCFlags) {
+	logger.Infow(ctx, "Start Monitoring KVStore Readiness...", log.Fields{"KVStoreType": config.KVStoreType, "Address": config.KVStoreEndPoint,
+		"LiveProbeInterval": config.LiveProbeInterval, "NotLiveProbeInterval": config.NotLiveProbeInterval})
+	// dividing the live probe interval by 2 to get updated status every 30s
+	timeout := config.LiveProbeInterval / 2
+	kvStoreChannel := make(chan bool, 1)
+
+	timeoutCtx, cancelFunc := context.WithTimeout(ctx, 2*time.Second)
+	kvStoreChannel <- vgcInfo.kvClient.IsConnectionUp(timeoutCtx)
+	cancelFunc()
+
+	for {
+		timeoutTimer := time.NewTimer(timeout)
+		select {
+		case liveliness := <-kvStoreChannel:
+			if !liveliness {
+				// kv-store not reachable or down, updating the status to not ready state
+				probe.UpdateStatusFromContext(ctx, KVService, probe.ServiceStatusNotReady)
+				timeout = config.NotLiveProbeInterval
+			} else {
+				// kv-store is reachable , updating the status to running state
+				probe.UpdateStatusFromContext(ctx, KVService, probe.ServiceStatusRunning)
+				timeout = config.LiveProbeInterval / 2
+			}
+
+			// Check if the timer has expired or not
+			if !timeoutTimer.Stop() {
+				<-timeoutTimer.C
+			}
+
+		case <-timeoutTimer.C:
+			// Check the status of the kv-store. Use timeout of 2 seconds to avoid forever blocking
+			timeoutCtx, cancelFunc := context.WithTimeout(ctx, 2*time.Second)
+
+			kvStoreChannel <- vgcInfo.kvClient.IsConnectionUp(timeoutCtx)
+			// Cleanup cancel func resources
+			cancelFunc()
+		}
+	}
+}
+
+func initializeKVStore(ctx context.Context, config *VGCFlags, logLevel log.LevelLog) {
+	var err error
+	var dblogLevel string
+	var p *probe.Probe
+
+	// k8s probe register services for KVStore
+	if value := ctx.Value(probe.ProbeContextKey); value != nil {
+		if _, ok := value.(*probe.Probe); ok {
+			p = value.(*probe.Probe)
+			p.RegisterService(
+				ctx,
+				KVService,
+			)
+		}
+	}
+
+	if vgcInfo.kvClient, err = newKVClient(ctx, config.KVStoreType, config.KVStoreEndPoint, config.KVStoreTimeout); err != nil {
+		logger.Errorw(ctx, "KVClient Establishment Failure", log.Fields{"error": err})
+	}
+
+	p.UpdateStatus(ctx, KVService, probe.ServiceStatusPreparing)
+	if dbHandler, err = db.Initialize(ctx, config.KVStoreType, config.KVStoreEndPoint, config.KVStoreTimeout); err != nil {
+		logger.Errorw(ctx, "unable-to-connect-to-db", log.Fields{"error": err})
+	}
+	p.UpdateStatus(ctx, KVService, probe.ServiceStatusPrepared)
+
+	db.SetDatabase(dbHandler)
+	logger.Infow(ctx, "verifying-KV-store-connectivity", log.Fields{"host": config.KVStoreHost,
+		"port": config.KVStorePort, "retries": config.ConnectionMaxRetries,
+		"retryInterval": config.ConnectionRetryDelay})
+
+	err = waitUntilKVStoreReachableOrMaxTries(ctx, config)
+	if err != nil {
+		p.UpdateStatus(ctx, KVService, probe.ServiceStatusNotReady)
+		logger.Fatalw(ctx, "Unable-to-connect-to-KV-store", log.Fields{"KVStoreType": config.KVStoreType, "Address": config.KVStoreEndPoint})
+	}
+
+	p.UpdateStatus(ctx, KVService, probe.ServiceStatusRunning)
+
+	logger.Info(ctx, "KV-store-reachable")
+	//Read if log-level is stored in DB
+	if dblogLevel, err = dbHandler.Get(ctx, db.GetKeyPath(db.LogLevelPath)); err == nil {
+		logger.Infow(ctx, "Read log-level from db", log.Fields{"logLevel": logLevel})
+		storedLogLevel, _ := log.StringToLogLevel(dblogLevel)
+		log.SetAllLogLevel(int(storedLogLevel))
+		log.SetDefaultLogLevel(int(storedLogLevel))
+	}
+
+	go MonitorKVStoreReadiness(ctx, config)
+}
+
 func main() {
 	// Environment variables processing
 	config := newVGCFlags()
@@ -118,8 +215,13 @@ func main() {
 	if config.Banner {
 		printBanner()
 	}
-	// Create a context adding the status update channel
+	/*
+	 * Create and start the liveness and readiness container management probes. This
+	 * is done in the main function so just in case the main starts multiple other
+	 * objects there can be a single probe end point for the process.
+	 */
 	p := &probe.Probe{}
+	go p.ListenAndServe(ctx, config.ProbeEndPoint)
 	ctx = context.WithValue(context.Background(), probe.ProbeContextKey, p)
 
 	pc.Init()
@@ -129,7 +231,6 @@ func main() {
 	// Setup default logger - applies for packages that do not have specific logger set
 	var logLevel log.LevelLog
 	var err error
-	var dblogLevel string
 	if logLevel, err = log.StringToLogLevel(config.LogLevel); err != nil {
 		logLevel = log.DebugLevel
 	}
@@ -143,40 +244,8 @@ func main() {
 	}
 	log.SetAllLogLevel(int(logLevel))
 
-	if vgcInfo.kvClient, err = newKVClient(ctx, config.KVStoreType, config.KVStoreEndPoint, config.KVStoreTimeout); err != nil {
-		logger.Errorw(ctx, "KVClient Establishment Failure", log.Fields{"Reason": err})
-	}
-
-	if dbHandler, err = db.Initialize(ctx, config.KVStoreType, config.KVStoreEndPoint, config.KVStoreTimeout); err != nil {
-		logger.Errorw(ctx, "unable-to-connect-to-db", log.Fields{"error": err})
-		return
-	}
-
-	db.SetDatabase(dbHandler)
-	logger.Infow(ctx, "verifying-KV-store-connectivity", log.Fields{"host": config.KVStoreHost,
-		"port": config.KVStorePort, "retries": config.ConnectionMaxRetries,
-		"retryInterval": config.ConnectionRetryDelay})
-
-	err = waitUntilKVStoreReachableOrMaxTries(ctx, config)
-	if err != nil {
-		logger.Fatalw(ctx, "Unable-to-connect-to-KV-store", log.Fields{"KVStoreType": config.KVStoreType, "Address": config.KVStoreEndPoint})
-	}
-
-	logger.Info(ctx, "KV-store-reachable")
-	//Read if log-level is stored in DB
-	if dblogLevel, err = dbHandler.Get(ctx, db.GetKeyPath(db.LogLevelPath)); err == nil {
-		logger.Infow(ctx, "Read log-level from db", log.Fields{"logLevel": logLevel})
-		storedLogLevel, _ := log.StringToLogLevel(dblogLevel)
-		log.SetAllLogLevel(int(storedLogLevel))
-		log.SetDefaultLogLevel(int(storedLogLevel))
-	}
-
-	// Check if Data Migration is required
-	// Migration has to be done before Initialzing the Kafka
-	if app.CheckIfMigrationRequired(ctx) {
-		logger.Debug(ctx, "Migration Initiated")
-		app.InitiateDataMigration(ctx)
-	}
+	// Done: TODO: Wrap it up properly and monitor the KV store to check for faults
+	initializeKVStore(ctx, config, logLevel)
 
 	defer func() {
 		err = log.CleanUp()
@@ -185,15 +254,12 @@ func main() {
 		}
 	}()
 
-	// TODO: Wrap it up properly and monitor the KV store to check for faults
-
-	/*
-	 * Create and start the liveness and readiness container management probes. This
-	 * is done in the main function so just in case the main starts multiple other
-	 * objects there can be a single probe end point for the process.
-	 */
-	go p.ListenAndServe(ctx, config.ProbeEndPoint)
-
+	// Check if Data Migration is required
+	// Migration has to be done before Initialzing the Kafka
+	if app.CheckIfMigrationRequired(ctx) {
+		logger.Debug(ctx, "Migration Initiated")
+		app.InitiateDataMigration(ctx)
+	}
 	app.GetApplication().ReadAllFromDb(ctx)
 	app.GetApplication().InitStaticConfig()
 	app.GetApplication().SetVendorID(config.VendorID)
@@ -218,6 +284,7 @@ func main() {
 	logger.Error(ctx, "Trigger Rest Server...")
 	go nbi.RestStart()
 	go vpa.Run(ctx)
+	// check the readiness and liveliness and update the probe status
 	//FIXME: Need to enhance CLI to use in docker environment
 	//go ProcessCli()
 	//go handler.MsgHandler()

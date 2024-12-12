@@ -23,6 +23,7 @@ import (
 	context "context"
 	reflect "reflect"
 	intf "voltha-go-controller/internal/pkg/intf"
+	"voltha-go-controller/internal/pkg/of"
 
 	gomock "github.com/golang/mock/gomock"
 )
@@ -213,12 +214,22 @@ func (m *MockApp) IsFlowDelThresholdReached(arg0 context.Context, arg1 string, a
 	return false
 }
 
+	// CheckAndDeactivateService mocks base method.
+	func (m *MockApp) CheckAndDeactivateService(arg0 context.Context, arg1 *of.VoltSubFlow, arg2 string, arg3 string) {
+		 m.ctrl.T.Helper()
+		m.ctrl.Call(m, "CheckAndDeactivateService", arg0, arg1, arg2, arg3)
+	 }
+
 // IsFlowDelThresholdReached indicates an expected call of IsFlowDelThresholdReached.
 func (mr *MockAppMockRecorder) IsFlowDelThresholdReached(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsFlowDelThresholdReached", reflect.TypeOf((*MockApp)(nil).IsFlowDelThresholdReached), arg0, arg1, arg2)
 }
-
+	// CheckAndDeactivateService indicates an expected call of CheckAndDeactivateService.
+	func (mr *MockAppMockRecorder) CheckAndDeactivateService(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+		 mr.mock.ctrl.T.Helper()
+		return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckAndDeactivateService", reflect.TypeOf((*MockApp)(nil).CheckAndDeactivateService), arg0, arg1, arg2)
+	 }
 // SetRebootFlag mocks base method.
 func (m *MockApp) SetRebootFlag(arg0 bool) {
 	m.ctrl.T.Helper()

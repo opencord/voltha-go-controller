@@ -38,7 +38,7 @@ const (
 	cDelete = "DELETE"
 )
 
-//BWProfile - Sadis BW Profile
+// BWProfile - Sadis BW Profile
 type BWProfile struct {
 	ID                        string `json:"id"`
 	PeakInformationRate       uint32 `json:"pir"`

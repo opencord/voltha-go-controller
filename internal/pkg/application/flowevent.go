@@ -19,7 +19,6 @@ import (
 	"context"
 
 	infraerrorcode "voltha-go-controller/internal/pkg/errorcodes/service"
-	"voltha-go-controller/internal/pkg/util"
 
 	"voltha-go-controller/internal/pkg/intf"
 	"voltha-go-controller/log"
@@ -32,7 +31,7 @@ import (
 type FlowEventType string
 
 // FlowEventHandler - Func prototype for flow event handling funcs
-type FlowEventHandler func(context.Context, *FlowEvent, intf.FlowStatus, *util.ConcurrentMap)
+type FlowEventHandler func(context.Context, *FlowEvent, intf.FlowStatus)
 
 var eventMapper map[FlowEventType]FlowEventHandler
 
@@ -93,20 +92,16 @@ func ExecuteFlowEvent(cntx context.Context, vd *VoltDevice, cookie string, flowS
 		flowEventMap.MapLock.Unlock()
 		return false
 	}
+	flowEventMap.Remove(cookie)
 	flowEventMap.MapLock.Unlock()
 	flowEvent := event.(*FlowEvent)
-	if flowEvent.eType != EventTypeServiceFlowAdded && flowEvent.eType != EventTypeServiceFlowRemoved {
-		flowEventMap.MapLock.Lock()
-		flowEventMap.Remove(cookie)
-		flowEventMap.MapLock.Unlock()
-	}
-	eventMapper[flowEvent.eType](cntx, flowEvent, flowStatus, flowEventMap)
+	eventMapper[flowEvent.eType](cntx, flowEvent, flowStatus)
 	return true
 }
 
 // ProcessUsIgmpFlowAddEvent - Process Us Igmp Flow event trigger
-func ProcessUsIgmpFlowAddEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus, flowEventMap *util.ConcurrentMap) {
-	logger.Infow(ctx, "Processing Post Flow Add Event for US Igmp", log.Fields{"Cookie": event.cookie, "event": event})
+func ProcessUsIgmpFlowAddEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus) {
+	logger.Debugw(ctx, "Processing Post Flow Add Event for US Igmp", log.Fields{"Cookie": event.cookie, "event": event})
 	vpv := event.eventData.(*VoltPortVnet)
 	if isFlowStatusSuccess(flowStatus.Status, true) {
 		vpv.services.Range(ReceiverUpInd)
@@ -116,19 +111,19 @@ func ProcessUsIgmpFlowAddEvent(cntx context.Context, event *FlowEvent, flowStatu
 }
 
 // ProcessServiceFlowAddEvent - Process Service Flow event trigger
-func ProcessServiceFlowAddEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus, flowEventMap *util.ConcurrentMap) {
-	logger.Infow(ctx, "Processing Post Flow Add Event for Service", log.Fields{"Cookie": event.cookie, "event": event})
+func ProcessServiceFlowAddEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus) {
+	logger.Debugw(ctx, "Processing Post Flow Add Event for Service", log.Fields{"Cookie": event.cookie, "event": event})
 	vs := event.eventData.(*VoltService)
 	if isFlowStatusSuccess(flowStatus.Status, true) {
-		vs.FlowInstallSuccess(cntx, event.cookie, flowStatus.AdditionalData, flowEventMap)
+		vs.FlowInstallSuccess(cntx, event.cookie, flowStatus.AdditionalData)
 	} else {
-		vs.FlowInstallFailure(cntx, event.cookie, flowStatus.Status, flowStatus.Reason, flowEventMap)
+		vs.FlowInstallFailure(cntx, event.cookie, flowStatus.Status, flowStatus.Reason)
 	}
 }
 
 // ProcessControlFlowAddEvent - Process Control Flow event trigger
-func ProcessControlFlowAddEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus, flowEventMap *util.ConcurrentMap) {
-	logger.Infow(ctx, "Processing Post Flow Add Event for VPV", log.Fields{"Cookie": event.cookie, "event": event})
+func ProcessControlFlowAddEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus) {
+	logger.Debugw(ctx, "Processing Post Flow Add Event for VPV", log.Fields{"Cookie": event.cookie, "event": event})
 	vpv := event.eventData.(*VoltPortVnet)
 	if !isFlowStatusSuccess(flowStatus.Status, true) {
 		vpv.FlowInstallFailure(event.cookie, flowStatus.Status, flowStatus.Reason)
@@ -136,19 +131,19 @@ func ProcessControlFlowAddEvent(cntx context.Context, event *FlowEvent, flowStat
 }
 
 // ProcessServiceFlowDelEvent - Process Service Flow event trigger
-func ProcessServiceFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus, flowEventMap *util.ConcurrentMap) {
-	logger.Infow(ctx, "Processing Post Flow Remove Event for Service", log.Fields{"Cookie": event.cookie, "event": event})
+func ProcessServiceFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus) {
+	logger.Debugw(ctx, "Processing Post Flow Remove Event for Service", log.Fields{"Cookie": event.cookie, "event": event})
 	vs := event.eventData.(*VoltService)
 	if isFlowStatusSuccess(flowStatus.Status, false) {
-		vs.FlowRemoveSuccess(cntx, event.cookie, flowEventMap)
+		vs.FlowRemoveSuccess(cntx, event.cookie)
 	} else {
-		vs.FlowRemoveFailure(cntx, event.cookie, flowStatus.Status, flowStatus.Reason, flowEventMap)
+		vs.FlowRemoveFailure(cntx, event.cookie, flowStatus.Status, flowStatus.Reason)
 	}
 }
 
 // ProcessControlFlowDelEvent - Process Control Flow event trigger
-func ProcessControlFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus, flowEventMap *util.ConcurrentMap) {
-	logger.Infow(ctx, "Processing Post Flow Remove Event for VPV", log.Fields{"Cookie": event.cookie, "event": event})
+func ProcessControlFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus) {
+	logger.Debugw(ctx, "Processing Post Flow Remove Event for VPV", log.Fields{"Cookie": event.cookie, "event": event})
 	vpv := event.eventData.(*VoltPortVnet)
 	if isFlowStatusSuccess(flowStatus.Status, false) {
 		vpv.FlowRemoveSuccess(cntx, event.cookie, event.device)
@@ -158,8 +153,8 @@ func ProcessControlFlowDelEvent(cntx context.Context, event *FlowEvent, flowStat
 }
 
 // ProcessMcastFlowDelEvent - Process Control Flow event trigger
-func ProcessMcastFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus, flowEventMap *util.ConcurrentMap) {
-	logger.Infow(ctx, "Processing Post Flow Remove Event for Mcast/Igmp", log.Fields{"Cookie": event.cookie, "event": event})
+func ProcessMcastFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus) {
+	logger.Debugw(ctx, "Processing Post Flow Remove Event for Mcast/Igmp", log.Fields{"Cookie": event.cookie, "event": event})
 	mvp := event.eventData.(*MvlanProfile)
 	if isFlowStatusSuccess(flowStatus.Status, false) {
 		mvp.FlowRemoveSuccess(cntx, event.cookie, event.device)
@@ -169,7 +164,7 @@ func ProcessMcastFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatus
 }
 
 // ProcessDeviceFlowDelEvent - Process Control Flow event trigger
-func ProcessDeviceFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus, flowEventMap *util.ConcurrentMap) {
+func ProcessDeviceFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatus intf.FlowStatus) {
 	logger.Debugw(ctx, "Processing Post Flow Remove Event for VNET", log.Fields{"Cookie": event.cookie, "event": event})
 	vnet := event.eventData.(*VoltVnet)
 	if isFlowStatusSuccess(flowStatus.Status, false) {
@@ -181,7 +176,7 @@ func ProcessDeviceFlowDelEvent(cntx context.Context, event *FlowEvent, flowStatu
 
 // TODO: Update the func or flowStatus struct once all flow status are based on NB error code
 func isFlowStatusSuccess(status uint32, flowAdd bool) bool {
-	logger.Infow(ctx, "Processing isFlowStatusSuccess", log.Fields{"Status": status, "FlowAdd": flowAdd})
+	logger.Debugw(ctx, "Processing isFlowStatusSuccess", log.Fields{"Status": status, "FlowAdd": flowAdd})
 	result := false
 	errorCode := infraerrorcode.ErrorCode(status)
 

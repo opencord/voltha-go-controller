@@ -23,7 +23,6 @@ import (
 	"voltha-go-controller/log"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/opencord/voltha-lib-go/v7/pkg/probe"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc"
 )
@@ -31,11 +30,7 @@ import (
 // GrpcMaxSize Max size of grpc message
 const GrpcMaxSize int = 17455678
 
-func (vpa *VPAgent) establishConnectionToVoltha(ctx context.Context, p *probe.Probe) error {
-	if p != nil {
-		p.UpdateStatus(ctx, "voltha", probe.ServiceStatusPreparing)
-	}
-
+func (vpa *VPAgent) establishConnectionToVoltha(ctx context.Context) error {
 	if vpa.volthaConnection != nil {
 		vpa.volthaConnection.Close()
 	}
@@ -55,9 +50,6 @@ func (vpa *VPAgent) establishConnectionToVoltha(ctx context.Context, p *probe.Pr
 						})
 					vpa.volthaConnection = conn
 					vpa.volthaClient.Set(svc)
-					if p != nil {
-						p.UpdateStatus(ctx, "voltha", probe.ServiceStatusRunning)
-					}
 					vpa.events <- vpaEventVolthaConnected
 					return nil
 				}
@@ -74,9 +66,6 @@ func (vpa *VPAgent) establishConnectionToVoltha(ctx context.Context, p *probe.Pr
 			}
 			time.Sleep(vpa.ConnectionRetryDelay)
 		}
-	}
-	if p != nil {
-		p.UpdateStatus(ctx, "voltha", probe.ServiceStatusFailed)
 	}
 	return errors.New("failed-to-connect-to-voltha")
 }

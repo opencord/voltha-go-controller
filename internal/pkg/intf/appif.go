@@ -15,7 +15,10 @@
 
 package intf
 
-import "context"
+import (
+	"context"
+	"voltha-go-controller/internal/pkg/of"
+)
 
 // App Interface
 type App interface {
@@ -31,7 +34,7 @@ type App interface {
 	DelDevice(context.Context, string)
 	SetRebootFlag(bool)
 	ProcessFlowModResultIndication(context.Context, FlowStatus)
-	IsFlowDelThresholdReached(context.Context, string, string) bool
+	CheckAndDeactivateService(context.Context, *of.VoltSubFlow, string, string)
 	DeviceRebootInd(context.Context, string, string, string)
 	DeviceDisableInd(context.Context, string)
 	UpdateMvlanProfilesForDevice(context.Context, string)

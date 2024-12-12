@@ -18,6 +18,7 @@ package main
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"voltha-go-controller/internal/pkg/util/envutils"
 )
@@ -29,6 +30,8 @@ const (
 	defaultVolthaPort                = 50057
 	defaultProbeHost                 = ""
 	defaultProbePort                 = 8090
+	defaultLiveProbeInterval         = 60
+	defaultNotLiveProbeInterval      = 5 // Probe more frequently when not alive
 	defaultBanner                    = true
 	defaultDisplayVersion            = false
 	defaultCPUProfile                = ""
@@ -68,6 +71,8 @@ func newVGCFlags() *VGCFlags {
 		KafkaAdapterPort:          defaultKafkaAdapterPort,
 		ProbeHost:                 defaultProbeHost,
 		ProbePort:                 defaultProbePort,
+		LiveProbeInterval:         defaultLiveProbeInterval,
+		NotLiveProbeInterval:      defaultNotLiveProbeInterval,
 		Banner:                    defaultBanner,
 		DisplayVersion:            defaultDisplayVersion,
 		CPUProfile:                defaultCPUProfile,
@@ -105,6 +110,8 @@ type VGCFlags struct {
 	KVStorePort               int
 	VolthaPort                int
 	ProbePort                 int
+	LiveProbeInterval         time.Duration
+	NotLiveProbeInterval      time.Duration
 	DeviceListRefreshInterval int // in seconds
 	ConnectionRetryDelay      int // in seconds
 	ConnectionMaxRetries      int
@@ -127,6 +134,8 @@ func (cf *VGCFlags) parseEnvironmentVariables() {
 	cf.KafkaAdapterPort = int(envutils.ParseIntEnvVariable(envutils.KafkaAdapterPort, defaultKafkaAdapterPort))
 	cf.ProbeHost = envutils.ParseStringEnvVariable(envutils.ProbeHost, defaultProbeHost)
 	cf.ProbePort = int(envutils.ParseIntEnvVariable(envutils.ProbePort, defaultProbePort))
+	cf.LiveProbeInterval = time.Duration(envutils.ParseIntEnvVariable(envutils.LiveProbeInterval, defaultLiveProbeInterval)) * time.Second
+	cf.NotLiveProbeInterval = time.Duration(envutils.ParseIntEnvVariable(envutils.NotLiveProbeInterval, defaultNotLiveProbeInterval)) * time.Second
 	cf.Banner = envutils.ParseBoolEnvVariable(envutils.Banner, defaultBanner)
 	cf.DisplayVersion = envutils.ParseBoolEnvVariable(envutils.DisplayVersionOnly, defaultDisplayVersion)
 	cf.CPUProfile = envutils.ParseStringEnvVariable(envutils.CPUProfile, defaultCPUProfile)

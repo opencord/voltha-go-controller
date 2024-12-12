@@ -55,11 +55,16 @@ linters:
 run:
   issues-exit-code: 1
   timeout: 10m
+  skip-files:
+    - _test\.go$
+  skip-dirs:
+    - voltha-go-controller/tests/mocks
+    - internal/test/mocks
 
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration
 service:
-  golangci-lint-version: 1.50.1 # use the fixed version to not introduce new linters unexpectedly
+  golangci-lint-version: 1.61.0 # use the fixed version to not introduce new linters unexpectedly
   prepare:
     - echo "here I can run custom commands, but no preparation needed for this repo"
 issues:

@@ -120,7 +120,7 @@ func (iph *MulticastHandle) DelMvlanInfo(cntx context.Context, w http.ResponseWr
 	vars := mux.Vars(r)
 	egressvlan := vars["egressvlan"]
 
-	name := "mvlan" + egressvlan
+	name := mvlan + egressvlan
 	// HTTP response with 202 accepted for service delete request
 	w.WriteHeader(http.StatusAccepted)
 

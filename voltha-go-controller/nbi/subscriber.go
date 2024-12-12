@@ -167,6 +167,12 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 		vs.IgmpEnabled = uniTagInfo.IsIgmpRequired
 		vs.ServiceType = uniTagInfo.ServiceName
 
+		// Check if the service already exists for same Uniport and TechProfID
+		if voltApp.CheckServiceExists(vs.Port, vs.TechProfileID) {
+			logger.Warnw(ctx, "Service already exists for same port and TP Id", log.Fields{"ServiceName": vs.Name, "Port": vs.Port, "TechProfileID": vs.TechProfileID, "SVlan": vs.SVlan})
+			continue
+		}
+
 		logger.Debugw(ctx, "", log.Fields{"ServiceName": vs.Name})
 
 		if uniTagInfo.ServiceName == app.DpuMgmtTraffic ||

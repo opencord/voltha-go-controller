@@ -44,7 +44,7 @@ func (dh *DeviceIDListHandle) GetDeviceIDList(w http.ResponseWriter, r *http.Req
 	var deviceID string
 	var deviceIDListResp []string
 
-	logger.Info(ctx, "Received get DeviceIDList")
+	logger.Info(ctx, "Received get all device ids req")
 	getDeviceIDList := func(key, value interface{}) bool {
 		voltDevice := value.(*app.VoltDevice)
 		deviceID = voltDevice.Name
