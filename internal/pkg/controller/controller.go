@@ -68,7 +68,7 @@ type VoltController struct {
 	BlockedDeviceList       *util.ConcurrentMap
 	deviceTaskQueue         *util.ConcurrentMap
 	vagent                  map[string]*vpagent.VPAgent
-	Devices                 map[string]*Device
+	Devices                 sync.Map
 	rebootInProgressDevices map[string]string
 	deviceLock              sync.RWMutex
 	rebootLock              sync.Mutex
@@ -85,7 +85,6 @@ func NewController(ctx context.Context, app intf.App) intf.IVPClientAgent {
 	var controller VoltController
 
 	controller.rebootInProgressDevices = make(map[string]string)
-	controller.Devices = make(map[string]*Device)
 	controller.deviceLock = sync.RWMutex{}
 	controller.ctx = ctx
 	controller.app = app
@@ -125,7 +124,7 @@ func (v *VoltController) GetMaxFlowRetryAttempt() uint32 {
 // AddDevice to add device
 func (v *VoltController) AddDevice(cntx context.Context, config *intf.VPClientCfg) intf.IVPClient {
 	d := NewDevice(cntx, config.DeviceID, config.SerialNum, config.VolthaClient, config.SouthBoundID, config.MfrDesc, config.HwDesc, config.SwDesc)
-	v.Devices[config.DeviceID] = d
+	v.Devices.Store(config.DeviceID, d)
 	v.app.AddDevice(cntx, d.ID, d.SerialNum, config.SouthBoundID)
 
 	d.RestoreMetersFromDb(cntx)
@@ -142,13 +141,17 @@ func (v *VoltController) AddDevice(cntx context.Context, config *intf.VPClientCf
 
 // DelDevice to delete device
 func (v *VoltController) DelDevice(cntx context.Context, id string) {
-	d, ok := v.Devices[id]
+	var device *Device
+	d, ok := v.Devices.Load(id)
 	if ok {
-		delete(v.Devices, id)
-		d.Delete()
+		v.Devices.Delete(id)
+		device, ok = d.(*Device)
+		if ok {
+			device.Delete()
+		}
 	}
 	v.app.DelDevice(cntx, id)
-	d.cancel() // To stop the device tables sync routine
+	device.cancel() // To stop the device tables sync routine
 	logger.Debugw(ctx, "Deleted device", log.Fields{"Device": id})
 }
 
@@ -176,9 +179,14 @@ func (v *VoltController) AddNewDevice(config *intf.VPClientCfg) {
 
 // GetDevice to get device info
 func (v *VoltController) GetDevice(id string) (*Device, error) {
-	d, ok := v.Devices[id]
+	var device *Device
+	d, ok := v.Devices.Load(id)
+	if !ok {
+		return nil, errorCodes.ErrDeviceNotFound
+	}
+	device, ok = d.(*Device)
 	if ok {
-		return d, nil
+		return device, nil
 	}
 	return nil, errorCodes.ErrDeviceNotFound
 }
@@ -593,45 +601,66 @@ func (v *VoltController) GetFlows(deviceID string) ([]*of.VoltSubFlow, error) {
 // GetAllFlows returns list of all flows
 func (v *VoltController) GetAllFlows() ([]*of.VoltSubFlow, error) {
 	var flows []*of.VoltSubFlow
-	for _, d := range v.Devices {
-		flows = append(flows, d.GetAllFlows()...)
-	}
+	v.Devices.Range(func(_, value interface{}) bool {
+		d, ok := value.(*Device)
+		if ok {
+			flows = append(flows, d.GetAllFlows()...)
+		}
+		return true
+	})
 	return flows, nil
 }
 
 // GetAllPendingFlows returns list of all flows
 func (v *VoltController) GetAllPendingFlows() ([]*of.VoltSubFlow, error) {
 	var flows []*of.VoltSubFlow
-	for _, d := range v.Devices {
-		flows = append(flows, d.GetAllPendingFlows()...)
-	}
+	v.Devices.Range(func(_, value interface{}) bool {
+		d, ok := value.(*Device)
+		if ok {
+			flows = append(flows, d.GetAllPendingFlows()...)
+		}
+		return true
+	})
 	return flows, nil
 }
 func (v *VoltController) GetAllMeterInfo() (map[string][]*of.Meter, error) {
 	logger.Info(ctx, "Entering into GetAllMeterInfo method")
 	meters := map[string][]*of.Meter{}
-	for _, device := range v.Devices {
-		logger.Debugw(ctx, "Inside GetAllMeterInfo method", log.Fields{"deviceId": device.ID, "southbound": device.SouthBoundID, "serial no": device.SerialNum})
-		for _, meter := range device.meters {
-			meters[device.ID] = append(meters[device.ID], meter)
+	v.Devices.Range(func(_, value interface{}) bool {
+		device, ok := value.(*Device)
+		if ok {
+			logger.Debugw(ctx, "Inside GetAllMeterInfo method", log.Fields{"deviceId": device.ID, "southbound": device.SouthBoundID, "serial no": device.SerialNum})
+			for _, meter := range device.meters {
+				meters[device.ID] = append(meters[device.ID], meter)
+			}
+			logger.Debugw(ctx, "Inside GetAllMeterInfo method", log.Fields{"meters": meters})
 		}
-		logger.Debugw(ctx, "Inside GetAllMeterInfo method", log.Fields{"meters": meters})
-	}
+		return true
+	})
 	return meters, nil
 }
 
 func (v *VoltController) GetMeterInfo(cntx context.Context, id uint32) (map[string]*of.Meter, error) {
 	logger.Info(ctx, "Entering into GetMeterInfo method")
 	meters := map[string]*of.Meter{}
-	for _, device := range v.Devices {
-		logger.Debugw(ctx, "Inside GetMeterInfo method", log.Fields{"deviceId": device.ID})
-		meter, err := device.GetMeter(id)
-		if err != nil {
-			logger.Errorw(ctx, "Failed to fetch the meter", log.Fields{"Reason": err.Error()})
-			return nil, err
+	var errResult error
+	v.Devices.Range(func(_, value interface{}) bool {
+		device, ok := value.(*Device)
+		if ok {
+			logger.Debugw(ctx, "Inside GetMeterInfo method", log.Fields{"deviceId": device.ID})
+			meter, err := device.GetMeter(id)
+			if err != nil {
+				logger.Errorw(ctx, "Failed to fetch the meter", log.Fields{"Reason": err.Error()})
+				errResult = err
+				return false
+			}
+			meters[device.ID] = meter
+			logger.Debugw(ctx, "meters", log.Fields{"Meter": meters})
 		}
-		meters[device.ID] = meter
-		logger.Debugw(ctx, "meters", log.Fields{"Meter": meters})
+		return true
+	})
+	if errResult != nil {
+		return nil, errResult
 	}
 	return meters, nil
 }
@@ -639,20 +668,24 @@ func (v *VoltController) GetMeterInfo(cntx context.Context, id uint32) (map[stri
 func (v *VoltController) GetGroupList() ([]*of.Group, error) {
 	logger.Info(ctx, "Entering into GetGroupList method")
 	groups := []*of.Group{}
-	for _, device := range v.Devices {
-		device.groups.Range(func(key, value interface{}) bool {
-			groupID := key.(uint32)
-			logger.Debugw(ctx, "Inside GetGroupList method", log.Fields{"groupID": groupID})
-			//Obtain all groups associated with the device
-			grps, ok := device.groups.Load(groupID)
-			if !ok {
+	v.Devices.Range(func(_, value interface{}) bool {
+		device, ok := value.(*Device)
+		if ok {
+			device.groups.Range(func(key, value interface{}) bool {
+				groupID := key.(uint32)
+				logger.Debugw(ctx, "Inside GetGroupList method", log.Fields{"groupID": groupID})
+				//Obtain all groups associated with the device
+				grps, ok := device.groups.Load(groupID)
+				if !ok {
+					return true
+				}
+				grp := grps.(*of.Group)
+				groups = append(groups, grp)
 				return true
-			}
-			grp := grps.(*of.Group)
-			groups = append(groups, grp)
-			return true
-		})
-	}
+			})
+		}
+		return true
+	})
 	logger.Debugw(ctx, "Groups", log.Fields{"groups": groups})
 	return groups, nil
 }
@@ -660,14 +693,23 @@ func (v *VoltController) GetGroupList() ([]*of.Group, error) {
 func (v *VoltController) GetGroups(cntx context.Context, id uint32) (*of.Group, error) {
 	logger.Info(ctx, "Entering into GetGroupList method")
 	var groups *of.Group
-	for _, device := range v.Devices {
-		logger.Debugw(ctx, "Inside GetGroupList method", log.Fields{"groupID": id})
-		grps, ok := device.groups.Load(id)
-		if !ok {
-			return nil, errors.New("group not found")
+	var err error
+	v.Devices.Range(func(_, value interface{}) bool {
+		device, ok := value.(*Device)
+		if ok {
+			logger.Debugw(ctx, "Inside GetGroupList method", log.Fields{"groupID": id})
+			grps, ok := device.groups.Load(id)
+			if !ok {
+				err = errors.New("group not found")
+				return false
+			}
+			groups = grps.(*of.Group)
+			logger.Debugw(ctx, "Groups", log.Fields{"groups": groups})
 		}
-		groups = grps.(*of.Group)
-		logger.Debugw(ctx, "Groups", log.Fields{"groups": groups})
+		return true
+	})
+	if err != nil {
+		return nil, err
 	}
 	return groups, nil
 }

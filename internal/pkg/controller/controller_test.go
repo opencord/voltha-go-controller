@@ -71,8 +71,8 @@ func TestVoltController_DelDevice(t *testing.T) {
 		ID:     "SDX6320031",
 		cancel: Cancel,
 	}
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	appMock := mocks.NewMockApp(gomock.NewController(t))
 	NewController(ctx, appMock)
 	appMock.EXPECT().DelDevice(gomock.Any(), gomock.Any()).AnyTimes()
@@ -91,9 +91,13 @@ func TestVoltController_DelDevice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 				app:     GetController().app,
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			v.DelDevice(tt.args.cntx, tt.args.id)
 		})
 	}
@@ -137,8 +141,8 @@ func TestVoltController_AddFlows(t *testing.T) {
 		flows:       subFlows,
 		PortsByName: portsByName,
 	}
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	flow := &of.VoltFlow{
 		PortName:      "SDX6320031-1",
 		PortID:        256,
@@ -163,8 +167,12 @@ func TestVoltController_AddFlows(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			if err := v.AddFlows(tt.args.cntx, tt.args.port, tt.args.device, tt.args.flow); (err != nil) != tt.wantErr {
 				t.Errorf("VoltController.AddFlows() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -210,8 +218,8 @@ func TestVoltController_DelFlows(t *testing.T) {
 		flows:       subFlows,
 		PortsByName: portsByName,
 	}
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	flow := &of.VoltFlow{
 		PortName:      "SDX6320031-1",
 		PortID:        256,
@@ -236,8 +244,12 @@ func TestVoltController_DelFlows(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			if err := v.DelFlows(tt.args.cntx, tt.args.port, tt.args.device, tt.args.flow, false); (err != nil) != tt.wantErr {
 				t.Errorf("VoltController.DelFlows() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -261,8 +273,8 @@ func TestVoltController_GetGroups(t *testing.T) {
 		State:   1,
 		SetVlan: of.VlanAny,
 	}
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	tests := []struct {
 		name    string
 		args    args
@@ -292,8 +304,12 @@ func TestVoltController_GetGroups(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			switch tt.name {
 			case "VoltController_GetGroups":
 				device.groups.Store(uint32(256), grp)
@@ -333,8 +349,8 @@ func TestVoltController_GetGroupList(t *testing.T) {
 		SetVlan: of.VlanAny,
 	}
 	grpList = append(grpList, grp)
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	tests := []struct {
 		name    string
 		want    []*of.Group
@@ -349,8 +365,12 @@ func TestVoltController_GetGroupList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			device.groups.Store(uint32(256), grp)
 			got, err := v.GetGroupList()
 			if (err != nil) != tt.wantErr {
@@ -382,8 +402,8 @@ func TestVoltController_GetMeterInfo(t *testing.T) {
 		ID:     "SDX6320031",
 		meters: devMtr,
 	}
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	tests := []struct {
 		name    string
 		args    args
@@ -412,8 +432,12 @@ func TestVoltController_GetMeterInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			switch tt.name {
 			case "VoltController_GetMeterInfo":
 				got, err := v.GetMeterInfo(tt.args.cntx, tt.args.id)
@@ -454,8 +478,8 @@ func TestVoltController_GetAllMeterInfo(t *testing.T) {
 		ID:     "SDX6320031",
 		meters: devMtr,
 	}
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	tests := []struct {
 		name    string
 		want    map[string][]*of.Meter
@@ -470,8 +494,12 @@ func TestVoltController_GetAllMeterInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			got, err := v.GetAllMeterInfo()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("VoltController.GetAllMeterInfo() error = %v, wantErr %v", err, tt.wantErr)
@@ -512,8 +540,8 @@ func TestVoltController_GetAllPendingFlows(t *testing.T) {
 		ID:    "SDX6320031",
 		flows: subFlows,
 	}
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	tests := []struct {
 		name    string
 		want    []*of.VoltSubFlow
@@ -582,8 +610,12 @@ func TestVoltController_GetAllPendingFlows(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			got, err := v.GetAllPendingFlows()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("VoltController.GetAllPendingFlows() error = %v, wantErr %v", err, tt.wantErr)
@@ -601,8 +633,12 @@ func TestVoltController_GetAllPendingFlows(t *testing.T) {
 	for _, tt := range tests1 {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			switch tt.name {
 			case "GetFlows_with_DeviceID":
 				got, err := v.GetFlows(tt.args.deviceId)
@@ -624,8 +660,12 @@ func TestVoltController_GetAllPendingFlows(t *testing.T) {
 	for _, tt := range tests2 {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			switch tt.name {
 			case "GetFlow_with_DeviceID_and_cookie":
 				got, err := v.GetFlow(tt.args.deviceId, tt.args.cookie)
@@ -654,8 +694,8 @@ func TestVoltController_GetTaskList(t *testing.T) {
 		ctx: context.Background(),
 		ID:  "SDX6320031",
 	}
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	tests := []struct {
 		name string
 		args args
@@ -679,8 +719,12 @@ func TestVoltController_GetTaskList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			switch tt.name {
 			case "GetTaskList":
 				if got := v.GetTaskList(tt.args.device); !reflect.DeepEqual(got, tt.want) {
@@ -710,8 +754,8 @@ func TestVoltController_GetPortState(t *testing.T) {
 		ID:          "SDX6320031",
 		PortsByName: portsByName,
 	}
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	tests := []struct {
 		name    string
 		args    args
@@ -739,8 +783,12 @@ func TestVoltController_GetPortState(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			switch tt.name {
 			case "GetPortState":
 				got, err := v.GetPortState(tt.args.device, tt.args.name)
@@ -787,8 +835,8 @@ func TestVoltController_ModMeter(t *testing.T) {
 		PortsByName: portsByName,
 		meters:      devMtr,
 	}
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	tests := []struct {
 		name    string
 		args    args
@@ -825,8 +873,12 @@ func TestVoltController_ModMeter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
-				Devices: dev,
+				Devices: sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			switch tt.name {
 			case "ModMeter":
 				if err := v.ModMeter(tt.args.port, tt.args.device, tt.args.command, tt.args.meter); (err != nil) != tt.wantErr {
@@ -951,8 +1003,8 @@ func TestVoltController_SetRebootInProgressForDevice(t *testing.T) {
 		ctx: context.Background(),
 		ID:  "SDX6320031",
 	}
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	tests := []struct {
 		name string
 		args args
@@ -977,8 +1029,12 @@ func TestVoltController_SetRebootInProgressForDevice(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
 				rebootInProgressDevices: rebootInProgressDevices,
-				Devices:                 dev,
+				Devices:                 sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			switch tt.name {
 			case "SetRebootInProgressForDevice":
 				if got := v.SetRebootInProgressForDevice(tt.args.device); got != tt.want {
@@ -1003,8 +1059,8 @@ func TestVoltController_ReSetRebootInProgressForDevice(t *testing.T) {
 		ID:  "SDX6320031",
 	}
 	rebootInProgressDevices["SDX6320031"] = "done"
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	tests := []struct {
 		name string
 		args args
@@ -1022,8 +1078,12 @@ func TestVoltController_ReSetRebootInProgressForDevice(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			v := &VoltController{
 				rebootInProgressDevices: rebootInProgressDevices,
-				Devices:                 dev,
+				Devices:                 sync.Map{},
 			}
+			dev.Range(func(key, value interface{}) bool {
+				v.Devices.Store(key, value)
+				return true
+			})
 			if got := v.ReSetRebootInProgressForDevice(tt.args.device); got != tt.want {
 				t.Errorf("VoltController.ReSetRebootInProgressForDevice() = %v, want %v", got, tt.want)
 			}
@@ -1151,8 +1211,8 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 		groups:      sync.Map{},
 		PortsByName: portsByName,
 	}
-	dev := map[string]*Device{}
-	dev["SDX6320031"] = device
+	var dev sync.Map
+	dev.Store("SDX6320031", device)
 	grp := &of.Group{
 		Device:  "SDX6320031",
 		GroupID: uint32(256),
@@ -1205,8 +1265,12 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 			switch tt.name {
 			case "GroupUpdate", "DeviceNOtFound_Error", "PortNOtFound_Error":
 				v := &VoltController{
-					Devices: dev,
+					Devices: sync.Map{},
 				}
+				dev.Range(func(key, value interface{}) bool {
+					v.Devices.Store(key, value)
+					return true
+				})
 				if err := v.GroupUpdate(tt.args.port, tt.args.device, tt.args.group); (err != nil) != tt.wantErr {
 					t.Errorf("VoltController.GroupUpdate() error = %v, wantErr %v", err, tt.wantErr)
 				}
@@ -1216,11 +1280,15 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 					groups:      sync.Map{},
 					PortsByName: portsByName,
 				}
-				dev := map[string]*Device{}
-				dev["SDX6320031"] = device
+				var dev sync.Map
+				dev.Store("SDX6320031", device)
 				v := &VoltController{
-					Devices: dev,
+					Devices: sync.Map{},
 				}
+				dev.Range(func(key, value interface{}) bool {
+					v.Devices.Store(key, value)
+					return true
+				})
 				if err := v.GroupUpdate(tt.args.port, tt.args.device, tt.args.group); (err != nil) != tt.wantErr {
 					t.Errorf("VoltController.GroupUpdate() error = %v, wantErr %v", err, tt.wantErr)
 				}

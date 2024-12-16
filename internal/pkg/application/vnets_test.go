@@ -690,7 +690,6 @@ func TestVoltApplication_DeleteDevFlowForVlanFromDevice(t *testing.T) {
 				appMock := mocks.NewMockApp(gomock.NewController(t))
 				cntlr.NewController(ctx, appMock)
 				vc := cntlr.GetController()
-				dev := map[string]*cntlr.Device{}
 				portsByName := map[string]*cntlr.DevicePort{}
 				portsByName["16777472"] = &cntlr.DevicePort{
 					Name:  "16777472",
@@ -701,8 +700,7 @@ func TestVoltApplication_DeleteDevFlowForVlanFromDevice(t *testing.T) {
 					ID:          "SDX6320031",
 					PortsByName: portsByName,
 				}
-				dev["SDX6320031"] = device
-				vc.Devices = dev
+				vc.Devices.Store("SDX6320031", device)
 				va.DeleteDevFlowForVlanFromDevice(tt.args.cntx, tt.args.vnet, tt.args.deviceSerialNum)
 			case "DeleteDevFlowForVlanFromDevice_PortStateDown":
 				voltDev.Name = ""
@@ -713,7 +711,6 @@ func TestVoltApplication_DeleteDevFlowForVlanFromDevice(t *testing.T) {
 				appMock := mocks.NewMockApp(gomock.NewController(t))
 				cntlr.NewController(ctx, appMock)
 				vc := cntlr.GetController()
-				dev := map[string]*cntlr.Device{}
 				portsByName := map[string]*cntlr.DevicePort{}
 				portsByName["16777472"] = &cntlr.DevicePort{
 					Name:  "16777472",
@@ -724,8 +721,7 @@ func TestVoltApplication_DeleteDevFlowForVlanFromDevice(t *testing.T) {
 					ID:          "SDX6320031",
 					PortsByName: portsByName,
 				}
-				dev["SDX6320031"] = device
-				vc.Devices = dev
+				vc.Devices.Store("SDX6320031", device)
 				va.DeleteDevFlowForVlanFromDevice(tt.args.cntx, tt.args.vnet, tt.args.deviceSerialNum)
 			}
 		})
@@ -834,7 +830,6 @@ func TestVoltApplication_DeleteDevFlowForDevice(t *testing.T) {
 				appMock := mocks.NewMockApp(gomock.NewController(t))
 				cntlr.NewController(ctx, appMock)
 				vc := cntlr.GetController()
-				dev := map[string]*cntlr.Device{}
 				portsByName := map[string]*cntlr.DevicePort{}
 				portsByName["16777472"] = &cntlr.DevicePort{
 					Name:  "16777472",
@@ -845,8 +840,7 @@ func TestVoltApplication_DeleteDevFlowForDevice(t *testing.T) {
 					ID:          "SDX6320031",
 					PortsByName: portsByName,
 				}
-				dev["SDX6320031"] = device
-				vc.Devices = dev
+				vc.Devices.Store("SDX6320031", device)
 				va.DeleteDevFlowForDevice(tt.args.cntx, tt.args.device)
 			}
 		})
@@ -1657,7 +1651,6 @@ func TestVoltPortVnet_AddUsArpFlows(t *testing.T) {
 			appMock := mocks.NewMockApp(gomock.NewController(t))
 			cntlr.NewController(ctx, appMock)
 			vc := cntlr.GetController()
-			dev := map[string]*cntlr.Device{}
 			portsByName := map[string]*cntlr.DevicePort{}
 			portsByName["16777472"] = &cntlr.DevicePort{
 				Name: "16777472",
@@ -1667,8 +1660,7 @@ func TestVoltPortVnet_AddUsArpFlows(t *testing.T) {
 				ID:          deviceName,
 				PortsByName: portsByName,
 			}
-			dev["SDX6320031"] = device
-			vc.Devices = dev
+			vc.Devices.Store("SDX6320031", device)
 			switch tt.name {
 			case "AddUsArpFlows":
 				if err := vpv.AddUsArpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
@@ -1787,9 +1779,7 @@ func TestVoltPortVnet_AddDsDhcpFlows(t *testing.T) {
 				device := &cntlr.Device{
 					ID: "SDX6320031",
 				}
-				dev := map[string]*cntlr.Device{}
-				dev["SDX6320031"] = device
-				vc.Devices = dev
+				vc.Devices.Store("SDX6320031", device)
 				if err := vpv.AddDsDhcpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
 					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
 				}
@@ -1867,9 +1857,7 @@ func TestVoltPortVnet_AddUsDhcpFlows(t *testing.T) {
 				device := &cntlr.Device{
 					ID: "SDX6320031",
 				}
-				dev := map[string]*cntlr.Device{}
-				dev["SDX6320031"] = device
-				vc.Devices = dev
+				vc.Devices.Store("SDX6320031", device)
 				if err := vpv.AddUsDhcpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
 					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
 				}
@@ -1979,7 +1967,6 @@ func TestVoltPortVnet_AddUsPppoeFlows(t *testing.T) {
 				appMock := mocks.NewMockApp(gomock.NewController(t))
 				cntlr.NewController(ctx, appMock)
 				vc := cntlr.GetController()
-				dev := map[string]*cntlr.Device{}
 				portsByName := map[string]*cntlr.DevicePort{}
 				portsByName["16777472"] = &cntlr.DevicePort{
 					Name: "16777472",
@@ -1989,8 +1976,7 @@ func TestVoltPortVnet_AddUsPppoeFlows(t *testing.T) {
 					ID:          "SDX6320031",
 					PortsByName: portsByName,
 				}
-				dev["SDX6320031"] = device
-				vc.Devices = dev
+				vc.Devices.Store("SDX6320031", device)
 				if err := vpv.AddDsPppoeFlows(tt.args.cntx); (err != nil) != tt.wantErr {
 					t.Errorf("VoltPortVnet.AddUsPppoeFlows() error = %v, wantErr %v", err, tt.wantErr)
 				}
@@ -2485,7 +2471,6 @@ func TestVoltPortVnet_delDsDhcp4Flows(t *testing.T) {
 	appMock := mocks.NewMockApp(gomock.NewController(t))
 	controller.NewController(ctx, appMock)
 	vc := cntlr.GetController()
-	dev := map[string]*cntlr.Device{}
 	portsByName := map[string]*cntlr.DevicePort{}
 	portsByName["16777472"] = &cntlr.DevicePort{
 		Name: "16777472",
@@ -2495,8 +2480,7 @@ func TestVoltPortVnet_delDsDhcp4Flows(t *testing.T) {
 		ID:          deviceName,
 		PortsByName: portsByName,
 	}
-	dev["SDX6320031"] = device
-	vc.Devices = dev
+	vc.Devices.Store("SDX6320031", device)
 	tests := []struct {
 		name    string
 		args    args
@@ -2595,7 +2579,6 @@ func TestVoltApplication_DeleteDevFlowForVlan(t *testing.T) {
 				appMock := mocks.NewMockApp(gomock.NewController(t))
 				cntlr.NewController(ctx, appMock)
 				vc := cntlr.GetController()
-				dev := map[string]*cntlr.Device{}
 				portsByName := map[string]*cntlr.DevicePort{}
 				portsByName["16777472"] = &cntlr.DevicePort{
 					Name:  "16777472",
@@ -2606,8 +2589,7 @@ func TestVoltApplication_DeleteDevFlowForVlan(t *testing.T) {
 					ID:          "SDX6320031",
 					PortsByName: portsByName,
 				}
-				dev["SDX6320031"] = device
-				vc.Devices = dev
+				vc.Devices.Store("SDX6320031", device)
 				va.DeleteDevFlowForVlan(tt.args.cntx, tt.args.vnet)
 			case "DeleteDevFlowForVlan_PortStateDown":
 				voltDev.Name = ""
@@ -2618,7 +2600,6 @@ func TestVoltApplication_DeleteDevFlowForVlan(t *testing.T) {
 				appMock := mocks.NewMockApp(gomock.NewController(t))
 				cntlr.NewController(ctx, appMock)
 				vc := cntlr.GetController()
-				dev := map[string]*cntlr.Device{}
 				portsByName := map[string]*cntlr.DevicePort{}
 				portsByName["16777472"] = &cntlr.DevicePort{
 					Name:  "16777472",
@@ -2629,8 +2610,7 @@ func TestVoltApplication_DeleteDevFlowForVlan(t *testing.T) {
 					ID:          "SDX6320031",
 					PortsByName: portsByName,
 				}
-				dev["SDX6320031"] = device
-				vc.Devices = dev
+				vc.Devices.Store("SDX6320031", device)
 				va.DeleteDevFlowForVlan(tt.args.cntx, tt.args.vnet)
 			}
 		})
