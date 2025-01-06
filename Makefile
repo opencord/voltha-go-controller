@@ -91,6 +91,8 @@ vgcctl:
 	@echo Building vgcctl....
 	@cd voltha-go-controller/cli && go build -o vgcctl
 
+docker-build: exe vgcctl
+
 docker: exe vgcctl
 	@echo Building Docker $(DOCKER_NAME)....
 	sudo docker build -t $(IMAGENAME) -f docker/Dockerfile.voltha-go-controller .
