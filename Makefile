@@ -24,7 +24,7 @@
 # -----------------------------------------------------------------------
 
 DOCKER_NAME := voltha-go-controller
-DOCKER_TAG := latest
+DOCKER_TAG := master
 GOLINT := golint
 GOCMD = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golang go
 GOBUILD=$(GOCMD) build
@@ -94,6 +94,15 @@ vgcctl:
 docker-build:
 	@echo Building Docker $(DOCKER_NAME)....
 	sudo docker build -t $(IMAGENAME) -f docker/Dockerfile.voltha-go-controller .
+
+docker-push: ## Push the docker images to an external repository
+	docker push ${IMAGENAME}
+ifdef BUILD_PROFILED
+	docker push ${IMAGENAME}-profile
+endif
+ifdef BUILD_RACE
+	docker push ${IMAGENAME}-rd
+endif
 
 docker: exe vgcctl
 	@echo Building Docker $(DOCKER_NAME)....
