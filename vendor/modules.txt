@@ -70,13 +70,13 @@ github.com/guumaster/tablewriter
 github.com/jessevdk/go-flags
 # github.com/mattn/go-runewidth v0.0.10
 github.com/mattn/go-runewidth
-# github.com/opencord/voltha-lib-go/v7 v7.2.1
+# github.com/opencord/voltha-lib-go/v7 v7.6.3
 ## explicit
 github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore
 github.com/opencord/voltha-lib-go/v7/pkg/flows
 github.com/opencord/voltha-lib-go/v7/pkg/log
 github.com/opencord/voltha-lib-go/v7/pkg/probe
-# github.com/opencord/voltha-protos/v5 v5.5.0
+# github.com/opencord/voltha-protos/v5 v5.6.2
 ## explicit
 github.com/opencord/voltha-protos/v5/go/common
 github.com/opencord/voltha-protos/v5/go/ext/config
