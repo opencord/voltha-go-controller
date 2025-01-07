@@ -23,8 +23,6 @@
 #       several VOLTHA repositories.
 # -----------------------------------------------------------------------
 
-DOCKER_NAME := voltha-go-controller
-DOCKER_TAG := master
 GOLINT := golint
 GOCMD = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golang go
 GOBUILD=$(GOCMD) build
@@ -43,8 +41,33 @@ SHELL = bash -e -o pipefail
 
 # Variables
 VERSION                  ?= $(shell head -n 1 ./VERSION)
-# DOCKER_TAG               ?= ${VERSION}
-IMAGENAME                ?= ${DOCKER_NAME}:${DOCKER_TAG}
+## Docker related
+DOCKER_NAME := voltha-go-controller
+DOCKER_LABEL_VCS_DIRTY     = false
+ifneq ($(shell git ls-files --others --modified --exclude-standard 2>/dev/null | wc -l | sed -e 's/ //g'),0)
+    DOCKER_LABEL_VCS_DIRTY = true
+endif
+DOCKER_EXTRA_ARGS        ?=
+DOCKER_REGISTRY          ?=
+DOCKER_REPOSITORY        ?= voltha/
+DOCKER_TAG               ?= ${VERSION}$(shell [[ ${DOCKER_LABEL_VCS_DIRTY} == "true" ]] && echo "-dirty" || true)
+IMAGENAME                := ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-go-controller:${DOCKER_TAG}
+DOCKER_TARGET            ?= prod
+
+## Docker labels. Only set ref and commit date if committed
+DOCKER_LABEL_VCS_URL       ?= $(shell git remote get-url $(shell git remote))
+DOCKER_LABEL_VCS_REF       = $(shell git rev-parse HEAD)
+DOCKER_LABEL_BUILD_DATE    ?= $(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
+DOCKER_LABEL_COMMIT_DATE   = $(shell git show -s --format=%cd --date=iso-strict HEAD)
+DOCKER_BUILD_ARGS ?= \
+	${DOCKER_EXTRA_ARGS} \
+	--build-arg org_label_schema_version="${VERSION}" \
+	--build-arg org_label_schema_vcs_url="${DOCKER_LABEL_VCS_URL}" \
+	--build-arg org_label_schema_vcs_ref="${DOCKER_LABEL_VCS_REF}" \
+	--build-arg org_label_schema_build_date="${DOCKER_LABEL_BUILD_DATE}" \
+	--build-arg org_opencord_vcs_commit_date="${DOCKER_LABEL_COMMIT_DATE}" \
+	--build-arg org_opencord_vcs_dirty="${DOCKER_LABEL_VCS_DIRTY}"
+
 
 COVERAGE_DIR = ./tests/results
 COVERAGE_PROFILE = $(COVERAGE_DIR)/profile.out
@@ -93,7 +116,13 @@ vgcctl:
 
 docker-build:
 	@echo Building Docker $(DOCKER_NAME)....
-	sudo docker build -t $(IMAGENAME) -f docker/Dockerfile.voltha-go-controller .
+	docker build $(DOCKER_BUILD_ARGS) --target=${DOCKER_TARGET} -t $(IMAGENAME) -f docker/Dockerfile.voltha-go-controller .
+ifdef BUILD_PROFILED
+	docker build $(DOCKER_BUILD_ARGS) --target=dev --build-arg EXTRA_GO_BUILD_TAGS="-tags profile" -t ${IMAGENAME}-profile -f docker/Dockerfile.voltha-go-controller .
+endif
+ifdef BUILD_RACE
+	docker build $(DOCKER_BUILD_ARGS) --target=dev --build-arg EXTRA_GO_BUILD_TAGS="-race" -t ${IMAGENAME}-rd -f docker/Dockerfile.voltha-go-controller .
+endif
 
 docker-push: ## Push the docker images to an external repository
 	docker push ${IMAGENAME}
