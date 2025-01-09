@@ -67,6 +67,23 @@
       "message": "\u003e Patch Set 1:\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-go-controller_unit-test/309/ : FAILURE\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-go-controller_licensed/309/ : SUCCESS\n\nrecheck",
       "revId": "9690fd715baf870478493213e07a3f78fb5fc8a8",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "98c2d139_d2f3a854",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001013
+      },
+      "writtenOn": "2025-01-09T21:52:53Z",
+      "side": 1,
+      "message": "remerge",
+      "revId": "9690fd715baf870478493213e07a3f78fb5fc8a8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
