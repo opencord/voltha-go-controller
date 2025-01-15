@@ -16,6 +16,23 @@
       "message": "\u003e Patch Set 1: Verified-1\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-go-controller_unit-test/312/ : ABORTED\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-go-controller_licensed/312/ : SUCCESS\n\nrecheck",
       "revId": "1fc8816a4f44dca2cd6ef032af8bdc3c97d043ee",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "aa38c08f_61c97a4e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001019
+      },
+      "writtenOn": "2025-01-15T07:11:50Z",
+      "side": 1,
+      "message": "\u003e Patch Set 1: Verified-1\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-go-controller_unit-test/312/ : ABORTED\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-go-controller_licensed/312/ : SUCCESS\n\nrecheck",
+      "revId": "1fc8816a4f44dca2cd6ef032af8bdc3c97d043ee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
