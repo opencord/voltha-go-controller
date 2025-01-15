@@ -1097,8 +1097,12 @@ func (d *Device) UpdateFlowCount(cntx context.Context, cookie uint64) {
 }
 
 func (d *Device) triggerFlowNotification(cntx context.Context, cookie uint64, oper of.Command, bwDetails of.BwAvailDetails, err error) {
-	flow, _ := d.GetFlow(cookie)
-	d.triggerFlowResultNotification(cntx, cookie, flow, oper, bwDetails, err)
+	flow, ok := d.GetFlow(cookie)
+	if ok {
+		d.triggerFlowResultNotification(cntx, cookie, flow, oper, bwDetails, err)
+	} else {
+		logger.Warnw(ctx, "Flow not found", log.Fields{"device-id": d.ID, "Cookie": cookie})
+	}
 }
 
 func (d *Device) triggerFlowResultNotification(cntx context.Context, cookie uint64, flow *of.VoltSubFlow, oper of.Command, bwDetails of.BwAvailDetails, err error) {
@@ -1136,7 +1140,7 @@ func (d *Device) triggerFlowResultNotification(cntx context.Context, cookie uint
 			if err := d.DelFlow(cntx, flow); err != nil {
 				logger.Warnw(ctx, "Delete Flow Error", log.Fields{"Cookie": flow.Cookie, "Reason": err.Error()})
 			}
-		} else if !success {
+		} else if !success && flow != nil {
 			if d.IsFlowDelThresholdReached(flow.FlowCount, flow.Cookie) {
 				logger.Debugw(ctx, "Deleted flow from device and DB after delete threshold reached", log.Fields{"Cookie": cookie})
 				if err := d.DelFlow(cntx, flow); err != nil {
