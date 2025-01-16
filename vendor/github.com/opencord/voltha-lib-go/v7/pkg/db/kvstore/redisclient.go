@@ -1,17 +1,17 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+* Copyright 2018-2024 Open Networking Foundation (ONF) and the ONF Contributors
 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 
- * http://www.apache.org/licenses/LICENSE-2.0
+* http://www.apache.org/licenses/LICENSE-2.0
 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
  */
 package kvstore
 
@@ -414,4 +414,42 @@ func (c *RedisClient) Close(ctx context.Context) {
 	if err := c.redisAPI.Close(); err != nil {
 		logger.Errorw(ctx, "error-closing-client", log.Fields{"error": err})
 	}
+}
+
+func (c *RedisClient) GetWithPrefix(ctx context.Context, prefix string) (map[string]*KVPair, error) {
+	var err error
+	var keys []string
+	m := make(map[string]*KVPair)
+	var values []interface{}
+
+	if keys, err = c.scanAllKeysWithPrefix(ctx, prefix); err != nil {
+		return nil, err
+	}
+
+	if len(keys) != 0 {
+		values, err = c.redisAPI.MGet(ctx, keys...).Result()
+		if err != nil {
+			return nil, err
+		}
+	}
+	for i, key := range keys {
+		if valBytes, err := ToByte(values[i]); err == nil {
+			m[key] = NewKVPair(key, interface{}(valBytes), "", 0, 0)
+		}
+	}
+	return m, nil
+}
+
+func (c *RedisClient) GetWithPrefixKeysOnly(ctx context.Context, prefix string) ([]string, error) {
+	// Use the scanAllKeysWithPrefix function to fetch keys matching the prefix
+	keys, err := c.scanAllKeysWithPrefix(ctx, prefix)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan keys with prefix %s: %v", prefix, err)
+	}
+
+	if len(keys) == 0 {
+		logger.Debugw(ctx, "no-keys-found", log.Fields{"prefix": prefix})
+	}
+
+	return keys, nil
 }
