@@ -1,17 +1,17 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+* Copyright 2018-2024 Open Networking Foundation (ONF) and the ONF Contributors
 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 
- * http://www.apache.org/licenses/LICENSE-2.0
+* http://www.apache.org/licenses/LICENSE-2.0
 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
  */
 package kvstore
 
@@ -169,6 +169,57 @@ startLoop:
 		}
 		return nil, nil
 	}
+}
+
+// GetWithPrefix fetches all key-value pairs with the specified prefix from etcd.
+// Returns a map of key-value pairs or an error if the operation fails.
+func (c *EtcdClient) GetWithPrefix(ctx context.Context, prefixKey string) (map[string]*KVPair, error) {
+	// Acquire a client from the pool
+	client, err := c.pool.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get client from pool: %w", err)
+	}
+	defer c.pool.Put(client)
+
+	// Fetch keys with the prefix
+	resp, err := client.Get(ctx, prefixKey, v3Client.WithPrefix())
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch entries for prefix %s: %w", prefixKey, err)
+	}
+
+	// Initialize the result map
+	result := make(map[string]*KVPair)
+
+	// Iterate through the fetched key-value pairs and populate the map
+	for _, ev := range resp.Kvs {
+		result[string(ev.Key)] = NewKVPair(string(ev.Key), ev.Value, "", ev.Lease, ev.Version)
+	}
+
+	return result, nil
+}
+
+// GetWithPrefixKeysOnly retrieves only the keys that match a given prefix.
+func (c *EtcdClient) GetWithPrefixKeysOnly(ctx context.Context, prefixKey string) ([]string, error) {
+	// Acquire a client from the pool
+	client, err := c.pool.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get client from pool: %w", err)
+	}
+	defer c.pool.Put(client)
+
+	// Fetch keys with the prefix
+	resp, err := client.Get(ctx, prefixKey, v3Client.WithPrefix(), v3Client.WithKeysOnly())
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch entries for prefix %s: %w", prefixKey, err)
+	}
+
+	// Extract keys from the response
+	keys := []string{}
+	for _, kv := range resp.Kvs {
+		keys = append(keys, string(kv.Key))
+	}
+
+	return keys, nil
 }
 
 // Put writes a key-value pair to the KV store.  Value can only be a string or []byte since the etcd API
