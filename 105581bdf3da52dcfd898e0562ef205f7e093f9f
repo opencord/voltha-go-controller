@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1182f73b_3d189fe9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 15
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001025
+      },
+      "writtenOn": "2025-04-09T09:12:16Z",
+      "side": 1,
+      "message": "\u003e Patch Set 15: Verified-1\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-go-controller_unit-test/322/ : FAILURE\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-go-controller_licensed/322/ : SUCCESS\n\nrecheck\n",
+      "revId": "105581bdf3da52dcfd898e0562ef205f7e093f9f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
