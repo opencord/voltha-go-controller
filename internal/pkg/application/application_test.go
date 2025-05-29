@@ -740,7 +740,7 @@ func TestNewVoltDevice(t *testing.T) {
 		SerialNum:                    "SDX6320033",
 		SouthBoundID:                 "68580342-6b3e-57cb-9ea4-06125594e330",
 		State:                        controller.DeviceStateDOWN,
-		NniPort:                      "",
+		NniPort:                      make([]string, 0),
 		icmpv6GroupAdded:             false,
 		IgmpDsFlowAppliedForMvlan:    make(map[uint16]bool),
 		ConfiguredVlanForDeviceFlows: util.NewConcurrentMap(),
@@ -1758,7 +1758,7 @@ func TestVoltApplication_AddDevice(t *testing.T) {
 		Name:           "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
-		NniPort:        "16777216",
+		NniPort:        []string{"16777216"},
 		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a123",
 	}
 	nbd := &NbDevice{
@@ -1827,7 +1827,7 @@ func TestVoltApplication_DelDevice(t *testing.T) {
 		Name:           "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
-		NniPort:        "16777216",
+		NniPort:        []string{"16777216"},
 		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a123",
 	}
 	tests := []struct {
@@ -1883,7 +1883,7 @@ func TestVoltApplication_PortAddInd(t *testing.T) {
 		Name:           "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
-		NniPort:        "16777216",
+		NniPort:        []string{"16777216"},
 		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a123",
 	}
 	tests := []struct {
@@ -1935,7 +1935,7 @@ func TestVoltApplication_PortUpdateInd(t *testing.T) {
 		Name:           "SDX6320031",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
-		NniPort:        "16777216",
+		NniPort:        []string{"16777216"},
 		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a123",
 	}
 	tests := []struct {
@@ -2000,7 +2000,7 @@ func TestVoltApplication_AddNbPonPort(t *testing.T) {
 		Name:           "SDX6320031",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
-		NniPort:        "16777216",
+		NniPort:        []string{"16777216"},
 		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a",
 	}
 	nbd := &NbDevice{
@@ -2076,7 +2076,7 @@ func TestVoltApplication_UpdateNbPonPort(t *testing.T) {
 		Name:                 "SDX6320031",
 		SerialNum:            "SDX6320031",
 		NniDhcpTrapVid:       123,
-		NniPort:              "16777216",
+		NniPort:              []string{"16777216"},
 		SouthBoundID:         "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		ActiveChannelsPerPon: sync.Map{},
 	}
@@ -2181,7 +2181,7 @@ func TestVoltApplication_DeleteNbPonPort(t *testing.T) {
 		Name:                 "SDX6320031",
 		SerialNum:            "SDX6320031",
 		NniDhcpTrapVid:       123,
-		NniPort:              "16777216",
+		NniPort:              []string{"16777216"},
 		SouthBoundID:         "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		ActiveChannelsPerPon: sync.Map{},
 	}
@@ -2258,7 +2258,7 @@ func TestVoltApplication_DeviceUpInd(t *testing.T) {
 		Name:           "SDX6320031",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
-		NniPort:        "16777216",
+		NniPort:        []string{"16777216"},
 		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a",
 	}
 	tests := []struct {
@@ -2302,7 +2302,7 @@ func TestVoltApplication_DeviceDownInd(t *testing.T) {
 		Name:           "SDX6320031",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
-		NniPort:        "16777216",
+		NniPort:        []string{"16777216"},
 		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a",
 	}
 	tests := []struct {
@@ -2399,7 +2399,7 @@ func TestVoltApplication_GetDeviceFromPort(t *testing.T) {
 		Name:           "SDX6320031",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
-		NniPort:        "16777216",
+		NniPort:        []string{"16777216"},
 		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		Ports:          sync.Map{},
 	}
@@ -2546,7 +2546,7 @@ func TestVoltApplication_PortUpInd(t *testing.T) {
 		Name:           "SDX6320031",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
-		NniPort:        "16777472",
+		NniPort:        []string{"16777216"},
 		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		Ports:          sync.Map{},
 		VpvsBySvlan:    util.NewConcurrentMap(),
@@ -2606,6 +2606,7 @@ func TestVoltApplication_PortUpInd(t *testing.T) {
 			voltPortVnet.services.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", voltServ)
 			voltapp := GetApplication()
 			voltapp.DevicesDisc.Store("SDX6320031", voltDev)
+			voltapp.DevicesConfig.Store("SDX6320031", &DeviceConfig{UplinkPort: "16777216"})
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
@@ -2624,7 +2625,7 @@ func TestVoltApplication_PortDownInd(t *testing.T) {
 		Name:           "SDX6320031",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
-		NniPort:        "16777472",
+		NniPort:        []string{"16777216"},
 		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		Ports:          sync.Map{},
 		VpvsBySvlan:    util.NewConcurrentMap(),
@@ -3137,7 +3138,7 @@ func TestVoltApplication_PortDelInd(t *testing.T) {
 		Name:           "49686e2d-618f-4e8e-bca0",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
-		NniPort:        "16777472",
+		NniPort:        []string{"16777216"},
 		SouthBoundID:   "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		Ports:          sync.Map{},
 		VpvsBySvlan:    util.NewConcurrentMap(),
@@ -3604,7 +3605,7 @@ func TestVoltApplication_NniVlanIndToIgmp(t *testing.T) {
 		SerialNum:                 "SDX6320031",
 		IgmpDsFlowAppliedForMvlan: mblan,
 		Ports:                     sync.Map{},
-		NniPort:                   "16777472",
+		NniPort:                   []string{"16777216"},
 	}
 	devicesList := make(map[string]OperInProgress)
 	devicesList["SDX6320030"] = opt82
