@@ -199,7 +199,7 @@ func TestVoltApplication_ProcessUsPppoeIaPacket(t *testing.T) {
 				va.DevicesDisc.Store(test_device, voltDevice)
 				pkt.EXPECT().Layers().Return(LayerTypeDot2Q).Times(3)
 				voltPortVnet1[0].SVlan = 0
-				voltDevice.NniPort = "1"
+				voltDevice.NniPort = []string{"1"}
 				va.VnetsByPort.Store("test_port", voltPortVnet1)
 				voltPortVnet1[0].PppoeIa = true
 				voltPortVnet1[0].AllowTransparent = true
