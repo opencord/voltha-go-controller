@@ -37,7 +37,7 @@ func TestVoltApplication_GetIgnoredPorts(t *testing.T) {
 		Name:         "11c3175b-50f3-4220-9555-93df733ded1d",
 		SerialNum:    "SDX6320031",
 		SouthBoundID: "68580342-6b3e-57cb-9ea4-06125594e330",
-		NniPort:      "16777472",
+		NniPort:      []string{"16777472"},
 		Ports:        sync.Map{},
 		PonPortList:  sync.Map{},
 	}
@@ -1115,7 +1115,7 @@ func TestVoltApplication_ProcessUsDhcpv6Packet(t *testing.T) {
 		Name:         "11c3175b-50f3-4220-9555-93df733ded1d",
 		SerialNum:    "SDX6320031",
 		SouthBoundID: "68580342-6b3e-57cb-9ea4-06125594e330",
-		NniPort:      "16777472",
+		NniPort:      []string{"16777472"},
 		Ports:        sync.Map{},
 		PonPortList:  sync.Map{},
 	}
