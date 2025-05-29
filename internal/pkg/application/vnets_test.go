@@ -226,7 +226,7 @@ func TestVoltApplication_GetMatchingMcastService(t *testing.T) {
 				}
 			case "port == d.NniPort":
 				va.DevicesDisc.Store(test_device, voltDevice)
-				voltDevice.NniPort = "test_port"
+				voltDevice.NniPort = []string{"test_port"}
 				if got := va.GetMatchingMcastService(tt.args.port, tt.args.device, tt.args.cvlan); !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("VoltApplication.GetMatchingMcastService() = %v, want %v", got, tt.want)
 				}
@@ -621,7 +621,7 @@ func TestVoltApplication_DeleteDevFlowForVlanFromDevice(t *testing.T) {
 		SerialNum:                    "SDX6320031",
 		NniDhcpTrapVid:               123,
 		State:                        cntlr.DeviceStateUP,
-		NniPort:                      "16777472",
+		NniPort:                      []string{"16777472"},
 		Ports:                        sync.Map{},
 		FlowDelEventMap:              util.NewConcurrentMap(),
 		ConfiguredVlanForDeviceFlows: util.NewConcurrentMap(),
@@ -780,7 +780,7 @@ func TestVoltApplication_DeleteDevFlowForDevice(t *testing.T) {
 		SerialNum:                    "SDX6320031",
 		NniDhcpTrapVid:               123,
 		State:                        cntlr.DeviceStateUP,
-		NniPort:                      "16777472",
+		NniPort:                      []string{"16777472"},
 		FlowDelEventMap:              util.NewConcurrentMap(),
 		ConfiguredVlanForDeviceFlows: util.NewConcurrentMap(),
 		icmpv6GroupAdded:             true,
@@ -906,7 +906,7 @@ func TestVoltApplication_PushDevFlowForVlan(t *testing.T) {
 		SerialNum:                    "SDX6320031",
 		NniDhcpTrapVid:               123,
 		State:                        cntlr.DeviceStateUP,
-		NniPort:                      "16777472",
+		NniPort:                      []string{"16777472"},
 		FlowDelEventMap:              util.NewConcurrentMap(),
 		ConfiguredVlanForDeviceFlows: util.NewConcurrentMap(),
 		icmpv6GroupAdded:             true,
@@ -1013,7 +1013,7 @@ func TestVoltApplication_PushDevFlowForDevice(t *testing.T) {
 				device: &VoltDevice{
 					Name:                         test_device,
 					ConfiguredVlanForDeviceFlows: util.NewConcurrentMap(),
-					NniPort:                      "test_nni_port",
+					NniPort:                      []string{"test_nni_port"},
 				},
 			},
 		},
@@ -1024,7 +1024,7 @@ func TestVoltApplication_PushDevFlowForDevice(t *testing.T) {
 				device: &VoltDevice{
 					Name:                         test_device,
 					ConfiguredVlanForDeviceFlows: util.NewConcurrentMap(),
-					NniPort:                      "test_nni_port",
+					NniPort:                      []string{"test_nni_port"},
 					VlanPortStatus:               sync.Map{},
 				},
 			},
@@ -1771,7 +1771,7 @@ func TestVoltPortVnet_AddDsDhcpFlows(t *testing.T) {
 				vpv.Device = deviceName
 				voltDev.State = cntlr.DeviceStateUP
 				voltDev.GlobalDhcpFlowAdded = false
-				voltDev.NniPort = "16777472"
+				voltDev.NniPort = []string{"16777472"}
 				va.PortsDisc.Store("16777472", voltPort)
 				appMock := mocks.NewMockApp(gomock.NewController(t))
 				cntlr.NewController(ctx, appMock)
@@ -1798,7 +1798,7 @@ func TestVoltPortVnet_AddUsDhcpFlows(t *testing.T) {
 		SerialNum:       "SDX6320031",
 		NniDhcpTrapVid:  123,
 		State:           cntlr.DeviceStateUP,
-		NniPort:         "16777472",
+		NniPort:         []string{"16777472"},
 		FlowAddEventMap: util.NewConcurrentMap(),
 	}
 	va.DevicesDisc.Store("SDX6320031", voltDev)
@@ -1893,7 +1893,7 @@ func TestVoltPortVnet_AddUsPppoeFlows(t *testing.T) {
 		SerialNum:       "SDX6320031",
 		NniDhcpTrapVid:  123,
 		State:           cntlr.DeviceStateUP,
-		NniPort:         "16777472",
+		NniPort:         []string{"16777472"},
 		FlowAddEventMap: util.NewConcurrentMap(),
 	}
 	voltPort := &VoltPort{
@@ -2059,12 +2059,20 @@ func TestVoltPortVnet_BuildUsDhcp6Flows(t *testing.T) {
 			UniVlan: of.VlanAny,
 		},
 	}
+	deviceConfig := &DeviceConfig{
+		SerialNumber:       "SDX6320031",
+		HardwareIdentifier: "dummy_hardware_identifier",
+		IPAddress:          "10.9.8.7",
+		UplinkPort:         "16777216",
+		NasID:              "nas_id",
+		NniDhcpTrapVid:     123,
+	}
 	voltDev := &VoltDevice{
 		Name:           "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
 		State:          cntlr.DeviceStateUP,
-		NniPort:        "16777216",
+		NniPort:        []string{"16777472"},
 		Ports:          sync.Map{},
 	}
 	tests := []struct {
@@ -2116,7 +2124,9 @@ func TestVoltPortVnet_BuildUsDhcp6Flows(t *testing.T) {
 				}
 				assert.NotNil(t, got)
 			case "BuildDsDhcp6Flows":
+				voltDev.NniPort = []string{"16777216"}
 				va.DevicesDisc.Store("SDX6320031", voltDev)
+				va.DevicesConfig.Store("SDX6320031", deviceConfig)
 				got, err := vpv.BuildDsDhcp6Flows()
 				if (err != nil) != tt.wantErr {
 					t.Errorf("VoltPortVnet.BuildDsDhcp6Flows() error = %v, wantErr %v", err, tt.wantErr)
@@ -2140,7 +2150,7 @@ func TestVoltPortVnet_BuildUsDhcp6Flows(t *testing.T) {
 				}
 				assert.Nil(t, got)
 			case "BuildDsDhcp6Flows_portnotfound":
-				voltDev.NniPort = "abc"
+				voltDev.NniPort = []string{"abc"}
 				got, err := vpv.BuildDsDhcp6Flows()
 				if (err != nil) != tt.wantErr {
 					t.Errorf("VoltPortVnet.BuildDsDhcp6Flows_portnotfound() error = %v, wantErr %v", err, tt.wantErr)
@@ -2447,7 +2457,7 @@ func TestVoltPortVnet_delDsDhcp4Flows(t *testing.T) {
 		SerialNum:       "SDX6320031",
 		NniDhcpTrapVid:  123,
 		State:           cntlr.DeviceStateUP,
-		NniPort:         "16777472",
+		NniPort:         []string{"16777472"},
 		Ports:           sync.Map{},
 		FlowDelEventMap: util.NewConcurrentMap(),
 	}
@@ -2524,7 +2534,7 @@ func TestVoltApplication_DeleteDevFlowForVlan(t *testing.T) {
 		SerialNum:                    "SDX6320031",
 		NniDhcpTrapVid:               123,
 		State:                        cntlr.DeviceStateUP,
-		NniPort:                      "16777472",
+		NniPort:                      []string{"16777472"},
 		Ports:                        sync.Map{},
 		FlowDelEventMap:              util.NewConcurrentMap(),
 		ConfiguredVlanForDeviceFlows: util.NewConcurrentMap(),

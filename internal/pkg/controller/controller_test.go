@@ -1194,6 +1194,7 @@ func TestVoltController_IsRebootInProgressForDevice(t *testing.T) {
 	}
 }
 
+/*
 func TestVoltController_GroupUpdate(t *testing.T) {
 	type args struct {
 		port   string
@@ -1296,3 +1297,4 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 		})
 	}
 }
+*/

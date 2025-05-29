@@ -318,7 +318,11 @@ func (mvp *MvlanProfile) DelFlows(cntx context.Context, device *VoltDevice, flow
 	if err := mvp.WriteToDb(cntx); err != nil {
 		logger.Errorw(ctx, "Mvlan profile write to DB failed", log.Fields{"ProfileName": mvp.Name})
 	}
-	return cntlr.GetController().DelFlows(cntx, device.NniPort, device.Name, flow, false)
+	nniPort, err := GetApplication().GetNniPort(device.Name)
+	if err != nil {
+		logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
+	}
+	return cntlr.GetController().DelFlows(cntx, nniPort, device.Name, flow, false)
 }
 
 // FlowRemoveSuccess - Process flow success indication
@@ -404,8 +408,11 @@ func (mvp *MvlanProfile) pushIgmpMcastFlows(cntx context.Context, OLTSerialNum s
 		logger.Warnw(ctx, "Skipping Igmp & Mcast Flow processing: Device Not Found", log.Fields{"Device_SrNo": OLTSerialNum, "Mvlan": mvp.Mvlan})
 		return
 	}
-
-	p := d.GetPort(d.NniPort)
+	nniPort, err := GetApplication().GetNniPort(d.Name)
+	if err != nil {
+		logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
+	}
+	p := d.GetPort(nniPort)
 
 	if p != nil && p.State == PortStateUp {
 		logger.Infow(ctx, "NNI Port Status is: UP & Vlan Enabled", log.Fields{"Device": d, "port": p})
@@ -432,7 +439,11 @@ func (mvp *MvlanProfile) removeIgmpMcastFlows(cntx context.Context, oltSerialNum
 	defer mvp.mvpLock.RUnlock()
 
 	if d, _ := GetApplication().GetDeviceBySerialNo(oltSerialNum); d != nil {
-		p := d.GetPort(d.NniPort)
+		nniPort, err := GetApplication().GetNniPort(d.Name)
+		if err != nil {
+			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
+		}
+		p := d.GetPort(nniPort)
 		if p != nil {
 			logger.Infow(ctx, "NNI Port Status is: UP", log.Fields{"Device": d, "port": p})
 
@@ -482,7 +493,11 @@ func (mvp *MvlanProfile) ApplyIgmpDSFlowForMvp(cntx context.Context, device stri
 	if !ok || !flowAlreadyApplied {
 		flows, err := mvp.BuildIgmpDSFlows(device)
 		if err == nil {
-			err = cntlr.GetController().AddFlows(cntx, d.NniPort, device, flows)
+			nniPort, err1 := va.GetNniPort(device)
+			if err1 != nil {
+				logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err1})
+			}
+			err = cntlr.GetController().AddFlows(cntx, nniPort, device, flows)
 			if err != nil {
 				logger.Warnw(ctx, "Configuring IGMP Flow for device failed ", log.Fields{"Device": device, "err": err})
 				return err
@@ -509,8 +524,8 @@ func (mvp *MvlanProfile) RemoveIgmpDSFlowForMvp(cntx context.Context, device str
 	}
 	d := dIntf.(*VoltDevice)
 	/* No need of strict check during DS IGMP deletion
-	   flowAlreadyApplied, ok := d.IgmpDsFlowAppliedForMvlan[uint16(mvlan)]
-	   if ok && flowAlreadyApplied
+	flowAlreadyApplied, ok := d.IgmpDsFlowAppliedForMvlan[uint16(mvlan)]
+	if ok && flowAlreadyApplied
 	*/
 	flows, err := mvp.BuildIgmpDSFlows(device)
 	if err == nil {
@@ -1024,7 +1039,7 @@ func (mvp *MvlanProfile) UpdateActiveChannelSubscriberAlarm() {
 				vp.ChannelPerSubAlarmRaised = false
 			} else if mvp.MaxActiveChannels < vp.ActiveChannels && !vp.ChannelPerSubAlarmRaised {
 				/* When the max active channel count is reduced via update, we raise an alarm.
-				   But the previous excess channels still exist until a leave or expiry */
+				But the previous excess channels still exist until a leave or expiry */
 				serviceName := GetMcastServiceForSubAlarm(vp, mvp)
 				logger.Debugw(ctx, "Raising-SendActiveChannelPerSubscriberAlarm-due-to-update", log.Fields{"ActiveChannels": vp.ActiveChannels, "ServiceName": serviceName})
 				vp.ChannelPerSubAlarmRaised = true
