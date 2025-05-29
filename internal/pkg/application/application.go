@@ -209,26 +209,20 @@ type VoltDevice struct {
 	MigratingServices            *util.ConcurrentMap //<vnetID,<RequestID, MigrateServicesRequest>>
 	VpvsBySvlan                  *util.ConcurrentMap // map[svlan]map[vnet_port]*VoltPortVnet
 	ConfiguredVlanForDeviceFlows *util.ConcurrentMap //map[string]map[string]bool
-
-	IgmpDsFlowAppliedForMvlan map[uint16]bool
-
-	Ports                sync.Map
-	VlanPortStatus       sync.Map
-	ActiveChannelsPerPon sync.Map // [PonPortID]*PonPortCfg
-	PonPortList          sync.Map // [PonPortID]map[string]string
-
-	State        controller.DeviceState
-	SouthBoundID string
-	NniPort      string
-	Name         string
-	SerialNum    string
-
-	ActiveChannelCountLock sync.Mutex // This lock is used to update ActiveIGMPChannels
-
-	NniDhcpTrapVid of.VlanType
-
-	GlobalDhcpFlowAdded bool
-	icmpv6GroupAdded    bool
+	IgmpDsFlowAppliedForMvlan    map[uint16]bool
+	Ports                        sync.Map
+	VlanPortStatus               sync.Map
+	ActiveChannelsPerPon         sync.Map // [PonPortID]*PonPortCfg
+	PonPortList                  sync.Map // [PonPortID]map[string]string
+	State                        controller.DeviceState
+	SouthBoundID                 string
+	Name                         string
+	SerialNum                    string
+	NniPort                      []string
+	ActiveChannelCountLock       sync.Mutex // This lock is used to update ActiveIGMPChannels
+	NniDhcpTrapVid               of.VlanType
+	GlobalDhcpFlowAdded          bool
+	icmpv6GroupAdded             bool
 }
 
 type VoltDevInterface interface {
@@ -241,7 +235,7 @@ func NewVoltDevice(name string, slno, southBoundID string) *VoltDevice {
 	d.Name = name
 	d.SouthBoundID = southBoundID
 	d.State = controller.DeviceStateDOWN
-	d.NniPort = ""
+	d.NniPort = make([]string, 0)
 	d.SouthBoundID = southBoundID
 	d.SerialNum = slno
 	d.icmpv6GroupAdded = false
@@ -339,10 +333,19 @@ func (d *VoltDevice) AddPort(port string, id uint32) *VoltPort {
 	va.AggActiveChannelsCountPerSub(d.Name, port, p)
 	d.Ports.Store(port, p)
 	if util.IsNniPort(id) {
-		d.NniPort = port
+		d.NniPort = append(d.NniPort, port)
 	}
 	addPonPortFromUniPort(p)
 	return p
+}
+
+func (d *VoltDevice) IsPortNni(port string) bool {
+	for _, nniPort := range d.NniPort {
+		if nniPort == port {
+			return true
+		}
+	}
+	return false
 }
 
 // GetPort to get port information from the device.
@@ -399,7 +402,7 @@ func (d *VoltDevice) pushFlowsForUnis(cntx context.Context) {
 
 		for _, vpv := range vnets.([]*VoltPortVnet) {
 			vpv.VpvLock.Lock()
-			vpv.PortUpInd(cntx, d, port)
+			vpv.PortUpInd(cntx, d, port, "")
 			vpv.VpvLock.Unlock()
 		}
 		return true
@@ -419,7 +422,7 @@ var vapplication *VoltApplication
 type VoltAppInterface interface {
 	AddVnet(cntx context.Context, cfg VnetConfig, oper *VnetOper) error
 	AddService(cntx context.Context, cfg VoltServiceCfg, oper *VoltServiceOper) error
-	AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID uint16) error
+	AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID uint16, nniPorts []string) error
 	GetFlowProvisionStatus(portNo string) FlowProvisionStatus
 	DelServiceWithPrefix(cntx context.Context, prefix string) error
 	GetDevice(device string) *VoltDevice
@@ -499,12 +502,13 @@ type VoltApplication struct {
 }
 
 type DeviceConfig struct {
-	SerialNumber       string `json:"id"`
-	HardwareIdentifier string `json:"hardwareIdentifier"`
-	IPAddress          string `json:"ipAddress"`
-	UplinkPort         string `json:"uplinkPort"`
-	NasID              string `json:"nasId"`
-	NniDhcpTrapVid     uint16 `json:"nniDhcpTrapVid"`
+	SerialNumber       string   `json:"id"`
+	HardwareIdentifier string   `json:"hardwareIdentifier"`
+	IPAddress          string   `json:"ipAddress"`
+	UplinkPort         string   `json:"uplinkPort"`
+	NasID              string   `json:"nasId"`
+	NniDhcpTrapVid     uint16   `json:"nniDhcpTrapVid"`
+	NniPorts           []string `json:"nniPorts"`
 }
 
 // PonPortCfg contains NB port config and activeIGMPChannels count
@@ -602,7 +606,7 @@ func (va *VoltApplication) RestoreDeviceConfigFromDb(cntx context.Context) {
 			continue
 		}
 		logger.Debugw(ctx, "Retrieved device config", log.Fields{"Device Config": devConfig})
-		if err := va.AddDeviceConfig(cntx, devConfig.SerialNumber, devConfig.HardwareIdentifier, devConfig.NasID, devConfig.IPAddress, devConfig.UplinkPort, devConfig.NniDhcpTrapVid); err != nil {
+		if err := va.AddDeviceConfig(cntx, devConfig.SerialNumber, devConfig.HardwareIdentifier, devConfig.NasID, devConfig.IPAddress, devConfig.UplinkPort, devConfig.NniDhcpTrapVid, devConfig.NniPorts); err != nil {
 			logger.Warnw(ctx, "Add device config failed", log.Fields{"DeviceConfig": devConfig, "Error": err})
 		}
 	}
@@ -621,7 +625,7 @@ func (dc *DeviceConfig) WriteDeviceConfigToDb(cntx context.Context, serialNum st
 	return nil
 }
 
-func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID uint16) error {
+func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID uint16, nniPorts []string) error {
 	logger.Debugw(ctx, "Received Add device config", log.Fields{"SerialNumber": serialNum, "HardwareIdentifier": hardwareIdentifier, "NasID": nasID, "IPAddress": ipAddress, "UplinkPort": uplinkPort, "NniDhcpTrapID": nniDhcpTrapID})
 	var dc *DeviceConfig
 
@@ -632,6 +636,7 @@ func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hard
 		UplinkPort:         uplinkPort,
 		IPAddress:          ipAddress,
 		NniDhcpTrapVid:     nniDhcpTrapID,
+		NniPorts:           nniPorts,
 	}
 	va.DevicesConfig.Store(serialNum, deviceConfig)
 	err := dc.WriteDeviceConfigToDb(cntx, serialNum, deviceConfig)
@@ -1139,13 +1144,29 @@ func (va *VoltApplication) DeleteNbPonPort(cntx context.Context, oltSbID string,
 // port which is a result of protection methods applied.
 func (va *VoltApplication) GetNniPort(device string) (string, error) {
 	logger.Debugw(ctx, "NNI Get Ind", log.Fields{"device": device})
-	va.portLock.Lock()
-	defer va.portLock.Unlock()
 	d, ok := va.DevicesDisc.Load(device)
 	if !ok {
 		return "", errors.New("device doesn't exist")
 	}
-	return d.(*VoltDevice).NniPort, nil
+	devConfig := va.GetDeviceConfig(d.(*VoltDevice).SerialNum)
+	if devConfig == nil {
+		return "", fmt.Errorf("device config not found for serial number %s", d.(*VoltDevice).SerialNum)
+	}
+	if len(d.(*VoltDevice).NniPort) > 0 {
+		for _, nniPort := range d.(*VoltDevice).NniPort {
+			nniPortID, err := GetApplication().GetPortID(nniPort)
+			if err != nil {
+				logger.Errorw(ctx, "Error getting port ID by port Name", log.Fields{"Error": err})
+				continue
+			}
+			if devConfig.UplinkPort == strconv.Itoa(int(nniPortID)) {
+				logger.Debugw(ctx, "NNI port configured from NB", log.Fields{"NB NNI Port": devConfig.UplinkPort, "SB NNI Ports": d.(*VoltDevice).NniPort})
+				return nniPort, nil // Match found
+			}
+		}
+	}
+	// If no matching NNI port is found, return an error
+	return "", errors.New("nni port doesn't exist")
 }
 
 // NniDownInd process for Nni down indication.
@@ -1215,7 +1236,11 @@ func (va *VoltApplication) DeviceDisableInd(cntx context.Context, device string)
 func (va *VoltApplication) ProcessIgmpDSFlowForMvlan(cntx context.Context, d *VoltDevice, mvp *MvlanProfile, addFlow bool) {
 	logger.Debugw(ctx, "Process IGMP DS Flows for MVlan", log.Fields{"device": d.Name, "Mvlan": mvp.Mvlan, "addFlow": addFlow})
 	portState := false
-	p := d.GetPort(d.NniPort)
+	nniPort, err := va.GetNniPort(d.Name)
+	if err != nil {
+		logger.Errorw(ctx, "Error gettin NNI port", log.Fields{"Error": err})
+	}
+	p := d.GetPort(nniPort)
 	if p != nil && p.State == PortStateUp {
 		portState = true
 	}
@@ -1450,7 +1475,7 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 	}
 
 	// If NNI port is not UP, do not push Flows
-	if d.NniPort == "" {
+	if len(d.NniPort) == 0 {
 		logger.Warnw(ctx, "NNI port not UP. Not sending Port UP Ind for VPVs", log.Fields{"NNI": d.NniPort})
 		return
 	}
@@ -1458,12 +1483,12 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 	for _, vpv := range vpvs.([]*VoltPortVnet) {
 		vpv.VpvLock.Lock()
 		// If no service is activated drop the portUpInd
-		if vpv.IsServiceActivated(cntx) {
+		if ok, nniPort := vpv.IsServiceActivated(cntx); ok {
 			// Do not trigger indication for the vpv which is already removed from vpv list as
 			// part of service delete (during the lock wait duration)
 			// In that case, the services associated wil be zero
 			if vpv.servicesCount.Load() != 0 {
-				vpv.PortUpInd(cntx, d, port)
+				vpv.PortUpInd(cntx, d, port, nniPort)
 			}
 		} else {
 			// Service not activated, still attach device to service
@@ -1801,7 +1826,7 @@ func (va *VoltApplication) CheckAndDeactivateService(ctx context.Context, flow *
 	if flow.FlowCount >= uint32(controller.GetController().GetMaxFlowRetryAttempt()) {
 		devConfig := va.GetDeviceConfig(devSerialNum)
 		if devConfig != nil {
-			portNo := util.GetUniPortFromFlow(devConfig.UplinkPort, flow)
+			portNo := util.GetUniPortFromFlow(devConfig.UplinkPort, devConfig.NniPorts, flow)
 			portName, err := va.GetPortName(portNo)
 			if err != nil {
 				logger.Warnw(ctx, "Error getting port name", log.Fields{"Reason": err.Error(), "PortID": portNo})

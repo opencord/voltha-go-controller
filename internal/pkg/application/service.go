@@ -87,6 +87,7 @@ type VoltServiceCfg struct {
 	Name                       string
 	CircuitID                  string
 	Port                       string
+	NniPort                    string
 	UsMeterProfile             string
 	DsMeterProfile             string
 	AggDsMeterProfile          string
@@ -574,12 +575,26 @@ func (vs *VoltService) BuildDsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 	flow := &of.VoltFlow{}
 	flow.SubFlows = make(map[uint64]*of.VoltSubFlow)
 
-	// Get the out and in ports for the flows
-	device, err := GetApplication().GetDeviceFromPort(vs.Port)
-	if err != nil {
-		return nil, fmt.Errorf("Error Getting Device for Service %s and Port %s  : %w", vs.Name, vs.Port, err)
+	var inport uint32
+	if vs.NniPort != "" {
+		if nniPort, err := strconv.Atoi(vs.NniPort); err == nil {
+			inport = uint32(nniPort)
+		} else {
+			return nil, fmt.Errorf("error converting NNI port %s to int for Service %s : %w", vs.NniPort, vs.Name, err)
+		}
+	} else {
+		// Get the out and in ports for the flows
+		device, err := GetApplication().GetDeviceFromPort(vs.Port)
+		if err != nil {
+			return nil, fmt.Errorf("Error Getting Device for Service %s and Port %s  : %w", vs.Name, vs.Port, err)
+		}
+		nniPort, err := GetApplication().GetNniPort(device.Name)
+		if err != nil {
+			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
+			return nil, err
+		}
+		inport, _ = GetApplication().GetPortID(nniPort)
 	}
-	inport, _ := GetApplication().GetPortID(device.NniPort)
 	outport, _ := GetApplication().GetPortID(vs.Port)
 	// PortName and PortID to be used for validation of port before flow pushing
 	flow.PortID = outport
@@ -757,12 +772,26 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 	flow := &of.VoltFlow{}
 	flow.SubFlows = make(map[uint64]*of.VoltSubFlow)
 
-	// Get the out and in ports for the flows
-	device, err := GetApplication().GetDeviceFromPort(vs.Port)
-	if err != nil {
-		return nil, errorCodes.ErrDeviceNotFound
+	var outport uint32
+	if vs.NniPort != "" {
+		if nniPort, err := strconv.Atoi(vs.NniPort); err == nil {
+			outport = uint32(nniPort)
+		} else {
+			return nil, fmt.Errorf("error converting NNI port %s to int for Service %s : %w", vs.NniPort, vs.Name, err)
+		}
+	} else {
+		// Get the out and in ports for the flows
+		device, err := GetApplication().GetDeviceFromPort(vs.Port)
+		if err != nil {
+			return nil, errorCodes.ErrDeviceNotFound
+		}
+		nniPort, err := GetApplication().GetNniPort(device.Name)
+		if err != nil {
+			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
+			return nil, err
+		}
+		outport, _ = GetApplication().GetPortID(nniPort)
 	}
-	outport, _ := GetApplication().GetPortID(device.NniPort)
 	inport, _ := GetApplication().GetPortID(vs.Port)
 	// PortName and PortID to be used for validation of port before flow pushing
 	flow.PortID = inport
@@ -2192,7 +2221,7 @@ func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portN
 				if p.State == PortStateUp {
 					if vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan); vpv != nil {
 						// PortUp call initiates flow addition
-						vpv.PortUpInd(cntx, device, portNo)
+						vpv.PortUpInd(cntx, device, portNo, vs.NniPort)
 					} else {
 						logger.Warnw(ctx, "VPV does not exists!!!", log.Fields{"Device": deviceID, "port": portNo, "SvcName": vs.Name})
 					}

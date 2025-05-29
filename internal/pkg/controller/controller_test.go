@@ -20,6 +20,7 @@ import (
 	"reflect"
 	"sync"
 	"testing"
+	"time"
 	"voltha-go-controller/internal/pkg/intf"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/tasks"
@@ -1295,4 +1296,7 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 			}
 		})
 	}
+	// GroupUpdate test sends the task to queue and ends immediately, making the device initialised in local context to be void by the time the task is executed.
+	// Wait for sometime for the task to be executed before clearing the device
+	time.Sleep(1 * time.Second)
 }
