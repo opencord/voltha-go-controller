@@ -340,7 +340,7 @@ func (d *Device) UpdateGroupEntry(cntx context.Context, group *of.Group) {
 	d.AddGroupToDb(cntx, group)
 }
 
-// AddGroupToDb - Utility to add the group to the device DB
+// AddGroupToDb - Utility to add the group to the   device DB
 func (d *Device) AddGroupToDb(cntx context.Context, group *of.Group) {
 	if b, err := json.Marshal(group); err == nil {
 		logger.Debugw(ctx, "Adding Group to DB", log.Fields{"grp": group, "Json": string(b)})
