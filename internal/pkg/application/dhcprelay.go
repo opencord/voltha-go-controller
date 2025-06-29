@@ -714,9 +714,10 @@ func raiseDHCPv4Indication(msgType layers.DHCPMsgType, vpv *VoltPortVnet, smac n
 
 	switch msgType {
 	case layers.DHCPMsgTypeDiscover, layers.DHCPMsgTypeRequest:
-		if msgType == layers.DHCPMsgTypeDiscover {
+		switch msgType {
+		case layers.DHCPMsgTypeDiscover:
 			vpv.SetDhcpState(DhcpRelayStateDiscover)
-		} else if msgType == layers.DHCPMsgTypeRequest {
+		case layers.DHCPMsgTypeRequest:
 			vpv.SetDhcpState(DhcpRelayStateRequest)
 		}
 	// Reset learnt mac address in case of DHCPv4 release
@@ -727,9 +728,10 @@ func raiseDHCPv4Indication(msgType layers.DHCPMsgType, vpv *VoltPortVnet, smac n
 
 	case layers.DHCPMsgTypeAck, layers.DHCPMsgTypeNak:
 		vpv.services.Range(matchServiceAndRaiseInd)
-		if msgType == layers.DHCPMsgTypeAck {
+		switch msgType {
+		case layers.DHCPMsgTypeAck:
 			vpv.SetDhcpState(DhcpRelayStateAck)
-		} else if msgType == layers.DHCPMsgTypeNak {
+		case layers.DHCPMsgTypeNak:
 			vpv.SetDhcpState(DhcpRelayStateNAK)
 		}
 	case layers.DHCPMsgTypeOffer:

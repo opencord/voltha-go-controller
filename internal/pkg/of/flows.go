@@ -806,14 +806,14 @@ func CreateMatchAndActions(f *VoltSubFlow) ([]*ofp.OfpOxmField, []*ofp.OfpInstru
 
 	// Construct the match rules
 	// Add match in port
-	if f.Match.InPort != 0 {
-		entry := NewInportMatch(uint32(f.Match.InPort))
+	if f.InPort != 0 {
+		entry := NewInportMatch(uint32(f.InPort))
 		matchList = append(matchList, entry)
 	}
 
 	// Add table metadata match
-	if f.Match.TableMetadata != 0 {
-		entry := NewTableMetadataMatch(uint64(f.Match.TableMetadata))
+	if f.TableMetadata != 0 {
+		entry := NewTableMetadataMatch(uint64(f.TableMetadata))
 		matchList = append(matchList, entry)
 	}
 
@@ -933,13 +933,14 @@ func CreateMatchAndActions(f *VoltSubFlow) ([]*ofp.OfpOxmField, []*ofp.OfpInstru
 			}
 		}
 
-		if f.Action.Output == OutputTypeToController {
+		switch f.Output {
+		case OutputTypeToController:
 			action := NewOutputAction(0xfffffffd)
 			actions.Actions = append(actions.Actions, action)
-		} else if f.Action.Output == OutputTypeToNetwork {
+		case OutputTypeToNetwork:
 			action := NewOutputAction(f.OutPort)
 			actions.Actions = append(actions.Actions, action)
-		} else if f.Action.Output == OutputTypeToGroup {
+		case OutputTypeToGroup:
 			action := NewGroupAction(f.OutPort)
 			actions.Actions = append(actions.Actions, action)
 		}

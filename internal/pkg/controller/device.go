@@ -689,7 +689,7 @@ func (d *Device) ConnectInd(ctx context.Context, discType intf.DiscoveryType) {
 	ctx1, cancel := context.WithCancel(ctx)
 	d.cancel = cancel
 	d.ctx = ctx1
-	d.Tasks.Initialize(ctx1)
+	d.Initialize(ctx1)
 
 	logger.Debugw(ctx, "Device State change Ind: UP", log.Fields{"Device": d.ID})
 	d.State = DeviceStateUP
@@ -698,13 +698,13 @@ func (d *Device) ConnectInd(ctx context.Context, discType intf.DiscoveryType) {
 
 	logger.Debugw(ctx, "Device State change Ind: UP, trigger Audit Tasks", log.Fields{"Device": d.ID})
 	t := NewAuditDevice(d, AuditEventDeviceDisc)
-	d.Tasks.AddTask(t)
+	d.AddTask(t)
 
 	t1 := NewAuditTablesTask(d)
-	d.Tasks.AddTask(t1)
+	d.AddTask(t1)
 
 	t2 := NewPendingProfilesTask(d)
-	d.Tasks.AddTask(t2)
+	d.AddTask(t2)
 
 	go d.synchronizeDeviceTables()
 }
@@ -719,7 +719,7 @@ loop:
 			break loop
 		case <-tick.C:
 			t1 := NewAuditTablesTask(d)
-			d.Tasks.AddTask(t1)
+			d.AddTask(t1)
 		}
 	}
 	tick.Stop()
@@ -734,13 +734,13 @@ func (d *Device) DeviceUpInd() {
 
 	logger.Warnw(ctx, "Device State change Ind: UP, trigger Audit Tasks", log.Fields{"Device": d.ID})
 	t := NewAuditDevice(d, AuditEventDeviceDisc)
-	d.Tasks.AddTask(t)
+	d.AddTask(t)
 
 	t1 := NewAuditTablesTask(d)
-	d.Tasks.AddTask(t1)
+	d.AddTask(t1)
 
 	t2 := NewPendingProfilesTask(d)
-	d.Tasks.AddTask(t2)
+	d.AddTask(t2)
 }
 
 // DeviceDownInd is called when the logical device state changes to Down.
@@ -853,7 +853,7 @@ func (d *Device) ProcessPortState(cntx context.Context, port uint32, state uint3
 		// Avoid blind initialization as the current tasks in the queue will be lost
 		// Eg: Service Del followed by Port Down - The flows will be dangling
 		// Eg: NNI Down followed by NNI UP - Mcast data flows will be dangling
-		p.Tasks.CheckAndInitialize(d.ctx)
+		p.CheckAndInitialize(d.ctx)
 		if state == uint32(ofp.OfpPortState_OFPPS_LIVE) && p.State == PortStateDown {
 			// Transition from DOWN to UP
 			logger.Infow(ctx, "Port State Change to UP", log.Fields{"Device": d.ID, "Port": port})
@@ -880,11 +880,12 @@ func (d *Device) ProcessPortStateAfterReboot(cntx context.Context, port uint32, 
 	}
 	if p := d.GetPortByID(port); p != nil {
 		logger.Infow(ctx, "Port State Processing after Reboot", log.Fields{"Received": state, "Current": p.State})
-		p.Tasks.Initialize(d.ctx)
-		if p.State == PortStateUp {
+		p.Initialize(d.ctx)
+		switch p.State {
+		case PortStateUp:
 			logger.Infow(ctx, "Port State: UP", log.Fields{"Device": d.ID, "Port": port})
 			GetController().PortUpInd(cntx, d.ID, p.Name)
-		} else if p.State == PortStateDown {
+		case PortStateDown:
 			logger.Infow(ctx, "Port State: Down", log.Fields{"Device": d.ID, "Port": port})
 			GetController().PortDownInd(cntx, d.ID, p.Name)
 		}
@@ -1039,7 +1040,7 @@ func (d *Device) addFlowQueueForUniID(id uint32) *UniIDFlowQueue {
 	defer d.flowQueueLock.Unlock()
 	flowHashID := id % uint32(d.flowHash)
 	flowQueue := NewUniIDFlowQueue(uint32(flowHashID))
-	flowQueue.Tasks.Initialize(d.ctx)
+	flowQueue.Initialize(d.ctx)
 	d.flowQueue[flowHashID] = flowQueue
 	return flowQueue
 }

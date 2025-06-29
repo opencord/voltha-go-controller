@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-version: 2
+
 linters-settings:
   govet:
     settings:
@@ -41,41 +41,17 @@ linters:
      - govet
      - errcheck
      - goconst
+     - gofmt
      - whitespace
+     - goimports
+     - gosimple
      - ineffassign
      - gocyclo
      - misspell
      - staticcheck
      - unused
      - gosec
-  exclusions:
-    paths:
-      - '_test\.go$'
-      - voltha-go-controller/tests/mocks
-      - internal/test/mocks
-    rules:
-      - path: ".*_test.go"
-        linters:
-          - govet
-          - fieldalignment
-      - text: 'G114: Use of net/http serve function that has no support for setting timeouts'
-        linters:
-          - gosec
-      - text: 'G115: integer overflow conversion'
-        linters:
-          - gosec
-      - text: 'ST1005: error strings should not be capitalized'
-        linters:
-          - staticcheck
-      - text: 'QF1007: could merge conditional assignment into variable declaration'
-        linters:
-          - staticcheck
 
-
-formatters:
-  enable:
-    - gofmt
-    - goimports
 run:
   issues-exit-code: 1
   timeout: 10m
@@ -88,15 +64,15 @@ run:
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration
 service:
-  golangci-lint-version: 2.0.2 # use the fixed version to not introduce new linters unexpectedly
+  golangci-lint-version: 1.61.0 # use the fixed version to not introduce new linters unexpectedly
   prepare:
     - echo "here I can run custom commands, but no preparation needed for this repo"
-# issues:
-#   exclude:
-#     - 'G114: Use of net/http serve function that has no support for setting timeouts'
-#     - 'G115: integer overflow conversion'
-#   exclude-rules:
-#     - path: ".*_test.go"
-#       linters:
-#         - govet
-#         - fieldalignment
+issues:
+  exclude:
+    - 'G114: Use of net/http serve function that has no support for setting timeouts'
+    - 'G115: integer overflow conversion'
+  exclude-rules:
+    - path: ".*_test.go"
+      linters:
+        - govet
+        - fieldalignment

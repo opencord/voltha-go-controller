@@ -812,7 +812,8 @@ func (va *VoltApplication) ProcessIgmpv2Pkt(cntx context.Context, device string,
 
 	logger.Debugw(ctx, "Received IGMPv2 Type", log.Fields{"Type": igmpv2.Type})
 
-	if igmpv2.Type == layers.IGMPMembershipReportV2 || igmpv2.Type == layers.IGMPMembershipReportV1 {
+	switch igmpv2.Type {
+	case layers.IGMPMembershipReportV2, layers.IGMPMembershipReportV1:
 		logger.Infow(ctx, "IGMP Join received: v2", log.Fields{"Addr": igmpv2.GroupAddress, "Port": port})
 
 		// This is a report coming from the PON. We must be able to first find the
@@ -884,7 +885,7 @@ func (va *VoltApplication) ProcessIgmpv2Pkt(cntx context.Context, device string,
 				return
 			}
 		}
-	} else if igmpv2.Type == layers.IGMPLeaveGroup {
+	case layers.IGMPLeaveGroup:
 		// This is a IGMP leave coming from one of the receivers. We essentially remove the
 		// the receiver.
 		logger.Infow(ctx, "IGMP Leave received: v2", log.Fields{"Addr": igmpv2.GroupAddress, "Port": port})
@@ -911,7 +912,7 @@ func (va *VoltApplication) ProcessIgmpv2Pkt(cntx context.Context, device string,
 				va.DelIgmpGroup(cntx, ig)
 			}
 		}
-	} else {
+	default:
 		// This must be a query on the NNI port. However, we dont make that assumption.
 		// Need to look for the IGMP group based on the VLAN in the packet as
 		// the MVLAN

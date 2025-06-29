@@ -515,7 +515,7 @@ func (ig *IgmpGroup) RestoreDevices(cntx context.Context) {
 			// During vgc upgrade from old version, igd.NextQueryTime and igd.QueryExpiryTime will not be present in db.
 			// hence they are initialized with current time offset.
 			emptyTime := time.Time{}
-			if emptyTime == igd.NextQueryTime {
+			if emptyTime.Equal(igd.NextQueryTime) {
 				logger.Debugw(ctx, "VGC igd upgrade", log.Fields{"igd grp name": igd.GroupName})
 				igd.NextQueryTime = time.Now().Add(time.Duration(igd.proxyCfg.KeepAliveInterval) * time.Second)
 				igd.QueryExpiryTime = time.Now().Add(time.Duration(igd.proxyCfg.KeepAliveInterval) * time.Second)
