@@ -32,7 +32,7 @@ const GrpcMaxSize int = 17455678
 
 func (vpa *VPAgent) establishConnectionToVoltha(ctx context.Context) error {
 	if vpa.volthaConnection != nil {
-		vpa.volthaConnection.Close()
+		_ = vpa.volthaConnection.Close()
 	}
 
 	vpa.volthaConnection = nil
@@ -74,5 +74,5 @@ func (vpa *VPAgent) establishConnectionToVoltha(ctx context.Context) error {
 func (vpa *VPAgent) CloseConnectionToVoltha() {
 	// Close the grpc connection to voltha
 	logger.Debug(ctx, "Closing voltha grpc connection")
-	vpa.volthaConnection.Close()
+	_ = vpa.volthaConnection.Close()
 }

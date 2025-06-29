@@ -516,13 +516,14 @@ func ConvertFlowsToFlowEntry(subFlows []*of.VoltSubFlow) FlowEntry {
 
 func FlowStateMapping(state uint8) string {
 	var flowState string
-	if state == of.FlowAddSuccess {
+	switch state {
+	case of.FlowAddSuccess:
 		flowState = Added
-	} else if state == of.FlowAddFailure {
+	case of.FlowAddFailure:
 		flowState = FailedAdd
-	} else if state == of.FlowAddPending {
+	case of.FlowAddPending:
 		flowState = PendingAdd
-	} else if state == of.FlowDelPending {
+	case of.FlowDelPending:
 		flowState = PendingRemove
 	}
 	return flowState
@@ -812,11 +813,15 @@ func (gh *GroupsHandle) convertGroupsToOnosGroup(groupsInfo *of.Group) *GroupsIn
 			}
 			bucket = append(bucket, bkt)
 		}
-		if groupsInfo.State == of.GroupOperSuccess {
+		if groups == nil {
+			groups = &GroupsInfo{}
+		}
+		switch groupsInfo.State {
+		case of.GroupOperSuccess:
 			groups.State = Added
-		} else if groupsInfo.State == of.GroupOperFailure {
+		case of.GroupOperFailure:
 			groups.State = Failed
-		} else if groupsInfo.State == of.GroupOperPending {
+		case of.GroupOperPending:
 			groups.State = Pending
 		}
 		groups = &GroupsInfo{
@@ -841,11 +846,12 @@ func (mh *MetersHandle) MeterObjectMapping(meterInfo *of.Meter, deviceID string)
 		}
 		bd = append(bd, bnd)
 	}
-	if meterInfo.State == of.MeterOperSuccess {
+	switch meterInfo.State {
+	case of.MeterOperSuccess:
 		meter.State = Added
-	} else if meterInfo.State == of.MeterOperFailure {
+	case of.MeterOperFailure:
 		meter.State = Failed
-	} else if meterInfo.State == of.MeterOperPending {
+	case of.MeterOperPending:
 		meter.State = Pending
 	}
 	meter = Meters{

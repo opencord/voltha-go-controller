@@ -32,13 +32,11 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	infraerrorCodes "voltha-go-controller/internal/pkg/errorcodes"
 
 	"github.com/google/gopacket/layers"
 
 	"voltha-go-controller/database"
 	"voltha-go-controller/internal/pkg/controller"
-	cntlr "voltha-go-controller/internal/pkg/controller"
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/util"
@@ -303,12 +301,12 @@ func (vs *VoltService) AddHsiaFlows(cntx context.Context) {
 	logger.Debugw(ctx, "Add US & DS HSIA Flows for the service", log.Fields{"ServiceName": vs.Name})
 	if err := vs.AddUsHsiaFlows(cntx); err != nil {
 		logger.Errorw(ctx, "Error adding US HSIA Flows", log.Fields{"Service": vs.Name, "Port": vs.Port, "Reason": err.Error()})
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vs.triggerServiceFailureInd(statusCode, statusMessage)
 	}
 	if err := vs.AddDsHsiaFlows(cntx); err != nil {
 		logger.Errorw(ctx, "Error adding DS HSIA Flows", log.Fields{"Service": vs.Name, "Port": vs.Port, "Reason": err.Error()})
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vs.triggerServiceFailureInd(statusCode, statusMessage)
 	}
 }
@@ -318,13 +316,13 @@ func (vs *VoltService) DelHsiaFlows(cntx context.Context) {
 	logger.Debugw(ctx, "Delete US & DS HSIA Flows for the service", log.Fields{"ServiceName": vs.Name})
 	if err := vs.DelUsHsiaFlows(cntx, false); err != nil {
 		logger.Errorw(ctx, "Error deleting US HSIA Flows", log.Fields{"Service": vs.Name, "Port": vs.Port, "Reason": err.Error()})
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vs.triggerServiceFailureInd(statusCode, statusMessage)
 	}
 
 	if err := vs.DelDsHsiaFlows(cntx, false); err != nil {
 		logger.Errorw(ctx, "Error deleting DS HSIA Flows", log.Fields{"Service": vs.Name, "Port": vs.Port, "Reason": err.Error()})
-		statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vs.triggerServiceFailureInd(statusCode, statusMessage)
 	}
 }
@@ -383,14 +381,14 @@ func (vs *VoltService) AddUsHsiaFlows(cntx context.Context) error {
 			usflows, err := vs.BuildUsHsiaFlows(pbits)
 			if err != nil {
 				logger.Errorw(ctx, "Error Building HSIA US flows", log.Fields{"Device": vs.Device, "Service": vs.Name, "Reason": err.Error()})
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vs.triggerServiceFailureInd(statusCode, statusMessage)
 				continue
 			}
 			usflows.MigrateCookie = vgcRebooted
 			if err := vs.AddFlows(cntx, device, usflows); err != nil {
 				logger.Errorw(ctx, "Error adding HSIA US flows", log.Fields{"Device": vs.Device, "Service": vs.Name, "Reason": err.Error()})
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vs.triggerServiceFailureInd(statusCode, statusMessage)
 			}
 		}
@@ -431,7 +429,7 @@ func (vs *VoltService) AddDsHsiaFlows(cntx context.Context) error {
 			dsflows.MigrateCookie = vgcRebooted
 			if err = vs.AddFlows(cntx, device, dsflows); err != nil {
 				logger.Errorw(ctx, "Failed to add HSIA DS flows", log.Fields{"Device": vs.Device, "Service": vs.Name, "Reason": err})
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vs.triggerServiceFailureInd(statusCode, statusMessage)
 			}
 		} else {
@@ -445,7 +443,7 @@ func (vs *VoltService) AddDsHsiaFlows(cntx context.Context) error {
 				dsflows.MigrateCookie = vgcRebooted
 				if err := vs.AddFlows(cntx, device, dsflows); err != nil {
 					logger.Errorw(ctx, "Failed to add HSIA DS flows", log.Fields{"Device": vs.Device, "Service": vs.Name, "Reason": err})
-					statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+					statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 					vs.triggerServiceFailureInd(statusCode, statusMessage)
 				}
 			} else {
@@ -453,14 +451,14 @@ func (vs *VoltService) AddDsHsiaFlows(cntx context.Context) error {
 					dsflows, err := vs.BuildDsHsiaFlows(of.PbitType(matchPbit))
 					if err != nil {
 						logger.Errorw(ctx, "Error Building HSIA DS flows", log.Fields{"Device": vs.Device, "Service": vs.Name, "Reason": err.Error()})
-						statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+						statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 						vs.triggerServiceFailureInd(statusCode, statusMessage)
 						continue
 					}
 					dsflows.MigrateCookie = vgcRebooted
 					if err := vs.AddFlows(cntx, device, dsflows); err != nil {
 						logger.Errorw(ctx, "Failed to Add HSIA DS flows", log.Fields{"Device": vs.Device, "Service": vs.Name, "Reason": err})
-						statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+						statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 						vs.triggerServiceFailureInd(statusCode, statusMessage)
 					}
 				}
@@ -492,14 +490,14 @@ func (vs *VoltService) DelUsHsiaFlows(cntx context.Context, delFlowsInDevice boo
 			usflows, err := vs.BuildUsHsiaFlows(pbits)
 			if err != nil {
 				logger.Errorw(ctx, "Error Building HSIA US flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name, "Reason": err.Error()})
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vs.triggerServiceFailureInd(statusCode, statusMessage)
 				continue
 			}
 			usflows.MigrateCookie = vgcRebooted
 			if err = vs.DelFlows(cntx, device, usflows, delFlowsInDevice); err != nil {
 				logger.Errorw(ctx, "Error Deleting HSIA US flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name, "Reason": err.Error()})
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vs.triggerServiceFailureInd(statusCode, statusMessage)
 			}
 		}
@@ -528,7 +526,7 @@ func (vs *VoltService) DelDsHsiaFlows(cntx context.Context, delFlowsInDevice boo
 			dsflows.MigrateCookie = vgcRebooted
 			if err = vs.DelFlows(cntx, device, dsflows, delFlowsInDevice); err != nil {
 				logger.Errorw(ctx, "Error Deleting HSIA DS flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name, "Reason": err.Error()})
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vs.triggerServiceFailureInd(statusCode, statusMessage)
 			}
 		} else if _, ok := vs.DsRemarkPbitsMap[int(PbitMatchAll)]; ok {
@@ -539,7 +537,7 @@ func (vs *VoltService) DelDsHsiaFlows(cntx context.Context, delFlowsInDevice boo
 			dsflows.MigrateCookie = vgcRebooted
 			if err = vs.DelFlows(cntx, device, dsflows, delFlowsInDevice); err != nil {
 				logger.Errorw(ctx, "Error Deleting HSIA DS flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name, "Reason": err.Error()})
-				statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vs.triggerServiceFailureInd(statusCode, statusMessage)
 			}
 		} else {
@@ -547,14 +545,14 @@ func (vs *VoltService) DelDsHsiaFlows(cntx context.Context, delFlowsInDevice boo
 				dsflows, err := vs.BuildDsHsiaFlows(of.PbitType(matchPbit))
 				if err != nil {
 					logger.Errorw(ctx, "Error Building HSIA DS flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name, "Reason": err.Error()})
-					statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+					statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 					vs.triggerServiceFailureInd(statusCode, statusMessage)
 					continue
 				}
 				dsflows.MigrateCookie = vgcRebooted
 				if err = vs.DelFlows(cntx, device, dsflows, delFlowsInDevice); err != nil {
 					logger.Errorw(ctx, "Error Deleting HSIA DS flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name, "Reason": err.Error()})
-					statusCode, statusMessage := infraerrorCodes.GetErrorInfo(err)
+					statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 					vs.triggerServiceFailureInd(statusCode, statusMessage)
 				}
 			}
@@ -775,10 +773,11 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 		subflow1.SetGoToTable(1)
 		subflow1.SetInPort(inport)
 
-		if vs.ServiceType == DpuMgmtTraffic {
+		switch vs.ServiceType {
+		case DpuMgmtTraffic:
 			subflow1.SetMatchPbit(vs.UsPonCTagPriority)
 			subflow1.SetPcp(vs.UsPonSTagPriority)
-		} else if vs.ServiceType == DpuAncpTraffic {
+		case DpuAncpTraffic:
 			subflow1.SetPcp(vs.UsPonSTagPriority)
 		}
 		if err := vs.setUSMatchActionVlanT0(subflow1); err != nil {
@@ -1302,7 +1301,7 @@ func (vs *VoltService) AddFlows(cntx context.Context, device *VoltDevice, flow *
 		device.RegisterFlowAddEvent(cookie, fe)
 		vs.PendingFlows[cookie] = true
 	}
-	return cntlr.GetController().AddFlows(cntx, vs.Port, device.Name, flow)
+	return controller.GetController().AddFlows(cntx, vs.Port, device.Name, flow)
 }
 
 // FlowInstallSuccess - Called when corresponding service flow installation is success
@@ -1392,7 +1391,7 @@ func (vs *VoltService) DelFlows(cntx context.Context, device *VoltDevice, flow *
 			device.RegisterFlowDelEvent(cookie, fe)
 		}
 	}
-	return cntlr.GetController().DelFlows(cntx, vs.Port, device.Name, flow, delFlowsInDevice)
+	return controller.GetController().DelFlows(cntx, vs.Port, device.Name, flow, delFlowsInDevice)
 }
 
 // CheckAndDeleteService - remove service from DB is there are no pending flows to be removed
