@@ -880,11 +880,12 @@ func (d *Device) ProcessPortStateAfterReboot(cntx context.Context, port uint32, 
 	}
 	if p := d.GetPortByID(port); p != nil {
 		logger.Infow(ctx, "Port State Processing after Reboot", log.Fields{"Received": state, "Current": p.State})
-		p.Tasks.Initialize(d.ctx)
-		if p.State == PortStateUp {
+		p.Initialize(d.ctx)
+		switch p.State {
+		case PortStateUp:
 			logger.Infow(ctx, "Port State: UP", log.Fields{"Device": d.ID, "Port": port})
 			GetController().PortUpInd(cntx, d.ID, p.Name)
-		} else if p.State == PortStateDown {
+		case PortStateDown:
 			logger.Infow(ctx, "Port State: Down", log.Fields{"Device": d.ID, "Port": port})
 			GetController().PortDownInd(cntx, d.ID, p.Name)
 		}
