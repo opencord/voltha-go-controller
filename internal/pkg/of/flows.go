@@ -933,13 +933,14 @@ func CreateMatchAndActions(f *VoltSubFlow) ([]*ofp.OfpOxmField, []*ofp.OfpInstru
 			}
 		}
 
-		if f.Action.Output == OutputTypeToController {
+		switch f.Output {
+		case OutputTypeToController:
 			action := NewOutputAction(0xfffffffd)
 			actions.Actions = append(actions.Actions, action)
-		} else if f.Action.Output == OutputTypeToNetwork {
+		case OutputTypeToNetwork:
 			action := NewOutputAction(f.OutPort)
 			actions.Actions = append(actions.Actions, action)
-		} else if f.Action.Output == OutputTypeToGroup {
+		case OutputTypeToGroup:
 			action := NewGroupAction(f.OutPort)
 			actions.Actions = append(actions.Actions, action)
 		}

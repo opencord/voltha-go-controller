@@ -288,30 +288,32 @@ func (vt *verticalTable) MultipleDhcpSessionInfo(value []*nbi.DhcpSessionInfo) {
 		var rStatev6 string
 
 		// Checking for state-DHCPv4
-		if value[i].State == "0" {
+		switch value[i].State {
+		case "0":
 			rState = "None"
-		} else if value[i].State == "1" {
+		case "1":
 			rState = "Discover"
-		} else if value[i].State == "2" {
+		case "2":
 			rState = "Offer"
-		} else if value[i].State == "3" {
+		case "3":
 			rState = "Request"
-		} else if value[i].State == "4" {
+		case "4":
 			rState = "Ack"
-		} else if value[i].State == "5" {
+		case "5":
 			rState = "NAK"
-		} else if value[i].State == "6" {
+		case "6":
 			rState = "Release"
 		}
 
 		// Checking for state-DHCPv6
-		if value[i].Statev6 == "0" {
+		switch value[i].Statev6 {
+		case "0":
 			rStatev6 = "None"
-		} else if value[i].Statev6 == "1" {
+		case "1":
 			rStatev6 = "Solicit"
-		} else if value[i].Statev6 == "2" {
+		case "2":
 			rStatev6 = "Reply"
-		} else if value[i].Statev6 == "3" {
+		case "3":
 			rStatev6 = "Release"
 		}
 

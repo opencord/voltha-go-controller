@@ -73,14 +73,15 @@ func (cet *ChangeEventTask) Start(ctx context.Context, taskID uint8) error {
 		portName := status.PortStatus.Desc.Name
 		state := status.PortStatus.Desc.State
 		logger.Infow(ctx, "Process Port Change Event", log.Fields{"Port No": portNo, "Port Name": portName, "State": state, "Reason": status.PortStatus.Reason})
-		if status.PortStatus.Reason == ofp.OfpPortReason_OFPPR_ADD {
+		switch status.PortStatus.Reason {
+		case ofp.OfpPortReason_OFPPR_ADD:
 			_ = cet.device.AddPort(ctx, status.PortStatus.Desc)
 			if state == uint32(ofp.OfpPortState_OFPPS_LIVE) {
 				cet.device.ProcessPortState(ctx, portNo, state, portName)
 			}
-		} else if status.PortStatus.Reason == ofp.OfpPortReason_OFPPR_DELETE {
+		case ofp.OfpPortReason_OFPPR_DELETE:
 			cet.device.CheckAndDeletePort(ctx, portNo, portName)
-		} else if status.PortStatus.Reason == ofp.OfpPortReason_OFPPR_MODIFY {
+		case ofp.OfpPortReason_OFPPR_MODIFY:
 			cet.device.ProcessPortUpdate(ctx, portName, portNo, state)
 		}
 		logger.Debugw(ctx, "Processed Port Change Event", log.Fields{"Port No": portNo, "Port Name": portName, "State": state, "Reason": status.PortStatus.Reason})

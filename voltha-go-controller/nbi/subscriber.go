@@ -237,12 +237,12 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 			vnetcfg.UsDhcpPbit = append(vnetcfg.UsDhcpPbit, of.PbitType(uniTagInfo.UsPonSTagPriority))
 		}
 		if vs.CVlan != of.VlanAny && vs.SVlan != of.VlanAny {
-			if uniTagInfo.ServiceName == app.DpuMgmtTraffic ||
-				uniTagInfo.ServiceName == app.DpuAncpTraffic {
+			switch uniTagInfo.ServiceName {
+			case app.DpuMgmtTraffic, app.DpuAncpTraffic:
 				vnetcfg.VlanControl = app.ONUCVlan
-			} else if uniTagInfo.ServiceName == app.FttbSubscriberTraffic {
+			case app.FttbSubscriberTraffic:
 				vnetcfg.VlanControl = app.OLTSVlan
-			} else {
+			default:
 				vnetcfg.VlanControl = app.ONUCVlanOLTSVlan
 			}
 		} else if vs.CVlan == of.VlanAny && vs.UniVlan == of.VlanAny {

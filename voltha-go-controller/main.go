@@ -26,7 +26,6 @@ import (
 
 	pc "voltha-go-controller/infra/pprofcontroller"
 
-	"voltha-go-controller/database"
 	db "voltha-go-controller/database"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/internal/pkg/controller"
@@ -51,7 +50,7 @@ type VgcInfo struct {
 }
 
 var vgcInfo = VgcInfo{Name: "VGC"}
-var dbHandler *database.Database
+var dbHandler *db.Database
 
 func printBanner() {
 	fmt.Println("##     ##  ######    ######  ")
