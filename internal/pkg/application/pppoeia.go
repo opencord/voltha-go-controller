@@ -317,11 +317,12 @@ func (va *VoltApplication) ProcessDsPppoeIaPacket(cntx context.Context, device s
 	if vpv.PppoeIa {
 		// Delete the IA option that may be included in the response
 		DelIaOption(pppoe)
-		if pppoe.Code == layers.PPPoECodePADO {
+		switch pppoe.Code {
+		case layers.PPPoECodePADO:
 			vpv.SetPppoeIaState(PppoeIaStatePADO)
-		} else if pppoe.Code == layers.PPPoECodePADS {
+		case layers.PPPoECodePADS:
 			vpv.SetPppoeIaState(PppoeIaStatePADS)
-		} else if pppoe.Code == layers.PPPoECodePADT {
+		case layers.PPPoECodePADT:
 			vpv.SetPppoeIaState(PppoeIaStatePADT)
 		}
 		vpv.WriteToDb(cntx)
@@ -452,9 +453,10 @@ func (va *VoltApplication) ProcessUsPppoeIaPacket(cntx context.Context, device s
 			vpv.SetMacAddr(cntx, eth.SrcMAC)
 		}
 
-		if pppoe.Code == layers.PPPoECodePADI {
+		switch pppoe.Code {
+		case layers.PPPoECodePADI:
 			vpv.SetPppoeIaState(PppoeIaStatePADI)
-		} else if pppoe.Code == layers.PPPoECodePADR {
+		case layers.PPPoECodePADR:
 			vpv.SetPppoeIaState(PppoeIaStatePADR)
 		}
 		vpv.WriteToDb(cntx)
