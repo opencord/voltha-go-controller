@@ -33,7 +33,6 @@ import (
 	"go.uber.org/atomic"
 
 	"voltha-go-controller/database"
-	"voltha-go-controller/internal/pkg/controller"
 	cntlr "voltha-go-controller/internal/pkg/controller"
 
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
@@ -665,9 +664,10 @@ func (vpv *VoltPortVnet) DelService(cntx context.Context, service *VoltService) 
 func (vpv *VoltPortVnet) ProcessDhcpResult(cntx context.Context, res *layers.DHCPv4) {
 	logger.Debug(ctx, "Process Dhcp Result")
 	msgType := DhcpMsgType(res)
-	if msgType == layers.DHCPMsgTypeAck {
+	switch msgType {
+	case layers.DHCPMsgTypeAck:
 		vpv.ProcessDhcpSuccess(cntx, res)
-	} else if msgType == layers.DHCPMsgTypeNak {
+	case layers.DHCPMsgTypeNak:
 		vpv.DhcpStatus = DhcpStatusNacked
 	}
 	vpv.WriteToDb(cntx)
@@ -1339,7 +1339,7 @@ func (vpv *VoltPortVnet) AddUsDhcpFlows(cntx context.Context) error {
 	logger.Debugw(ctx, "Received Add US DHCP Flows", log.Fields{"Device": device})
 
 	if vd = GetApplication().GetDevice(device); vd != nil {
-		if vd.State != controller.DeviceStateUP {
+		if vd.State != cntlr.DeviceStateUP {
 			logger.Errorw(ctx, "Skipping US DHCP Flow Push - Device state DOWN", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan, "device": device})
 			return nil
 		}
@@ -1372,7 +1372,7 @@ func (vpv *VoltPortVnet) AddDsDhcpFlows(cntx context.Context) error {
 	logger.Debugw(ctx, "Received Add DS DHCP Flows", log.Fields{"Device": device})
 
 	if vd = GetApplication().GetDevice(device); vd != nil {
-		if vd.State != controller.DeviceStateUP {
+		if vd.State != cntlr.DeviceStateUP {
 			logger.Errorw(ctx, "Skipping DS DHCP Flow Push - Device state DOWN", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan, "device": device})
 			return nil
 		}
@@ -1494,7 +1494,7 @@ func (vpv *VoltPortVnet) AddUsArpFlows(cntx context.Context) error {
 	device := vpv.Device
 	logger.Debugw(ctx, "Received Add US Arp Flows", log.Fields{"DeviceName": device})
 	if vd = GetApplication().GetDevice(device); vd != nil {
-		if vd.State != controller.DeviceStateUP {
+		if vd.State != cntlr.DeviceStateUP {
 			logger.Errorw(ctx, "Skipping US ARP Flow Push - Device state DOWN", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan, "device": device})
 			return nil
 		}
@@ -1539,7 +1539,7 @@ func (vpv *VoltPortVnet) AddUsPppoeFlows(cntx context.Context) error {
 	device := vpv.Device
 
 	if vd = GetApplication().GetDevice(device); vd != nil {
-		if vd.State != controller.DeviceStateUP {
+		if vd.State != cntlr.DeviceStateUP {
 			logger.Errorw(ctx, "Skipping US PPPoE Flow Push - Device state DOWN", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan, "device": device})
 			return nil
 		}
@@ -1567,7 +1567,7 @@ func (vpv *VoltPortVnet) AddDsPppoeFlows(cntx context.Context) error {
 	device := vpv.Device
 
 	if vd = GetApplication().GetDevice(device); vd != nil {
-		if vd.State != controller.DeviceStateUP {
+		if vd.State != cntlr.DeviceStateUP {
 			logger.Errorw(ctx, "Skipping DS PPPoE Flow Push - Device state DOWN", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan, "device": device})
 			return nil
 		}
@@ -1630,7 +1630,7 @@ func (vpv *VoltPortVnet) AddIgmpFlows(cntx context.Context) error {
 		device, err := GetApplication().GetDeviceFromPort(vpv.Port)
 		if err != nil {
 			return fmt.Errorf("Error getting device from port : Port %s : %w", vpv.Port, err)
-		} else if device.State != controller.DeviceStateUP {
+		} else if device.State != cntlr.DeviceStateUP {
 			logger.Warnw(ctx, "Device state Down. Ignoring US IGMP Flow Push", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan})
 			return nil
 		}
@@ -2286,7 +2286,7 @@ func (va *VoltApplication) AddVnetToPort(cntx context.Context, port string, vvne
 		p := d.GetPort(port)
 		if p != nil {
 			logger.Debugw(ctx, "Checking UNI port state", log.Fields{"State": p.State})
-			if d.State == controller.DeviceStateUP && p.State == PortStateUp {
+			if d.State == cntlr.DeviceStateUP && p.State == PortStateUp {
 				vpv.PortUpInd(cntx, d, port)
 			}
 		}
@@ -2508,7 +2508,7 @@ func (va *VoltApplication) PushDevFlowForVlan(cntx context.Context, vnet *VoltVn
 			logger.Warnw(ctx, "Device not present in vnet device list", log.Fields{"Device": device.SerialNum})
 			return true
 		}
-		if device.State != controller.DeviceStateUP {
+		if device.State != cntlr.DeviceStateUP {
 			logger.Warnw(ctx, "Push Dev Flows Failed - Device state DOWN", log.Fields{"Port": device.NniPort, "Vlan": vnet.SVlan, "device": device})
 			return true
 		}
@@ -3190,9 +3190,9 @@ func (vv *VoltVnet) JSONMarshal() ([]byte, error) {
 		VnetConfig: vv.VnetConfig,
 		Version:    vv.Version,
 		VnetOper: VnetOper{
-			PendingDeleteFlow:     vv.VnetOper.PendingDeleteFlow,
-			DeleteInProgress:      vv.VnetOper.DeleteInProgress,
-			PendingDeviceToDelete: vv.VnetOper.PendingDeviceToDelete,
+			PendingDeleteFlow:     vv.PendingDeleteFlow,
+			DeleteInProgress:      vv.DeleteInProgress,
+			PendingDeviceToDelete: vv.PendingDeviceToDelete,
 		},
 	})
 }

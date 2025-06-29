@@ -301,7 +301,7 @@ func FetchAndMigrateDBData(cntx context.Context, module string) error {
 
 		presentParams := migrationMap[module](cntx, b)
 		logger.Infow(ctx, "Migrated data", log.Fields{"presentParams": presentParams})
-		if "" == presentParams {
+		if presentParams == "" {
 			return errors.New("Error-in-migration")
 		} else if ModuleToBeDeleted == presentParams {
 			return nil
