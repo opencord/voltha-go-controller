@@ -146,9 +146,22 @@ func GetUniFromDSDhcpFlow(cookie uint64) uint32 {
 }
 
 // GetUniPortFromFlow returns uni port from the flow data
-func GetUniPortFromFlow(nniPort string, flow *of.VoltSubFlow) uint32 {
+func GetUniPortFromFlow(uplinkPort string, nniPorts []string, flow *of.VoltSubFlow) uint32 {
 	var portNo uint32
-	if nniPort == strconv.Itoa(int(flow.Match.InPort)) {
+	var isDSFlow bool
+
+	if len(nniPorts) > 0 {
+		for _, nniPort := range nniPorts {
+			if nniPort == strconv.Itoa(int(flow.Match.InPort)) {
+				isDSFlow = true
+				break
+			}
+		}
+	} else if uplinkPort == strconv.Itoa(int(flow.Match.InPort)) {
+		isDSFlow = true
+	}
+
+	if isDSFlow {
 		if of.IPProtocolUDP == flow.Match.L4Protocol {
 			// For DHCP DS flow, uniport is not part of metadata. Hence retrieve it from cookie
 			portNo = GetUniFromDSDhcpFlow(flow.Cookie)
@@ -158,6 +171,7 @@ func GetUniPortFromFlow(nniPort string, flow *of.VoltSubFlow) uint32 {
 	} else {
 		portNo = flow.Match.InPort
 	}
+
 	return portNo
 }
 

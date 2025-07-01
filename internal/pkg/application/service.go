@@ -87,6 +87,7 @@ type VoltServiceCfg struct {
 	Name                       string
 	CircuitID                  string
 	Port                       string
+	NniPort                    string
 	UsMeterProfile             string
 	DsMeterProfile             string
 	AggDsMeterProfile          string
@@ -573,13 +574,29 @@ func (vs *VoltService) BuildDsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 	logger.Debugw(ctx, "Building DS HSIA Service Flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name})
 	flow := &of.VoltFlow{}
 	flow.SubFlows = make(map[uint64]*of.VoltSubFlow)
-
-	// Get the out and in ports for the flows
-	device, err := GetApplication().GetDeviceFromPort(vs.Port)
+	var device *VoltDevice
+	var err error
+	device, err = GetApplication().GetDeviceFromPort(vs.Port)
 	if err != nil {
-		return nil, fmt.Errorf("Error Getting Device for Service %s and Port %s  : %w", vs.Name, vs.Port, err)
+		return nil, fmt.Errorf("error getting device for service %s and port %s  : %w", vs.Name, vs.Port, err)
 	}
-	inport, _ := GetApplication().GetPortID(device.NniPort)
+	// inport will be obtained from nniPort of service else we'll use the default nni port
+	var inport uint32
+	// Get the out and in ports for the flows
+	if vs.NniPort != "" {
+		if nniPortID := device.GetPortIDFromPortName(vs.NniPort); nniPortID != 0 {
+			inport = nniPortID
+		} else {
+			return nil, fmt.Errorf("error getting portID for NNI port %s of Service %s : %w", vs.NniPort, vs.Name, err)
+		}
+	} else {
+		nniPort, err := GetApplication().GetNniPort(device.Name)
+		if err != nil {
+			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
+			return nil, err
+		}
+		inport, _ = GetApplication().GetPortID(nniPort)
+	}
 	outport, _ := GetApplication().GetPortID(vs.Port)
 	// PortName and PortID to be used for validation of port before flow pushing
 	flow.PortID = outport
@@ -757,12 +774,29 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 	flow := &of.VoltFlow{}
 	flow.SubFlows = make(map[uint64]*of.VoltSubFlow)
 
-	// Get the out and in ports for the flows
-	device, err := GetApplication().GetDeviceFromPort(vs.Port)
+	var device *VoltDevice
+	var err error
+	device, err = GetApplication().GetDeviceFromPort(vs.Port)
 	if err != nil {
-		return nil, errorCodes.ErrDeviceNotFound
+		return nil, fmt.Errorf("error getting device for service %s and port %s  : %w", vs.Name, vs.Port, err)
 	}
-	outport, _ := GetApplication().GetPortID(device.NniPort)
+	// outport will be obtained from nniPort of service else we'll use the default nni port
+	var outport uint32
+	// Get the out and in ports for the flows
+	if vs.NniPort != "" {
+		if nniPortID := device.GetPortIDFromPortName(vs.NniPort); nniPortID != 0 {
+			outport = nniPortID
+		} else {
+			return nil, fmt.Errorf("error getting portID for NNI port %s of Service %s : %w", vs.NniPort, vs.Name, err)
+		}
+	} else {
+		nniPort, err := GetApplication().GetNniPort(device.Name)
+		if err != nil {
+			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
+			return nil, err
+		}
+		outport, _ = GetApplication().GetPortID(nniPort)
+	}
 	inport, _ := GetApplication().GetPortID(vs.Port)
 	// PortName and PortID to be used for validation of port before flow pushing
 	flow.PortID = inport
@@ -2192,7 +2226,11 @@ func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portN
 				if p.State == PortStateUp {
 					if vpv := va.GetVnetByPort(vs.Port, vs.SVlan, vs.CVlan, vs.UniVlan); vpv != nil {
 						// PortUp call initiates flow addition
-						vpv.PortUpInd(cntx, device, portNo)
+						// The flow generation and pushing the flow can be done in a go routine,
+						// VGC once service is activated remembers and pushes the flows again
+						// if there was a restart in VGC during the execution of the go routine.
+						// Making it as a go routine will not impact anything
+						go vpv.PortUpInd(cntx, device, portNo, vs.NniPort)
 					} else {
 						logger.Warnw(ctx, "VPV does not exists!!!", log.Fields{"Device": deviceID, "port": portNo, "SvcName": vs.Name})
 					}
