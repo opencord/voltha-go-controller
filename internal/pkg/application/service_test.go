@@ -48,7 +48,7 @@ var voltDevice = &VoltDevice{
 	FlowDelEventMap:              util.NewConcurrentMap(),
 	SerialNum:                    "test_serial_number",
 	ConfiguredVlanForDeviceFlows: util.NewConcurrentMap(),
-	NniPort:                      "16777216",
+	NniPort:                      []string{"16777216"},
 }
 
 var voltMeter = &VoltMeter{
@@ -327,6 +327,7 @@ func TestVoltService_SvcUpInd(t *testing.T) {
 			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 			ga.PortsDisc.Store(test_device, voltPort)
 			ga.DevicesDisc.Store(test_device, voltDevice)
+			ga.DevicesConfig.Store("test_serial_number", &DeviceConfig{UplinkPort: "16777216"})
 			vs.SvcUpInd(tt.args.cntx)
 		})
 	}
