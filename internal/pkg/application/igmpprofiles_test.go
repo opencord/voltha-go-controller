@@ -473,7 +473,7 @@ func TestMvlanProfile_pushIgmpMcastFlows(t *testing.T) {
 		Name:      "SDX6320031",
 		SerialNum: "SDX6320031",
 		Ports:     sync.Map{},
-		NniPort:   "16777472",
+		NniPort:   []string{"16777472"},
 	}
 	voltPort := &VoltPort{
 		Name:                     "16777472",
@@ -527,7 +527,7 @@ func TestMvlanProfile_updateStaticGroups(t *testing.T) {
 		Name:            "SDX6320031",
 		SerialNum:       "SDX6320031",
 		Ports:           sync.Map{},
-		NniPort:         "16777472",
+		NniPort:         []string{"16777472"},
 		FlowDelEventMap: util.NewConcurrentMap(),
 	}
 	va.DevicesDisc.Store("SDX6320031", d)
@@ -580,7 +580,7 @@ func TestMvlanProfile_updateDynamicGroups(t *testing.T) {
 		Name:            "SDX6320031",
 		SerialNum:       "SDX6320031",
 		Ports:           sync.Map{},
-		NniPort:         "16777472",
+		NniPort:         []string{"16777472"},
 		FlowDelEventMap: util.NewConcurrentMap(),
 	}
 	va.DevicesDisc.Store("SDX6320031", d)
