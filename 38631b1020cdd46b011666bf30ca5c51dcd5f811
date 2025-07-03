@@ -20,6 +20,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "332d05e1_5b98310e",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-07-03T10:12:55Z",
+      "side": 1,
+      "message": "we can add the nni port in the VPV anyway it will be different for each",
+      "revId": "38631b1020cdd46b011666bf30ca5c51dcd5f811",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "901d8d66_c635f2c9",
         "filename": "internal/pkg/application/vnets.go",
         "patchSetId": 2
