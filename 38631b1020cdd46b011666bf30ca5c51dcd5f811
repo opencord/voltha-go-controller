@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "07f9ec98_f1d345e8",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 640,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-07-03T10:11:30Z",
+      "side": 1,
+      "message": "upgrade case, what if there is a device where we have only uplingPort and nniPorts",
+      "revId": "38631b1020cdd46b011666bf30ca5c51dcd5f811",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "901d8d66_c635f2c9",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 761,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-07-03T10:11:30Z",
+      "side": 1,
+      "message": "the nni port should be part of the service",
+      "revId": "38631b1020cdd46b011666bf30ca5c51dcd5f811",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
