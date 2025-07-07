@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "5a11536a_d87d5909",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 640,
+      "author": {
+        "id": 1000960
+      },
+      "writtenOn": "2025-07-07T07:29:10Z",
+      "side": 1,
+      "message": "The upgrade case is handled in VGC. The AddOltInfo API from NB triggers the UpdateDeviceConfig in VGC which will update the multi NNI ports in DeviceConfig.\nThe NB has to ensure that the AddOltInfo is triggered for the OLTs with multi NNIs enabled.",
+      "parentUuid": "07f9ec98_f1d345e8",
+      "revId": "38631b1020cdd46b011666bf30ca5c51dcd5f811",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "332d05e1_5b98310e",
         "filename": "internal/pkg/application/service.go",
         "patchSetId": 2
@@ -37,6 +55,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "3081f191_8e32d71c",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 1000960
+      },
+      "writtenOn": "2025-07-07T07:29:10Z",
+      "side": 1,
+      "message": "As VPV will be specific to svlan, having NNI as part of vpv might lead to conflicts.\nInstead the NNI is part of service config.",
+      "parentUuid": "332d05e1_5b98310e",
+      "revId": "38631b1020cdd46b011666bf30ca5c51dcd5f811",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "901d8d66_c635f2c9",
         "filename": "internal/pkg/application/vnets.go",
         "patchSetId": 2
@@ -48,6 +84,24 @@
       "writtenOn": "2025-07-03T10:11:30Z",
       "side": 1,
       "message": "the nni port should be part of the service",
+      "revId": "38631b1020cdd46b011666bf30ca5c51dcd5f811",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ec7c92fb_35e3578c",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 761,
+      "author": {
+        "id": 1000960
+      },
+      "writtenOn": "2025-07-07T07:29:10Z",
+      "side": 1,
+      "message": "Yes, the NNI port is part of service.",
+      "parentUuid": "901d8d66_c635f2c9",
       "revId": "38631b1020cdd46b011666bf30ca5c51dcd5f811",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
