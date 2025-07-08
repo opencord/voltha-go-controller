@@ -36,6 +36,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1ddd7669_31c24b0a",
+        "filename": "internal/pkg/application/application.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 640,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-07-08T14:36:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a11536a_d87d5909",
+      "revId": "38631b1020cdd46b011666bf30ca5c51dcd5f811",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "332d05e1_5b98310e",
@@ -71,6 +89,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bae0edd8_2fe0fb56",
+        "filename": "internal/pkg/application/service.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-07-08T14:36:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3081f191_8e32d71c",
+      "revId": "38631b1020cdd46b011666bf30ca5c51dcd5f811",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "901d8d66_c635f2c9",
@@ -102,6 +138,24 @@
       "side": 1,
       "message": "Yes, the NNI port is part of service.",
       "parentUuid": "901d8d66_c635f2c9",
+      "revId": "38631b1020cdd46b011666bf30ca5c51dcd5f811",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6859b0de_b2ca8933",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 761,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-07-08T14:36:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ec7c92fb_35e3578c",
       "revId": "38631b1020cdd46b011666bf30ca5c51dcd5f811",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
