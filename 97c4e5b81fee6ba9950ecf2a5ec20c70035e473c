@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8b99c4c5_dd0a07d0",
+        "filename": "internal/pkg/application/vnets.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1022,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-07-22T05:10:48Z",
+      "side": 1,
+      "message": "not invalid, we can mention port not found, becasue when this case is hit , it is usually better to keep generic error saying Port not found instead of saying invalid nni",
+      "revId": "97c4e5b81fee6ba9950ecf2a5ec20c70035e473c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
