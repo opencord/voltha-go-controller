@@ -16,6 +16,24 @@
       "message": "please update the VERSION file",
       "revId": "e17c6ed001d8208ca800b3aaeabee4aaaaf252df",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1e3fd934_57dd9e06",
+        "filename": "voltha-go-controller/nbi/subscriber.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-07-23T07:10:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "57ba3196_5d65d304",
+      "revId": "e17c6ed001d8208ca800b3aaeabee4aaaaf252df",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
