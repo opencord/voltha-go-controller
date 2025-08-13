@@ -169,7 +169,7 @@ func (v *VoltController) AddControllerTask(device string, task tasks.Task) {
 		taskQueue = taskQueueIntf.(*tasks.Tasks)
 	}
 	taskQueue.AddTask(task)
-	logger.Warnw(ctx, "Task Added to Controller Task List", log.Fields{"Len": taskQueue.NumPendingTasks(), "Total": taskQueue.TotalTasks()})
+	logger.Debugw(ctx, "Task Added to Controller Task List", log.Fields{"Len": taskQueue.NumPendingTasks(), "Total": taskQueue.TotalTasks()})
 }
 
 // AddNewDevice - called when new device is discovered. This will be
@@ -400,7 +400,7 @@ func (v *VoltController) DelFlows(cntx context.Context, port string, device stri
 		if delFlowsOnlyInDevice {
 			for cookie, subFlow := range flow.SubFlows {
 				err := d.DelFlow(ctx, subFlow)
-				logger.Infow(ctx, "Flow Deleted from device/DB", log.Fields{"Cookie": cookie, "Device": device, "Port": port, "Error": err})
+				logger.Debugw(ctx, "Flow Deleted from device/DB", log.Fields{"Cookie": cookie, "Device": device, "Port": port, "Error": err})
 			}
 		} else {
 			flow.Command = of.CommandDel

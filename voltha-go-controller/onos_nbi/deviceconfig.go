@@ -54,7 +54,7 @@ func (oh *DeviceConfigHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 }
 
 func (oh *DeviceConfigHandle) AddDeviceConfig(cntx context.Context, w http.ResponseWriter, r *http.Request) {
-	logger.Info(cntx, "Inside AddDeviceConfig method")
+	logger.Debug(cntx, "Inside AddDeviceConfig method")
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
 	if _, err := d.ReadFrom(r.Body); err != nil {

@@ -365,7 +365,7 @@ func (d *Device) DelGroupFromDb(cntx context.Context, groupID uint32) {
 
 // RestoreGroupsFromDb - restores all groups from DB
 func (d *Device) RestoreGroupsFromDb(cntx context.Context) {
-	logger.Info(ctx, "Restoring Groups")
+	logger.Debug(ctx, "Restoring Groups")
 	groups, _ := db.GetGroups(cntx, d.ID)
 	for _, group := range groups {
 		b, ok := group.Value.([]byte)
@@ -520,7 +520,7 @@ func (d *Device) DelPort(cntx context.Context, id uint32, portName string) error
 		if p == nil {
 			return errors.New("unknown port")
 		} else {
-			logger.Infow(ctx, "Found port by name", log.Fields{"PortName": p.Name, "PortID": p.ID})
+			logger.Debugw(ctx, "Found port by name", log.Fields{"PortName": p.Name, "PortID": p.ID})
 		}
 	}
 	if p.State == PortStateUp {
@@ -785,7 +785,7 @@ func (d *Device) ReSetAllPortStates(cntx context.Context) {
 
 	for _, port := range d.PortsByID {
 		if port.State != PortStateDown {
-			logger.Infow(ctx, "Resetting Port State to DOWN", log.Fields{"Device": d.ID, "Port": port})
+			logger.Debugw(ctx, "Resetting Port State to DOWN", log.Fields{"Device": d.ID, "Port": port})
 			GetController().PortDownInd(cntx, d.ID, port.Name)
 			port.State = PortStateDown
 			d.WritePortToDb(cntx, port)
@@ -844,7 +844,7 @@ func (d *Device) ProcessPortState(cntx context.Context, port uint32, state uint3
 		return
 	}
 	if p := d.GetPortByID(port); p != nil {
-		logger.Infow(ctx, "Port State Processing", log.Fields{"Received": state, "Current": p.State})
+		logger.Infow(ctx, "Port State Processing", log.Fields{"Received": state, "Current": p.State, "port": port, "portName": portName, "Device": d.ID})
 
 		if p.Name != portName {
 			logger.Warnw(ctx, "Dropping Port State processing: Port name does not match", log.Fields{"vgcPort": p.Name, "ofpPort": portName, "ID": port})
@@ -856,13 +856,13 @@ func (d *Device) ProcessPortState(cntx context.Context, port uint32, state uint3
 		p.Tasks.CheckAndInitialize(d.ctx)
 		if state == uint32(ofp.OfpPortState_OFPPS_LIVE) && p.State == PortStateDown {
 			// Transition from DOWN to UP
-			logger.Infow(ctx, "Port State Change to UP", log.Fields{"Device": d.ID, "Port": port})
+			logger.Debugw(ctx, "Port State Change to UP", log.Fields{"Device": d.ID, "Port": port})
 			GetController().PortUpInd(cntx, d.ID, p.Name)
 			p.State = PortStateUp
 			d.WritePortToDb(cntx, p)
 		} else if (state != uint32(ofp.OfpPortState_OFPPS_LIVE)) && (p.State != PortStateDown) {
 			// Transition from UP to Down
-			logger.Infow(ctx, "Port State Change to Down", log.Fields{"Device": d.ID, "Port": port})
+			logger.Debugw(ctx, "Port State Change to Down", log.Fields{"Device": d.ID, "Port": port})
 			GetController().PortDownInd(cntx, d.ID, p.Name)
 			p.State = PortStateDown
 			d.WritePortToDb(cntx, p)
@@ -879,13 +879,13 @@ func (d *Device) ProcessPortStateAfterReboot(cntx context.Context, port uint32, 
 		return
 	}
 	if p := d.GetPortByID(port); p != nil {
-		logger.Infow(ctx, "Port State Processing after Reboot", log.Fields{"Received": state, "Current": p.State})
+		logger.Infow(ctx, "Port State Processing after Reboot", log.Fields{"Received": state, "Current": p.State, "port": port, "Device": d.ID})
 		p.Tasks.Initialize(d.ctx)
 		if p.State == PortStateUp {
-			logger.Infow(ctx, "Port State: UP", log.Fields{"Device": d.ID, "Port": port})
+			logger.Debugw(ctx, "Port State: UP", log.Fields{"Device": d.ID, "Port": port})
 			GetController().PortUpInd(cntx, d.ID, p.Name)
 		} else if p.State == PortStateDown {
-			logger.Infow(ctx, "Port State: Down", log.Fields{"Device": d.ID, "Port": port})
+			logger.Debugw(ctx, "Port State: Down", log.Fields{"Device": d.ID, "Port": port})
 			GetController().PortDownInd(cntx, d.ID, p.Name)
 		}
 	}

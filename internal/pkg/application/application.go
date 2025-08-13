@@ -2212,12 +2212,12 @@ func (va *VoltApplication) removeExpiredGroups(cntx context.Context) {
 
 // TriggerPendingProfileDeleteReq - trigger pending profile delete request
 func (va *VoltApplication) TriggerPendingProfileDeleteReq(cntx context.Context, device string) {
-	logger.Infow(ctx, "Trigger Pending Profile Delete for device", log.Fields{"Device": device})
+	logger.Debugw(ctx, "Trigger Pending Profile Delete for device", log.Fields{"Device": device})
 	va.TriggerPendingServiceDeactivateReq(cntx, device)
 	va.TriggerPendingServiceDeleteReq(cntx, device)
 	va.TriggerPendingVpvDeleteReq(cntx, device)
 	va.TriggerPendingVnetDeleteReq(cntx, device)
-	logger.Infow(ctx, "All Pending Profile Delete triggered for device", log.Fields{"Device": device})
+	logger.Debugw(ctx, "All Pending Profile Delete triggered for device", log.Fields{"Device": device})
 }
 
 // TriggerPendingServiceDeactivateReq - trigger pending service deactivate request
@@ -2271,7 +2271,7 @@ func (va *VoltApplication) TriggerPendingServiceDeleteReq(cntx context.Context, 
 
 // TriggerPendingVpvDeleteReq - trigger pending VPV delete request
 func (va *VoltApplication) TriggerPendingVpvDeleteReq(cntx context.Context, device string) {
-	logger.Infow(ctx, "Pending VPVs to be deleted", log.Fields{"Count": len(va.VoltPortVnetsToDelete)})
+	logger.Debugw(ctx, "Pending VPVs to be deleted", log.Fields{"Count": len(va.VoltPortVnetsToDelete)})
 	for vpv := range va.VoltPortVnetsToDelete {
 		if vpv.Device == device {
 			logger.Debugw(ctx, "Triggering Pending VPv flow delete", log.Fields{"Port": vpv.Port, "Device": vpv.Device, "Vnet": vpv.VnetName})
@@ -2282,7 +2282,7 @@ func (va *VoltApplication) TriggerPendingVpvDeleteReq(cntx context.Context, devi
 
 // TriggerPendingVnetDeleteReq - trigger pending vnet delete request
 func (va *VoltApplication) TriggerPendingVnetDeleteReq(cntx context.Context, device string) {
-	logger.Infow(ctx, "Pending Vnets to be deleted", log.Fields{"Count": len(va.VnetsToDelete)})
+	logger.Debugw(ctx, "Pending Vnets to be deleted", log.Fields{"Count": len(va.VnetsToDelete)})
 	for vnetName := range va.VnetsToDelete {
 		if vnetIntf, _ := va.VnetsByName.Load(vnetName); vnetIntf != nil {
 			vnet := vnetIntf.(*VoltVnet)
