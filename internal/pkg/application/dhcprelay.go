@@ -219,7 +219,7 @@ func delDhcpSessions(addr net.HardwareAddr, outervlan of.VlanType, innervlan of.
 	delete(drv.sessions, key)
 	delete(drv.sessionsv6, sessionKey)
 	drv.sessionLock.Unlock()
-	logger.Infow(ctx, "DHCP Sessions deleted", log.Fields{"MAC": addr})
+	logger.Debugw(ctx, "DHCP Sessions deleted", log.Fields{"MAC": addr})
 }
 
 // AddDhcp6Session to add dhcpv6 session
@@ -389,7 +389,7 @@ func getDhcpv6ClientDUID(dhcpv6 *layers.DHCPv6) ([]byte, *layers.DHCPv6DUID) {
 			duid := &layers.DHCPv6DUID{}
 			err := duid.DecodeFromBytes(option.Data)
 			if err == nil {
-				logger.Infow(ctx, "ClientIdentifier", log.Fields{"DUID": duid, "Option": option.String()})
+				logger.Debugw(ctx, "ClientIdentifier", log.Fields{"DUID": duid, "Option": option.String()})
 				duidLen := len(option.Data)
 				if duidLen > 130 {
 					duidLen = 130
