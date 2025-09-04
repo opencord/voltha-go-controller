@@ -506,6 +506,7 @@ func (vs *VoltService) DelUsHsiaFlows(cntx context.Context, delFlowsInDevice boo
 		}
 		vs.UsHSIAFlowsApplied = false
 	}
+	logger.Debugw(ctx, "Deleted HSIA US flows from DB successfully", log.Fields{"Device": vs.Device, "ServiceName": vs.Name})
 	vs.WriteToDb(cntx)
 	return nil
 }
@@ -562,7 +563,7 @@ func (vs *VoltService) DelDsHsiaFlows(cntx context.Context, delFlowsInDevice boo
 		}
 		vs.DsHSIAFlowsApplied = false
 	}
-	logger.Infow(ctx, "Deleted HSIA DS flows from DB successfully", log.Fields{"Device": vs.Device, "ServiceName": vs.Name})
+	logger.Debugw(ctx, "Deleted HSIA DS flows from DB successfully", log.Fields{"Device": vs.Device, "ServiceName": vs.Name})
 	// Post HSIA configuration success indication on message bus
 	vs.WriteToDb(cntx)
 	return nil
@@ -1105,7 +1106,7 @@ func (va *VoltApplication) AddService(cntx context.Context, cfg VoltServiceCfg, 
 		})
 		logger.Debugw(ctx, "Sorted Pbits", log.Fields{"Pbits": vs.Pbits})
 	}
-	logger.Infow(ctx, "VolthService...", log.Fields{"vs": vs.Name})
+	logger.Debugw(ctx, "VolthService...", log.Fields{"vs": vs})
 
 	// The bandwidth and shaper profile combined into meter
 	if mmDs, err = va.GetMeter(cfg.DsMeterProfile); err == nil {
@@ -1250,7 +1251,7 @@ func (va *VoltApplication) DelService(cntx context.Context, name string, forceDe
 	if vpv.IgmpEnabled {
 		va.ReceiverDownInd(cntx, vpv.Device, vpv.Port)
 	}
-	logger.Infow(ctx, "Delete Service from VPV", log.Fields{"VPV_Port": vpv.Port, "VPV_SVlan": vpv.SVlan, "VPV_CVlan": vpv.CVlan, "VPV_UniVlan": vpv.UniVlan, "ServiceName": name})
+	logger.Debugw(ctx, "Delete Service from VPV", log.Fields{"VPV_Port": vpv.Port, "VPV_SVlan": vpv.SVlan, "VPV_CVlan": vpv.CVlan, "VPV_UniVlan": vpv.UniVlan, "ServiceName": name})
 	vpv.DelService(cntx, vs)
 	if vpv.servicesCount.Load() == 0 {
 		va.DelVnetFromPort(cntx, vs.Port, vpv)
@@ -1266,17 +1267,17 @@ func (va *VoltApplication) DelService(cntx context.Context, name string, forceDe
 	}
 
 	if nil != newSvc {
-		logger.Infow(ctx, "Old Service meter profiles", log.Fields{"AGG": vs.AggDsMeterProfile, "DS": vs.DsMeterProfile, "US": vs.UsMeterProfile})
-		logger.Infow(ctx, "New Service meter profiles", log.Fields{"AGG": newSvc.AggDsMeterProfile, "DS": newSvc.DsMeterProfile, "US": newSvc.UsMeterProfile})
+		logger.Debugw(ctx, "Old Service meter profiles", log.Fields{"AGG": vs.AggDsMeterProfile, "DS": vs.DsMeterProfile, "US": vs.UsMeterProfile})
+		logger.Debugw(ctx, "New Service meter profiles", log.Fields{"AGG": newSvc.AggDsMeterProfile, "DS": newSvc.DsMeterProfile, "US": newSvc.UsMeterProfile})
 	}
 
-	logger.Infow(ctx, "About to mark meter for deletion\n", log.Fields{"serviceName": vs.Name})
+	logger.Debugw(ctx, "About to mark meter for deletion\n", log.Fields{"serviceName": vs.Name})
 
 	if aggMeter, ok := va.MeterMgr.GetMeterByID(vs.AggDsMeterID); ok {
 		if nil == newSvc || (nil != newSvc && aggMeter.Name != newSvc.AggDsMeterProfile) {
 			if aggMeter.AssociatedServices > 0 {
 				aggMeter.AssociatedServices--
-				logger.Infow(ctx, "Agg Meter associated services updated\n", log.Fields{"MeterID": aggMeter})
+				logger.Debugw(ctx, "Agg Meter associated services updated\n", log.Fields{"MeterID": aggMeter})
 				va.UpdateMeterProf(cntx, *aggMeter)
 			}
 		}
@@ -1285,7 +1286,7 @@ func (va *VoltApplication) DelService(cntx context.Context, name string, forceDe
 		if nil == newSvc || (nil != newSvc && dsMeter.Name != newSvc.DsMeterProfile) {
 			if dsMeter.AssociatedServices > 0 {
 				dsMeter.AssociatedServices--
-				logger.Infow(ctx, "DS Meter associated services updated\n", log.Fields{"MeterID": dsMeter})
+				logger.Debugw(ctx, "DS Meter associated services updated\n", log.Fields{"MeterID": dsMeter})
 				va.UpdateMeterProf(cntx, *dsMeter)
 			}
 		}
@@ -1295,7 +1296,7 @@ func (va *VoltApplication) DelService(cntx context.Context, name string, forceDe
 			if nil == newSvc || (nil != newSvc && usMeter.Name != newSvc.UsMeterProfile) {
 				if usMeter.AssociatedServices > 0 {
 					usMeter.AssociatedServices--
-					logger.Infow(ctx, "US Meter associated services updated\n", log.Fields{"MeterID": usMeter})
+					logger.Debugw(ctx, "US Meter associated services updated\n", log.Fields{"MeterID": usMeter})
 					va.UpdateMeterProf(cntx, *usMeter)
 				}
 			}
@@ -1739,7 +1740,7 @@ func (msr *MigrateServicesRequest) ProcessMigrateServicesProfRequest(cntx contex
 			if vs.UsHSIAFlowsApplied {
 				vpv.DelTrapFlows(cntx)
 				vs.DelHsiaFlows(cntx)
-				logger.Infow(ctx, "Remove Service Flows Triggered", log.Fields{"Service": srv, "US": vs.UsHSIAFlowsApplied, "DS": vs.DsHSIAFlowsApplied})
+				logger.Debugw(ctx, "Remove Service Flows Triggered", log.Fields{"Service": srv, "US": vs.UsHSIAFlowsApplied, "DS": vs.DsHSIAFlowsApplied})
 			} else {
 				vs.updateVnetProfile(cntx, msr.DeviceID)
 			}
@@ -1798,7 +1799,7 @@ func (va *VoltApplication) updateMigrateServicesRequest(deviceID string, oldVnet
 // updateVnetProfile - Called on flow process completion
 // Removes old service and creates new VPV & service with updated vnet profile
 func (vs *VoltService) updateVnetProfile(cntx context.Context, deviceID string) {
-	logger.Infow(ctx, "Update Vnet Profile Triggering", log.Fields{"Service": vs.Name, "US": vs.UsHSIAFlowsApplied, "DS": vs.DsHSIAFlowsApplied})
+	logger.Debugw(ctx, "Update Vnet Profile Triggering", log.Fields{"Service": vs.Name, "US": vs.UsHSIAFlowsApplied, "DS": vs.DsHSIAFlowsApplied})
 
 	nvs := VoltService{}
 	nvs.VoltServiceCfg = vs.VoltServiceCfg
@@ -1859,7 +1860,7 @@ func (vs *VoltService) updateVnetProfile(cntx context.Context, deviceID string) 
 	if err := va.AddService(cntx, nvs.VoltServiceCfg, &nvs.VoltServiceOper); err != nil {
 		logger.Warnw(ctx, "Add New Service Failed", log.Fields{"Service": nvs.Name, "Error": err})
 	}
-	logger.Infow(ctx, "Add New Service Triggered", log.Fields{"Service": nvs.Name, "US": nvs.UsHSIAFlowsApplied, "DS": nvs.DsHSIAFlowsApplied, "DelFlag": nvs.DeleteInProgress})
+	logger.Debugw(ctx, "Add New Service Triggered", log.Fields{"Service": nvs.Name, "US": nvs.UsHSIAFlowsApplied, "DS": nvs.DsHSIAFlowsApplied, "DelFlag": nvs.DeleteInProgress})
 
 	msr.ServicesList[oldSrvName] = true
 	va.updateMigrateServicesRequest(deviceID, oldVnetID, id, msr)
@@ -1895,7 +1896,7 @@ func (va *VoltApplication) TriggerPendingMigrateServicesReq(cntx context.Context
 
 // FetchAndProcessAllMigrateServicesReq - fetch all pending migrate services req from DB and process based on provided func
 func (va *VoltApplication) FetchAndProcessAllMigrateServicesReq(cntx context.Context, device string, msrAction func(context.Context, *MigrateServicesRequest)) {
-	logger.Infow(ctx, "Fetch all pending migrate services req from DB and process based on provided func", log.Fields{"Device": device})
+	logger.Debugw(ctx, "Fetch all pending migrate services req from DB and process based on provided func", log.Fields{"Device": device})
 	msrList, _ := db.GetAllMigrateServicesReq(cntx, device)
 	for _, msr := range msrList {
 		b, ok := msr.Value.([]byte)
@@ -2202,7 +2203,7 @@ func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portN
 		vs := value.(*VoltService)
 		// If svlan if provided, then the tags and tpID of service has to be matching
 		if sVlan != of.VlanNone && (sVlan != vs.SVlan || cVlan != vs.CVlan || tpID != vs.TechProfileID) {
-			logger.Warnw(ctx, "Service Activate Request Does not match", log.Fields{"Device": deviceID, "voltService": vs})
+			logger.Debugw(ctx, "Service Activate Request Does not match", log.Fields{"Device": deviceID, "voltService": vs})
 			return true
 		}
 		if portNo == vs.Port && !vs.IsActivated {
@@ -2247,7 +2248,7 @@ func (vs *VoltService) SetSvcDeactivationFlags(deactivateRsn SvcDeactivateReason
 
 // DeactivateService to activate pre-provisioned service
 func (va *VoltApplication) DeactivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) error {
-	logger.Debugw(ctx, "Service Deactivate Request ", log.Fields{"Device": deviceID, "Port": portNo, "Svaln": sVlan, "Cvlan": cVlan, "TpID": tpID})
+	logger.Infow(ctx, "Service Deactivate Request ", log.Fields{"Device": deviceID, "Port": portNo, "Svaln": sVlan, "Cvlan": cVlan, "TpID": tpID})
 
 	va.ServiceByName.Range(func(key, value interface{}) bool {
 		vs := value.(*VoltService)

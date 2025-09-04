@@ -161,7 +161,7 @@ func (att *AuditTablesTask) AuditMeters() error {
 		} else {
 			// The flow exists at the controller but not at the device
 			// Push the flow to the device
-			logger.Debugw(ctx, "Adding Meter To Missing Meters", log.Fields{"Id": meter.ID})
+			logger.Infow(ctx, "Adding Meter To Missing Meters", log.Fields{"Id": meter.ID})
 			missingMeters = append(missingMeters, meter)
 		}
 	}

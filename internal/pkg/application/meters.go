@@ -183,9 +183,9 @@ func (vm *VoltMeter) AddToDevice(port string, device string, aggVM *VoltMeter) {
 		meter.AddBand(vm.Gir, 0)
 	}
 
-	logger.Infow(ctx, "Meter Config", log.Fields{"Cir": vm.Cir, "Air": vm.Air, "Pir": vm.Pir, "Gir": vm.Gir, "Eir": vm.Eir})
-	logger.Infow(ctx, "Meter Burst Config", log.Fields{"Cbs": vm.Cbs, "Pbs": vm.Pbs})
-	logger.Infow(ctx, "Meter Burst Oper", log.Fields{"Pir": pir, "Pbs": pbs})
+	logger.Debugw(ctx, "Meter Config", log.Fields{"Cir": vm.Cir, "Air": vm.Air, "Pir": vm.Pir, "Gir": vm.Gir, "Eir": vm.Eir})
+	logger.Debugw(ctx, "Meter Burst Config", log.Fields{"Cbs": vm.Cbs, "Pbs": vm.Pbs})
+	logger.Debugw(ctx, "Meter Burst Oper", log.Fields{"Pir": pir, "Pbs": pbs})
 	// Set Air
 	// Air is used in place of Gir only if Gir is
 	// not present and Air is not 0
