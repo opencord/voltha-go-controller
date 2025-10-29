@@ -44,7 +44,7 @@ func DeviceIDForGetAll() []string {
 	}
 
 	if resp.Body != nil {
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 	}
 
 	body, readErr := io.ReadAll(resp.Body)
@@ -85,7 +85,7 @@ func GetAPIData(path string) ([]byte, error) {
 	}
 
 	if resp.Body != nil {
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 	}
 
 	body, readErr := io.ReadAll(resp.Body)

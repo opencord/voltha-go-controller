@@ -713,25 +713,20 @@ func raiseDHCPv4Indication(msgType layers.DHCPMsgType, vpv *VoltPortVnet, smac n
 	}
 
 	switch msgType {
-	case layers.DHCPMsgTypeDiscover, layers.DHCPMsgTypeRequest:
-		if msgType == layers.DHCPMsgTypeDiscover {
-			vpv.SetDhcpState(DhcpRelayStateDiscover)
-		} else if msgType == layers.DHCPMsgTypeRequest {
-			vpv.SetDhcpState(DhcpRelayStateRequest)
-		}
-	// Reset learnt mac address in case of DHCPv4 release
+	case layers.DHCPMsgTypeDiscover:
+		vpv.SetDhcpState(DhcpRelayStateDiscover)
+	case layers.DHCPMsgTypeRequest:
+		vpv.SetDhcpState(DhcpRelayStateRequest)
 	case layers.DHCPMsgTypeRelease:
 		vpv.LearntMacAddr, _ = net.ParseMAC("00:00:00:00:00:00")
 		vpv.services.Range(matchServiceAndRaiseInd)
 		vpv.SetDhcpState(DhcpRelayStateRelease)
-
-	case layers.DHCPMsgTypeAck, layers.DHCPMsgTypeNak:
+	case layers.DHCPMsgTypeAck:
 		vpv.services.Range(matchServiceAndRaiseInd)
-		if msgType == layers.DHCPMsgTypeAck {
-			vpv.SetDhcpState(DhcpRelayStateAck)
-		} else if msgType == layers.DHCPMsgTypeNak {
-			vpv.SetDhcpState(DhcpRelayStateNAK)
-		}
+		vpv.SetDhcpState(DhcpRelayStateAck)
+	case layers.DHCPMsgTypeNak:
+		vpv.services.Range(matchServiceAndRaiseInd)
+		vpv.SetDhcpState(DhcpRelayStateNAK)
 	case layers.DHCPMsgTypeOffer:
 		vpv.SetDhcpState(DhcpRelayStateOffer)
 	}

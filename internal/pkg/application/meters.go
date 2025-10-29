@@ -205,7 +205,7 @@ func (m *MeterMgr) AddMeterToDevice(port string, device string, meterID uint32, 
 	var aggVM *VoltMeter
 	vm, err := m.GetMeterByProfID(meterID)
 	if err == nil {
-		if 0 != aggMeterID { //Assuming valid meter id will never be 0
+		if aggMeterID != 0 { //Assuming valid meter id will never be 0
 			if aggVM, err = m.GetMeterByProfID(aggMeterID); err != nil {
 				logger.Warnw(ctx, "Aggregated Meter not found", log.Fields{"Id": aggMeterID})
 			}

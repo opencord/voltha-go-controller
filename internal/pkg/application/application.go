@@ -37,7 +37,6 @@ import (
 
 	"voltha-go-controller/database"
 	"voltha-go-controller/internal/pkg/controller"
-	cntlr "voltha-go-controller/internal/pkg/controller"
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/intf"
 	"voltha-go-controller/internal/pkg/of"
@@ -1666,7 +1665,8 @@ func (va *VoltApplication) PacketInInd(cntx context.Context, device string, port
 	if ipv4l != nil {
 		ip := ipv4l.(*layers.IPv4)
 
-		if ip.Protocol == layers.IPProtocolUDP {
+		switch ip.Protocol {
+		case layers.IPProtocolUDP:
 			logger.Debugw(ctx, "Received Southbound UDP ipv4 packet in", log.Fields{"StreamSide": packetSide})
 			dhcpl := gopkt.Layer(layers.LayerTypeDHCPv4)
 			if dhcpl != nil {
@@ -1676,7 +1676,7 @@ func (va *VoltApplication) PacketInInd(cntx context.Context, device string, port
 					logger.Debugw(ctx, "DHCPv4 handler is not registered, dropping the packet", log.Fields{"Pkt": hex.EncodeToString(gopkt.Data())})
 				}
 			}
-		} else if ip.Protocol == layers.IPProtocolIGMP {
+		case layers.IPProtocolIGMP:
 			logger.Debugw(ctx, "Received Southbound IGMP packet in", log.Fields{"StreamSide": packetSide})
 			if callBack, ok := PacketHandlers[IGMP]; ok {
 				callBack(cntx, device, port, gopkt)
@@ -1924,7 +1924,7 @@ type TaskInfo struct {
 // GetTaskList to get task list information.
 func (va *VoltApplication) GetTaskList(device string) map[int]*TaskInfo {
 	logger.Debugw(ctx, "Received Get Task List", log.Fields{"device": device})
-	taskList := cntlr.GetController().GetTaskList(device)
+	taskList := controller.GetController().GetTaskList(device)
 	taskMap := make(map[int]*TaskInfo)
 	for i, task := range taskList {
 		taskID := strconv.Itoa(int(task.TaskID()))
@@ -1947,8 +1947,8 @@ func (va *VoltApplication) UpdateDeviceSerialNumberList(oldOltSlNo string, newOl
 	} else {
 		logger.Infow(ctx, "No device present with old serial number", log.Fields{"Serial Number": oldOltSlNo})
 		// Add Serial Number to Blocked Devices List.
-		cntlr.GetController().AddBlockedDevices(oldOltSlNo)
-		cntlr.GetController().AddBlockedDevices(newOltSlNo)
+		controller.GetController().AddBlockedDevices(oldOltSlNo)
+		controller.GetController().AddBlockedDevices(newOltSlNo)
 
 		updateSlNoForVnet := func(key, value interface{}) bool {
 			vnet := value.(*VoltVnet)
@@ -1979,8 +1979,8 @@ func (va *VoltApplication) UpdateDeviceSerialNumberList(oldOltSlNo string, newOl
 		va.MvlanProfilesByName.Range(updateSlNoforMvlan)
 
 		// Clear the serial number from Blocked Devices List
-		cntlr.GetController().DelBlockedDevices(oldOltSlNo)
-		cntlr.GetController().DelBlockedDevices(newOltSlNo)
+		controller.GetController().DelBlockedDevices(oldOltSlNo)
+		controller.GetController().DelBlockedDevices(newOltSlNo)
 	}
 }
 

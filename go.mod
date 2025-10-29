@@ -1,6 +1,6 @@
 module voltha-go-controller
 
-go 1.23
+go 1.24.5
 
 replace (
 	github.com/coreos/bbolt v1.3.4 => go.etcd.io/bbolt v1.3.4
