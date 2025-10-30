@@ -2125,6 +2125,7 @@ func TestVoltPortVnet_BuildUsDhcp6Flows(t *testing.T) {
 				assert.NotNil(t, got)
 			case "BuildDsDhcp6Flows":
 				voltDev.NniPort = []string{"16777216"}
+				voltDev.Ports.Store("16777216", voltPort)
 				va.DevicesDisc.Store("SDX6320031", voltDev)
 				va.DevicesConfig.Store("SDX6320031", deviceConfig)
 				got, err := vpv.BuildDsDhcp6Flows()
