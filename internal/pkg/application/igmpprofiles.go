@@ -565,7 +565,7 @@ func (mvp *MvlanProfile) BuildIgmpDSFlows(device string) (*of.VoltFlow, error) {
 	if err != nil {
 		return nil, err
 	}
-	nniPortID, err1 := GetApplication().GetPortID(nniPort)
+	nniPortID, err1 := GetApplication().GetDevicePortID(device, nniPort)
 	if err1 != nil {
 		return nil, errors.New("Unknown NNI outport")
 	}

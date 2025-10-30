@@ -1169,7 +1169,7 @@ func (va *VoltApplication) GetNniPort(device string) (string, error) {
 	}
 	if len(d.(*VoltDevice).NniPort) > 0 {
 		for _, nniPort := range d.(*VoltDevice).NniPort {
-			nniPortID, err := GetApplication().GetPortID(nniPort)
+			nniPortID, err := GetApplication().GetDevicePortID(device, nniPort)
 			if err != nil {
 				logger.Errorw(ctx, "Error getting port ID by port Name", log.Fields{"Error": err})
 				continue
@@ -2348,4 +2348,17 @@ func (va *VoltApplication) UpdateDeviceConfig(cntx context.Context, deviceConfig
 		device.NniDhcpTrapVid = of.VlanType(deviceConfig.NniDhcpTrapVid)
 		va.DevicesDisc.Store(id, device)
 	}
+}
+
+func (va *VoltApplication) GetDevicePortID(device, port string) (uint32, error) {
+	logger.Debugw(ctx, "Received Get Device Port ID", log.Fields{"Port": port})
+	d := va.GetDevice(device)
+	if d == nil {
+		return 0, fmt.Errorf("device not found: %s", device)
+	}
+	value, ok := d.Ports.Load(port)
+	if !ok {
+		return 0, fmt.Errorf("port not found: %s", port)
+	}
+	return value.(*VoltPort).ID, nil
 }

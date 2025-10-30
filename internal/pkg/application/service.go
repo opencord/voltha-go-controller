@@ -595,7 +595,7 @@ func (vs *VoltService) BuildDsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err1})
 			return nil, err1
 		}
-		inport, _ = GetApplication().GetPortID(nniPort)
+		inport, _ = GetApplication().GetDevicePortID(device.Name, nniPort)
 	}
 	outport, _ := GetApplication().GetPortID(vs.Port)
 	// PortName and PortID to be used for validation of port before flow pushing
@@ -793,7 +793,7 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
 			return nil, err
 		}
-		outport, _ = GetApplication().GetPortID(nniPort)
+		outport, _ = GetApplication().GetDevicePortID(device.Name, nniPort)
 	}
 	inport, _ := GetApplication().GetPortID(vs.Port)
 	// PortName and PortID to be used for validation of port before flow pushing
