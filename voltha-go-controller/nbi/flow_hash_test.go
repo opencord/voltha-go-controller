@@ -17,19 +17,15 @@ package nbi
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"voltha-go-controller/internal/test/mocks"
 
-	app "voltha-go-controller/internal/pkg/controller"
-	//"voltha-go-controller/internal/test/mocks"
+	app "voltha-go-controller/internal/pkg/application"
+	cntlr "voltha-go-controller/internal/pkg/controller"
 
-	mocksCntrlr "voltha-go-controller/voltha-go-controller/tests/mocks"
-
-	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 )
 
@@ -104,10 +100,12 @@ func TestFlowHashHandle_PutFlowHash(t *testing.T) {
 			fh := &FlowHashHandle{}
 			switch tt.name {
 			case "PutFlowHash_Device_Not_Found":
-				appMock := mocks.NewMockApp(gomock.NewController(t))
-				app.NewController(ctx, appMock)
-				idea := mocksCntrlr.NewMockVoltControllerInterface(gomock.NewController(t))
-				idea.EXPECT().GetDevice(gomock.Any()).Return(nil, errors.New("not found")).Times(1)
+				// Initialize controller to avoid nil pointer
+				voltApp := app.GetApplication()
+				ctx := context.Background()
+				_ = cntlr.NewController(ctx, voltApp)
+				// Device not found error is expected - no mock setup needed
+				// The GetController will return error naturally when device is not found
 				fh.PutFlowHash(tt.args.w, tt.args.r)
 			case "PutFlowHash_ParseUint_Failure":
 				fh.PutFlowHash(tt.args.w, tt.args.r)

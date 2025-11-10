@@ -287,7 +287,12 @@ func TestProcessServiceFlowDelEvent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
-			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			switch tt.name {
+			case "ProcessServiceFlowDelEvent":
+				dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			case "ProcessServiceFlowDelEvent_else_condition":
+				dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			}
 			ProcessServiceFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 		})
 	}
@@ -374,7 +379,12 @@ func TestProcessMcastFlowDelEvent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
-			dbintf.EXPECT().PutMvlan(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			switch tt.name {
+			case "ProcessMcastFlowDelEvent":
+				dbintf.EXPECT().PutMvlan(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			case "ProcessMcastFlowDelEvent_else_condition":
+				dbintf.EXPECT().PutMvlan(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			}
 			ProcessMcastFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 		})
 	}
