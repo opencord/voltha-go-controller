@@ -1,17 +1,6 @@
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# -----------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2022-2024 Open Networking Foundation Contributors
-# SPDX-License-Identifier: Apache-2.0
-# -----------------------------------------------------------------------
---->
-
-
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
-<coverage line-rate="NaN" branch-rate="0" version="" timestamp="1744128873319" lines-covered="0" lines-valid="0" branches-covered="0" branches-valid="0" complexity="0">
+<coverage line-rate="NaN" branch-rate="0" version="" timestamp="1762844747263" lines-covered="0" lines-valid="0" branches-covered="0" branches-valid="0" complexity="0">
 	<sources>
 		<source>/usr/local/go/src</source>
 		<source>/app/src</source>

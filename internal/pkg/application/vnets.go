@@ -33,7 +33,7 @@ import (
 	"go.uber.org/atomic"
 
 	"voltha-go-controller/database"
-	"voltha-go-controller/internal/pkg/controller"
+	cntlr "voltha-go-controller/internal/pkg/controller"
 
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/of"
@@ -672,9 +672,9 @@ func (vpv *VoltPortVnet) ProcessDhcpResult(cntx context.Context, res *layers.DHC
 }
 
 // RangeOnServices to call a function on all services on the vpv
-func (vpv *VoltPortVnet) RangeOnServices(cntx context.Context, callback func(cntx context.Context, key, value interface{}, flag bool) bool, delFlowsInDevice bool) {
+func (vpv *VoltPortVnet) RangeOnServices(cntx context.Context, callback func(cntx context.Context, key, value interface{}, flag bool) bool, flag bool) {
 	vpv.services.Range(func(key, value interface{}) bool {
-		return callback(cntx, key, value, delFlowsInDevice)
+		return callback(cntx, key, value, flag)
 	})
 }
 
@@ -747,7 +747,7 @@ func (vpv *VoltPortVnet) PushFlowsForPortVnet(cntx context.Context, d *VoltDevic
 	// vpv.DsFlowsApplied = false
 	// vpv.UsFlowsApplied = false
 	vpv.VpvLock.Lock()
-	vpv.PortUpInd(cntx, d, vpv.Port, "")
+	vpv.PortUpInd(cntx, d, vpv.Port, false)
 	vpv.VpvLock.Unlock()
 }
 
@@ -756,7 +756,8 @@ func (vpv *VoltPortVnet) PushFlowsForPortVnet(cntx context.Context, d *VoltDevic
 // again here to apply the latest configuration if the configuration
 // changed. Thus, a reboot of ONT forces the new configuration to get
 // applied.
-func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, port string, nniPort string) {
+// skipFlowPushToVoltha is used when VGC restarts, the flows are built and stored only in cache and not pushed to voltha.
+func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, port string, skipFlowPushToVoltha bool) {
 	logger.Infow(ctx, "Port UP Ind, pushing flows for the port", log.Fields{"Device": device, "Port": port, "VnetDhcp": vpv.DhcpRelay, "McastService": vpv.McastService})
 	if vpv.DeleteInProgress {
 		logger.Warnw(ctx, "Ignoring VPV Port UP Ind, VPV deletion In-Progress", log.Fields{"Device": device, "Port": port, "Vnet": vpv.VnetName})
@@ -764,18 +765,17 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 	}
 	vpv.setDevice(device.Name)
 
-	if nniPort != "" {
-		err := vpv.ValidateNniPort(device, nniPort)
-		if err != nil {
-			logger.Warnw(ctx, "Ignoring Vnet Port UP indication: NNI is not configured", log.Fields{"Port": vpv.Port, "Device": device.Name, "NNI": nniPort, "Error": err})
-			return
-		}
-	} else {
-		nni, err := GetApplication().GetNniPort(device.Name)
-		if nni == "" {
-			logger.Warnw(ctx, "Ignoring Vnet Port UP indication: Default NNI is unavailable", log.Fields{"Port": vpv.Port, "Device": device.Name, "Error": err})
-			return
-		}
+	nni, _ := GetApplication().GetNniPort(device.Name)
+	if nni == "" {
+		logger.Warnw(ctx, "Ignoring Vnet Port UP indication: NNI is unavailable", log.Fields{"Port": vpv.Port, "Device": device.Name})
+		return
+	}
+
+	err1 := vpv.ValidateNniPort(device)
+	if err1 != nil {
+		// No match found, log the mismatch
+		logger.Errorw(ctx, "NNI port mismatch", log.Fields{"ERROR": err1})
+		return
 	}
 
 	if vpv.Blocked {
@@ -789,23 +789,23 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 		logger.Infow(ctx, "Port Up - Trap Flows", log.Fields{"Device": device.Name, "Port": port})
 		// no HSIA flows for multicast service and DPU_MGMT Service
 		if !vpv.McastService && vpv.VnetType != DpuMgmtTraffic {
-			vpv.RangeOnServices(cntx, AddUsHsiaFlows, false)
+			vpv.RangeOnServices(cntx, AddUsHsiaFlows, skipFlowPushToVoltha)
 		}
 		if vpv.VnetType == DpuMgmtTraffic {
-			vpv.RangeOnServices(cntx, AddMeterToDevice, false)
+			vpv.RangeOnServices(cntx, AddMeterToDevice, skipFlowPushToVoltha)
 		}
 		vpv.AddTrapFlows(cntx)
 		if vpv.MacLearning == MacLearningNone || NonZeroMacAddress(vpv.MacAddr) {
 			logger.Infow(ctx, "Port Up - DS Flows", log.Fields{"Device": device.Name, "Port": port})
 			/*In case of DPU_MGMT_TRAFFIC, need to install both US and DS traffic */
 			if vpv.VnetType == DpuMgmtTraffic {
-				vpv.RangeOnServices(cntx, AddUsHsiaFlows, false)
+				vpv.RangeOnServices(cntx, AddUsHsiaFlows, skipFlowPushToVoltha)
 			}
 			// US & DS DHCP, US HSIA flows are already installed
 			// install only DS HSIA flow here.
 			// no HSIA flows for multicast service
 			if !vpv.McastService {
-				vpv.RangeOnServices(cntx, AddDsHsiaFlows, false)
+				vpv.RangeOnServices(cntx, AddDsHsiaFlows, skipFlowPushToVoltha)
 			}
 		}
 	} else {
@@ -816,25 +816,25 @@ func (vpv *VoltPortVnet) PortUpInd(cntx context.Context, device *VoltDevice, por
 		// however is not seen as a real use case.
 		logger.Debugw(ctx, "Port Up - Service Flows", log.Fields{"Device": device.Name, "Port": port})
 		if !vpv.McastService {
-			vpv.RangeOnServices(cntx, AddUsHsiaFlows, false)
+			vpv.RangeOnServices(cntx, AddUsHsiaFlows, skipFlowPushToVoltha)
 		}
 		vpv.AddTrapFlows(cntx)
 		if !vpv.McastService {
-			vpv.RangeOnServices(cntx, AddDsHsiaFlows, false)
+			vpv.RangeOnServices(cntx, AddDsHsiaFlows, skipFlowPushToVoltha)
 		}
 	}
 
 	// Process IGMP proxy - install IGMP trap rules before DHCP trap rules
 	if vpv.IgmpEnabled {
 		logger.Debugw(ctx, "Port Up - IGMP Flows", log.Fields{"Device": device.Name, "Port": port})
-		vpv.RangeOnServices(cntx, AddSvcUsMeterToDevice, false)
+		vpv.RangeOnServices(cntx, AddSvcUsMeterToDevice, skipFlowPushToVoltha)
 		if err := vpv.AddIgmpFlows(cntx); err != nil {
 			statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 			vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 		}
 
 		if vpv.McastService {
-			vpv.RangeOnServices(cntx, PostAccessConfigSuccessInd, false)
+			vpv.RangeOnServices(cntx, PostAccessConfigSuccessInd, skipFlowPushToVoltha)
 		}
 	}
 
@@ -1007,38 +1007,25 @@ func (vpv *VoltPortVnet) GetRemarkedPriority(priority uint8) uint8 {
 	return dsPbit
 }
 
-func (vpv *VoltPortVnet) ValidateNniPort(device *VoltDevice, nniPortName string) error {
-	devConfig := GetApplication().GetDeviceConfig(device.SerialNum)
+func (vpv *VoltPortVnet) ValidateNniPort(voltDevice *VoltDevice) error {
+	devConfig := GetApplication().GetDeviceConfig(voltDevice.SerialNum)
 	if devConfig == nil {
-		return fmt.Errorf("device config not found for serial number %s", device.SerialNum)
+		return fmt.Errorf("device config not found for serial number %s", voltDevice.SerialNum)
 	}
 
-	var nniPort string
-	var nniPortID uint32
-	if nniPortID = device.GetPortIDFromPortName(nniPortName); nniPortID == 0 {
-		logger.Errorw(ctx, "Port Not Found", log.Fields{"NNI Port": nniPortName})
-		return errors.New("port not found for service")
-	}
-	if !device.IsPortNni(nniPortName) {
-		logger.Errorw(ctx, "Port Not Found in device", log.Fields{"NNI Port": nniPortName})
-		return fmt.Errorf("port not found in device")
-	}
-
-	nniPort = strconv.Itoa(int(nniPortID))
-	if len(devConfig.NniPorts) > 0 {
-		for _, port := range devConfig.NniPorts {
-			if port == nniPort {
-				logger.Debugw(ctx, "NNI port is configured from NB", log.Fields{"NB NniPorts": devConfig.NniPorts, "NniPort": nniPortName})
-				return nil // Match found
-			}
+	for _, nniPort := range voltDevice.NniPort {
+		nniPortID, err := GetApplication().GetDevicePortID(voltDevice.Name, nniPort)
+		if err != nil {
+			logger.Errorw(ctx, "Error getting port ID by port Name", log.Fields{"Error": err})
+			continue
 		}
-	} else {
-		if devConfig.UplinkPort == nniPort {
-			logger.Debugw(ctx, "NNI port is configured as default from NB", log.Fields{"NB NNI Port": devConfig.UplinkPort, "SB NNI Ports": device.NniPort})
+		if devConfig.UplinkPort == strconv.Itoa(int(nniPortID)) {
+			logger.Debugw(ctx, "NNI port configured from NB", log.Fields{"NB NNI Port": devConfig.UplinkPort, "SB NNI Ports": voltDevice.NniPort})
 			return nil // Match found
 		}
 	}
-	return fmt.Errorf("nni port mismatch: NB NNI Port: %s, SB NNI Ports: %v", devConfig.UplinkPort, device.NniPort)
+
+	return fmt.Errorf("NNI port mismatch: NB NNI Port: %s, SB NNI Ports: %v", devConfig.UplinkPort, voltDevice.NniPort)
 }
 
 // AddSvc adds a service on the VNET on a port. The addition is
@@ -1113,18 +1100,11 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 		return
 	}
 
-	if svc.NniPort != "" {
-		err := vpv.ValidateNniPort(voltDevice, svc.NniPort)
-		if err != nil {
-			logger.Warnw(ctx, "Not pushing service flows: NNI is not configured", log.Fields{"Port": vpv.Port, "Device": voltDevice.Name, "NNI": svc.NniPort, "Error": err})
-			return
-		}
-	} else {
-		nni, err := GetApplication().GetNniPort(voltDevice.Name)
-		if nni == "" {
-			logger.Warnw(ctx, "Not pushing service flows: Default NNI is unavailable", log.Fields{"Port": vpv.Port, "Device": voltDevice.Name, "Error": err})
-			return
-		}
+	err1 := vpv.ValidateNniPort(voltDevice)
+	if err1 != nil {
+		// No match found, log the mismatch
+		logger.Errorw(ctx, "NNI port mismatch", log.Fields{"ERROR": err1})
+		return
 	}
 	// Push Service Flows if DHCP relay is not configured
 	// or already DHCP flows are configured for the VPV
@@ -1133,7 +1113,7 @@ func (vpv *VoltPortVnet) AddSvc(cntx context.Context, svc *VoltService) {
 		if NonZeroMacAddress(vpv.MacAddr) || svc.MacLearning == MacLearningNone {
 			svc.AddHsiaFlows(cntx)
 		} else {
-			if err := svc.AddUsHsiaFlows(cntx); err != nil {
+			if err := svc.AddUsHsiaFlows(cntx, false); err != nil {
 				logger.Warnw(ctx, "Add US hsia flow failed", log.Fields{"service": svc.Name, "Error": err})
 			}
 		}
@@ -1194,7 +1174,7 @@ func (vpv *VoltPortVnet) updateIPv6AndProvisionFlows(cntx context.Context, key, 
 func AddUsHsiaFlows(cntx context.Context, key, value interface{}, flag bool) bool {
 	svc := value.(*VoltService)
 	logger.Debugw(ctx, "Add US Hsia Flows", log.Fields{"ServiceName": svc.Name})
-	if err := svc.AddUsHsiaFlows(cntx); err != nil {
+	if err := svc.AddUsHsiaFlows(cntx, flag); err != nil {
 		logger.Warnw(ctx, "Add US hsia flow failed", log.Fields{"service": svc.Name, "Error": err})
 	}
 	return true
@@ -1204,7 +1184,7 @@ func AddUsHsiaFlows(cntx context.Context, key, value interface{}, flag bool) boo
 func AddDsHsiaFlows(cntx context.Context, key, value interface{}, flag bool) bool {
 	svc := value.(*VoltService)
 	logger.Debugw(ctx, "Add DS Hsia Flows", log.Fields{"ServiceName": svc.Name})
-	if err := svc.AddDsHsiaFlows(cntx); err != nil {
+	if err := svc.AddDsHsiaFlows(cntx, flag); err != nil {
 		logger.Warnw(ctx, "Add DS hsia flow failed", log.Fields{"service": svc.Name, "Error": err})
 	}
 	return true
@@ -1230,7 +1210,6 @@ func ClearFlagsInService(cntx context.Context, key, value interface{}, flag bool
 }
 
 // DelDsHsiaFlows to delete hsia flows
-// delFlowsInDevice flag indicates that flows should be deleted only in DB/device and should not be forwarded to core
 func DelDsHsiaFlows(cntx context.Context, key, value interface{}, delFlowsInDevice bool) bool {
 	svc := value.(*VoltService)
 	logger.Debugw(ctx, "Delete DS Hsia Flows", log.Fields{"ServiceName": svc.Name})
@@ -1367,90 +1346,6 @@ func (vpv *VoltPortVnet) ClearServiceCounters(cntx context.Context) {
 	vpv.RangeOnServices(cntx, ClearServiceCounters, false)
 }
 
-// BuildDefaultDhcpTrapFlow to build the downstream dhcp flows
-func (va *VoltApplication) BuildDefaultDhcpTrapFlow(ctx context.Context, device *VoltDevice, port string) (*of.VoltFlow, error) {
-	logger.Infow(ctx, "Building NNI DS DHCP flow", log.Fields{"Port": port, "device": device.Name})
-	flow := &of.VoltFlow{}
-	flow.SubFlows = make(map[uint64]*of.VoltSubFlow)
-	subFlow := of.NewVoltSubFlow()
-	subFlow.SetTableID(0)
-
-	subFlow.SetUdpv4Match()
-	subFlow.SrcPort = 67
-	subFlow.DstPort = 68
-
-	nniport, err := GetApplication().GetPortID(port)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch port id %d for nni : %w", nniport, err)
-	}
-	subFlow.SetInPort(nniport)
-	// PortName and PortID to be used for validation of port before flow pushing
-	flow.PortID = nniport
-	flow.PortName = port
-	allowTransparent := 0
-
-	ontEtherTypeClass := 0
-	vlanControl := OLTSVlan
-	uniVlan := of.VlanNone
-	cVlan := of.VlanNone
-
-	metadata := uint64(allowTransparent)<<56 | uint64(ontEtherTypeClass)<<36 | uint64(vlanControl)<<32 | uint64(uniVlan)<<16 | uint64(cVlan)
-	subFlow.SetTableMetadata(metadata)
-	subFlow.Priority = of.DhcpFlowPriority
-
-	subFlow.SetReportToController()
-	// | 12-bit cvlan | 4 bits empty | <32-bits uniport>| 16-bits dhcp mask or flow mask |
-	subFlow.Cookie = uint64(cVlan)<<52 | uint64(nniport)<<16 | of.DhcpArpFlowMask | of.DsFlowMask
-
-	flow.SubFlows[subFlow.Cookie] = subFlow
-	logger.Infow(ctx, "Built NNI DS DHCP flow ", log.Fields{"cookie": subFlow.Cookie, "Flow": flow})
-
-	return flow, nil
-}
-
-// AddDefaultDhcpTrapFlow function pushes the default DHCP flows to the VOLTHA via the controller
-func (va *VoltApplication) AddDefaultDhcpTrapFlow(cntx context.Context, vd *VoltDevice, p *VoltPort) error {
-	if vd.GlobalDhcpFlowAdded {
-		logger.Info(ctx, "Global Dhcp flow already exists")
-		return nil
-	}
-
-	flows, err := va.BuildDefaultDhcpTrapFlow(cntx, vd, p.Name)
-	if err == nil {
-		if err1 := va.PushTrapFlows(cntx, vd, p.Name, flows); err1 != nil {
-			logger.Errorw(cntx, "Failure pushing nni trap flows", log.Fields{"device": vd.Name, "port": p.Name})
-			return fmt.Errorf("failed to push trap flow for nni : %s, error : %w", p.Name, err1)
-		}
-	} else {
-		logger.Errorw(cntx, "Failure building nni trap flows", log.Fields{"device": vd.Name, "port": p.Name})
-		return fmt.Errorf("failed to build trap flow for nni : %s, error : %w", p.Name, err)
-	}
-	p.NniDhcpTrapFlowAdded = true
-	if GetApplication().GetVendorID() != Radisys && va.IsDhcpTrapFlowAdded(cntx, vd) {
-		logger.Debugw(ctx, "Global DHCP trap flow set", log.Fields{"device": vd.Name})
-		vd.GlobalDhcpFlowAdded = true
-	}
-	return nil
-}
-
-func (va *VoltApplication) IsDhcpTrapFlowAdded(ctx context.Context, vd *VoltDevice) bool {
-	if len(vd.NniPort) == 0 {
-		return false
-	}
-	flag := true
-	for _, nniPort := range vd.NniPort {
-		if p := vd.GetPort(nniPort); p != nil {
-			if !p.NniDhcpTrapFlowAdded {
-				flag = false
-			}
-		} else {
-			flag = false
-		}
-	}
-
-	return flag
-}
-
 // AddUsDhcpFlows pushes the DHCP flows to the VOLTHA via the controller
 func (vpv *VoltPortVnet) AddUsDhcpFlows(cntx context.Context) error {
 	var vd *VoltDevice
@@ -1458,7 +1353,7 @@ func (vpv *VoltPortVnet) AddUsDhcpFlows(cntx context.Context) error {
 	logger.Debugw(ctx, "Received Add US DHCP Flows", log.Fields{"Device": device})
 
 	if vd = GetApplication().GetDevice(device); vd != nil {
-		if vd.State != controller.DeviceStateUP {
+		if vd.State != cntlr.DeviceStateUP {
 			logger.Errorw(ctx, "Skipping US DHCP Flow Push - Device state DOWN", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan, "device": device})
 			return nil
 		}
@@ -1491,7 +1386,7 @@ func (vpv *VoltPortVnet) AddDsDhcpFlows(cntx context.Context) error {
 	logger.Debugw(ctx, "Received Add DS DHCP Flows", log.Fields{"Device": device})
 
 	if vd = GetApplication().GetDevice(device); vd != nil {
-		if vd.State != controller.DeviceStateUP {
+		if vd.State != cntlr.DeviceStateUP {
 			logger.Errorw(ctx, "Skipping DS DHCP Flow Push - Device state DOWN", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan, "device": device})
 			return nil
 		}
@@ -1499,47 +1394,28 @@ func (vpv *VoltPortVnet) AddDsDhcpFlows(cntx context.Context) error {
 		err := errorCodes.ErrDeviceNotFound
 		return fmt.Errorf("ds dhcp flow push failed - device not found for Port %s, Svlan %d, Cvlan %d, UniVlan %d. Device %s : %w", vpv.Port, vpv.SVlan, vpv.CVlan, vpv.UniVlan, device, err)
 	}
-
 	if vd.GlobalDhcpFlowAdded {
 		logger.Info(ctx, "Global Dhcp flow already exists")
 		return nil
 	}
 
-	nniPorts := make([]string, 0)
-	vpv.services.Range(func(key, value interface{}) bool {
-		svc := value.(*VoltService)
-		logger.Infow(ctx, "Found service on the vpv", log.Fields{"Name": svc.Name, "NNIPort": svc.NniPort})
-		nniPorts = append(nniPorts, svc.NniPort)
-		return true
-	})
-
-	if len(nniPorts) == 0 {
-		vpv.BuildAndPushDSDhcpFlows(cntx, vd, "")
-	} else {
-		for _, nniPort := range nniPorts {
-			vpv.BuildAndPushDSDhcpFlows(cntx, vd, nniPort)
-		}
-	}
-
-	if GetApplication().GetVendorID() != Radisys {
-		vd.GlobalDhcpFlowAdded = true
-	}
-	return nil
-}
-
-func (vpv *VoltPortVnet) BuildAndPushDSDhcpFlows(cntx context.Context, device *VoltDevice, nniPort string) {
-	var err error
-	var flows *of.VoltFlow
-	flows, err = vpv.BuildDsDhcpFlows(nniPort)
+	flows, err := vpv.BuildDsDhcpFlows()
 	if err == nil {
-		if err1 := vpv.PushFlows(cntx, device, flows); err1 != nil {
+		if err1 := vpv.PushFlows(cntx, vd, flows); err1 != nil {
+			// push ind here and procced
 			statusCode, statusMessage := errorCodes.GetErrorInfo(err1)
 			vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 		}
 	} else {
+		logger.Errorw(ctx, "DS DHCP Flow Add Failed", log.Fields{"Reason": err.Error()})
+		// send ind here and proceed
 		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vpv.FlowInstallFailure("VGC processing failure", statusCode, statusMessage)
 	}
+	if GetApplication().GetVendorID() != Radisys {
+		vd.GlobalDhcpFlowAdded = true
+	}
+	return nil
 }
 
 // DelDhcpFlows deletes both US & DS DHCP flows applied for this Vnet instantiated on the port
@@ -1609,42 +1485,11 @@ func (vpv *VoltPortVnet) DelDsDhcpFlows(cntx context.Context) error {
 
 func (vpv *VoltPortVnet) delDsDhcp4Flows(cntx context.Context, device *VoltDevice) error {
 	logger.Debugw(ctx, "Received DS Delete DHCP4 Flows", log.Fields{"DeviceName": device.Name})
-	nniPorts := make([]string, 0)
-	vpv.services.Range(func(key, value interface{}) bool {
-		svc := value.(*VoltService)
-		logger.Infow(ctx, "Found service on the vpv", log.Fields{"Name": svc.Name, "NNIPort": svc.NniPort})
-		nniPorts = append(nniPorts, svc.NniPort)
-		return true
-	})
-
-	if len(nniPorts) == 0 {
-		if err := vpv.BuildAndRemoveDSDhcpFlows(cntx, device, ""); err != nil {
-			return err
-		}
-	} else {
-		for _, nniPort := range nniPorts {
-			if err := vpv.BuildAndRemoveDSDhcpFlows(cntx, device, nniPort); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (vpv *VoltPortVnet) BuildAndRemoveDSDhcpFlows(cntx context.Context, device *VoltDevice, nniPort string) error {
-	var err error
-	var flows *of.VoltFlow
-	flows, err = vpv.BuildDsDhcpFlows(nniPort)
+	flows, err := vpv.BuildDsDhcpFlows()
 	if err == nil {
-		if err1 := vpv.RemoveFlows(cntx, device, flows); err1 != nil {
-			logger.Errorw(ctx, "DS DHCP Flow Remove Failed", log.Fields{"Reason": err.Error()})
-			return fmt.Errorf("ds dhcp flow remove failed - Port %s, NNIPort %s, Svlan %d, Cvlan %d, UniVlan %d. Device %s : %w", vpv.Port, nniPort, vpv.SVlan, vpv.CVlan, vpv.UniVlan, vpv.Device, err)
-		}
-	} else {
-		logger.Errorw(ctx, "DS DHCP Flow Build Failed", log.Fields{"Reason": err.Error()})
-		return fmt.Errorf("ds dhcp flow build failed - Port %s, NNIPort %s, Svlan %d, Cvlan %d, UniVlan %d. Device %s : %w", vpv.Port, nniPort, vpv.SVlan, vpv.CVlan, vpv.UniVlan, vpv.Device, err)
+		return vpv.RemoveFlows(cntx, device, flows)
 	}
-	return nil
+	return fmt.Errorf("DS DHCP Flow Delete Failed : %w", err)
 }
 
 /*
@@ -1663,7 +1508,7 @@ func (vpv *VoltPortVnet) AddUsArpFlows(cntx context.Context) error {
 	device := vpv.Device
 	logger.Debugw(ctx, "Received Add US Arp Flows", log.Fields{"DeviceName": device})
 	if vd = GetApplication().GetDevice(device); vd != nil {
-		if vd.State != controller.DeviceStateUP {
+		if vd.State != cntlr.DeviceStateUP {
 			logger.Errorw(ctx, "Skipping US ARP Flow Push - Device state DOWN", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan, "device": device})
 			return nil
 		}
@@ -1708,7 +1553,7 @@ func (vpv *VoltPortVnet) AddUsPppoeFlows(cntx context.Context) error {
 	device := vpv.Device
 
 	if vd = GetApplication().GetDevice(device); vd != nil {
-		if vd.State != controller.DeviceStateUP {
+		if vd.State != cntlr.DeviceStateUP {
 			logger.Errorw(ctx, "Skipping US PPPoE Flow Push - Device state DOWN", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan, "device": device})
 			return nil
 		}
@@ -1736,7 +1581,7 @@ func (vpv *VoltPortVnet) AddDsPppoeFlows(cntx context.Context) error {
 	device := vpv.Device
 
 	if vd = GetApplication().GetDevice(device); vd != nil {
-		if vd.State != controller.DeviceStateUP {
+		if vd.State != cntlr.DeviceStateUP {
 			logger.Errorw(ctx, "Skipping DS PPPoE Flow Push - Device state DOWN", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan, "device": device})
 			return nil
 		}
@@ -1799,7 +1644,7 @@ func (vpv *VoltPortVnet) AddIgmpFlows(cntx context.Context) error {
 		device, err := GetApplication().GetDeviceFromPort(vpv.Port)
 		if err != nil {
 			return fmt.Errorf("Error getting device from port : Port %s : %w", vpv.Port, err)
-		} else if device.State != controller.DeviceStateUP {
+		} else if device.State != cntlr.DeviceStateUP {
 			logger.Warnw(ctx, "Device state Down. Ignoring US IGMP Flow Push", log.Fields{"Port": vpv.Port, "SVLAN": vpv.SVlan, "CVLAN": vpv.CVlan, "UNIVlan": vpv.UniVlan})
 			return nil
 		}
@@ -1816,7 +1661,7 @@ func (vpv *VoltPortVnet) AddIgmpFlows(cntx context.Context) error {
 					vd.RegisterFlowAddEvent(cookie, fe)
 				}
 			}
-			if err1 := controller.GetController().AddFlows(cntx, vpv.Port, device.Name, flows); err1 != nil {
+			if err1 := cntlr.GetController().AddFlows(cntx, vpv.Port, device.Name, flows, false); err1 != nil {
 				return err1
 			}
 		} else {
@@ -1921,8 +1766,8 @@ func (vpv *VoltPortVnet) BuildUsDhcpFlows() (*of.VoltFlow, error) {
 }
 
 // BuildDsDhcpFlows to build the downstream dhcp flows
-func (vpv *VoltPortVnet) BuildDsDhcpFlows(nniPort string) (*of.VoltFlow, error) {
-	logger.Infow(ctx, "Building DS DHCP flow", log.Fields{"Port": vpv.Port, "ML": vpv.MacLearning, "Mac": vpv.MacAddr, "NNIPort": nniPort})
+func (vpv *VoltPortVnet) BuildDsDhcpFlows() (*of.VoltFlow, error) {
+	logger.Infow(ctx, "Building DS DHCP flow", log.Fields{"Port": vpv.Port, "ML": vpv.MacLearning, "Mac": vpv.MacAddr})
 	flow := &of.VoltFlow{}
 	flow.SubFlows = make(map[uint64]*of.VoltSubFlow)
 	subFlow := of.NewVoltSubFlow()
@@ -1935,28 +1780,15 @@ func (vpv *VoltPortVnet) BuildDsDhcpFlows(nniPort string) (*of.VoltFlow, error) 
 	subFlow.SrcPort = 67
 	subFlow.DstPort = 68
 	uniport, _ := GetApplication().GetPortID(vpv.Port)
-
-	device, err := GetApplication().GetDeviceFromPort(vpv.Port)
+	nni, err := GetApplication().GetNniPort(vpv.Device)
 	if err != nil {
-		return nil, fmt.Errorf("error getting device for vpv %s and port %s  : %w", vpv.VnetName, vpv.Port, err)
+		return nil, fmt.Errorf("failed to fetch nni port %s from vpv : %w", nni, err)
 	}
-	var inport uint32
-	if nniPort != "" {
-		if nniPortID := device.GetPortIDFromPortName(nniPort); nniPortID != 0 {
-			inport = nniPortID
-		} else {
-			return nil, fmt.Errorf("error getting portID for NNI port %s : %w", nniPort, err)
-		}
-	} else {
-		nniPort, err := GetApplication().GetNniPort(device.Name)
-		if err != nil {
-			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
-			return nil, err
-		}
-		inport, _ = GetApplication().GetPortID(nniPort)
+	nniport, err := GetApplication().GetDevicePortID(vpv.Device, nni)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch port id %d for nni : %w", nniport, err)
 	}
-
-	subFlow.SetInPort(inport)
+	subFlow.SetInPort(nniport)
 	// PortName and PortID to be used for validation of port before flow pushing
 	flow.PortID = uniport
 	flow.PortName = vpv.Port
@@ -2051,7 +1883,7 @@ func (vpv *VoltPortVnet) BuildDsDhcp6Flows() (*of.VoltFlow, error) {
 		logger.Errorw(ctx, "Failed to fetch nni port from vpv", log.Fields{"error": err, "device": vpv.Device})
 		return nil, err
 	}
-	nniport, err := GetApplication().GetPortID(nni)
+	nniport, err := GetApplication().GetDevicePortID(vpv.Device, nni)
 	if err != nil {
 		logger.Errorw(ctx, "Failed to fetch port ID for nni", log.Fields{"error": err, "nni": nni})
 		return nil, err
@@ -2212,7 +2044,7 @@ func (vpv *VoltPortVnet) BuildDsPppoeFlows() (*of.VoltFlow, error) {
 	if err != nil {
 		return nil, err
 	}
-	nniport, err := GetApplication().GetPortID(nni)
+	nniport, err := GetApplication().GetDevicePortID(vpv.Device, nni)
 	if err != nil {
 		return nil, err
 	}
@@ -2468,8 +2300,8 @@ func (va *VoltApplication) AddVnetToPort(cntx context.Context, port string, vvne
 		p := d.GetPort(port)
 		if p != nil {
 			logger.Debugw(ctx, "Checking UNI port state", log.Fields{"State": p.State})
-			if d.State == controller.DeviceStateUP && p.State == PortStateUp {
-				vpv.PortUpInd(cntx, d, port, vs.NniPort)
+			if d.State == cntlr.DeviceStateUP && p.State == PortStateUp {
+				vpv.PortUpInd(cntx, d, port, false)
 			}
 		}
 	}
@@ -2690,7 +2522,7 @@ func (va *VoltApplication) PushDevFlowForVlan(cntx context.Context, vnet *VoltVn
 			logger.Warnw(ctx, "Device not present in vnet device list", log.Fields{"Device": device.SerialNum})
 			return true
 		}
-		if device.State != controller.DeviceStateUP {
+		if device.State != cntlr.DeviceStateUP {
 			logger.Warnw(ctx, "Push Dev Flows Failed - Device state DOWN", log.Fields{"Port": device.NniPort, "Vlan": vnet.SVlan, "device": device})
 			return true
 		}
@@ -2717,15 +2549,15 @@ func (va *VoltApplication) PushDevFlowForVlan(cntx context.Context, vnet *VoltVn
 			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
 			return true
 		}
-		if portID, err := va.GetPortID(nniPort); err == nil {
-			if state, _ := controller.GetController().GetPortState(device.Name, nniPort); state != controller.PortStateUp {
+		if portID, err := va.GetDevicePortID(device.Name, nniPort); err == nil {
+			if state, _ := cntlr.GetController().GetPortState(device.Name, nniPort); state != cntlr.PortStateUp {
 				logger.Warnw(ctx, "Skipping Dev Flow Configuration - Port Down", log.Fields{"Device": device})
 				return true
 			}
 
 			// Pushing ICMPv6 Flow
 			flow := BuildICMPv6Flow(portID, vnet)
-			err = controller.GetController().AddFlows(cntx, nniPort, device.Name, flow)
+			err = cntlr.GetController().AddFlows(cntx, nniPort, device.Name, flow, false)
 			if err != nil {
 				logger.Warnw(ctx, "Configuring ICMPv6 Flow for device failed ", log.Fields{"Device": device.Name, "err": err})
 				return true
@@ -2734,7 +2566,7 @@ func (va *VoltApplication) PushDevFlowForVlan(cntx context.Context, vnet *VoltVn
 
 			// Pushing ARP Flow
 			flow = BuildDSArpFlow(portID, vnet)
-			err = controller.GetController().AddFlows(cntx, nniPort, device.Name, flow)
+			err = cntlr.GetController().AddFlows(cntx, nniPort, device.Name, flow, false)
 			if err != nil {
 				logger.Warnw(ctx, "Configuring ARP Flow for device failed ", log.Fields{"Device": device.Name, "err": err})
 				return true
@@ -2748,11 +2580,6 @@ func (va *VoltApplication) PushDevFlowForVlan(cntx context.Context, vnet *VoltVn
 		return true
 	}
 	va.DevicesDisc.Range(pushflow)
-}
-
-func (va *VoltApplication) PushTrapFlows(cntx context.Context, device *VoltDevice, nniPort string, flow *of.VoltFlow) error {
-	logger.Debugw(ctx, "Push NNI DHCP Trap Flows", log.Fields{"DeviceName": device.Name, "Flow port": flow.PortID})
-	return controller.GetController().AddFlows(cntx, nniPort, device.Name, flow)
 }
 
 // PushDevFlowForDevice to push icmpv6 flows for device
@@ -2777,7 +2604,7 @@ func (va *VoltApplication) PushDevFlowForDevice(cntx context.Context, device *Vo
 			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
 			return true
 		}
-		nniPortID, err := va.GetPortID(nniPort)
+		nniPortID, err := va.GetDevicePortID(device.Name, nniPort)
 		if err != nil {
 			logger.Errorw(ctx, "Push ICMPv6 Failed - Failed to get NNI Port Id", log.Fields{"Port": device.NniPort, "Reason": err.Error})
 		}
@@ -2786,7 +2613,7 @@ func (va *VoltApplication) PushDevFlowForDevice(cntx context.Context, device *Vo
 			return true
 		}
 		flow := BuildICMPv6Flow(nniPortID, vnet)
-		err = controller.GetController().AddFlows(cntx, nniPort, device.Name, flow)
+		err = cntlr.GetController().AddFlows(cntx, nniPort, device.Name, flow, false)
 		if err != nil {
 			logger.Warnw(ctx, "Configuring ICMPv6 Flow for device failed ", log.Fields{"Device": device.Name, "err": err})
 			return true
@@ -2794,7 +2621,7 @@ func (va *VoltApplication) PushDevFlowForDevice(cntx context.Context, device *Vo
 		logger.Infow(ctx, "ICMP Flow Added to Queue", log.Fields{"flow": flow})
 
 		flow = BuildDSArpFlow(nniPortID, vnet)
-		err = controller.GetController().AddFlows(cntx, nniPort, device.Name, flow)
+		err = cntlr.GetController().AddFlows(cntx, nniPort, device.Name, flow, false)
 		if err != nil {
 			logger.Warnw(ctx, "Configuring ARP Flow for device failed ", log.Fields{"Device": device.Name, "err": err})
 			return true
@@ -2829,8 +2656,8 @@ func (va *VoltApplication) DeleteDevFlowForVlan(cntx context.Context, vnet *Volt
 			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
 			return true
 		}
-		if portID, err := va.GetPortID(nniPort); err == nil {
-			if state, _ := controller.GetController().GetPortState(device.Name, nniPort); state != controller.PortStateUp {
+		if portID, err := va.GetDevicePortID(device.Name, nniPort); err == nil {
+			if state, _ := cntlr.GetController().GetPortState(device.Name, nniPort); state != cntlr.PortStateUp {
 				logger.Warnw(ctx, "Skipping ICMPv6 Flow Deletion - Port Down", log.Fields{"Device": device})
 				return true
 			}
@@ -2883,7 +2710,7 @@ func (va *VoltApplication) DeleteDevFlowForDevice(cntx context.Context, device *
 			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
 			return true
 		}
-		nniPortID, err := va.GetPortID(nniPort)
+		nniPortID, err := va.GetDevicePortID(device.Name, nniPort)
 		if err != nil {
 			logger.Errorw(ctx, "Delete ICMPv6 Failed - Failed to get NNI Port Id", log.Fields{"Port": device.NniPort, "Reason": err.Error})
 		}
@@ -2950,8 +2777,8 @@ func (va *VoltApplication) DeleteDevFlowForVlanFromDevice(cntx context.Context, 
 			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
 			return true
 		}
-		if portID, err := va.GetPortID(nniPort); err == nil {
-			if state, _ := controller.GetController().GetPortState(device.Name, nniPort); state != controller.PortStateUp {
+		if portID, err := va.GetDevicePortID(device.Name, nniPort); err == nil {
+			if state, _ := cntlr.GetController().GetPortState(device.Name, nniPort); state != cntlr.PortStateUp {
 				logger.Warnw(ctx, "Skipping ICMPv6 Flow Deletion - Port Down", log.Fields{"Device": device})
 				return false
 			}
@@ -3087,7 +2914,7 @@ func ProcessIcmpv6McGroup(device string, delete bool) error {
 	}
 	logger.Infow(ctx, "ICMPv6 MC Group Action", log.Fields{"Device": device, "Delete": delete})
 	port, _ := GetApplication().GetNniPort(device)
-	err := controller.GetController().GroupUpdate(port, device, group)
+	err := cntlr.GetController().GroupUpdate(port, device, group)
 	return err
 }
 
@@ -3124,7 +2951,7 @@ func (vpv *VoltPortVnet) PushFlows(cntx context.Context, device *VoltDevice, flo
 		}
 		device.RegisterFlowAddEvent(cookie, fe)
 	}
-	return controller.GetController().AddFlows(cntx, vpv.Port, device.Name, flow)
+	return cntlr.GetController().AddFlows(cntx, vpv.Port, device.Name, flow, false)
 }
 
 // FlowInstallFailure - Process flow failure indication and triggers HSIA failure for all associated services
@@ -3156,7 +2983,7 @@ func (vpv *VoltPortVnet) RemoveFlows(cntx context.Context, device *VoltDevice, f
 		device.RegisterFlowDelEvent(cookie, fe)
 		vpv.PendingDeleteFlow[cookie] = true
 	}
-	return controller.GetController().DelFlows(cntx, vpv.Port, device.Name, flow, false)
+	return cntlr.GetController().DelFlows(cntx, vpv.Port, device.Name, flow, false)
 }
 
 // CheckAndDeleteVpv - remove VPV from DB is there are no pending flows to be removed
@@ -3240,7 +3067,7 @@ func (vv *VoltVnet) RemoveFlows(cntx context.Context, device *VoltDevice, flow *
 		logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
 		return err
 	}
-	return controller.GetController().DelFlows(cntx, nniPort, device.Name, flow, false)
+	return cntlr.GetController().DelFlows(cntx, nniPort, device.Name, flow, false)
 }
 
 // CheckAndDeleteVnet - remove Vnet from DB is there are no pending flows to be removed
@@ -3463,19 +3290,17 @@ func (vpv *VoltPortVnet) JSONMarshal() ([]byte, error) {
 	})
 }
 
-func (vpv *VoltPortVnet) IsServiceActivated(cntx context.Context) (bool, string) {
+func (vpv *VoltPortVnet) IsServiceActivated(cntx context.Context) bool {
 	logger.Debugw(ctx, "Is Service Activated", log.Fields{"Name": vpv.Port})
 	isActivated := false
-	nniPort := ""
 	vpv.services.Range(func(key, value interface{}) bool {
 		svc := value.(*VoltService)
 		if svc.IsActivated {
 			logger.Infow(ctx, "Found activated service on the vpv", log.Fields{"Name": svc.Name})
 			isActivated = true
-			nniPort = svc.NniPort
 			return false //to exit loop
 		}
 		return true
 	})
-	return isActivated, nniPort
+	return isActivated
 }

@@ -742,7 +742,7 @@ func TestNewVoltDevice(t *testing.T) {
 		State:                        controller.DeviceStateDOWN,
 		NniPort:                      make([]string, 0),
 		icmpv6GroupAdded:             false,
-		IgmpDsFlowAppliedForMvlan:    make(map[uint16]bool),
+		IgmpDsFlowAppliedForMvlan:    util.NewConcurrentMap(),
 		ConfiguredVlanForDeviceFlows: util.NewConcurrentMap(),
 		MigratingServices:            util.NewConcurrentMap(),
 		VpvsBySvlan:                  util.NewConcurrentMap(),
@@ -1308,7 +1308,6 @@ func TestVoltApplication_AddDeviceConfig(t *testing.T) {
 		ipAddress          string
 		uplinkPort         string
 		nniDhcpTrapID      uint16
-		nniPorts           []string
 	}
 	dvcConfg := &DeviceConfig{
 		SerialNumber:       "SDX6320031",
@@ -1352,7 +1351,7 @@ func TestVoltApplication_AddDeviceConfig(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutDeviceConfig(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-			if err := va.AddDeviceConfig(tt.args.cntx, tt.args.serialNum, tt.args.hardwareIdentifier, tt.args.nasID, tt.args.ipAddress, tt.args.uplinkPort, tt.args.nniDhcpTrapID, tt.args.nniPorts); (err != nil) != tt.wantErr {
+			if err := va.AddDeviceConfig(tt.args.cntx, tt.args.serialNum, tt.args.hardwareIdentifier, tt.args.nasID, tt.args.ipAddress, tt.args.uplinkPort, tt.args.nniDhcpTrapID); (err != nil) != tt.wantErr {
 				t.Errorf("VoltApplication.AddDeviceConfig() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -2611,7 +2610,7 @@ func TestVoltApplication_PortUpInd(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-			va.PortUpInd(tt.args.cntx, tt.args.device, tt.args.port)
+			va.PortUpInd(tt.args.cntx, tt.args.device, tt.args.port, false)
 		})
 	}
 }
@@ -3449,8 +3448,8 @@ func TestVoltApplication_HandleFlowClearFlag(t *testing.T) {
 		serialNum    string
 		southBoundID string
 	}
-	mblan := map[uint16]bool{}
-	mblan[uint16(256)] = true
+	mblan := util.NewConcurrentMap()
+	mblan.Set(uint16(256), true)
 	voltDev := &VoltDevice{
 		SerialNum:                 "SDX6320031",
 		MigratingServices:         util.NewConcurrentMap(),
@@ -3599,8 +3598,8 @@ func TestVoltApplication_NniVlanIndToIgmp(t *testing.T) {
 		mvp     *MvlanProfile
 		addFlow bool
 	}
-	mblan := map[uint16]bool{}
-	mblan[uint16(256)] = true
+	mblan := util.NewConcurrentMap()
+	mblan.Set(uint16(256), true)
 	voltDev := &VoltDevice{
 		Name:                      "SDX6320031",
 		SerialNum:                 "SDX6320031",
