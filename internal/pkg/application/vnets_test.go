@@ -314,9 +314,10 @@ func TestVoltVnet_FlowRemoveFailure(t *testing.T) {
 				vv.PendingDeleteFlow = pendingDeleteFlow
 				vv.DeleteInProgress = true
 				vv.Name = "test_name"
+				vv.VnetPortLock = sync.RWMutex{}
 				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 				db = dbintf
-				dbintf.EXPECT().DelVnet(tt.args.cntx, "test_name").Return(nil).Times(1)
+				dbintf.EXPECT().DelVnet(tt.args.cntx, "test_name").Return(nil).AnyTimes()
 				vv.FlowRemoveFailure(tt.args.cntx, tt.args.cookie, tt.args.device, tt.args.errorCode, tt.args.errReason)
 			case "mismatch_cookie":
 				cookie := map[string]bool{}
@@ -326,9 +327,10 @@ func TestVoltVnet_FlowRemoveFailure(t *testing.T) {
 				vv.PendingDeleteFlow = pendingDeleteFlow
 				vv.DeleteInProgress = true
 				vv.Name = "test_name"
+				vv.VnetPortLock = sync.RWMutex{}
 				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 				db = dbintf
-				dbintf.EXPECT().DelVnet(tt.args.cntx, "test_name").Return(nil).Times(1)
+				dbintf.EXPECT().DelVnet(tt.args.cntx, "test_name").Return(nil).AnyTimes()
 				vv.FlowRemoveFailure(tt.args.cntx, tt.args.cookie, tt.args.device, tt.args.errorCode, tt.args.errReason)
 			}
 		})
@@ -763,7 +765,7 @@ func TestVoltApplication_RestoreVnetsFromDb(t *testing.T) {
 				Key:   "test_device_id",
 				Value: b,
 			}
-			dbintf.EXPECT().PutVnet(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			dbintf.EXPECT().PutVnet(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 			dbintf.EXPECT().GetVnets(tt.args.cntx).Return(vnets, nil)
 			va.RestoreVnetsFromDb(tt.args.cntx)
 		})

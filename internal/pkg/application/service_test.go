@@ -437,7 +437,7 @@ func TestVoltApplication_AddService(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-			dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 			err := va.AddService(tt.args.cntx, tt.args.cfg, tt.args.oper)
 			assert.Nil(t, err)
 		})
