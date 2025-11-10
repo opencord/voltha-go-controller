@@ -18,16 +18,12 @@ package nbi
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"voltha-go-controller/internal/test/mocks"
 
-	app "voltha-go-controller/internal/pkg/controller"
-	//"voltha-go-controller/internal/test/mocks"
-
-	mocksCntrlr "voltha-go-controller/voltha-go-controller/tests/mocks"
+	cntlr "voltha-go-controller/internal/pkg/controller"
 
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
@@ -105,9 +101,7 @@ func TestFlowHashHandle_PutFlowHash(t *testing.T) {
 			switch tt.name {
 			case "PutFlowHash_Device_Not_Found":
 				appMock := mocks.NewMockApp(gomock.NewController(t))
-				app.NewController(ctx, appMock)
-				idea := mocksCntrlr.NewMockVoltControllerInterface(gomock.NewController(t))
-				idea.EXPECT().GetDevice(gomock.Any()).Return(nil, errors.New("not found")).Times(1)
+				cntlr.NewController(ctx, appMock)
 				fh.PutFlowHash(tt.args.w, tt.args.r)
 			case "PutFlowHash_ParseUint_Failure":
 				fh.PutFlowHash(tt.args.w, tt.args.r)

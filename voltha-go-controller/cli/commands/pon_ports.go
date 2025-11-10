@@ -52,8 +52,8 @@ func (ic *PonPortCommand) Execute(args []string) error {
 		}
 		data := make(map[string][]*app.PonPortCfg)
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
-			return fmt.Errorf("Error while unmarshalling PON ports details: %s", marshErr)
+		if marshErr != nil {
+			return fmt.Errorf("error while unmarshalling PON ports details: %s", marshErr)
 		}
 
 		if len(data) == 0 {
@@ -73,8 +73,8 @@ func (ic *PonPortCommand) Execute(args []string) error {
 		}
 		data := make(map[string][]*app.PonPortCfg)
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
-			return fmt.Errorf("Error while unmarshalling PON port details: %s", marshErr)
+		if marshErr != nil {
+			return fmt.Errorf("error while unmarshalling PON port details: %s", marshErr)
 		}
 
 		if len(data) == 0 {

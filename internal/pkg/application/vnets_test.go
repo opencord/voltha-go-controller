@@ -23,7 +23,6 @@ import (
 	"sync"
 	"testing"
 	"voltha-go-controller/internal/pkg/controller"
-	cntlr "voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/util"
 	"voltha-go-controller/internal/test/mocks"
@@ -85,7 +84,7 @@ func TestVoltPortVnet_IsServiceActivated(t *testing.T) {
 				},
 			}
 			vpv.services.Store(test_device, voltServ)
-			if got, _ := vpv.IsServiceActivated(tt.args.cntx); got != tt.want {
+			if got := vpv.IsServiceActivated(tt.args.cntx); got != tt.want {
 				t.Errorf("VoltPortVnet.IsServiceActivated() = %v, want %v", got, tt.want)
 			}
 		})
@@ -320,12 +319,13 @@ func TestVoltVnet_FlowRemoveFailure(t *testing.T) {
 				vv.FlowRemoveFailure(tt.args.cntx, tt.args.cookie, tt.args.device, tt.args.errorCode, tt.args.errReason)
 			case "mismatch_cookie":
 				cookie := map[string]bool{}
-				cookie["12345"] = true
+				cookie["1234"] = true // Use the same cookie as in test args
 				pendingDeleteFlow := map[string]map[string]bool{}
 				pendingDeleteFlow[test_device] = cookie
 				vv.PendingDeleteFlow = pendingDeleteFlow
 				vv.DeleteInProgress = true
 				vv.Name = "test_name"
+				vv.AssociatedPorts = make(map[string]bool) // Empty associated ports
 				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 				db = dbintf
 				dbintf.EXPECT().DelVnet(tt.args.cntx, "test_name").Return(nil).Times(1)
@@ -453,7 +453,7 @@ func TestVoltPortVnet_PushFlows(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			vpv := &VoltPortVnet{}
-			_ = cntlr.NewController(context.Background(), mocks.NewMockApp(gomock.NewController(t)))
+			_ = controller.NewController(context.Background(), mocks.NewMockApp(gomock.NewController(t)))
 			err := vpv.PushFlows(tt.args.cntx, tt.args.device, tt.args.flow)
 			assert.NotNil(t, err)
 		})
@@ -620,7 +620,7 @@ func TestVoltApplication_DeleteDevFlowForVlanFromDevice(t *testing.T) {
 		Name:                         "SDX6320031",
 		SerialNum:                    "SDX6320031",
 		NniDhcpTrapVid:               123,
-		State:                        cntlr.DeviceStateUP,
+		State:                        controller.DeviceStateUP,
 		NniPort:                      []string{"16777472"},
 		Ports:                        sync.Map{},
 		FlowDelEventMap:              util.NewConcurrentMap(),
@@ -688,15 +688,15 @@ func TestVoltApplication_DeleteDevFlowForVlanFromDevice(t *testing.T) {
 				voltDev.ConfiguredVlanForDeviceFlows.Set("0-0-0", util.NewConcurrentMap())
 				va.PortsDisc.Store("16777472", voltPort)
 				appMock := mocks.NewMockApp(gomock.NewController(t))
-				cntlr.NewController(ctx, appMock)
-				vc := cntlr.GetController()
-				portsByName := map[string]*cntlr.DevicePort{}
-				portsByName["16777472"] = &cntlr.DevicePort{
+				controller.NewController(ctx, appMock)
+				vc := controller.GetController()
+				portsByName := map[string]*controller.DevicePort{}
+				portsByName["16777472"] = &controller.DevicePort{
 					Name:  "16777472",
 					ID:    256,
-					State: cntlr.PortStateUp,
+					State: controller.PortStateUp,
 				}
-				device := &cntlr.Device{
+				device := &controller.Device{
 					ID:          "SDX6320031",
 					PortsByName: portsByName,
 				}
@@ -709,15 +709,15 @@ func TestVoltApplication_DeleteDevFlowForVlanFromDevice(t *testing.T) {
 				voltDev.ConfiguredVlanForDeviceFlows.Set("0-0-0", util.NewConcurrentMap())
 				va.PortsDisc.Store("16777472", voltPort)
 				appMock := mocks.NewMockApp(gomock.NewController(t))
-				cntlr.NewController(ctx, appMock)
-				vc := cntlr.GetController()
-				portsByName := map[string]*cntlr.DevicePort{}
-				portsByName["16777472"] = &cntlr.DevicePort{
+				controller.NewController(ctx, appMock)
+				vc := controller.GetController()
+				portsByName := map[string]*controller.DevicePort{}
+				portsByName["16777472"] = &controller.DevicePort{
 					Name:  "16777472",
 					ID:    256,
-					State: cntlr.PortStateUp,
+					State: controller.PortStateUp,
 				}
-				device := &cntlr.Device{
+				device := &controller.Device{
 					ID:          "SDX6320031",
 					PortsByName: portsByName,
 				}
@@ -755,6 +755,7 @@ func TestVoltApplication_RestoreVnetsFromDb(t *testing.T) {
 			db = dbintf
 			vnets := map[string]*kvstore.KVPair{}
 			voltVnet.SVlan = of.VlanAny
+			voltVnet.DeleteInProgress = false
 			b, err := json.Marshal(voltVnet)
 			if err != nil {
 				panic(err)
@@ -779,7 +780,7 @@ func TestVoltApplication_DeleteDevFlowForDevice(t *testing.T) {
 		Name:                         "SDX6320031",
 		SerialNum:                    "SDX6320031",
 		NniDhcpTrapVid:               123,
-		State:                        cntlr.DeviceStateUP,
+		State:                        controller.DeviceStateUP,
 		NniPort:                      []string{"16777472"},
 		FlowDelEventMap:              util.NewConcurrentMap(),
 		ConfiguredVlanForDeviceFlows: util.NewConcurrentMap(),
@@ -828,15 +829,15 @@ func TestVoltApplication_DeleteDevFlowForDevice(t *testing.T) {
 				voltApp := GetApplication()
 				voltApp.DevicesDisc.Store("SDX6320031", voltDev)
 				appMock := mocks.NewMockApp(gomock.NewController(t))
-				cntlr.NewController(ctx, appMock)
-				vc := cntlr.GetController()
-				portsByName := map[string]*cntlr.DevicePort{}
-				portsByName["16777472"] = &cntlr.DevicePort{
+				controller.NewController(ctx, appMock)
+				vc := controller.GetController()
+				portsByName := map[string]*controller.DevicePort{}
+				portsByName["16777472"] = &controller.DevicePort{
 					Name:  "16777472",
 					ID:    256,
-					State: cntlr.PortStateUp,
+					State: controller.PortStateUp,
 				}
-				device := &cntlr.Device{
+				device := &controller.Device{
 					ID:          "SDX6320031",
 					PortsByName: portsByName,
 				}
@@ -905,7 +906,7 @@ func TestVoltApplication_PushDevFlowForVlan(t *testing.T) {
 		Name:                         "SDX6320031",
 		SerialNum:                    "SDX6320031",
 		NniDhcpTrapVid:               123,
-		State:                        cntlr.DeviceStateUP,
+		State:                        controller.DeviceStateUP,
 		NniPort:                      []string{"16777472"},
 		FlowDelEventMap:              util.NewConcurrentMap(),
 		ConfiguredVlanForDeviceFlows: util.NewConcurrentMap(),
@@ -970,7 +971,7 @@ func TestVoltApplication_PushDevFlowForVlan(t *testing.T) {
 				va.PortsDisc.Store("16777216", voltPort)
 				ga := GetApplication()
 				ga.DevicesDisc.Store(test_device, voltDevice)
-				_ = cntlr.NewController(context.Background(), mocks.NewMockApp(gomock.NewController(t)))
+				_ = controller.NewController(context.Background(), mocks.NewMockApp(gomock.NewController(t)))
 				va.PushDevFlowForVlan(tt.args.cntx, tt.args.vnet)
 			case "PushDevFlowForVlan":
 				va.DevicesDisc.Store("SDX6320031", voltDev)
@@ -980,7 +981,7 @@ func TestVoltApplication_PushDevFlowForVlan(t *testing.T) {
 				va.PortsDisc.Store("16777472", voltPort)
 				voltApp := GetApplication()
 				voltApp.DevicesDisc.Store("SDX6320031", voltDev)
-				_ = cntlr.NewController(context.Background(), mocks.NewMockApp(gomock.NewController(t)))
+				_ = controller.NewController(context.Background(), mocks.NewMockApp(gomock.NewController(t)))
 				va.PushDevFlowForVlan(tt.args.cntx, tt.args.vnet)
 			}
 		})
@@ -1434,7 +1435,7 @@ func TestVoltPortVnet_PushFlowsForPortVnet(t *testing.T) {
 		Name:            "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		SerialNum:       "SDX6320031",
 		NniDhcpTrapVid:  123,
-		State:           cntlr.DeviceStateUP,
+		State:           controller.DeviceStateUP,
 		FlowAddEventMap: util.NewConcurrentMap(),
 		Ports:           sync.Map{},
 	}
@@ -1601,7 +1602,7 @@ func TestVoltPortVnet_AddUsArpFlows(t *testing.T) {
 		Name:            "SDX6320031",
 		SerialNum:       "SDX6320031",
 		NniDhcpTrapVid:  123,
-		State:           cntlr.DeviceStateUP,
+		State:           controller.DeviceStateUP,
 		FlowAddEventMap: util.NewConcurrentMap(),
 		Ports:           sync.Map{},
 	}
@@ -1649,14 +1650,14 @@ func TestVoltPortVnet_AddUsArpFlows(t *testing.T) {
 			va.DevicesDisc.Store(deviceName, voltDev)
 			va.PortsDisc.Store("16777472", voltPort)
 			appMock := mocks.NewMockApp(gomock.NewController(t))
-			cntlr.NewController(ctx, appMock)
-			vc := cntlr.GetController()
-			portsByName := map[string]*cntlr.DevicePort{}
-			portsByName["16777472"] = &cntlr.DevicePort{
+			controller.NewController(ctx, appMock)
+			vc := controller.GetController()
+			portsByName := map[string]*controller.DevicePort{}
+			portsByName["16777472"] = &controller.DevicePort{
 				Name: "16777472",
 				ID:   256,
 			}
-			device := &cntlr.Device{
+			device := &controller.Device{
 				ID:          deviceName,
 				PortsByName: portsByName,
 			}
@@ -1673,7 +1674,7 @@ func TestVoltPortVnet_AddUsArpFlows(t *testing.T) {
 				}
 			case "AddUsArpFlows_DeviceStateDOWN":
 				vpv.Device = deviceName
-				voltDev.State = cntlr.DeviceStateDOWN
+				voltDev.State = controller.DeviceStateDOWN
 				if err := vpv.AddUsArpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
 					t.Errorf("VoltPortVnet.AddUsArpFlows() error = %v, wantErr %v", err, tt.wantErr)
 				}
@@ -1691,7 +1692,7 @@ func TestVoltPortVnet_AddDsDhcpFlows(t *testing.T) {
 		Name:            "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		SerialNum:       "SDX6320031",
 		NniDhcpTrapVid:  123,
-		State:           cntlr.DeviceStateUP,
+		State:           controller.DeviceStateUP,
 		FlowAddEventMap: util.NewConcurrentMap(),
 	}
 	va.DevicesDisc.Store("SDX6320031", voltDev)
@@ -1756,27 +1757,27 @@ func TestVoltPortVnet_AddDsDhcpFlows(t *testing.T) {
 					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			case "AddDsDhcpFlows_StateDown":
-				voltDev.State = cntlr.DeviceStateDOWN
+				voltDev.State = controller.DeviceStateDOWN
 				if err := vpv.AddDsDhcpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
 					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			case "AddDsDhcpFlows_GlobalDhcpFlowAdded":
 				vpv.Device = deviceName
-				voltDev.State = cntlr.DeviceStateUP
+				voltDev.State = controller.DeviceStateUP
 				voltDev.GlobalDhcpFlowAdded = true
 				if err := vpv.AddDsDhcpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
 					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			case "AddDsDhcpFlows_PositiveSenario":
 				vpv.Device = deviceName
-				voltDev.State = cntlr.DeviceStateUP
+				voltDev.State = controller.DeviceStateUP
 				voltDev.GlobalDhcpFlowAdded = false
 				voltDev.NniPort = []string{"16777472"}
 				va.PortsDisc.Store("16777472", voltPort)
 				appMock := mocks.NewMockApp(gomock.NewController(t))
-				cntlr.NewController(ctx, appMock)
-				vc := cntlr.GetController()
-				device := &cntlr.Device{
+				controller.NewController(ctx, appMock)
+				vc := controller.GetController()
+				device := &controller.Device{
 					ID: "SDX6320031",
 				}
 				vc.Devices.Store("SDX6320031", device)
@@ -1797,7 +1798,7 @@ func TestVoltPortVnet_AddUsDhcpFlows(t *testing.T) {
 		Name:            "SDX6320031",
 		SerialNum:       "SDX6320031",
 		NniDhcpTrapVid:  123,
-		State:           cntlr.DeviceStateUP,
+		State:           controller.DeviceStateUP,
 		NniPort:         []string{"16777472"},
 		FlowAddEventMap: util.NewConcurrentMap(),
 	}
@@ -1852,9 +1853,9 @@ func TestVoltPortVnet_AddUsDhcpFlows(t *testing.T) {
 			case "AddUsDhcpFlows_PositiveSenario":
 				va.PortsDisc.Store("16777472", voltPort)
 				appMock := mocks.NewMockApp(gomock.NewController(t))
-				cntlr.NewController(ctx, appMock)
-				vc := cntlr.GetController()
-				device := &cntlr.Device{
+				controller.NewController(ctx, appMock)
+				vc := controller.GetController()
+				device := &controller.Device{
 					ID: "SDX6320031",
 				}
 				vc.Devices.Store("SDX6320031", device)
@@ -1867,13 +1868,13 @@ func TestVoltPortVnet_AddUsDhcpFlows(t *testing.T) {
 					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			case "AddUsDhcpFlows_StateDown":
-				voltDev.State = cntlr.DeviceStateDOWN
+				voltDev.State = controller.DeviceStateDOWN
 				if err := vpv.AddUsDhcpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
 					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			case "AddUsDhcpFlows_GlobalDhcpFlowAdded":
 				vpv.Device = "SDX6320031"
-				voltDev.State = cntlr.DeviceStateUP
+				voltDev.State = controller.DeviceStateUP
 				vpv.Port = ""
 				if err := vpv.AddUsDhcpFlows(tt.args.cntx); (err != nil) != tt.wantErr {
 					t.Errorf("VoltPortVnet.AddDsDhcpFlows() error = %v, wantErr %v", err, tt.wantErr)
@@ -1892,7 +1893,7 @@ func TestVoltPortVnet_AddUsPppoeFlows(t *testing.T) {
 		Name:            "SDX6320031",
 		SerialNum:       "SDX6320031",
 		NniDhcpTrapVid:  123,
-		State:           cntlr.DeviceStateUP,
+		State:           controller.DeviceStateUP,
 		NniPort:         []string{"16777472"},
 		FlowAddEventMap: util.NewConcurrentMap(),
 	}
@@ -1965,14 +1966,14 @@ func TestVoltPortVnet_AddUsPppoeFlows(t *testing.T) {
 				}
 			case "AddDsPppoeFlows":
 				appMock := mocks.NewMockApp(gomock.NewController(t))
-				cntlr.NewController(ctx, appMock)
-				vc := cntlr.GetController()
-				portsByName := map[string]*cntlr.DevicePort{}
-				portsByName["16777472"] = &cntlr.DevicePort{
+				controller.NewController(ctx, appMock)
+				vc := controller.GetController()
+				portsByName := map[string]*controller.DevicePort{}
+				portsByName["16777472"] = &controller.DevicePort{
 					Name: "16777472",
 					ID:   256,
 				}
-				device := &cntlr.Device{
+				device := &controller.Device{
 					ID:          "SDX6320031",
 					PortsByName: portsByName,
 				}
@@ -1981,12 +1982,12 @@ func TestVoltPortVnet_AddUsPppoeFlows(t *testing.T) {
 					t.Errorf("VoltPortVnet.AddUsPppoeFlows() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			case "AddUsPppoeFlows_StateDown":
-				voltDev.State = cntlr.DeviceStateDOWN
+				voltDev.State = controller.DeviceStateDOWN
 				if err := vpv.AddUsPppoeFlows(tt.args.cntx); (err != nil) != tt.wantErr {
 					t.Errorf("VoltPortVnet.AddUsPppoeFlows() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			case "AddDsPppoeFlows_StateDown":
-				voltDev.State = cntlr.DeviceStateDOWN
+				voltDev.State = controller.DeviceStateDOWN
 				if err := vpv.AddDsPppoeFlows(tt.args.cntx); (err != nil) != tt.wantErr {
 					t.Errorf("VoltPortVnet.AddUsPppoeFlows() error = %v, wantErr %v", err, tt.wantErr)
 				}
@@ -2071,7 +2072,7 @@ func TestVoltPortVnet_BuildUsDhcp6Flows(t *testing.T) {
 		Name:           "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		SerialNum:      "SDX6320031",
 		NniDhcpTrapVid: 123,
-		State:          cntlr.DeviceStateUP,
+		State:          controller.DeviceStateUP,
 		NniPort:        []string{"16777472"},
 		Ports:          sync.Map{},
 	}
@@ -2125,6 +2126,7 @@ func TestVoltPortVnet_BuildUsDhcp6Flows(t *testing.T) {
 				assert.NotNil(t, got)
 			case "BuildDsDhcp6Flows":
 				voltDev.NniPort = []string{"16777216"}
+				voltDev.Ports.Store("16777216", voltPort)
 				va.DevicesDisc.Store("SDX6320031", voltDev)
 				va.DevicesConfig.Store("SDX6320031", deviceConfig)
 				got, err := vpv.BuildDsDhcp6Flows()
@@ -2456,7 +2458,7 @@ func TestVoltPortVnet_delDsDhcp4Flows(t *testing.T) {
 		Name:            "49686e2d-618f-4e8e-bca0-442ab850a63a",
 		SerialNum:       "SDX6320031",
 		NniDhcpTrapVid:  123,
-		State:           cntlr.DeviceStateUP,
+		State:           controller.DeviceStateUP,
 		NniPort:         []string{"16777472"},
 		Ports:           sync.Map{},
 		FlowDelEventMap: util.NewConcurrentMap(),
@@ -2480,13 +2482,13 @@ func TestVoltPortVnet_delDsDhcp4Flows(t *testing.T) {
 	va.PortsDisc.Store("16777472", voltPort)
 	appMock := mocks.NewMockApp(gomock.NewController(t))
 	controller.NewController(ctx, appMock)
-	vc := cntlr.GetController()
-	portsByName := map[string]*cntlr.DevicePort{}
-	portsByName["16777472"] = &cntlr.DevicePort{
+	vc := controller.GetController()
+	portsByName := map[string]*controller.DevicePort{}
+	portsByName["16777472"] = &controller.DevicePort{
 		Name: "16777472",
 		ID:   256,
 	}
-	device := &cntlr.Device{
+	device := &controller.Device{
 		ID:          deviceName,
 		PortsByName: portsByName,
 	}
@@ -2533,7 +2535,7 @@ func TestVoltApplication_DeleteDevFlowForVlan(t *testing.T) {
 		Name:                         "SDX6320031",
 		SerialNum:                    "SDX6320031",
 		NniDhcpTrapVid:               123,
-		State:                        cntlr.DeviceStateUP,
+		State:                        controller.DeviceStateUP,
 		NniPort:                      []string{"16777472"},
 		Ports:                        sync.Map{},
 		FlowDelEventMap:              util.NewConcurrentMap(),
@@ -2587,15 +2589,15 @@ func TestVoltApplication_DeleteDevFlowForVlan(t *testing.T) {
 				voltDev.ConfiguredVlanForDeviceFlows.Set("0-0-0", util.NewConcurrentMap())
 				va.PortsDisc.Store("16777472", voltPort)
 				appMock := mocks.NewMockApp(gomock.NewController(t))
-				cntlr.NewController(ctx, appMock)
-				vc := cntlr.GetController()
-				portsByName := map[string]*cntlr.DevicePort{}
-				portsByName["16777472"] = &cntlr.DevicePort{
+				controller.NewController(ctx, appMock)
+				vc := controller.GetController()
+				portsByName := map[string]*controller.DevicePort{}
+				portsByName["16777472"] = &controller.DevicePort{
 					Name:  "16777472",
 					ID:    256,
-					State: cntlr.PortStateUp,
+					State: controller.PortStateUp,
 				}
-				device := &cntlr.Device{
+				device := &controller.Device{
 					ID:          "SDX6320031",
 					PortsByName: portsByName,
 				}
@@ -2608,15 +2610,15 @@ func TestVoltApplication_DeleteDevFlowForVlan(t *testing.T) {
 				voltDev.ConfiguredVlanForDeviceFlows.Set("0-0-0", util.NewConcurrentMap())
 				va.PortsDisc.Store("16777472", voltPort)
 				appMock := mocks.NewMockApp(gomock.NewController(t))
-				cntlr.NewController(ctx, appMock)
-				vc := cntlr.GetController()
-				portsByName := map[string]*cntlr.DevicePort{}
-				portsByName["16777472"] = &cntlr.DevicePort{
+				controller.NewController(ctx, appMock)
+				vc := controller.GetController()
+				portsByName := map[string]*controller.DevicePort{}
+				portsByName["16777472"] = &controller.DevicePort{
 					Name:  "16777472",
 					ID:    256,
-					State: cntlr.PortStateUp,
+					State: controller.PortStateUp,
 				}
-				device := &cntlr.Device{
+				device := &controller.Device{
 					ID:          "SDX6320031",
 					PortsByName: portsByName,
 				}

@@ -78,27 +78,10 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 	aft.taskID = taskID
 	aft.ctx = ctx
 	flowsToProcess := make(map[uint64]*of.VoltSubFlow)
-	flowsPresent := 0
 	// First add/delete the flows first locally before passing them to actual device
 	for _, flow := range aft.flow.SubFlows {
 		logger.Debugw(ctx, "Flow Mod Request", log.Fields{"Cookie": flow.Cookie, "Oper": aft.flow.Command, "Port": aft.flow.PortID})
 		if aft.flow.Command == of.CommandAdd {
-			flow.State = of.FlowAddPending
-			if err = aft.device.AddFlow(ctx, flow); err != nil {
-				logger.Warnw(ctx, "Add Flow Error", log.Fields{"Cookie": flow.Cookie, "Reason": err.Error()})
-
-				// If flow already exists in cache, check for flow state
-				// If Success: Trigger success FLow Indication
-				// if Failure: Continue process, so add-retry happens
-				if err.Error() == ErrDuplicateFlow {
-					dbFlow, _ := aft.device.GetFlow(flow.Cookie)
-					if dbFlow.State == of.FlowAddSuccess {
-						aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil)
-						flowsPresent++
-						continue
-					}
-				}
-			}
 			flowsToProcess[flow.Cookie] = flow
 		} else {
 			dbFlow, ok := aft.device.GetFlow(flow.Cookie)
@@ -112,11 +95,6 @@ func (aft *AddFlowsTask) Start(ctx context.Context, taskID uint8) error {
 			// Below call will delete flow from DB and will not allow to maintain flow count and state. Hence commenting the below call.
 			//aft.device.triggerFlowNotification(ctx, flow.Cookie, aft.flow.Command, of.BwAvailDetails{}, nil, false)
 		}
-	}
-
-	if flowsPresent == len(aft.flow.SubFlows) {
-		logger.Warn(ctx, "All Flows already present in database. Skipping Flow Push to SB")
-		return nil
 	}
 
 	// PortName and PortID are used for validation of PortID, whether it is still valid and associated with old PortName or
