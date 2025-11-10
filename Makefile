@@ -75,7 +75,7 @@ TEST_TARGETS := test-default test-verbose test-short
 test-short: ARGS=-short
 test-verbose: ARGS=-v
 # tool containers
-VOLTHA_TOOLS_VERSION ?= 3.1.3
+VOLTHA_TOOLS_VERSION ?= 3.1.4
 
 HADOLINT          = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-hadolint hadolint
 GOLANGCI_LINT     = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golangci-lint golangci-lint
@@ -162,7 +162,7 @@ mock-gen:
 ## lint and unit tests
 lint-dockerfile: ## Perform static analysis on Dockerfile
 	@echo "Running Dockerfile lint check ..."
-	@${HADOLINT} $$(find . -name "Dockerfile.*")
+	@${HADOLINT} $$(find . -name "Dockerfile.*" -not -path "./vendor/*")
 	@echo "Dockerfile lint check OK"
 
 lint-mod: ## Verify the Go dependencies

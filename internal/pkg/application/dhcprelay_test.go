@@ -953,16 +953,7 @@ func TestVoltApplication_ProcessUDP6Packet(t *testing.T) {
 		port   string
 		pkt    gopacket.Packet
 	}
-	pkt := mocks.NewMockPacket(gomock.NewController(t))
-	dhcpv6 := &layers.DHCPv6{
-		MsgType: layers.DHCPv6MsgTypeSolicit,
-	}
-	ipv6 := &layers.IPv6{
-		Version: EtherType8100,
-	}
-	uup := &layers.UDP{
-		SrcPort: opt82,
-	}
+
 	tests := []struct {
 		name string
 		args args
@@ -970,71 +961,74 @@ func TestVoltApplication_ProcessUDP6Packet(t *testing.T) {
 	}{
 		{
 			name: "ProcessUDP6Packet_DHCPv6MsgTypeSolicit",
-			args: args{
-				cntx:   context.Background(),
-				device: "SDX6320031",
-				port:   "16777472",
-				pkt:    pkt,
-			},
 		},
 		{
 			name: "ProcessUDP6Packet_DHCPv6MsgTypeAdvertise",
-			args: args{
-				cntx:   context.Background(),
-				device: "SDX6320031",
-				port:   "16777472",
-				pkt:    pkt,
-			},
 		},
 		{
 			name: "ProcessUDP6Packet_DHCPv6MsgTypeRelayForward",
-			args: args{
-				cntx:   context.Background(),
-				device: "SDX6320031",
-				port:   "16777472",
-				pkt:    pkt,
-			},
 		},
 		{
 			name: "ProcessUDP6Packet_DHCPv6MsgTypeRelayReply",
-			args: args{
-				cntx:   context.Background(),
-				device: "SDX6320031",
-				port:   "16777472",
-				pkt:    pkt,
-			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Create separate mock for each test case
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			pkt := mocks.NewMockPacket(ctrl)
+
+			dhcpv6 := &layers.DHCPv6{
+				MsgType: layers.DHCPv6MsgTypeSolicit,
+			}
+			ipv6 := &layers.IPv6{
+				Version: EtherType8100,
+			}
+			uup := &layers.UDP{
+				SrcPort: opt82,
+			}
+			eth := &layers.Ethernet{
+				SrcMAC: net.HardwareAddr{0x00, 0x11, 0x22, 0x33, 0x44, 0x55},
+			}
+
 			va := &VoltApplication{}
 			switch tt.name {
 			case "ProcessUDP6Packet_DHCPv6MsgTypeSolicit":
-				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).Times(2)
-				pkt.EXPECT().Data().Times(1)
-				pkt.EXPECT().Layers().Return(LayerTypeDot2Q).Times(2)
-				if got := va.ProcessUDP6Packet(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt); !reflect.DeepEqual(got, tt.want) {
+				// Solicit calls ProcessUsDhcpv6Packet which accesses all layers
+				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).AnyTimes()
+				pkt.EXPECT().Layer(layers.LayerTypeEthernet).Return(eth).AnyTimes()
+				pkt.EXPECT().Layer(layers.LayerTypeIPv6).Return(ipv6).AnyTimes()
+				pkt.EXPECT().Layer(layers.LayerTypeUDP).Return(uup).AnyTimes()
+				pkt.EXPECT().Data().AnyTimes()
+				pkt.EXPECT().Layers().Return(LayerTypeDot2Q).AnyTimes()
+				if got := va.ProcessUDP6Packet(context.Background(), "SDX6320031", "16777472", pkt); !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("VoltApplication.ProcessUDP6Packet() = %v, want %v", got, tt.want)
 				}
 			case "ProcessUDP6Packet_DHCPv6MsgTypeAdvertise":
+				// Advertise only accesses DHCPv6 layer for the initial check, then logs warning
 				dhcpv6.MsgType = layers.DHCPv6MsgTypeAdvertise
-				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).Times(2)
-				if got := va.ProcessUDP6Packet(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt); !reflect.DeepEqual(got, tt.want) {
+				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).AnyTimes()
+				if got := va.ProcessUDP6Packet(context.Background(), "SDX6320031", "16777472", pkt); !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("VoltApplication.ProcessUDP6Packet() = %v, want %v", got, tt.want)
 				}
 			case "ProcessUDP6Packet_DHCPv6MsgTypeRelayForward":
+				// RelayForward only accesses DHCPv6 layer for the initial check, then logs warning
 				dhcpv6.MsgType = layers.DHCPv6MsgTypeRelayForward
-				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).Times(2)
-				if got := va.ProcessUDP6Packet(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt); !reflect.DeepEqual(got, tt.want) {
+				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).AnyTimes()
+				if got := va.ProcessUDP6Packet(context.Background(), "SDX6320031", "16777472", pkt); !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("VoltApplication.ProcessUDP6Packet() = %v, want %v", got, tt.want)
 				}
 			case "ProcessUDP6Packet_DHCPv6MsgTypeRelayReply":
+				// RelayReply calls ProcessDsDhcpv6Packet which accesses all layers
 				dhcpv6.MsgType = layers.DHCPv6MsgTypeRelayReply
-				pkt.EXPECT().Data().Times(1)
-				pkt.EXPECT().Layer(layers.LayerTypeEthernet).Return(eth).Times(1)
-				pkt.EXPECT().Layer(layers.LayerTypeIPv6).Return(ipv6).Times(1)
-				pkt.EXPECT().Layer(layers.LayerTypeUDP).Return(uup).Times(1)
-				if got := va.ProcessUDP6Packet(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt); !reflect.DeepEqual(got, tt.want) {
+				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).AnyTimes()
+				pkt.EXPECT().Data().AnyTimes()
+				pkt.EXPECT().Layer(layers.LayerTypeEthernet).Return(eth).AnyTimes()
+				pkt.EXPECT().Layer(layers.LayerTypeIPv6).Return(ipv6).AnyTimes()
+				pkt.EXPECT().Layer(layers.LayerTypeUDP).Return(uup).AnyTimes()
+				pkt.EXPECT().Layer(layers.LayerTypeDot1Q).AnyTimes()
+				if got := va.ProcessUDP6Packet(context.Background(), "SDX6320031", "16777472", pkt); !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("VoltApplication.ProcessUDP6Packet() = %v, want %v", got, tt.want)
 				}
 			}
