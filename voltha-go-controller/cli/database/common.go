@@ -62,9 +62,7 @@ func GetRedisClient() (*RedisClient, error) {
 	cfg := config.NewConfig()
 	cfg.ParseEnvironmentVariables()
 
-	rc, err := NewRedisClient(
-		fmt.Sprintf("%s:%d", cfg.KVStoreHost, cfg.KVStorePort),
-		cfg.KVStoreTimeout)
+	rc, err := NewRedisClient(fmt.Sprintf("%s:%d", cfg.KVStoreHost, cfg.KVStorePort), cfg.KVStoreTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to establish connection to Redis Client: %v ", err)
 	}

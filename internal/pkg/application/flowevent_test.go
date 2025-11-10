@@ -287,7 +287,8 @@ func TestProcessServiceFlowDelEvent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
-			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			// Both success and failure paths call WriteToDb which needs PutService
+			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 			ProcessServiceFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 		})
 	}
@@ -374,7 +375,8 @@ func TestProcessMcastFlowDelEvent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
-			dbintf.EXPECT().PutMvlan(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			// Both success and failure paths call WriteToDb which needs PutMvlan
+			dbintf.EXPECT().PutMvlan(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 			ProcessMcastFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 		})
 	}

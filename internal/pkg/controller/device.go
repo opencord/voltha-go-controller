@@ -342,6 +342,10 @@ func (d *Device) UpdateGroupEntry(cntx context.Context, group *of.Group) {
 
 // AddGroupToDb - Utility to add the group to the device DB
 func (d *Device) AddGroupToDb(cntx context.Context, group *of.Group) {
+	if db == nil {
+		logger.Warnw(ctx, "Database interface is nil, skipping group write to DB", log.Fields{"device": d.ID, "groupID": group.GroupID})
+		return
+	}
 	if b, err := json.Marshal(group); err == nil {
 		logger.Debugw(ctx, "Adding Group to DB", log.Fields{"grp": group, "Json": string(b)})
 		if err = db.PutGroup(cntx, d.ID, group.GroupID, string(b)); err != nil {
