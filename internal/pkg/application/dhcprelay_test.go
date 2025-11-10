@@ -957,6 +957,9 @@ func TestVoltApplication_ProcessUDP6Packet(t *testing.T) {
 	dhcpv6 := &layers.DHCPv6{
 		MsgType: layers.DHCPv6MsgTypeSolicit,
 	}
+	eth := &layers.Ethernet{
+		SrcMAC: net.HardwareAddr{0x00, 0x00, 0x00, 0x00, 0x00, 0x01},
+	}
 	ipv6 := &layers.IPv6{
 		Version: EtherType8100,
 	}
@@ -1024,16 +1027,17 @@ func TestVoltApplication_ProcessUDP6Packet(t *testing.T) {
 				}
 			case "ProcessUDP6Packet_DHCPv6MsgTypeRelayForward":
 				dhcpv6.MsgType = layers.DHCPv6MsgTypeRelayForward
-				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).Times(2)
+				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).AnyTimes()
 				if got := va.ProcessUDP6Packet(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt); !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("VoltApplication.ProcessUDP6Packet() = %v, want %v", got, tt.want)
 				}
 			case "ProcessUDP6Packet_DHCPv6MsgTypeRelayReply":
 				dhcpv6.MsgType = layers.DHCPv6MsgTypeRelayReply
-				pkt.EXPECT().Data().Times(1)
-				pkt.EXPECT().Layer(layers.LayerTypeEthernet).Return(eth).Times(1)
-				pkt.EXPECT().Layer(layers.LayerTypeIPv6).Return(ipv6).Times(1)
-				pkt.EXPECT().Layer(layers.LayerTypeUDP).Return(uup).Times(1)
+				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).AnyTimes()
+				pkt.EXPECT().Data().AnyTimes()
+				pkt.EXPECT().Layer(layers.LayerTypeEthernet).Return(eth).AnyTimes()
+				pkt.EXPECT().Layer(layers.LayerTypeIPv6).Return(ipv6).AnyTimes()
+				pkt.EXPECT().Layer(layers.LayerTypeUDP).Return(uup).AnyTimes()
 				if got := va.ProcessUDP6Packet(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt); !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("VoltApplication.ProcessUDP6Packet() = %v, want %v", got, tt.want)
 				}

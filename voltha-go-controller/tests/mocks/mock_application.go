@@ -104,7 +104,7 @@ func (mr *MockVoltAppInterfaceMockRecorder) ActivateService(cntx, deviceID, port
 }
 
 // AddDeviceConfig mocks base method.
-func (m *MockVoltAppInterface) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID uint16) error {
+func (m *MockVoltAppInterface) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID int) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeviceConfig", cntx, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort, nniDhcpTrapID)
 	ret0, _ := ret[0].(error)
@@ -144,7 +144,7 @@ func (mr *MockVoltAppInterfaceMockRecorder) AddMeterProf(cntx, cfg interface{}) 
 }
 
 // AddMvlanProfile mocks base method.
-func (m *MockVoltAppInterface) AddMvlanProfile(cntx context.Context, name string, mvlan, ponVlan of.VlanType, groups map[string][]string, isChannelBasedGroup bool, OLTSerialNum []string, activeChannelsPerPon uint32, proxy map[string]common.MulticastGroupProxy) error {
+func (m *MockVoltAppInterface) AddMvlanProfile(cntx context.Context, name string, mvlan, ponVlan of.VlanType, groups map[string][]string, isChannelBasedGroup bool, OLTSerialNum []string, activeChannelsPerPon int, proxy map[string]common.MulticastGroupProxy) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddMvlanProfile", cntx, name, mvlan, ponVlan, groups, isChannelBasedGroup, OLTSerialNum, activeChannelsPerPon, proxy)
 	ret0, _ := ret[0].(error)

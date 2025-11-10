@@ -135,7 +135,14 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 	var voltAppIntr app.VoltAppInterface
 	voltApp := app.GetApplication()
 	voltAppIntr = voltApp
-
+	if len(srvInfo.UniTagList) == 0 {
+		logger.Infow(ctx, "Received OLT configuration", log.Fields{"req": srvInfo})
+		err := voltAppIntr.AddDeviceConfig(cntx, srvInfo.ID, srvInfo.HardwareIdentifier, srvInfo.NasID, srvInfo.IPAddress, srvInfo.UplinkPort, srvInfo.NniDhcpTrapVid)
+		if err != nil {
+			logger.Warnw(ctx, "Device config addition failed :", log.Fields{"req": srvInfo, "Reason": err.Error()})
+		}
+		return
+	}
 	for _, uniTagInfo := range srvInfo.UniTagList {
 		var vs app.VoltServiceCfg
 
@@ -147,7 +154,6 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 		vs.Name = svcname + strconv.Itoa(uniTagInfo.TechnologyProfileID)
 
 		vs.Port = srvInfo.NasPortID
-		vs.NniPort = srvInfo.UplinkPort
 		vs.SVlan = of.VlanType(uniTagInfo.PonSTag)
 		vs.CVlan = of.VlanType(uniTagInfo.PonCTag)
 		vs.UniVlan = of.VlanType(uniTagInfo.UniTagMatch)

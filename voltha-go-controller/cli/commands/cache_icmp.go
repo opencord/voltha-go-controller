@@ -53,8 +53,8 @@ func (ic *CacheIcmpCommand) Execute(args []string) error {
 
 		data := map[string]map[string]int{}
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
-			return fmt.Errorf("Error while unmarshalling cache icmp details: %s", marshErr)
+		if marshErr != nil {
+			return fmt.Errorf("error while unmarshalling cache icmp details: %s", marshErr)
 		}
 
 		if len(data) == 0 {

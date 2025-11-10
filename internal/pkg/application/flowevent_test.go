@@ -162,7 +162,6 @@ func TestProcessServiceFlowAddEvent(t *testing.T) {
 		flowStatus   intf.FlowStatus
 		flowEventMap *util.ConcurrentMap
 	}
-
 	vs := &VoltService{
 		VoltServiceCfg: VoltServiceCfg{},
 	}
@@ -250,7 +249,6 @@ func TestProcessServiceFlowDelEvent(t *testing.T) {
 		flowStatus   intf.FlowStatus
 		flowEventMap *util.ConcurrentMap
 	}
-
 	vs := &VoltService{
 		VoltServiceCfg: VoltServiceCfg{},
 	}
@@ -287,7 +285,11 @@ func TestProcessServiceFlowDelEvent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
-			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			// Only success case (status = 0) calls PutService via WriteToDb
+			if tt.name == "ProcessServiceFlowDelEvent" {
+				dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			}
+			// Failure case (status = 1001) does not call PutService
 			ProcessServiceFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 		})
 	}
@@ -374,7 +376,11 @@ func TestProcessMcastFlowDelEvent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
-			dbintf.EXPECT().PutMvlan(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			// Only success case (status = 0) calls PutMvlan via WriteToDb
+			if tt.name == "ProcessMcastFlowDelEvent" {
+				dbintf.EXPECT().PutMvlan(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			}
+			// Failure case (status = 1001) does not call PutMvlan
 			ProcessMcastFlowDelEvent(tt.args.cntx, tt.args.event, tt.args.flowStatus)
 		})
 	}

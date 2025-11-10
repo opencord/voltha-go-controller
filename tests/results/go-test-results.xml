@@ -1,22 +1,9 @@
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# -----------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2022-2024 Open Networking Foundation Contributors
-# SPDX-License-Identifier: Apache-2.0
-# -----------------------------------------------------------------------
---->
-
-
-
-
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-	<testsuite tests="864" failures="0" time="0.142" name="voltha-go-controller/internal/pkg/application">
+	<testsuite tests="864" failures="0" time="0.166" name="voltha-go-controller/internal/pkg/application">
 		<properties>
-			<property name="go.version" value="go1.23.1"></property>
-			<property name="coverage.statements.pct" value="60.6"></property>
+			<property name="go.version" value="go1.25.3"></property>
+			<property name="coverage.statements.pct" value="55.9"></property>
 		</properties>
 		<testcase classname="application" name="TestVoltApplication_RestoreNbDeviceFromDb" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_RestoreNbDeviceFromDb/VoltApplication_RestoreNbDeviceFromDb" time="0.000"></testcase>
@@ -883,10 +870,10 @@
 		<testcase classname="application" name="TestVoltApplication_DeleteDevFlowForVlan/DeleteDevFlowForVlan" time="0.000"></testcase>
 		<testcase classname="application" name="TestVoltApplication_DeleteDevFlowForVlan/DeleteDevFlowForVlan_PortStateDown" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="115" failures="0" time="0.078" name="voltha-go-controller/internal/pkg/controller">
+	<testsuite tests="115" failures="0" time="0.063" name="voltha-go-controller/internal/pkg/controller">
 		<properties>
-			<property name="go.version" value="go1.23.1"></property>
-			<property name="coverage.statements.pct" value="39.9"></property>
+			<property name="go.version" value="go1.25.3"></property>
+			<property name="coverage.statements.pct" value="37.4"></property>
 		</properties>
 		<testcase classname="controller" name="Test_isFlowOperSuccess" time="0.000"></testcase>
 		<testcase classname="controller" name="Test_isFlowOperSuccess/test" time="0.000"></testcase>
@@ -1004,17 +991,17 @@
 		<testcase classname="controller" name="TestGetXid" time="0.000"></testcase>
 		<testcase classname="controller" name="TestGetXid/GetXid" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="2" failures="0" time="0.059" name="voltha-go-controller/internal/pkg/of">
+	<testsuite tests="2" failures="0" time="0.000" name="voltha-go-controller/internal/pkg/of">
 		<properties>
-			<property name="go.version" value="go1.23.1"></property>
+			<property name="go.version" value="go1.25.3"></property>
 			<property name="coverage.statements.pct" value="1.1"></property>
 		</properties>
 		<testcase classname="of" name="TestMatch_SetTableMetadata" time="0.000"></testcase>
 		<testcase classname="of" name="TestMatch_SetTableMetadata/test" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="10" failures="0" time="0.038" name="voltha-go-controller/internal/pkg/tasks">
+	<testsuite tests="10" failures="0" time="0.000" name="voltha-go-controller/internal/pkg/tasks">
 		<properties>
-			<property name="go.version" value="go1.23.1"></property>
+			<property name="go.version" value="go1.25.3"></property>
 			<property name="coverage.statements.pct" value="70.4"></property>
 		</properties>
 		<testcase classname="tasks" name="TestNewTasks" time="0.000"></testcase>
@@ -1028,9 +1015,9 @@
 		<testcase classname="tasks" name="TestTaskSet_Start" time="0.000"></testcase>
 		<testcase classname="tasks" name="TestTaskSet_Start/Tasks_TaskSet_Start" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="4" failures="0" time="0.080" name="voltha-go-controller/internal/pkg/vpagent">
+	<testsuite tests="4" failures="0" time="0.000" name="voltha-go-controller/internal/pkg/vpagent">
 		<properties>
-			<property name="go.version" value="go1.23.1"></property>
+			<property name="go.version" value="go1.25.3"></property>
 			<property name="coverage.statements.pct" value="4.4"></property>
 		</properties>
 		<testcase classname="vpagent" name="Test_isConnCanceled" time="0.000"></testcase>
@@ -1038,10 +1025,10 @@
 		<testcase classname="vpagent" name="Test_isConnCanceled/error_nil" time="0.000"></testcase>
 		<testcase classname="vpagent" name="Test_isConnCanceled/the_client_connection_is_closing" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="40" failures="0" time="10.140" name="voltha-go-controller/voltha-go-controller/nbi">
+	<testsuite tests="40" failures="0" time="0.139" name="voltha-go-controller/voltha-go-controller/nbi">
 		<properties>
-			<property name="go.version" value="go1.23.1"></property>
-			<property name="coverage.statements.pct" value="39.9"></property>
+			<property name="go.version" value="go1.25.3"></property>
+			<property name="coverage.statements.pct" value="39.6"></property>
 		</properties>
 		<testcase classname="nbi" name="TestProfileHandle_GetProfile" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestProfileHandle_GetProfile/GetProfile" time="0.000"></testcase>
@@ -1060,7 +1047,7 @@
 		<testcase classname="nbi" name="TestDHCPSessionInfoHandle_ServeHTTP/DHCPSessionInfoHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="nbi" name="Test_validateArgs" time="0.000"></testcase>
 		<testcase classname="nbi" name="Test_validateArgs/DHCPSessionInfoHandle_ServeHTTP" time="0.000"></testcase>
-		<testcase classname="nbi" name="Test_getDhcpSessionFields" time="10.090"></testcase>
+		<testcase classname="nbi" name="Test_getDhcpSessionFields" time="0.070"></testcase>
 		<testcase classname="nbi" name="Test_getDhcpSessionFields/getDhcpSessionFields" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestFlowHashHandle_PutFlowHash" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestFlowHashHandle_PutFlowHash/PutFlowHash_Success" time="0.000"></testcase>
@@ -1084,10 +1071,10 @@
 		<testcase classname="nbi" name="TestTaskListHandle_GetTaskList" time="0.000"></testcase>
 		<testcase classname="nbi" name="TestTaskListHandle_GetTaskList/GetTaskList_invalid_input" time="0.000"></testcase>
 	</testsuite>
-	<testsuite tests="24" failures="0" time="0.063" name="voltha-go-controller/voltha-go-controller/onos_nbi">
+	<testsuite tests="24" failures="0" time="0.060" name="voltha-go-controller/voltha-go-controller/onos_nbi">
 		<properties>
-			<property name="go.version" value="go1.23.1"></property>
-			<property name="coverage.statements.pct" value="24.7"></property>
+			<property name="go.version" value="go1.25.3"></property>
+			<property name="coverage.statements.pct" value="24.8"></property>
 		</properties>
 		<testcase classname="onos_nbi" name="TestDeviceConfigHandle_ServeHTTP" time="0.000"></testcase>
 		<testcase classname="onos_nbi" name="TestDeviceConfigHandle_ServeHTTP/DeviceConfigHandle_ServeHTTP" time="0.000"></testcase>
