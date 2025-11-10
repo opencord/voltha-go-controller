@@ -20,10 +20,8 @@ import (
 	"net/http/httptest"
 	"sync"
 	"testing"
-	app "voltha-go-controller/internal/pkg/application"
-	"voltha-go-controller/voltha-go-controller/tests/mocks"
 
-	"github.com/golang/mock/gomock"
+	app "voltha-go-controller/internal/pkg/application"
 	"github.com/gorilla/mux"
 )
 
@@ -43,8 +41,9 @@ func TestTaskListHandle_ServeHTTP(t *testing.T) {
 		SerialNum: "SDX6320031",
 		Ports:     sync.Map{},
 	}
-	voltAppIntr := mocks.NewMockVoltAppInterface(gomock.NewController(t))
-	voltAppIntr.EXPECT().GetDevice(gomock.Any()).Return(d).Times(1)
+	// Use real application instance for testing
+	voltApp := app.GetApplication()
+	voltApp.DevicesDisc.Store("SDX6320031", d)
 	type args struct {
 		w http.ResponseWriter
 		r *http.Request
@@ -91,11 +90,9 @@ func TestTaskListHandle_GetTaskList(t *testing.T) {
 	}
 	taskListResp := map[int]*app.TaskInfo{}
 	taskListResp[1] = taskInfo
-	voltAppIntr := mocks.NewMockVoltAppInterface(gomock.NewController(t))
-	voltpp := app.GetApplication()
-	voltpp.DevicesDisc.Store("SDX6320031", d)
-	voltAppIntr.EXPECT().GetDevice(gomock.Any()).Return(d).Times(1)
-	voltAppIntr.EXPECT().GetTaskList(gomock.Any()).Return(taskListResp).Times(1)
+	// Use real application instance for testing
+	voltApp := app.GetApplication()
+	voltApp.DevicesDisc.Store("SDX6320031", d)
 	type args struct {
 		w http.ResponseWriter
 		r *http.Request

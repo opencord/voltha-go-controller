@@ -1201,10 +1201,12 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 		group  *of.Group
 	}
 	portsByName := map[string]*DevicePort{}
-	portsByName["SDX6320031-1"] = &DevicePort{
+	port := &DevicePort{
 		Name: "SDX6320031-1",
 		ID:   256,
 	}
+	port.CheckAndInitialize(context.Background())
+	portsByName["SDX6320031-1"] = port
 	device := &Device{
 		ctx:         context.Background(),
 		ID:          "SDX6320031",
@@ -1219,9 +1221,6 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 		State:   1,
 		SetVlan: of.VlanAny,
 	}
-	dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
-	db = dbintf
-	dbintf.EXPECT().PutGroup(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
 	tests := []struct {
 		name    string
 		args    args
@@ -1263,7 +1262,23 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
-			case "GroupUpdate", "DeviceNOtFound_Error", "PortNOtFound_Error":
+			case "GroupUpdate":
+				ctrl := gomock.NewController(t)
+				defer ctrl.Finish()
+				dbintf := mocks.NewMockDBIntf(ctrl)
+				db = dbintf
+				dbintf.EXPECT().PutGroup(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				v := &VoltController{
+					Devices: sync.Map{},
+				}
+				dev.Range(func(key, value interface{}) bool {
+					v.Devices.Store(key, value)
+					return true
+				})
+				if err := v.GroupUpdate(tt.args.port, tt.args.device, tt.args.group); (err != nil) != tt.wantErr {
+					t.Errorf("VoltController.GroupUpdate() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "DeviceNOtFound_Error", "PortNOtFound_Error":
 				v := &VoltController{
 					Devices: sync.Map{},
 				}

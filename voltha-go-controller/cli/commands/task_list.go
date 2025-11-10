@@ -52,8 +52,8 @@ func (ic *TaskListCommand) Execute(args []string) error {
 		}
 		data := map[string]map[int]*app.TaskInfo{}
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
-			return fmt.Errorf("Error while unmarshalling task list details: %s", marshErr)
+		if marshErr != nil {
+			return fmt.Errorf("error while unmarshalling task list details: %s", marshErr)
 		}
 
 		if len(data) == 0 {
@@ -75,8 +75,8 @@ func (ic *TaskListCommand) Execute(args []string) error {
 
 		data := map[string]map[int]*app.TaskInfo{}
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
-			return fmt.Errorf("Error while unmarshalling task list details: %s", marshErr)
+		if marshErr != nil {
+			return fmt.Errorf("error while unmarshalling task list details: %s", marshErr)
 		}
 
 		if len(data) == 0 {
