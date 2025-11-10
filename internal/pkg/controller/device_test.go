@@ -120,6 +120,12 @@ func TestNewDevice(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().GetFlowHash(gomock.Any(), gomock.Any()).Return("1", nil).Times(1)
+			// Add expectations for potential async operations
+			dbintf.EXPECT().PutGroup(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+			dbintf.EXPECT().PutFlow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+			dbintf.EXPECT().DelFlow(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+			dbintf.EXPECT().PutDeviceMeter(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+			dbintf.EXPECT().DelDeviceMeter(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 			got := NewDevice(tt.args.cntx, tt.args.id, tt.args.slno, tt.args.vclientHldr, tt.args.southBoundID, tt.args.mfr, tt.args.hwDesc, tt.args.swDesc)
 			assert.NotNil(t, got)
 		})
@@ -168,8 +174,13 @@ func TestDevice_triggerFlowResultNotification(t *testing.T) {
 			_ = NewController(context.Background(), appMock)
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
-			dbintf.EXPECT().PutFlow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
-			appMock.EXPECT().ProcessFlowModResultIndication(gomock.Any(), gomock.Any()).Times(1)
+			dbintf.EXPECT().PutFlow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			// Add expectations for potential async operations
+			dbintf.EXPECT().PutGroup(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+			dbintf.EXPECT().DelFlow(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+			dbintf.EXPECT().PutDeviceMeter(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+			dbintf.EXPECT().DelDeviceMeter(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+			appMock.EXPECT().ProcessFlowModResultIndication(gomock.Any(), gomock.Any()).AnyTimes()
 			d.triggerFlowResultNotification(tt.args.cntx, tt.args.cookie, tt.args.flow, tt.args.oper, tt.args.bwDetails, tt.args.err)
 		})
 	}

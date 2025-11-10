@@ -290,8 +290,19 @@ func (va *VoltApplication) ProcessDsPppoeIaPacket(cntx context.Context, device s
 	// Retrieve the layers to build the outgoing packet. It is not
 	// possible to add/remove layers to the existing packet and thus
 	// the lyayers are extracted to build the outgoing packet
-	eth := pkt.Layer(layers.LayerTypeEthernet).(*layers.Ethernet)
-	pppoe := pkt.Layer(layers.LayerTypePPPoE).(*layers.PPPoE)
+	ethLayer := pkt.Layer(layers.LayerTypeEthernet)
+	if ethLayer == nil {
+		logger.Errorw(ctx, "Ethernet layer not found in packet", log.Fields{"Device": device, "Port": port})
+		return
+	}
+	eth := ethLayer.(*layers.Ethernet)
+
+	pppoeLayer := pkt.Layer(layers.LayerTypePPPoE)
+	if pppoeLayer == nil {
+		logger.Errorw(ctx, "PPPoE layer not found in packet", log.Fields{"Device": device, "Port": port})
+		return
+	}
+	pppoe := pppoeLayer.(*layers.PPPoE)
 
 	logger.Infow(ctx, "Processing Southbound DS PppoeIa packet", log.Fields{"Device": device, "Port": port, "Type": pppoe.Code})
 
