@@ -69,6 +69,7 @@ func TestModMeterTask_Start(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().DelDeviceMeter(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			dbintf.EXPECT().PutDeviceMeter(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 			volthaClientMock.EXPECT().UpdateLogicalDeviceMeterTable(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 			err := mmt.Start(tt.args.ctx, tt.args.taskID)
 			assert.Nil(t, err)

@@ -25,6 +25,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // GrpcMaxSize Max size of grpc message
@@ -39,7 +40,7 @@ func (vpa *VPAgent) establishConnectionToVoltha(ctx context.Context) error {
 	vpa.volthaClient.Clear()
 	try := 1
 	for vpa.ConnectionMaxRetries == 0 || try < vpa.ConnectionMaxRetries {
-		conn, err := grpc.Dial(vpa.VolthaAPIEndPoint, grpc.WithInsecure(), grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(GrpcMaxSize)))
+		conn, err := grpc.NewClient(vpa.VolthaAPIEndPoint, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(GrpcMaxSize)))
 		if err == nil {
 			svc := voltha.NewVolthaServiceClient(conn)
 			if svc != nil {

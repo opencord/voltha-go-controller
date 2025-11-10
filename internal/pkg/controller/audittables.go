@@ -17,10 +17,9 @@ package controller
 
 import (
 	"context"
-	"strconv"
+	"errors"
 	"time"
 
-	"voltha-go-controller/internal/pkg/intf"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/tasks"
 	"voltha-go-controller/internal/pkg/util"
@@ -235,19 +234,21 @@ func (att *AuditTablesTask) AuditFlows(cntx context.Context) error {
 		return err
 	}
 
-	defaultSuccessFlowStatus := intf.FlowStatus{
-		Device:      att.device.ID,
-		FlowModType: of.CommandAdd,
-		Status:      0,
-		Reason:      "",
-	}
+	// defaultSuccessFlowStatus := intf.FlowStatus{
+	// 	Device:      att.device.ID,
+	// 	FlowModType: of.CommandAdd,
+	// 	Status:      0,
+	// 	Reason:      "",
+	// }
 
 	// Build the map for easy and faster processing
 	rcvdFlows := make(map[uint64]*ofp.OfpFlowStats)
+	volthaFlows := make(map[uint64]*ofp.OfpFlowStats)
 	flowsToAdd := &of.VoltFlow{}
 	flowsToAdd.SubFlows = make(map[uint64]*of.VoltSubFlow)
 	for _, flow := range f.Items {
 		rcvdFlows[flow.Cookie] = flow
+		volthaFlows[flow.Cookie] = flow
 	}
 
 	att.device.flowLock.Lock()
@@ -269,10 +270,68 @@ func (att *AuditTablesTask) AuditFlows(cntx context.Context) error {
 				// Update flow delete count since we are retrying the flow delete due to failure
 				att.device.UpdateFlowCount(cntx, flow.Cookie)
 			}
-			defaultSuccessFlowStatus.Cookie = strconv.FormatUint(flow.Cookie, 10)
+			// defaultSuccessFlowStatus.Cookie = strconv.FormatUint(flow.Cookie, 10)
 		} else {
+			// Do not add the flow to device whose state was marked as delete failure
+			// Remove the flow from DB as it is no longer reported by voltha
+			if flow.State == of.FlowDelFailure {
+				delete(att.device.flows, flow.Cookie)
+				att.device.DelFlowFromDb(cntx, flow.Cookie)
+				logger.Warnw(ctx, "Found flow with state DelFailure while adding to device, will remove from DB", log.Fields{"Cookie": flow.Cookie})
+				continue
+			}
 			// The flow exists at the controller but not at the device
 			// Push the flow to the device
+
+			// If UST0 flow is missing in voltha but the UST1 flow is present in voltha,
+			// then delete the UST1 flow from voltha and add both US flows to voltha
+			if att.device.IsUSTable0Flow(ctx, flow) {
+				logger.Debugw(ctx, "UST0 flow found, checking for UST1 flow", log.Fields{"Cookie": flow.Cookie})
+				ust1Flow := att.device.GetDeviceFlow(ctx, flow, att.device.SerialNum, att.device.ID, false)
+				if ust1Flow != nil {
+					flowToDelete, ok := volthaFlows[ust1Flow.Cookie]
+					if ok {
+						// Sometimes the audit would happen even before all flows are installed for a service.
+						// If the UST0 flow is still missing in voltha on second retry attempt, then remove the UST1 flow from voltha.
+						if flow.FlowCount == 0 {
+							att.device.UpdateFlowCount(cntx, flow.Cookie)
+							continue
+						}
+						logger.Infow(ctx, "UST1 flow already present in Voltha, delete and install US flows", log.Fields{"UST1Flow": ust1Flow.Cookie, "UST0Flow": flow.Cookie})
+						err = att.DeleteDeviceFlow(ctx, flowToDelete)
+						if err == nil {
+							flowsToAdd.SubFlows[ust1Flow.Cookie] = ust1Flow
+						} else {
+							logger.Warnw(ctx, "UST1 flow delete failed", log.Fields{"Cookie": ust1Flow.Cookie, "Reason": err.Error()})
+						}
+					}
+				}
+			}
+
+			// If DST0 flow is missing in voltha but the DST1 flow is present in voltha,
+			// then delete the DST1 flow from voltha and add both DS flows to voltha
+			if att.device.IsDSTable0Flow(ctx, flow) {
+				logger.Debugw(ctx, "DST0 flow found, checking for DST1 flow", log.Fields{"Cookie": flow.Cookie})
+				dst1Flow := att.device.GetDeviceFlow(ctx, flow, att.device.SerialNum, att.device.ID, true)
+				if dst1Flow != nil {
+					flowToDelete, ok := volthaFlows[dst1Flow.Cookie]
+					if ok {
+						// Sometimes the audit would happen even before all flows are installed for a service.
+						// If the DST0 flow is still missing in voltha on second retry attempt, then remove the DST1 flow from voltha.
+						if flow.FlowCount == 0 {
+							att.device.UpdateFlowCount(cntx, flow.Cookie)
+							continue
+						}
+						logger.Infow(ctx, "DST1 flow already present in Voltha, delete and install DS flows", log.Fields{"DST1Flow": dst1Flow.Cookie, "DST0Flow": flow.Cookie})
+						err = att.DeleteDeviceFlow(ctx, flowToDelete)
+						if err == nil {
+							flowsToAdd.SubFlows[dst1Flow.Cookie] = dst1Flow
+						} else {
+							logger.Warnw(ctx, "DST1 flow delete failed", log.Fields{"Cookie": dst1Flow.Cookie, "Reason": err.Error()})
+						}
+					}
+				}
+			}
 			logger.Debugw(ctx, "Adding Flow To Missing Flows", log.Fields{"Cookie": flow.Cookie})
 			if !att.device.IsFlowAddThresholdReached(flow.FlowCount, flow.Cookie) {
 				flowsToAdd.SubFlows[flow.Cookie] = flow
@@ -378,6 +437,44 @@ func (att *AuditTablesTask) DelExcessFlows(cntx context.Context, flows map[uint6
 		}
 		att.device.triggerFlowNotification(cntx, flow.Cookie, of.CommandDel, of.BwAvailDetails{}, err)
 	}
+}
+
+func (att *AuditTablesTask) DeleteDeviceFlow(cntx context.Context, flow *ofp.OfpFlowStats) error {
+	logger.Debugw(ctx, "Deleting Flow", log.Fields{"Cookie": flow.Cookie})
+
+	// Create the flowMod structure and fill it out
+	flowMod := &ofp.OfpFlowMod{}
+	flowMod.Cookie = flow.Cookie
+	flowMod.TableId = flow.TableId
+	flowMod.Command = ofp.OfpFlowModCommand_OFPFC_DELETE_STRICT
+	flowMod.IdleTimeout = flow.IdleTimeout
+	flowMod.HardTimeout = flow.HardTimeout
+	flowMod.Priority = flow.Priority
+	flowMod.BufferId = of.DefaultBufferID
+	flowMod.OutPort = of.DefaultOutPort
+	flowMod.OutGroup = of.DefaultOutGroup
+	flowMod.Flags = flow.Flags
+	flowMod.Match = flow.Match
+	flowMod.Instructions = flow.Instructions
+
+	// Create FlowTableUpdate
+	flowUpdate := &ofp.FlowTableUpdate{
+		Id:      att.device.ID,
+		FlowMod: flowMod,
+	}
+
+	var err error
+	var vc voltha.VolthaServiceClient
+	if vc = att.device.VolthaClient(); vc == nil {
+		logger.Error(ctx, "Delete flow failed: Voltha Client Unavailable")
+		return errors.New("voltha client unavailable")
+	}
+
+	if _, err = vc.UpdateLogicalDeviceFlowTable(att.ctx, flowUpdate); err != nil {
+		logger.Errorw(ctx, "Flow delete failed", log.Fields{"Reason": err.Error()})
+		return err
+	}
+	return nil
 }
 
 // AuditGroups audit the groups which includes fetching the existing groups at the
@@ -582,7 +679,7 @@ func (att *AuditTablesTask) AuditPorts() error {
 				// This port exists in the received list and the map at
 				// VGC. This is common so delete it
 				logger.Infow(ctx, "Port State Mismatch", log.Fields{"Port": vgcPort.ID, "OfpPort": ofpPort.PortNo, "ReceivedState": ofpPort.State, "CurrentState": vgcPort.State})
-				att.device.ProcessPortState(ctx, ofpPort.PortNo, ofpPort.State, ofpPort.Name)
+				att.device.ProcessPortState(ctx, ofpPort.PortNo, ofpPort.State, ofpPort.Name, false)
 			}
 			delete(missingPorts, id)
 		} else {
@@ -593,13 +690,15 @@ func (att *AuditTablesTask) AuditPorts() error {
 		logger.Debugw(ctx, "Processed Port State Ind", log.Fields{"Port No": vgcPort.ID, "Port Name": vgcPort.Name})
 	}
 	// 1st process the NNI port before all other ports so that the device state can be updated.
-	if vgcPort, ok := att.device.PortsByID[NNIPortID]; ok {
-		logger.Debugw(ctx, "Processing NNI port state", log.Fields{"Port ID": vgcPort.ID, "Port Name": vgcPort.Name})
-		processPortState(NNIPortID, vgcPort)
+	for id, vgcPort := range att.device.PortsByID {
+		if util.IsNniPort(id) {
+			logger.Debugw(ctx, "Processing NNI port state", log.Fields{"Port ID": vgcPort.ID, "Port Name": vgcPort.Name})
+			processPortState(id, vgcPort)
+		}
 	}
 
 	for id, vgcPort := range att.device.PortsByID {
-		if id == NNIPortID {
+		if util.IsNniPort(id) {
 			// NNI port already processed
 			continue
 		}
@@ -618,7 +717,7 @@ func (att *AuditTablesTask) AuditPorts() error {
 	return nil
 }
 
-// AddMissingPorts to add the missing ports
+// AddMissingPorts to add the missing  ports
 func (att *AuditTablesTask) AddMissingPorts(cntx context.Context, mps map[uint32]*ofp.OfpPort) {
 	logger.Debugw(ctx, "Device Audit - Add Missing Ports", log.Fields{"NumPorts": len(mps)})
 
@@ -629,19 +728,21 @@ func (att *AuditTablesTask) AddMissingPorts(cntx context.Context, mps map[uint32
 			logger.Warnw(ctx, "AddPort Failed", log.Fields{"No": mp.PortNo, "Name": mp.Name, "Reason": err})
 		}
 		if mp.State == uint32(ofp.OfpPortState_OFPPS_LIVE) {
-			att.device.ProcessPortState(cntx, mp.PortNo, mp.State, mp.Name)
+			att.device.ProcessPortState(cntx, mp.PortNo, mp.State, mp.Name, false)
 		}
 		logger.Debugw(ctx, "Processed Port Add Ind", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name})
 	}
 
 	// 1st process the NNI port before all other ports so that the flow provisioning for UNIs can be enabled
-	if mp, ok := mps[NNIPortID]; ok {
-		logger.Debugw(ctx, "Adding Missing NNI port", log.Fields{"PortNo": mp.PortNo})
-		addMissingPort(mp)
+	for portNo, mp := range mps {
+		if util.IsNniPort(portNo) {
+			logger.Debugw(ctx, "Adding Missing NNI port", log.Fields{"PortNo": mp.PortNo, "Port Name": mp.Name, "Port Status": mp.State})
+			addMissingPort(mp)
+		}
 	}
 
 	for portNo, mp := range mps {
-		if portNo != NNIPortID {
+		if !util.IsNniPort(portNo) {
 			addMissingPort(mp)
 		}
 	}

@@ -52,8 +52,8 @@ func (ic *CacheMvlanCommand) Execute(args []string) error {
 
 		data := map[string]map[string]bool{}
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
-			return fmt.Errorf("Error while unmarshalling cache mvlan details: %s", marshErr)
+		if marshErr != nil {
+			return fmt.Errorf("error while unmarshalling cache mvlan details: %s", marshErr)
 		}
 
 		if len(data) == 0 {
@@ -75,8 +75,8 @@ func (ic *CacheMvlanCommand) Execute(args []string) error {
 
 		data := map[string]map[string]bool{}
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
-			return fmt.Errorf("Error while unmarshalling cache mvlan details: %s", marshErr)
+		if marshErr != nil {
+			return fmt.Errorf("error while unmarshalling cache mvlan details: %s", marshErr)
 		}
 
 		if len(data) == 0 {
