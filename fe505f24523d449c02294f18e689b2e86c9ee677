@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "34c2e9f6_b0bac7b5",
+        "filename": "go.mod",
+        "patchSetId": 10
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-12-04T18:45:37Z",
+      "side": 1,
+      "message": "this is a fork from google/gopacket and it\u0027s behind. Is this necessary?",
+      "range": {
+        "startLine": 5,
+        "startChar": 38,
+        "endLine": 5,
+        "endChar": 64
+      },
+      "revId": "fe505f24523d449c02294f18e689b2e86c9ee677",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
