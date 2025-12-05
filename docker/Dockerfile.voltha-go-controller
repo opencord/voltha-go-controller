@@ -59,7 +59,7 @@ COPY --from=dev /app/voltha-go-controller /app
 COPY --from=dev /app/vgcctl /app
 
 RUN chown -R voltha-go-controller:voltha-go-controller /app/voltha-go-controller /usr/local/bin/ && \
-    apk add --no-cache openssh=10.0_p1-r9
+    apk add --no-cache openssh=10.0_p1-r10
 
 ENV NOTVISIBLE="in users profile"
 RUN echo "export VISIBLE=now" >> /etc/profile
