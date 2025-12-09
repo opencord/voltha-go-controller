@@ -79,6 +79,7 @@ const (
 
 	// vgc environment variables
 
+	PrometheusPort            = "PROMETHEUS_PORT"
 	DeviceListRefreshInterval = "DEVICE_LIST_REFRESH_INTERVAL" // in seconds
 	CPUProfile                = "CPU_PROFILE"
 	MemProfile                = "MEM_PROFILE"
