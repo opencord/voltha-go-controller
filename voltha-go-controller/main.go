@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -36,6 +37,7 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 	"github.com/opencord/voltha-lib-go/v7/pkg/probe"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
@@ -210,6 +212,25 @@ func main() {
 	// Environment variables processing
 	config := newVGCFlags()
 	config.parseEnvironmentVariables()
+	http.Handle("/metrics", promhttp.Handler())
+	go func() {
+		prometheusAddress := fmt.Sprintf(":%d", config.PrometheusPort)
+		logger.Infow(ctx, "Promtheus Started", log.Fields{"PrometheusAddress": prometheusAddress})
+		// Create HTTP server with explicit timeouts to prevent slowloris attacks and resource exhaustion.
+		// Using http.ListenAndServe() directly doesn't allow setting timeouts, which is a security risk.
+		// The server uses http.DefaultServeMux (nil handler) which includes the /metrics endpoint registered above.
+		metricsServer := &http.Server{
+			Addr:              prometheusAddress,
+			Handler:           nil,
+			ReadHeaderTimeout: 10 * time.Second,
+			ReadTimeout:       30 * time.Second,
+			WriteTimeout:      30 * time.Second,
+			IdleTimeout:       120 * time.Second,
+		}
+		if err := metricsServer.ListenAndServe(); err != nil {
+			logger.Errorw(ctx, "failed to start metrics HTTP server: ", log.Fields{"error": err})
+		}
+	}()
 
 	if config.Banner {
 		printBanner()
