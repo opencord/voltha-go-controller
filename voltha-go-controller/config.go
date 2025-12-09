@@ -37,6 +37,7 @@ const (
 	defaultCPUProfile                = ""
 	defaultMemProfile                = ""
 	defaultDeviceListRefreshInterval = 10
+	defaultPrometheusPort            = 8081
 	defaultDeviceSyncDuration        = 5
 	defaultMaxFlowRetryDuration      = 60
 	/*
@@ -78,6 +79,7 @@ func newVGCFlags() *VGCFlags {
 		CPUProfile:                defaultCPUProfile,
 		MemProfile:                defaultMemProfile,
 		DeviceListRefreshInterval: defaultDeviceListRefreshInterval,
+		PrometheusPort:            defaultPrometheusPort,
 		ConnectionRetryDelay:      defaultConnectionRetryDelay,
 		ConnectionMaxRetries:      defaultConnectionMaxRetries,
 		InstanceID:                defaultInstanceID,
@@ -113,6 +115,7 @@ type VGCFlags struct {
 	LiveProbeInterval         time.Duration
 	NotLiveProbeInterval      time.Duration
 	DeviceListRefreshInterval int // in seconds
+	PrometheusPort            int
 	ConnectionRetryDelay      int // in seconds
 	ConnectionMaxRetries      int
 	DeviceSyncDuration        int // Time interval between each cycle of audit task
@@ -141,6 +144,7 @@ func (cf *VGCFlags) parseEnvironmentVariables() {
 	cf.CPUProfile = envutils.ParseStringEnvVariable(envutils.CPUProfile, defaultCPUProfile)
 	cf.MemProfile = envutils.ParseStringEnvVariable(envutils.MemProfile, defaultMemProfile)
 	cf.DeviceListRefreshInterval = int(envutils.ParseIntEnvVariable(envutils.DeviceListRefreshInterval, defaultDeviceListRefreshInterval))
+	cf.PrometheusPort = int(envutils.ParseIntEnvVariable(envutils.PrometheusPort, defaultPrometheusPort))
 	cf.ConnectionRetryDelay = int(envutils.ParseIntEnvVariable(envutils.ConnectionRetryInterval, defaultConnectionRetryDelay))
 	cf.ConnectionMaxRetries = int(envutils.ParseIntEnvVariable(envutils.MaxConnectionRetries, defaultConnectionMaxRetries))
 	cf.InstanceID = envutils.ParseStringEnvVariable(envutils.HostName, defaultInstanceID)
