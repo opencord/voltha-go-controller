@@ -2604,7 +2604,11 @@ func (va *VoltApplication) GetServiceFromCvlan(device, port string, vlans []of.V
 				return service
 			}
 		case OLTSVlan:
-			// For OLTSVlan, return only the active service attached to the VPV.
+			// For OLTSVlan, vnet type FttbSubscriberTraffic should match on CVlan
+			// if vnet type not FttbSubscriberTraffic, return only the active service attached to the VPV.
+			if vnet.VnetType == FttbSubscriberTraffic && vnet.CVlan != vlans[0] {
+				continue
+			}
 			service = vnet.GetSvcFromVPV()
 			if service != nil && service.IsActivated {
 				return service
