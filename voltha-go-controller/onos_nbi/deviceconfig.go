@@ -38,6 +38,9 @@ const (
 type DeviceConfigHandle struct {
 }
 
+type UpdateUplinkDeviceConfigHandle struct {
+}
+
 // ServeHTTP to serve HTTP requests
 func (oh *DeviceConfigHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
@@ -46,6 +49,19 @@ func (oh *DeviceConfigHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		oh.AddDeviceConfig(context.Background(), w, r)
 	case cGet:
 		oh.FetchDeviceConfig(context.Background(), w, r)
+	default:
+		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+		err := errorCodes.ErrOperationNotSupported
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
+// ServeHTTP to serve HTTP requests
+func (oh *UpdateUplinkDeviceConfigHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
+	switch r.Method {
+	case cPost:
+		oh.UpdateDeviceConfig(context.Background(), w, r)
 	default:
 		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
 		err := errorCodes.ErrOperationNotSupported
@@ -103,4 +119,32 @@ func (oh *DeviceConfigHandle) FetchDeviceConfig(cntx context.Context, w http.Res
 		err := errorCodes.ErrDeviceNotFound
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
+}
+
+func (oh *UpdateUplinkDeviceConfigHandle) UpdateDeviceConfig(cntx context.Context, w http.ResponseWriter, r *http.Request) {
+	logger.Debug(cntx, "Inside UpdateDeviceConfig method")
+	// Get the payload to process the request
+	d := new(bytes.Buffer)
+	if _, err := d.ReadFrom(r.Body); err != nil {
+		logger.Errorw(ctx, "Error reading buffer", log.Fields{"Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
+		return
+	}
+	// Unmarshal the request into device configuration structure
+	req := &app.DeviceConfig{}
+	if err := json.Unmarshal(d.Bytes(), req); err != nil {
+		logger.Errorw(ctx, "Unmarshal Failed", log.Fields{"Reason": err.Error()})
+		http.Error(w, err.Error(), http.StatusConflict)
+		return
+	}
+	if len(req.NniPorts) == 0 {
+		logger.Errorw(ctx, "No NNI ports to update", log.Fields{"Req": req})
+		err := errorCodes.ErrInvalidParamInRequest
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	devConfig := app.GetApplication().GetDeviceConfig(req.SerialNumber)
+	devConfig.NniPorts = req.NniPorts
+	app.GetApplication().UpdateDeviceConfig(cntx, devConfig)
+	logger.Infow(ctx, "updated Device Config ", log.Fields{"Req": req})
 }
