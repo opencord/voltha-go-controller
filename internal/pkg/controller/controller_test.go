@@ -1221,7 +1221,8 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 	}
 	dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 	db = dbintf
-	dbintf.EXPECT().PutGroup(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+	dbintf.EXPECT().PutGroup(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+
 	tests := []struct {
 		name    string
 		args    args
