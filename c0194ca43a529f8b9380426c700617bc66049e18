@@ -16,6 +16,24 @@
       "message": "Lets put a check if Nniports is not zero length. We should update only if Nniports length is more than 0. Return error for zero length case.",
       "revId": "c0194ca43a529f8b9380426c700617bc66049e18",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ea4ec0dd_73e93113",
+        "filename": "voltha-go-controller/onos_nbi/deviceconfig.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1001025
+      },
+      "writtenOn": "2026-01-23T07:41:51Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "7ded0c8c_4ab1e41a",
+      "revId": "c0194ca43a529f8b9380426c700617bc66049e18",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
