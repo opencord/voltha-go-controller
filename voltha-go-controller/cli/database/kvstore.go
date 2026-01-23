@@ -82,7 +82,7 @@ func NewRedisClient(address string, timeout int) (*RedisClient, error) {
 	/* We are initiating the redis HA client incase of redis sentinel port(26379) is configured*/
 	if port == redisSentinelPort {
 		redClient = redis.NewFailoverClient(&redis.FailoverOptions{
-			MasterName:    "mymaster",
+			MasterName:    "sebaRedis",
 			SentinelAddrs: []string{address},
 			Password:      "", // no password set
 			DB:            0,  // use default DB

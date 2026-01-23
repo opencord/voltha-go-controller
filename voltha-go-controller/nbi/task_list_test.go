@@ -20,8 +20,8 @@ import (
 	"net/http/httptest"
 	"sync"
 	"testing"
-	app "voltha-go-controller/internal/pkg/application"
 
+	app "voltha-go-controller/internal/pkg/application"
 	"github.com/gorilla/mux"
 )
 
@@ -41,10 +41,9 @@ func TestTaskListHandle_ServeHTTP(t *testing.T) {
 		SerialNum: "SDX6320031",
 		Ports:     sync.Map{},
 	}
-	// Setup the device in the application
+	// Use real application instance for testing
 	voltApp := app.GetApplication()
 	voltApp.DevicesDisc.Store("SDX6320031", d)
-
 	type args struct {
 		w http.ResponseWriter
 		r *http.Request
@@ -85,10 +84,15 @@ func TestTaskListHandle_GetTaskList(t *testing.T) {
 		SerialNum: "SDX6320031",
 		Ports:     sync.Map{},
 	}
-	// Setup the device in the application
+	taskInfo := &app.TaskInfo{
+		ID:   "SDX6320031",
+		Name: "SDX6320031",
+	}
+	taskListResp := map[int]*app.TaskInfo{}
+	taskListResp[1] = taskInfo
+	// Use real application instance for testing
 	voltApp := app.GetApplication()
 	voltApp.DevicesDisc.Store("SDX6320031", d)
-
 	type args struct {
 		w http.ResponseWriter
 		r *http.Request

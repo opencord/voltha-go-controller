@@ -52,7 +52,7 @@ func (ic *CachePortCommand) Execute(args []string) error {
 		}
 		data := make(map[string][]*app.VoltPort)
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
+		if marshErr != nil {
 			return fmt.Errorf("Error while unmarshalling cache port details: %s", marshErr)
 		}
 
@@ -73,7 +73,7 @@ func (ic *CachePortCommand) Execute(args []string) error {
 		}
 		data := make(map[string][]*app.VoltPort)
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
+		if marshErr != nil {
 			return fmt.Errorf("Error while unmarshalling cache port details: %s", marshErr)
 		}
 

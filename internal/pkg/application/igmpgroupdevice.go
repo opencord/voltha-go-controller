@@ -135,7 +135,7 @@ func getIgmpProxyCfgAndIP(mvlan of.VlanType, serialNo string) (*IgmpProfile, *ne
 	va := GetApplication()
 	mVLANProfileID := va.GetMvlanProfileByTag(mvlan).Name
 	var mcastCfg *McastConfig
-	if mcastCfg = va.GetMcastConfig(serialNo, mVLANProfileID); mcastCfg == nil || (mcastCfg != nil && mcastCfg.IgmpProfileID == "") {
+	if mcastCfg = va.GetMcastConfig(serialNo, mVLANProfileID); mcastCfg == nil || mcastCfg.IgmpProfileID == "" {
 		logger.Debugw(ctx, "Default IGMP config to be used", log.Fields{"mVLANProfileID": mVLANProfileID, "OltSerialNo": serialNo})
 		igmpProf := va.getIgmpProfileMap(DefaultIgmpProfID)
 		return igmpProf, &igmpProf.IgmpSourceIP, mcastCfg

@@ -1,22 +1,22 @@
 /* -----------------------------------------------------------------------
  * Copyright 2022-2024 Open Networking Foundation Contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
  * -----------------------------------------------------------------------
  * SPDX-FileCopyrightText: 2022-2024 Open Networking Foundation Contributors
  * SPDX-License-Identifier: Apache-2.0
  * -----------------------------------------------------------------------
- */
+*/
 
 package application
 
@@ -36,7 +36,7 @@ import (
 	"github.com/google/gopacket/layers"
 
 	"voltha-go-controller/database"
-	"voltha-go-controller/internal/pkg/controller"
+	cntlr "voltha-go-controller/internal/pkg/controller"
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/util"
@@ -85,7 +85,6 @@ type VoltServiceCfg struct {
 	Name                       string
 	CircuitID                  string
 	Port                       string
-	NniPort                    string
 	UsMeterProfile             string
 	DsMeterProfile             string
 	AggDsMeterProfile          string
@@ -94,9 +93,9 @@ type VoltServiceCfg struct {
 	RemoteIDType               string
 	DataRateAttr               string
 	ServiceType                string
-	Pbits                      []of.PbitType
-	RemoteID                   []byte
 	MacAddr                    net.HardwareAddr
+	RemoteID                   []byte
+	Pbits                      []of.PbitType
 	Trigger                    ServiceTrigger
 	MacLearning                MacLearningType
 	ONTEtherTypeClassification int
@@ -300,12 +299,12 @@ func (vs *VoltService) IsPbitExist(pbit of.PbitType) bool {
 // AddHsiaFlows - Adds US & DS HSIA Flows for the service
 func (vs *VoltService) AddHsiaFlows(cntx context.Context) {
 	logger.Debugw(ctx, "Add US & DS HSIA Flows for the service", log.Fields{"ServiceName": vs.Name})
-	if err := vs.AddUsHsiaFlows(cntx); err != nil {
+	if err := vs.AddUsHsiaFlows(cntx, false); err != nil {
 		logger.Errorw(ctx, "Error adding US HSIA Flows", log.Fields{"Service": vs.Name, "Port": vs.Port, "Reason": err.Error()})
 		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vs.triggerServiceFailureInd(statusCode, statusMessage)
 	}
-	if err := vs.AddDsHsiaFlows(cntx); err != nil {
+	if err := vs.AddDsHsiaFlows(cntx, false); err != nil {
 		logger.Errorw(ctx, "Error adding DS HSIA Flows", log.Fields{"Service": vs.Name, "Port": vs.Port, "Reason": err.Error()})
 		statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 		vs.triggerServiceFailureInd(statusCode, statusMessage)
@@ -338,7 +337,7 @@ func (vs *VoltService) AddMeterToDevice(cntx context.Context) error {
 	device, err := va.GetDeviceFromPort(vs.Port)
 	if err != nil {
 		return fmt.Errorf("Error during Getting Device from Port %s for service %s : %w", vs.Port, vs.Name, err)
-	} else if device.State != controller.DeviceStateUP {
+	} else if device.State != cntlr.DeviceStateUP {
 		logger.Warnw(ctx, "Device state Down. Ignoring Meter Push", log.Fields{"Service": vs.Name, "Port": vs.Port})
 		return nil
 	}
@@ -348,7 +347,8 @@ func (vs *VoltService) AddMeterToDevice(cntx context.Context) error {
 }
 
 // AddUsHsiaFlows - Add US HSIA Flows for the service
-func (vs *VoltService) AddUsHsiaFlows(cntx context.Context) error {
+// skipFlowPushToVoltha is used when VGC restarts, the flows are built and stored only in cache and not pushed to voltha.
+func (vs *VoltService) AddUsHsiaFlows(cntx context.Context, skipFlowPushToVoltha bool) error {
 	logger.Infow(ctx, "Configuring US HSIA Service Flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name, "Port": vs.Port})
 	if vs.DeleteInProgress || vs.UpdateInProgress {
 		logger.Warnw(ctx, "Ignoring US HSIA Flow Push, Service deleteion In-Progress", log.Fields{"Device": vs.Device, "Service": vs.Name})
@@ -361,7 +361,7 @@ func (vs *VoltService) AddUsHsiaFlows(cntx context.Context) error {
 		if err != nil {
 			logger.Errorw(ctx, "Error Getting Device for Service and Port", log.Fields{"Service": vs.Name, "Port": vs.Port, "Error": err})
 			return fmt.Errorf("Error Getting Device for Service %s and Port %s  : %w", vs.Name, vs.Port, err)
-		} else if device.State != controller.DeviceStateUP {
+		} else if device.State != cntlr.DeviceStateUP {
 			logger.Warnw(ctx, "Device state Down. Ignoring US HSIA Flow Push", log.Fields{"Service": vs.Name, "Port": vs.Port})
 			return nil
 		}
@@ -387,7 +387,7 @@ func (vs *VoltService) AddUsHsiaFlows(cntx context.Context) error {
 				continue
 			}
 			usflows.MigrateCookie = vgcRebooted
-			if err := vs.AddFlows(cntx, device, usflows); err != nil {
+			if err := vs.AddFlows(cntx, device, usflows, skipFlowPushToVoltha); err != nil {
 				logger.Errorw(ctx, "Error adding HSIA US flows", log.Fields{"Device": vs.Device, "Service": vs.Name, "Reason": err.Error()})
 				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vs.triggerServiceFailureInd(statusCode, statusMessage)
@@ -401,7 +401,8 @@ func (vs *VoltService) AddUsHsiaFlows(cntx context.Context) error {
 }
 
 // AddDsHsiaFlows - Add DS HSIA Flows for the service
-func (vs *VoltService) AddDsHsiaFlows(cntx context.Context) error {
+// skipFlowPushToVoltha is used when VGC restarts, the flows are built and stored only in cache and not pushed to voltha.
+func (vs *VoltService) AddDsHsiaFlows(cntx context.Context, skipFlowPushToVoltha bool) error {
 	logger.Infow(ctx, "Configuring DS HSIA Service Flows", log.Fields{"Device": vs.Device, "ServiceName": vs.Name, "Port": vs.Port})
 	if vs.DeleteInProgress {
 		logger.Warnw(ctx, "Ignoring DS HSIA Flow Push, Service deleteion In-Progress", log.Fields{"Device": vs.Device, "Service": vs.Name})
@@ -414,7 +415,7 @@ func (vs *VoltService) AddDsHsiaFlows(cntx context.Context) error {
 		if err != nil {
 			logger.Errorw(ctx, "Error Getting Device for Service and Port", log.Fields{"Service": vs.Name, "Port": vs.Port, "Error": err})
 			return fmt.Errorf("Error Getting Device for Service %s and Port %s  : %w", vs.Name, vs.Port, err)
-		} else if device.State != controller.DeviceStateUP {
+		} else if device.State != cntlr.DeviceStateUP {
 			logger.Warnw(ctx, "Device state Down. Ignoring DS HSIA Flow Push", log.Fields{"Service": vs.Name, "Port": vs.Port})
 			return nil
 		}
@@ -428,7 +429,7 @@ func (vs *VoltService) AddDsHsiaFlows(cntx context.Context) error {
 				return fmt.Errorf("Error Building HSIA DS flows for Service %s and Port %s  : %w", vs.Name, vs.Port, err)
 			}
 			dsflows.MigrateCookie = vgcRebooted
-			if err = vs.AddFlows(cntx, device, dsflows); err != nil {
+			if err = vs.AddFlows(cntx, device, dsflows, skipFlowPushToVoltha); err != nil {
 				logger.Errorw(ctx, "Failed to add HSIA DS flows", log.Fields{"Device": vs.Device, "Service": vs.Name, "Reason": err})
 				statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 				vs.triggerServiceFailureInd(statusCode, statusMessage)
@@ -442,7 +443,7 @@ func (vs *VoltService) AddDsHsiaFlows(cntx context.Context) error {
 				}
 				logger.Debug(ctx, "Add-one-match-all-pbit-flow")
 				dsflows.MigrateCookie = vgcRebooted
-				if err := vs.AddFlows(cntx, device, dsflows); err != nil {
+				if err := vs.AddFlows(cntx, device, dsflows, skipFlowPushToVoltha); err != nil {
 					logger.Errorw(ctx, "Failed to add HSIA DS flows", log.Fields{"Device": vs.Device, "Service": vs.Name, "Reason": err})
 					statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 					vs.triggerServiceFailureInd(statusCode, statusMessage)
@@ -457,7 +458,7 @@ func (vs *VoltService) AddDsHsiaFlows(cntx context.Context) error {
 						continue
 					}
 					dsflows.MigrateCookie = vgcRebooted
-					if err := vs.AddFlows(cntx, device, dsflows); err != nil {
+					if err := vs.AddFlows(cntx, device, dsflows, skipFlowPushToVoltha); err != nil {
 						logger.Errorw(ctx, "Failed to Add HSIA DS flows", log.Fields{"Device": vs.Device, "Service": vs.Name, "Reason": err})
 						statusCode, statusMessage := errorCodes.GetErrorInfo(err)
 						vs.triggerServiceFailureInd(statusCode, statusMessage)
@@ -561,6 +562,7 @@ func (vs *VoltService) DelDsHsiaFlows(cntx context.Context, delFlowsInDevice boo
 		}
 		vs.DsHSIAFlowsApplied = false
 	}
+
 	logger.Debugw(ctx, "Deleted HSIA DS flows from DB successfully", log.Fields{"Device": vs.Device, "ServiceName": vs.Name})
 	// Post HSIA configuration success indication on message bus
 	vs.WriteToDb(cntx)
@@ -574,27 +576,17 @@ func (vs *VoltService) BuildDsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 	flow := &of.VoltFlow{}
 	flow.SubFlows = make(map[uint64]*of.VoltSubFlow)
 
+	// Get the out and in ports for the flows
 	device, err := GetApplication().GetDeviceFromPort(vs.Port)
 	if err != nil {
-		return nil, fmt.Errorf("error getting device for service %s and port %s  : %w", vs.Name, vs.Port, err)
+		return nil, fmt.Errorf("Error Getting Device for Service %s and Port %s  : %w", vs.Name, vs.Port, err)
 	}
-	// inport will be obtained from nniPort of service else we'll use the default nni port
-	var inport uint32
-	// Get the out and in ports for the flows
-	if vs.NniPort != "" {
-		if nniPortID := device.GetPortIDFromPortName(vs.NniPort); nniPortID != 0 {
-			inport = nniPortID
-		} else {
-			return nil, fmt.Errorf("error getting portID for NNI port %s of Service %s", vs.NniPort, vs.Name)
-		}
-	} else {
-		nniPort, err1 := GetApplication().GetNniPort(device.Name)
-		if err != nil {
-			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err1})
-			return nil, err1
-		}
-		inport, _ = GetApplication().GetDevicePortID(device.Name, nniPort)
+	nniPort, err := GetApplication().GetNniPort(device.Name)
+	if err != nil {
+		logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
+		return nil, err
 	}
+	inport, _ := GetApplication().GetDevicePortID(device.Name, nniPort)
 	outport, _ := GetApplication().GetPortID(vs.Port)
 	// PortName and PortID to be used for validation of port before flow pushing
 	flow.PortID = outport
@@ -772,27 +764,17 @@ func (vs *VoltService) BuildUsHsiaFlows(pbits of.PbitType) (*of.VoltFlow, error)
 	flow := &of.VoltFlow{}
 	flow.SubFlows = make(map[uint64]*of.VoltSubFlow)
 
+	// Get the out and in ports for the flows
 	device, err := GetApplication().GetDeviceFromPort(vs.Port)
 	if err != nil {
-		return nil, fmt.Errorf("error getting device for service %s and port %s  : %w", vs.Name, vs.Port, err)
+		return nil, errorCodes.ErrDeviceNotFound
 	}
-	// outport will be obtained from nniPort of service else we'll use the default nni port
-	var outport uint32
-	// Get the out and in ports for the flows
-	if vs.NniPort != "" {
-		if nniPortID := device.GetPortIDFromPortName(vs.NniPort); nniPortID != 0 {
-			outport = nniPortID
-		} else {
-			return nil, fmt.Errorf("error getting portID for NNI port %s of Service %s : %w", vs.NniPort, vs.Name, err)
-		}
-	} else {
-		nniPort, err := GetApplication().GetNniPort(device.Name)
-		if err != nil {
-			logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
-			return nil, err
-		}
-		outport, _ = GetApplication().GetDevicePortID(device.Name, nniPort)
+	nniPort, err := GetApplication().GetNniPort(device.Name)
+	if err != nil {
+		logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err})
+		return nil, err
 	}
+	outport, _ := GetApplication().GetDevicePortID(device.Name, nniPort)
 	inport, _ := GetApplication().GetPortID(vs.Port)
 	// PortName and PortID to be used for validation of port before flow pushing
 	flow.PortID = inport
@@ -1105,8 +1087,8 @@ func (va *VoltApplication) AddService(cntx context.Context, cfg VoltServiceCfg, 
 		})
 		logger.Debugw(ctx, "Sorted Pbits", log.Fields{"Pbits": vs.Pbits})
 	}
-	logger.Debugw(ctx, "VolthService...", log.Fields{"vs": vs})
 
+	logger.Debugw(ctx, "VolthService...", log.Fields{"vs": vs})
 	// The bandwidth and shaper profile combined into meter
 	if mmDs, err = va.GetMeter(cfg.DsMeterProfile); err == nil {
 		vs.DsMeterID = mmDs.ID
@@ -1132,8 +1114,10 @@ func (va *VoltApplication) AddService(cntx context.Context, cfg VoltServiceCfg, 
 	}
 	//}
 
-	AppMutex.ServiceDataMutex.Lock()
-	defer AppMutex.ServiceDataMutex.Unlock()
+	// The global ServiceDataMutex lock is redundant here and
+	// can be safely removed to avoid unnecessary contention and improve performance.
+	// AppMutex.ServiceDataMutex.Lock()
+	// defer AppMutex.ServiceDataMutex.Unlock()
 
 	// Add the service to the VNET
 	vnet := va.GetVnet(cfg.SVlan, cfg.CVlan, cfg.UniVlan)
@@ -1273,7 +1257,7 @@ func (va *VoltApplication) DelService(cntx context.Context, name string, forceDe
 	logger.Debugw(ctx, "About to mark meter for deletion\n", log.Fields{"serviceName": vs.Name})
 
 	if aggMeter, ok := va.MeterMgr.GetMeterByID(vs.AggDsMeterID); ok {
-		if nil == newSvc || (nil != newSvc && aggMeter.Name != newSvc.AggDsMeterProfile) {
+		if nil == newSvc || aggMeter.Name != newSvc.AggDsMeterProfile {
 			if aggMeter.AssociatedServices > 0 {
 				aggMeter.AssociatedServices--
 				logger.Debugw(ctx, "Agg Meter associated services updated\n", log.Fields{"MeterID": aggMeter})
@@ -1282,7 +1266,7 @@ func (va *VoltApplication) DelService(cntx context.Context, name string, forceDe
 		}
 	}
 	if dsMeter, ok := va.MeterMgr.GetMeterByID(vs.DsMeterID); ok {
-		if nil == newSvc || (nil != newSvc && dsMeter.Name != newSvc.DsMeterProfile) {
+		if nil == newSvc || dsMeter.Name != newSvc.DsMeterProfile {
 			if dsMeter.AssociatedServices > 0 {
 				dsMeter.AssociatedServices--
 				logger.Debugw(ctx, "DS Meter associated services updated\n", log.Fields{"MeterID": dsMeter})
@@ -1292,7 +1276,7 @@ func (va *VoltApplication) DelService(cntx context.Context, name string, forceDe
 	}
 	if vs.AggDsMeterID != vs.UsMeterID {
 		if usMeter, ok := va.MeterMgr.GetMeterByID(vs.UsMeterID); ok {
-			if nil == newSvc || (nil != newSvc && usMeter.Name != newSvc.UsMeterProfile) {
+			if nil == newSvc || usMeter.Name != newSvc.UsMeterProfile {
 				if usMeter.AssociatedServices > 0 {
 					usMeter.AssociatedServices--
 					logger.Debugw(ctx, "US Meter associated services updated\n", log.Fields{"MeterID": usMeter})
@@ -1315,7 +1299,8 @@ func (va *VoltApplication) DelService(cntx context.Context, name string, forceDe
 
 // AddFlows - Adds the flow to the service
 // Triggers flow addition after registering for flow indication event
-func (vs *VoltService) AddFlows(cntx context.Context, device *VoltDevice, flow *of.VoltFlow) error {
+// skipFlowPushToVoltha is used when VGC restarts, the flows are built and stored only in cache and not pushed to voltha.
+func (vs *VoltService) AddFlows(cntx context.Context, device *VoltDevice, flow *of.VoltFlow, skipFlowPushToVoltha bool) error {
 	// Using locks instead of concurrent map for PendingFlows to avoid
 	// race condition during flow response indication processing
 	vs.ServiceLock.Lock()
@@ -1333,7 +1318,7 @@ func (vs *VoltService) AddFlows(cntx context.Context, device *VoltDevice, flow *
 		device.RegisterFlowAddEvent(cookie, fe)
 		vs.PendingFlows[cookie] = true
 	}
-	return controller.GetController().AddFlows(cntx, vs.Port, device.Name, flow)
+	return cntlr.GetController().AddFlows(cntx, vs.Port, device.Name, flow, skipFlowPushToVoltha)
 }
 
 // FlowInstallSuccess - Called when corresponding service flow installation is success
@@ -1371,7 +1356,7 @@ func (vs *VoltService) FlowInstallSuccess(cntx context.Context, cookie string, b
 		if err != nil {
 			logger.Errorw(ctx, "Error Getting Device. Dropping HSIA Success indication to NB", log.Fields{"Reason": err.Error(), "Service": vs.Name, "Port": vs.Port})
 			return
-		} else if device.State != controller.DeviceStateUP {
+		} else if device.State != cntlr.DeviceStateUP {
 			logger.Warnw(ctx, "Device state Down. Dropping HSIA Success indication to NB", log.Fields{"Service": vs.Name, "Port": vs.Port})
 			return
 		}
@@ -1423,7 +1408,7 @@ func (vs *VoltService) DelFlows(cntx context.Context, device *VoltDevice, flow *
 			device.RegisterFlowDelEvent(cookie, fe)
 		}
 	}
-	return controller.GetController().DelFlows(cntx, vs.Port, device.Name, flow, delFlowsInDevice)
+	return cntlr.GetController().DelFlows(cntx, vs.Port, device.Name, flow, delFlowsInDevice)
 }
 
 // CheckAndDeleteService - remove service from DB is there are no pending flows to be removed
@@ -1464,7 +1449,7 @@ func (vs *VoltService) FlowRemoveSuccess(cntx context.Context, cookie string) {
 		if device == nil {
 			logger.Errorw(ctx, "Error Getting Device. Dropping DEL_HSIA Success indication to NB", log.Fields{"Service": vs.Name, "Port": vs.Port})
 			return
-		} else if device.State != controller.DeviceStateUP {
+		} else if device.State != cntlr.DeviceStateUP {
 			logger.Warnw(ctx, "Device state Down. Dropping DEL_HSIA Success indication to NB", log.Fields{"Service": vs.Name, "Port": vs.Port})
 			return
 		}
@@ -1518,10 +1503,10 @@ func (vs *VoltService) triggerServiceFailureInd(errorCode uint32, errReason stri
 	logger.Debugw(ctx, "Trigger Service Failure Ind", log.Fields{"Service": vs.Name, "Port": vs.Port})
 	device, err := GetApplication().GetDeviceFromPort(vs.Port)
 	if err != nil {
-		logger.Errorw(ctx, "Error Getting Device. Dropping DEL_HSIA Failure indication to NB", log.Fields{"Reason": err.Error(), "Service": vs.Name, "Port": vs.Port})
+		logger.Errorw(ctx, "Error Getting Device. Dropping DEL_HSIA Failure indication to NB", log.Fields{"Reason": err.Error(), "Service": vs.Name, "Port": vs.Port, "errorCode": errorCode, "errReason": errReason})
 		return
-	} else if device.State != controller.DeviceStateUP {
-		logger.Warnw(ctx, "Device state Down. Dropping DEL_HSIA Failure indication to NB", log.Fields{"Service": vs.Name, "Port": vs.Port})
+	} else if device.State != cntlr.DeviceStateUP {
+		logger.Warnw(ctx, "Device state Down. Dropping DEL_HSIA Failure indication to NB", log.Fields{"Service": vs.Name, "Port": vs.Port, "errorCode": errorCode, "errReason": errReason})
 		return
 	}
 }
@@ -2227,7 +2212,7 @@ func (va *VoltApplication) ActivateService(cntx context.Context, deviceID, portN
 						// VGC once service is activated remembers and pushes the flows again
 						// if there was a restart in VGC during the execution of the go routine.
 						// Making it as a go routine will not impact anything
-						go vpv.PortUpInd(cntx, device, portNo, vs.NniPort)
+						go vpv.PortUpInd(cntx, device, portNo, false)
 					} else {
 						logger.Warnw(ctx, "VPV does not exists!!!", log.Fields{"Device": deviceID, "port": portNo, "SvcName": vs.Name})
 					}

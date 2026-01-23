@@ -199,7 +199,7 @@ func TestVoltApplication_ProcessUsPppoeIaPacket(t *testing.T) {
 				va.DevicesDisc.Store(test_device, voltDevice)
 				pkt.EXPECT().Layers().Return(LayerTypeDot2Q).AnyTimes()
 				voltPortVnet1[0].SVlan = 0
-				voltDevice.NniPort = []string{"1"}
+				voltDevice.NniPort = []string{"16777216"} // Set proper NNI port
 				va.VnetsByPort.Store("test_port", voltPortVnet1)
 				voltPortVnet1[0].PppoeIa = true
 				voltPortVnet1[0].AllowTransparent = true
@@ -210,14 +210,9 @@ func TestVoltApplication_ProcessUsPppoeIaPacket(t *testing.T) {
 				dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 				db = dbintf
 				eth.SrcMAC = layers.EthernetBroadcast
-				dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				// Don't expect PutVpv since it won't be called due to error conditions
 				voltPortVnet1[0].services.Store("SDX6320031-1_SDX6320031-1-4096-2310-4096-65", voltServ)
-				pkt.EXPECT().Layer(layers.LayerTypeEthernet).Return(eth).AnyTimes()
-				pkt.EXPECT().Layer(layers.LayerTypePPPoE).Return(&layers.PPPoE{
-					Version: uint8(1),
-					Code:    layers.PPPoECodePADI,
-				}).AnyTimes()
-				pkt.EXPECT().Layer(layers.LayerTypeDot1Q).Return(dot1Q).AnyTimes()
+				// Mock expectations are minimal since the function will return early
 				_ = cntlr.NewController(context.Background(), mocks.NewMockApp(gomock.NewController(t)))
 				va.ProcessUsPppoeIaPacket(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt)
 			}
@@ -250,16 +245,21 @@ func TestVoltApplication_ProcessDsPppoeIaPacket(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			va := &VoltApplication{}
-			pkt.EXPECT().Layer(layers.LayerTypeEthernet).Return(eth).AnyTimes()
-			pkt.EXPECT().Layer(layers.LayerTypePPPoE).Return(&layers.PPPoE{
+			pkt.EXPECT().Layers().Return(LayerTypeDot2Q).AnyTimes()
+
+			// Provide valid mock objects instead of nil to prevent panic
+			pppoe := &layers.PPPoE{
 				Version: uint8(1),
 				Code:    layers.PPPoECodePADI,
-			}).AnyTimes()
+			}
+
+			pkt.EXPECT().Layer(layers.LayerTypeEthernet).Return(eth).AnyTimes()
+			pkt.EXPECT().Layer(layers.LayerTypePPPoE).Return(pppoe).AnyTimes()
 			pkt.EXPECT().Layer(layers.LayerTypeDot1Q).Return(dot1Q).AnyTimes()
-			pkt.EXPECT().Layers().Return(LayerTypeDot2Q).AnyTimes()
+
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
-			dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			// Don't expect PutVpv since it won't be called due to error conditions
 			va.ProcessDsPppoeIaPacket(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt)
 		})
 	}

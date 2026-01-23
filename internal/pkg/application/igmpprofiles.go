@@ -489,7 +489,12 @@ func (mvp *MvlanProfile) ApplyIgmpDSFlowForMvp(cntx context.Context, device stri
 	d := dIntf.(*VoltDevice)
 	mvlan := mvp.Mvlan
 
-	flowAlreadyApplied, ok := d.IgmpDsFlowAppliedForMvlan[uint16(mvlan)]
+	flowAlreadyApplied := false
+	if d.IgmpDsFlowAppliedForMvlan != nil {
+		if flowAlreadyAppliedVal, ok := d.IgmpDsFlowAppliedForMvlan.Get(uint16(mvlan)); ok {
+			flowAlreadyApplied = flowAlreadyAppliedVal.(bool)
+		}
+	}
 	if !ok || !flowAlreadyApplied {
 		flows, err := mvp.BuildIgmpDSFlows(device)
 		if err == nil {
@@ -497,12 +502,14 @@ func (mvp *MvlanProfile) ApplyIgmpDSFlowForMvp(cntx context.Context, device stri
 			if err1 != nil {
 				logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err1})
 			}
-			err = cntlr.GetController().AddFlows(cntx, nniPort, device, flows)
+			err = cntlr.GetController().AddFlows(cntx, nniPort, device, flows, false)
 			if err != nil {
 				logger.Warnw(ctx, "Configuring IGMP Flow for device failed ", log.Fields{"Device": device, "err": err})
 				return err
 			}
-			d.IgmpDsFlowAppliedForMvlan[uint16(mvlan)] = true
+			if d.IgmpDsFlowAppliedForMvlan != nil {
+				d.IgmpDsFlowAppliedForMvlan.Set(uint16(mvlan), true)
+			}
 			logger.Infow(ctx, "Updating voltDevice that IGMP DS flow as \"added\" for ",
 				log.Fields{"device": d.SerialNum, "mvlan": mvlan})
 		} else {
@@ -536,7 +543,9 @@ func (mvp *MvlanProfile) RemoveIgmpDSFlowForMvp(cntx context.Context, device str
 			logger.Warnw(ctx, "De-Configuring IGMP Flow for device failed ", log.Fields{"Device": device, "err": err})
 			return err
 		}
-		d.IgmpDsFlowAppliedForMvlan[uint16(mvlan)] = false
+		if d.IgmpDsFlowAppliedForMvlan != nil {
+			d.IgmpDsFlowAppliedForMvlan.Set(uint16(mvlan), false)
+		}
 		logger.Infow(ctx, "Updating voltDevice that IGMP DS flow as \"removed\" for ",
 			log.Fields{"device": d.SerialNum, "mvlan": mvlan})
 	} else {
@@ -607,6 +616,7 @@ func (mvp *MvlanProfile) updateStaticGroups(cntx context.Context, deviceID strin
 
 // updateDynamicGroups - Generates joins with updated sources for existing channels
 func (mvp *MvlanProfile) updateDynamicGroups(cntx context.Context, deviceID string, added []net.IP, removed []net.IP) {
+	_ = removed // TODO: implement logic for removed channels if needed
 	//mvlan := mvp.Mvlan
 	va := GetApplication()
 
@@ -1039,7 +1049,7 @@ func (mvp *MvlanProfile) UpdateActiveChannelSubscriberAlarm() {
 				vp.ChannelPerSubAlarmRaised = false
 			} else if mvp.MaxActiveChannels < vp.ActiveChannels && !vp.ChannelPerSubAlarmRaised {
 				/* When the max active channel count is reduced via update, we raise an alarm.
-				But the previous excess channels still exist until a leave or expiry */
+				   But the previous excess channels still exist until a leave or expiry */
 				serviceName := GetMcastServiceForSubAlarm(vp, mvp)
 				logger.Debugw(ctx, "Raising-SendActiveChannelPerSubscriberAlarm-due-to-update", log.Fields{"ActiveChannels": vp.ActiveChannels, "ServiceName": serviceName})
 				vp.ChannelPerSubAlarmRaised = true
