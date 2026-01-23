@@ -26,7 +26,7 @@ type App interface {
 	PortDelInd(context.Context, string, string)
 	PortUpdateInd(string, string, uint32)
 	PacketInInd(context.Context, string, string, []byte)
-	PortUpInd(context.Context, string, string)
+	PortUpInd(context.Context, string, string, bool)
 	PortDownInd(context.Context, string, string)
 	AddDevice(context.Context, string, string, string)
 	DeviceUpInd(string)
@@ -35,6 +35,7 @@ type App interface {
 	SetRebootFlag(bool)
 	ProcessFlowModResultIndication(context.Context, FlowStatus)
 	CheckAndDeactivateService(context.Context, *of.VoltSubFlow, string, string)
+	GetAllFlowsForSvc(context.Context, *of.VoltSubFlow, string, string) []uint64
 	DeviceRebootInd(context.Context, string, string, string)
 	DeviceDisableInd(context.Context, string)
 	UpdateMvlanProfilesForDevice(context.Context, string)

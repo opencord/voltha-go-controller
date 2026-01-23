@@ -129,14 +129,12 @@ func TestSubscriberHandle_DelSubscriberInfo(t *testing.T) {
 			sh := &SubscriberHandle{}
 			switch tt.name {
 			case "SubscriberHandle_DelSubscriberInfo":
-				// The function will naturally fail when trying to delete a non-existent subscriber
-				// No mock setup needed
+				// Tests use the application singleton directly
 				sh.DelSubscriberInfo(tt.args.cntx, tt.args.w, tt.args.r)
 			case "DelSubscriberInfo_Unmarshal_Error":
 				sh.DelSubscriberInfo(tt.args.cntx, tt.args.w, tt.args.r)
 			case "SubscriberHandle_Delete_Failed":
-				// The function will naturally fail when trying to delete a non-existent subscriber
-				// No mock setup needed
+				// Tests use the application singleton directly
 				sh.DelSubscriberInfo(tt.args.cntx, tt.args.w, tt.args.r)
 			}
 		})

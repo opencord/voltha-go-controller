@@ -6,9 +6,8 @@ package mocks
 
 import (
 	context "context"
-	reflect "reflect"
-
 	voltha "github.com/opencord/voltha-protos/v5/go/voltha"
+	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
 	empty "github.com/golang/protobuf/ptypes/empty"
@@ -1103,86 +1102,6 @@ func (mr *MockVolthaServiceClientMockRecorder) PutVoipUserProfile(ctx, in interf
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutVoipUserProfile", reflect.TypeOf((*MockVolthaServiceClient)(nil).PutVoipUserProfile), varargs...)
-}
-
-// DisableOnuDevice mocks base method.
-func (m *MockVolthaServiceClient) DisableOnuDevice(ctx context.Context, in *common.ID, opts ...grpc.CallOption) (*empty.Empty, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, in}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "DisableOnuDevice", varargs...)
-	ret0, _ := ret[0].(*empty.Empty)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DisableOnuDevice indicates an expected call of DisableOnuDevice.
-func (mr *MockVolthaServiceClientMockRecorder) DisableOnuDevice(ctx, in interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableOnuDevice", reflect.TypeOf((*MockVolthaServiceClient)(nil).DisableOnuDevice), varargs...)
-}
-
-// EnableOnuDevice mocks base method.
-func (m *MockVolthaServiceClient) EnableOnuDevice(ctx context.Context, in *common.ID, opts ...grpc.CallOption) (*empty.Empty, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, in}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "EnableOnuDevice", varargs...)
-	ret0, _ := ret[0].(*empty.Empty)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// EnableOnuDevice indicates an expected call of EnableOnuDevice.
-func (mr *MockVolthaServiceClientMockRecorder) EnableOnuDevice(ctx, in interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableOnuDevice", reflect.TypeOf((*MockVolthaServiceClient)(nil).EnableOnuDevice), varargs...)
-}
-
-// DisableOnuSerialNumber mocks base method.
-func (m *MockVolthaServiceClient) DisableOnuSerialNumber(ctx context.Context, in *voltha.OnuSerialNumberOnOLTPon, opts ...grpc.CallOption) (*empty.Empty, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, in}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "DisableOnuSerialNumber", varargs...)
-	ret0, _ := ret[0].(*empty.Empty)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DisableOnuSerialNumber indicates an expected call of DisableOnuSerialNumber.
-func (mr *MockVolthaServiceClientMockRecorder) DisableOnuSerialNumber(ctx, in interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableOnuSerialNumber", reflect.TypeOf((*MockVolthaServiceClient)(nil).DisableOnuSerialNumber), varargs...)
-}
-
-// EnableOnuSerialNumber mocks base method.
-func (m *MockVolthaServiceClient) EnableOnuSerialNumber(ctx context.Context, in *voltha.OnuSerialNumberOnOLTPon, opts ...grpc.CallOption) (*empty.Empty, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, in}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "EnableOnuSerialNumber", varargs...)
-	ret0, _ := ret[0].(*empty.Empty)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// EnableOnuSerialNumber indicates an expected call of EnableOnuSerialNumber.
-func (mr *MockVolthaServiceClientMockRecorder) EnableOnuSerialNumber(ctx, in interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableOnuSerialNumber", reflect.TypeOf((*MockVolthaServiceClient)(nil).EnableOnuSerialNumber), varargs...)
 }
 
 // RebootDevice mocks base method.
@@ -2684,66 +2603,6 @@ func (m *MockVolthaServiceServer) PutVoipUserProfile(arg0 context.Context, arg1 
 func (mr *MockVolthaServiceServerMockRecorder) PutVoipUserProfile(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutVoipUserProfile", reflect.TypeOf((*MockVolthaServiceServer)(nil).PutVoipUserProfile), arg0, arg1)
-}
-
-// DisableOnuDevice mocks base method.
-func (m *MockVolthaServiceServer) DisableOnuDevice(arg0 context.Context, arg1 *common.ID) (*empty.Empty, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DisableOnuDevice", arg0, arg1)
-	ret0, _ := ret[0].(*empty.Empty)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DisableOnuDevice indicates an expected call of DisableOnuDevice.
-func (mr *MockVolthaServiceServerMockRecorder) DisableOnuDevice(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableOnuDevice", reflect.TypeOf((*MockVolthaServiceServer)(nil).DisableOnuDevice), arg0, arg1)
-}
-
-// EnableOnuDevice mocks base method.
-func (m *MockVolthaServiceServer) EnableOnuDevice(arg0 context.Context, arg1 *common.ID) (*empty.Empty, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EnableOnuDevice", arg0, arg1)
-	ret0, _ := ret[0].(*empty.Empty)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// EnableOnuDevice indicates an expected call of EnableOnuDevice.
-func (mr *MockVolthaServiceServerMockRecorder) EnableOnuDevice(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableOnuDevice", reflect.TypeOf((*MockVolthaServiceServer)(nil).EnableOnuDevice), arg0, arg1)
-}
-
-// DisableOnuSerialNumber mocks base method.
-func (m *MockVolthaServiceServer) DisableOnuSerialNumber(arg0 context.Context, arg1 *voltha.OnuSerialNumberOnOLTPon) (*empty.Empty, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DisableOnuSerialNumber", arg0, arg1)
-	ret0, _ := ret[0].(*empty.Empty)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DisableOnuSerialNumber indicates an expected call of DisableOnuSerialNumber.
-func (mr *MockVolthaServiceServerMockRecorder) DisableOnuSerialNumber(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableOnuSerialNumber", reflect.TypeOf((*MockVolthaServiceServer)(nil).DisableOnuSerialNumber), arg0, arg1)
-}
-
-// EnableOnuSerialNumber mocks base method.
-func (m *MockVolthaServiceServer) EnableOnuSerialNumber(arg0 context.Context, arg1 *voltha.OnuSerialNumberOnOLTPon) (*empty.Empty, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EnableOnuSerialNumber", arg0, arg1)
-	ret0, _ := ret[0].(*empty.Empty)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// EnableOnuSerialNumber indicates an expected call of EnableOnuSerialNumber.
-func (mr *MockVolthaServiceServerMockRecorder) EnableOnuSerialNumber(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableOnuSerialNumber", reflect.TypeOf((*MockVolthaServiceServer)(nil).EnableOnuSerialNumber), arg0, arg1)
 }
 
 // RebootDevice mocks base method.

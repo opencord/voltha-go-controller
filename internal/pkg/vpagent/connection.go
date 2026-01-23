@@ -25,8 +25,8 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"github.com/opencord/voltha-protos/v5/go/voltha"
 
+	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

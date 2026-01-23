@@ -172,15 +172,15 @@ func (mr *MockAppMockRecorder) PortDownInd(arg0, arg1, arg2 interface{}) *gomock
 }
 
 // PortUpInd mocks base method.
-func (m *MockApp) PortUpInd(arg0 context.Context, arg1, arg2 string) {
+func (m *MockApp) PortUpInd(arg0 context.Context, arg1, arg2 string, arg3 bool) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PortUpInd", arg0, arg1, arg2)
+	m.ctrl.Call(m, "PortUpInd", arg0, arg1, arg2, arg3)
 }
 
 // PortUpInd indicates an expected call of PortUpInd.
-func (mr *MockAppMockRecorder) PortUpInd(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockAppMockRecorder) PortUpInd(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PortUpInd", reflect.TypeOf((*MockApp)(nil).PortUpInd), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PortUpInd", reflect.TypeOf((*MockApp)(nil).PortUpInd), arg0, arg1, arg2, arg3)
 }
 
 // PortUpdateInd mocks base method.
@@ -207,29 +207,30 @@ func (mr *MockAppMockRecorder) ProcessFlowModResultIndication(arg0, arg1 interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessFlowModResultIndication", reflect.TypeOf((*MockApp)(nil).ProcessFlowModResultIndication), arg0, arg1)
 }
 
-// IsFlowDelThresholdReached mocks base method.
-func (m *MockApp) IsFlowDelThresholdReached(arg0 context.Context, arg1 string, arg2 string) bool {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "IsFlowDelThresholdReached", arg0, arg1, arg2)
-	return false
-}
-
 // CheckAndDeactivateService mocks base method.
 func (m *MockApp) CheckAndDeactivateService(arg0 context.Context, arg1 *of.VoltSubFlow, arg2 string, arg3 string) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "CheckAndDeactivateService", arg0, arg1, arg2, arg3)
 }
 
-// IsFlowDelThresholdReached indicates an expected call of IsFlowDelThresholdReached.
-func (mr *MockAppMockRecorder) IsFlowDelThresholdReached(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsFlowDelThresholdReached", reflect.TypeOf((*MockApp)(nil).IsFlowDelThresholdReached), arg0, arg1, arg2)
-}
-
 // CheckAndDeactivateService indicates an expected call of CheckAndDeactivateService.
 func (mr *MockAppMockRecorder) CheckAndDeactivateService(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckAndDeactivateService", reflect.TypeOf((*MockApp)(nil).CheckAndDeactivateService), arg0, arg1, arg2)
+}
+
+// GetAllFlowsForSvc mocks base method.
+func (m *MockApp) GetAllFlowsForSvc(arg0 context.Context, arg1 *of.VoltSubFlow, arg2 string, arg3 string) []uint64 {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllFlowsForSvc", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]uint64)
+	return ret0
+}
+
+// GetAllFlowsForSvc indicates an expected call of GetAllFlowsForSvc.
+func (mr *MockAppMockRecorder) GetAllFlowsForSvc(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllFlowsForSvc", reflect.TypeOf((*MockApp)(nil).GetAllFlowsForSvc), arg0, arg1, arg2)
 }
 
 // SetRebootFlag mocks base method.

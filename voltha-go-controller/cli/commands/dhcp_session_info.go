@@ -57,7 +57,7 @@ func (ic *DhcpSessionInfoCommand) Execute(args []string) error {
 		}
 		data := []*nbi.DhcpSessionInfo{}
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
+		if marshErr != nil {
 			return fmt.Errorf("Error while unmarshalling dhcp session info details: %s", marshErr)
 		}
 
@@ -79,7 +79,7 @@ func (ic *DhcpSessionInfoCommand) Execute(args []string) error {
 		}
 		data := []*nbi.DhcpSessionInfo{}
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
+		if marshErr != nil {
 			return fmt.Errorf("Error while unmarshalling dhcp session info details: %s", marshErr)
 		}
 
@@ -102,7 +102,7 @@ func (ic *DhcpSessionInfoCommand) Execute(args []string) error {
 		}
 		data := []*nbi.DhcpSessionInfo{}
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
+		if marshErr != nil {
 			return fmt.Errorf("Error while unmarshalling dhcp session info details: %s", marshErr)
 		}
 
@@ -126,7 +126,7 @@ func (ic *DhcpSessionInfoCommand) Execute(args []string) error {
 		}
 		data := []*nbi.DhcpSessionInfo{}
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
+		if marshErr != nil {
 			return fmt.Errorf("Error while unmarshalling dhcp session info details: %s", marshErr)
 		}
 

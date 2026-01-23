@@ -120,8 +120,12 @@ func TestNewDevice(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().GetFlowHash(gomock.Any(), gomock.Any()).Return("1", nil).Times(1)
+			// Allow PutGroup to be called by background tasks without strict expectations
+			dbintf.EXPECT().PutGroup(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 			got := NewDevice(tt.args.cntx, tt.args.id, tt.args.slno, tt.args.vclientHldr, tt.args.southBoundID, tt.args.mfr, tt.args.hwDesc, tt.args.swDesc)
 			assert.NotNil(t, got)
+			// Stop all background tasks before test completes to prevent race condition
+			got.StopAll()
 		})
 	}
 }
@@ -168,7 +172,6 @@ func TestDevice_triggerFlowResultNotification(t *testing.T) {
 			_ = NewController(context.Background(), appMock)
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
-			dbintf.EXPECT().PutFlow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
 			appMock.EXPECT().ProcessFlowModResultIndication(gomock.Any(), gomock.Any()).Times(1)
 			d.triggerFlowResultNotification(tt.args.cntx, tt.args.cookie, tt.args.flow, tt.args.oper, tt.args.bwDetails, tt.args.err)
 		})

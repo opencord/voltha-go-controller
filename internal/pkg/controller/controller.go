@@ -70,13 +70,13 @@ type VoltController struct {
 	BlockedDeviceList       *util.ConcurrentMap
 	deviceTaskQueue         *util.ConcurrentMap
 	vagent                  map[string]*vpagent.VPAgent
-	Devices                 sync.Map
 	rebootInProgressDevices map[string]string
-	deviceLock              sync.RWMutex
-	rebootLock              sync.Mutex
+	Devices                 sync.Map
 	deviceTableSyncDuration time.Duration // Time interval between each cycle of audit task
 	maxFlowRetryDuration    time.Duration // Maximum duration for which flows will be retried upon failures
-	maxFlowRetryAttempts    int64         // maxFlowRetryAttempt = maxFlowRetryDuration / deviceTableSyncDuration
+	deviceLock              sync.RWMutex
+	rebootLock              sync.Mutex
+	maxFlowRetryAttempts    int64 // maxFlowRetryAttempt = maxFlowRetryDuration / deviceTableSyncDuration
 	RebootFlow              bool
 }
 
@@ -131,8 +131,6 @@ func (v *VoltController) AddDevice(cntx context.Context, config *intf.VPClientCf
 
 	d.RestoreMetersFromDb(cntx)
 	d.RestoreGroupsFromDb(cntx)
-	d.RestoreFlowsFromDb(cntx)
-	d.RestorePortsFromDb(cntx)
 	d.ConnectInd(context.TODO(), intf.DeviceDisc)
 	d.packetOutChannel = config.PacketOutChannel
 
@@ -150,10 +148,10 @@ func (v *VoltController) DelDevice(cntx context.Context, id string) {
 		device, ok = d.(*Device)
 		if ok {
 			device.Delete()
+			device.cancel() // To stop the device tables sync routine
 		}
 	}
 	v.app.DelDevice(cntx, id)
-	device.cancel() // To stop the device tables sync routine
 	logger.Debugw(ctx, "Deleted device", log.Fields{"Device": id})
 }
 
@@ -280,6 +278,10 @@ func (v *VoltController) CheckAndDeactivateService(ctx context.Context, flow *of
 	v.app.CheckAndDeactivateService(ctx, flow, devSerialNum, devID)
 }
 
+func (v *VoltController) GetAllFlowsForSvc(ctx context.Context, flow *of.VoltSubFlow, devID string, devSerialNum string) []uint64 {
+	return v.app.GetAllFlowsForSvc(ctx, flow, devID, devSerialNum)
+}
+
 // AddVPAgent to add the vpagent
 func (v *VoltController) AddVPAgent(vep string, vpa *vpagent.VPAgent) {
 	v.vagent[vep] = vpa
@@ -306,7 +308,8 @@ func (v *VoltController) PacketOutReq(device string, inport string, outport stri
 }
 
 // AddFlows to add flows
-func (v *VoltController) AddFlows(cntx context.Context, port string, device string, flow *of.VoltFlow) error {
+// skipFlowPushToVoltha is used when VGC restarts, the flows are built and stored only in cache and not pushed to voltha.
+func (v *VoltController) AddFlows(cntx context.Context, port string, device string, flow *of.VoltFlow, skipFlowPushToVoltha bool) error {
 	d, err := v.GetDevice(device)
 	if err != nil {
 		logger.Errorw(ctx, "Device Not Found", log.Fields{"Device": device})
@@ -347,10 +350,34 @@ func (v *VoltController) AddFlows(cntx context.Context, port string, device stri
 			}
 		}
 	} else {
-		flow.Command = of.CommandAdd
-		d.UpdateFlows(flow, devPort)
-		for cookie := range flow.SubFlows {
-			logger.Debugw(ctx, "Flow Add added to queue", log.Fields{"Cookie": cookie, "Device": device, "Port": port})
+		flowsToVoltha := &of.VoltFlow{}
+		flowsToVoltha.SubFlows = make(map[uint64]*of.VoltSubFlow)
+		// During VGC restart, build and add flows only to cache.
+		// No need to push flows to voltha now as it will be audited later
+		for _, subFlow := range flow.SubFlows {
+			logger.Debugw(ctx, "Adding flows to device cache", log.Fields{"Cookie": subFlow.Cookie})
+			if !skipFlowPushToVoltha {
+				subFlow.State = of.FlowAddPending
+			}
+			if err := d.AddFlow(cntx, subFlow); err != nil {
+				logger.Warnw(ctx, "Add Flow Error", log.Fields{"Cookie": subFlow.Cookie, "Reason": err.Error()})
+				if err.Error() == ErrDuplicateFlow {
+					dbFlow, _ := d.GetFlow(subFlow.Cookie)
+					if dbFlow.State == of.FlowAddSuccess {
+						continue
+					}
+				}
+			} else {
+				flowsToVoltha.SubFlows[subFlow.Cookie] = subFlow
+			}
+		}
+
+		if !skipFlowPushToVoltha {
+			flowsToVoltha.Command = of.CommandAdd
+			d.UpdateFlows(flowsToVoltha, devPort)
+			for cookie := range flowsToVoltha.SubFlows {
+				logger.Debugw(ctx, "Flow Add added to queue", log.Fields{"Cookie": cookie, "Device": device, "Port": port})
+			}
 		}
 	}
 	return nil
@@ -471,8 +498,8 @@ func (v *VoltController) PortUpdateInd(device string, name string, id uint32) {
 }
 
 // PortUpInd for port up indication
-func (v *VoltController) PortUpInd(cntx context.Context, device string, port string) {
-	v.app.PortUpInd(cntx, device, port)
+func (v *VoltController) PortUpInd(cntx context.Context, device string, port string, flag bool) {
+	v.app.PortUpInd(cntx, device, port, flag)
 }
 
 // PortDownInd for port down indication
