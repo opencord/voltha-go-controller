@@ -52,7 +52,7 @@ func (ic *DeviceInfoCommand) Execute(args []string) error {
 		}
 		data := map[string]map[string]*nbi.DeviceInfo{}
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
+		if marshErr != nil {
 			return fmt.Errorf("Error while unmarshalling device info details: %s", marshErr)
 		}
 
@@ -79,7 +79,7 @@ func (ic *DeviceInfoCommand) Execute(args []string) error {
 		}
 		data := map[string]map[string]*nbi.DeviceInfo{}
 		marshErr := json.Unmarshal([]byte(body), &data)
-		if err != nil {
+		if marshErr != nil {
 			return fmt.Errorf("Error while unmarshalling device info details: %s", marshErr)
 		}
 

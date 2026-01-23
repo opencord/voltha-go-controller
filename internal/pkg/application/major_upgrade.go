@@ -335,7 +335,7 @@ func MigrateServices(cntx context.Context, data []byte) string {
 		return ""
 	}
 
-	if err2 := json.Unmarshal(updatedData1, &vs); err != nil {
+	if err2 := json.Unmarshal(updatedData1, &vs); err2 != nil {
 		logger.Warnw(ctx, "Unmarshal-failed", log.Fields{"err": err2})
 		return ""
 	}
@@ -444,7 +444,7 @@ func MigrateVpvs(cntx context.Context, data []byte) string {
 		return ""
 	}
 
-	if err2 := json.Unmarshal(updatedData1, &vpv); err != nil {
+	if err2 := json.Unmarshal(updatedData1, &vpv); err2 != nil {
 		logger.Warnw(ctx, "Unmarshal-failed", log.Fields{"err": err2})
 	}
 

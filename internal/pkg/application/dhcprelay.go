@@ -697,6 +697,9 @@ func (va *VoltApplication) ProcessDsDhcpv4Packet(cntx context.Context, device st
 // raiseDHCPv4Indication process DHCPv4 packet and raise indication
 func raiseDHCPv4Indication(msgType layers.DHCPMsgType, vpv *VoltPortVnet, smac net.HardwareAddr,
 	ip net.IP, pktPbit uint8, device string, leaseTime int64) {
+	_ = ip        // TODO: implement logic for removed channels if needed
+	_ = device    // TODO: implement logic for removed channels if needed
+	_ = leaseTime // TODO: implement logic for removed channels if needed
 	logger.Debugw(ctx, "Processing Dhcpv4 packet", log.Fields{"ethsrcMac": smac.String(),
 		"MacLearningInVPV": vpv.MacLearning, "MacConfigured": vpv.MacAddr, "dhcpType": msgType,
 		"vlanPriority": pktPbit, "VPVLearntMac": vpv.LearntMacAddr})
@@ -713,20 +716,27 @@ func raiseDHCPv4Indication(msgType layers.DHCPMsgType, vpv *VoltPortVnet, smac n
 	}
 
 	switch msgType {
-	case layers.DHCPMsgTypeDiscover:
-		vpv.SetDhcpState(DhcpRelayStateDiscover)
-	case layers.DHCPMsgTypeRequest:
-		vpv.SetDhcpState(DhcpRelayStateRequest)
+	case layers.DHCPMsgTypeDiscover, layers.DHCPMsgTypeRequest:
+		switch msgType {
+		case layers.DHCPMsgTypeDiscover:
+			vpv.SetDhcpState(DhcpRelayStateDiscover)
+		case layers.DHCPMsgTypeRequest:
+			vpv.SetDhcpState(DhcpRelayStateRequest)
+		}
+	// Reset learnt mac address in case of DHCPv4 release
 	case layers.DHCPMsgTypeRelease:
 		vpv.LearntMacAddr, _ = net.ParseMAC("00:00:00:00:00:00")
 		vpv.services.Range(matchServiceAndRaiseInd)
 		vpv.SetDhcpState(DhcpRelayStateRelease)
-	case layers.DHCPMsgTypeAck:
+
+	case layers.DHCPMsgTypeAck, layers.DHCPMsgTypeNak:
 		vpv.services.Range(matchServiceAndRaiseInd)
-		vpv.SetDhcpState(DhcpRelayStateAck)
-	case layers.DHCPMsgTypeNak:
-		vpv.services.Range(matchServiceAndRaiseInd)
-		vpv.SetDhcpState(DhcpRelayStateNAK)
+		switch msgType {
+		case layers.DHCPMsgTypeAck:
+			vpv.SetDhcpState(DhcpRelayStateAck)
+		case layers.DHCPMsgTypeNak:
+			vpv.SetDhcpState(DhcpRelayStateNAK)
+		}
 	case layers.DHCPMsgTypeOffer:
 		vpv.SetDhcpState(DhcpRelayStateOffer)
 	}
@@ -735,6 +745,9 @@ func raiseDHCPv4Indication(msgType layers.DHCPMsgType, vpv *VoltPortVnet, smac n
 // raiseDHCPv6Indication process DHCPv6 packet and raise indication
 func raiseDHCPv6Indication(msgType layers.DHCPv6MsgType, vpv *VoltPortVnet,
 	smac net.HardwareAddr, ip net.IP, pktPbit uint8, device string, leaseTime uint32) {
+	_ = ip        // TODO: implement logic for removed channels if needed
+	_ = device    // TODO: implement logic for removed channels if needed
+	_ = leaseTime // TODO: implement logic for removed channels if needed
 	logger.Debugw(ctx, "Processing DHCPv6 packet", log.Fields{"dhcpType": msgType,
 		"vlanPriority": pktPbit, "dhcpClientMac": smac.String(),
 		"MacLearningInVPV": vpv.MacLearning, "MacConfigured": vpv.MacAddr,

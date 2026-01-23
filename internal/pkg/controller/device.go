@@ -24,9 +24,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"voltha-go-controller/database"
 	infraerror "voltha-go-controller/internal/pkg/errorcodes"
 
-	"voltha-go-controller/database"
 	"voltha-go-controller/internal/pkg/holder"
 	"voltha-go-controller/internal/pkg/intf"
 	"voltha-go-controller/internal/pkg/of"
@@ -242,7 +242,6 @@ func (d *Device) AddFlow(cntx context.Context, flow *of.VoltSubFlow) error {
 		}
 	}
 	d.flows[flow.Cookie] = flow
-	d.AddFlowToDb(cntx, flow)
 	return nil
 }
 
@@ -504,7 +503,6 @@ func (d *Device) AddPort(cntx context.Context, mp *ofp.OfpPort) error {
 	p := NewDevicePort(mp)
 	d.PortsByID[id] = p
 	d.PortsByName[name] = p
-	d.WritePortToDb(cntx, p)
 	d.portLock.Unlock()
 	GetController().PortAddInd(cntx, d.ID, p.ID, p.Name)
 	logger.Infow(ctx, "Added Port", log.Fields{"Device": d.ID, "Port": id})
@@ -563,7 +561,6 @@ func (d *Device) UpdatePortByName(cntx context.Context, name string, port uint32
 	delete(d.PortsByID, p.ID)
 	p.ID = port
 	d.PortsByID[port] = p
-	d.WritePortToDb(cntx, p)
 	GetController().PortUpdateInd(d.ID, p.Name, p.ID)
 	logger.Infow(ctx, "Updated Port", log.Fields{"Device": d.ID, "Port": p.ID, "PortName": name})
 }
@@ -698,6 +695,11 @@ func (d *Device) ConnectInd(ctx context.Context, discType intf.DiscoveryType) {
 
 	logger.Debugw(ctx, "Device State change Ind: UP, trigger Audit Tasks", log.Fields{"Device": d.ID})
 	t := NewAuditDevice(d, AuditEventDeviceDisc)
+	// During VGC restart or when a device is added. skip pushing flows to voltha during audit device task
+	// When device is added, if required the flows will get pushed during the next audit table task called soon after this audit device task
+	if discType == intf.DeviceDisc {
+		t.skipFlowOnRestart = true
+	}
 	d.Tasks.AddTask(t)
 
 	t1 := NewAuditTablesTask(d)
@@ -788,7 +790,6 @@ func (d *Device) ReSetAllPortStates(cntx context.Context) {
 			logger.Debugw(ctx, "Resetting Port State to DOWN", log.Fields{"Device": d.ID, "Port": port})
 			GetController().PortDownInd(cntx, d.ID, port.Name)
 			port.State = PortStateDown
-			d.WritePortToDb(cntx, port)
 		}
 	}
 }
@@ -818,7 +819,7 @@ func (d *Device) ProcessPortUpdate(cntx context.Context, portName string, port u
 			return
 			//Do not process port update received from change event, as we will only handle port updates during polling
 		}
-		d.ProcessPortState(cntx, port, state, portName)
+		d.ProcessPortState(cntx, port, state, portName, false)
 	}
 }
 
@@ -838,7 +839,8 @@ func (d *Device) ProcessPortUpdate(cntx context.Context, portName string, port u
 
 // ProcessPortState deals with the change in port status and taking action
 // based on the new state and the old state
-func (d *Device) ProcessPortState(cntx context.Context, port uint32, state uint32, portName string) {
+// skipFlowPushToVoltha is used when VGC restarts, the flows are built and stored only in cache and not pushed to voltha.
+func (d *Device) ProcessPortState(cntx context.Context, port uint32, state uint32, portName string, skipFlowPushToVoltha bool) {
 	if d.State != DeviceStateUP && !util.IsNniPort(port) {
 		logger.Warnw(ctx, "Ignore Port State Processing - Device not UP", log.Fields{"Device": d.ID, "Port": port, "DeviceState": d.State})
 		return
@@ -857,15 +859,13 @@ func (d *Device) ProcessPortState(cntx context.Context, port uint32, state uint3
 		if state == uint32(ofp.OfpPortState_OFPPS_LIVE) && p.State == PortStateDown {
 			// Transition from DOWN to UP
 			logger.Debugw(ctx, "Port State Change to UP", log.Fields{"Device": d.ID, "Port": port})
-			GetController().PortUpInd(cntx, d.ID, p.Name)
+			GetController().PortUpInd(cntx, d.ID, p.Name, skipFlowPushToVoltha)
 			p.State = PortStateUp
-			d.WritePortToDb(cntx, p)
 		} else if (state != uint32(ofp.OfpPortState_OFPPS_LIVE)) && (p.State != PortStateDown) {
 			// Transition from UP to Down
 			logger.Debugw(ctx, "Port State Change to Down", log.Fields{"Device": d.ID, "Port": port})
 			GetController().PortDownInd(cntx, d.ID, p.Name)
 			p.State = PortStateDown
-			d.WritePortToDb(cntx, p)
 		} else {
 			logger.Warnw(ctx, "Dropping Port Ind: No Change in Port State", log.Fields{"PortName": p.Name, "ID": port, "Device": d.ID, "PortState": p.State, "IncomingState": state})
 		}
@@ -884,7 +884,7 @@ func (d *Device) ProcessPortStateAfterReboot(cntx context.Context, port uint32, 
 		switch p.State {
 		case PortStateUp:
 			logger.Debugw(ctx, "Port State: UP", log.Fields{"Device": d.ID, "Port": port})
-			GetController().PortUpInd(cntx, d.ID, p.Name)
+			GetController().PortUpInd(cntx, d.ID, p.Name, false)
 		case PortStateDown:
 			logger.Debugw(ctx, "Port State: Down", log.Fields{"Device": d.ID, "Port": port})
 			GetController().PortDownInd(cntx, d.ID, p.Name)
@@ -1090,10 +1090,47 @@ func (d *Device) IsFlowAddThresholdReached(flowCount uint32, cookie uint64) bool
 	return flowCount >= uint32(GetController().GetMaxFlowRetryAttempt())
 }
 
+// IsUSTable0Flow - check if the flow is for US Table 0
+func (d *Device) IsUSTable0Flow(cntx context.Context, flow *of.VoltSubFlow) bool {
+	if flow.TableID == 0 && !util.IsNniPort(flow.Match.InPort) {
+		return true
+	}
+	return false
+}
+
+// IsDSTable0Flow - check if the flow is for DS Table 0
+func (d *Device) IsDSTable0Flow(cntx context.Context, flow *of.VoltSubFlow) bool {
+	if flow.TableID == 0 && util.IsNniPort(flow.Match.InPort) {
+		return true
+	}
+	return false
+}
+
+// GetDeviceFlow - get the DS or US Table 1 flow based on isDsFlow flag
+func (d *Device) GetDeviceFlow(cntx context.Context, flow *of.VoltSubFlow, deviceSerialNum string, devID string, isDsFlow bool) *of.VoltSubFlow {
+	cookies := GetController().GetAllFlowsForSvc(cntx, flow, devID, deviceSerialNum)
+	for _, cookie := range cookies {
+		if dbFlow, ok := d.flows[cookie]; ok {
+			logger.Debugw(ctx, "Found flow in device", log.Fields{"Cookie": cookie, "Flow": dbFlow})
+			if isDsFlow {
+				// return DS Table1 flow
+				if dbFlow.TableID == 1 && util.IsNniPort(dbFlow.Match.InPort) {
+					return dbFlow
+				}
+			} else {
+				// return US Table1 flow
+				if dbFlow.TableID == 1 && !util.IsNniPort(dbFlow.Match.InPort) {
+					return dbFlow
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func (d *Device) UpdateFlowCount(cntx context.Context, cookie uint64) {
 	if dbFlow, ok := d.flows[cookie]; ok {
 		dbFlow.FlowCount++
-		d.AddFlowToDb(cntx, dbFlow)
 	}
 }
 
@@ -1116,10 +1153,6 @@ func (d *Device) triggerFlowResultNotification(cntx context.Context, cookie uint
 		if dbFlow, ok := d.flows[cookie]; ok {
 			dbFlow.State = uint8(state)
 			dbFlow.ErrorReason = reason
-			if state == of.FlowAddSuccess {
-				dbFlow.FlowCount = 0
-			}
-			d.AddFlowToDb(cntx, dbFlow)
 		}
 	}
 

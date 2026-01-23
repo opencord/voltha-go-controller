@@ -24,7 +24,6 @@ import (
 	"sync"
 	"testing"
 	"voltha-go-controller/internal/pkg/controller"
-	cntlr "voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/pkg/util"
 	"voltha-go-controller/internal/test/mocks"
@@ -76,7 +75,7 @@ var voltPortVnet1 = []*VoltPortVnet{
 }
 
 var voltDevice1 = &VoltDevice{
-	State: cntlr.DeviceStateDOWN,
+	State: controller.DeviceStateDOWN,
 }
 
 var voltDevice2 = &VoltDevice{
@@ -321,7 +320,7 @@ func TestVoltService_SvcUpInd(t *testing.T) {
 			vs.Port = test_device
 			vs.Device = "device"
 			ga := GetApplication()
-			_ = cntlr.NewController(context.Background(), mocks.NewMockApp(gomock.NewController(t)))
+			_ = controller.NewController(context.Background(), mocks.NewMockApp(gomock.NewController(t)))
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
@@ -363,7 +362,7 @@ func TestVoltService_SvcDownInd(t *testing.T) {
 			vs.Port = test_device
 			vs.Device = "device"
 			ga := GetApplication()
-			_ = cntlr.NewController(context.Background(), mocks.NewMockApp(gomock.NewController(t)))
+			_ = controller.NewController(context.Background(), mocks.NewMockApp(gomock.NewController(t)))
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutService(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
@@ -686,7 +685,7 @@ func TestVoltService_AddUsHsiaFlows(t *testing.T) {
 						DeleteInProgress: true,
 					},
 				}
-				err := vs.AddUsHsiaFlows(tt.args.cntx)
+				err := vs.AddUsHsiaFlows(tt.args.cntx, false)
 				assert.Nil(t, err)
 			case "GetDeviceFromPort_error":
 				vs := &VoltService{
@@ -694,7 +693,7 @@ func TestVoltService_AddUsHsiaFlows(t *testing.T) {
 						DeleteInProgress: false,
 					},
 				}
-				err := vs.AddUsHsiaFlows(tt.args.cntx)
+				err := vs.AddUsHsiaFlows(tt.args.cntx, false)
 				assert.NotNil(t, err)
 			case "DeviceState_down":
 				vs := &VoltService{
@@ -708,7 +707,7 @@ func TestVoltService_AddUsHsiaFlows(t *testing.T) {
 				ga := GetApplication()
 				ga.PortsDisc.Store("test_port", voltPort)
 				ga.DevicesDisc.Store(test_device, voltDevice1)
-				err := vs.AddUsHsiaFlows(tt.args.cntx)
+				err := vs.AddUsHsiaFlows(tt.args.cntx, false)
 				assert.Nil(t, err)
 			}
 		})

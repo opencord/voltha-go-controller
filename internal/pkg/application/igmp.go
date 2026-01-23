@@ -1722,7 +1722,6 @@ func (va *VoltApplication) UpdateIgmpProfile(cntx context.Context, igmpProfileCo
 	igmpProfile.MaxResp = igmpProfileConfig.MaxResp
 
 	keepAliveInterval := igmpProfileConfig.KeepAliveInterval
-
 	// KeepAliveInterval should have a min of 10 seconds
 	if keepAliveInterval < MinKeepAliveInterval {
 		keepAliveInterval = MinKeepAliveInterval
@@ -1730,13 +1729,13 @@ func (va *VoltApplication) UpdateIgmpProfile(cntx context.Context, igmpProfileCo
 	}
 	igmpProfile.KeepAliveInterval = keepAliveInterval
 
+	igmpProfile.KeepAliveCount = uint32(igmpProfileConfig.KeepAliveCount)
 	igmpProfile.KeepAliveCount = igmpProfileConfig.KeepAliveCount
 	igmpProfile.LastQueryInterval = igmpProfileConfig.LastQueryInterval
 	igmpProfile.LastQueryCount = igmpProfileConfig.LastQueryCount
 	igmpProfile.FastLeave = *igmpProfileConfig.FastLeave
 	igmpProfile.PeriodicQuery = *igmpProfileConfig.PeriodicQuery
 	igmpProfile.IgmpCos = igmpProfileConfig.IgmpCos
-	igmpProfile.WithRAUpLink = *igmpProfileConfig.WithRAUpLink
 	igmpProfile.WithRADownLink = *igmpProfileConfig.WithRADownLink
 
 	if igmpProfileConfig.IgmpVerToServer == "2" || igmpProfileConfig.IgmpVerToServer == "v2" {

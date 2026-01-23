@@ -19,19 +19,19 @@ import (
 	"context"
 	"net/http"
 
-	onosnbi "voltha-go-controller/voltha-go-controller/onos_nbi"
-
 	"github.com/gorilla/mux"
 	"github.com/opencord/voltha-lib-go/v7/pkg/probe"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"voltha-go-controller/log"
+	onosnbi "voltha-go-controller/voltha-go-controller/onos_nbi"
 )
 
 var (
 	logger log.CLogger
 	ctx    = context.TODO()
+
 	// Prometheus metrics
 	httpRequestsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -88,6 +88,19 @@ const (
 	DeviceConfigPath                  string = "/olt/{serialNumber}"
 	FlowProvisionStatus               string = "/flow-status/{portName}"
 )
+
+func init() {
+	// Setup this package so that its log level can be modified at runtime
+	var err error
+	logger, err = log.AddPackageWithDefaultParam()
+	if err != nil {
+		panic(err)
+	}
+
+	// Register Prometheus metrics
+	prometheus.MustRegister(httpRequestsTotal)
+	prometheus.MustRegister(httpRequestDuration)
+}
 
 // RestStart to execute for API
 func RestStart() {
@@ -174,17 +187,4 @@ type statusRecorder struct {
 func (rec *statusRecorder) WriteHeader(code int) {
 	rec.statusCode = code
 	rec.ResponseWriter.WriteHeader(code)
-}
-
-func init() {
-	// Setup this package so that its log level can be modified at runtime
-	var err error
-	logger, err = log.AddPackageWithDefaultParam()
-	if err != nil {
-		panic(err)
-	}
-
-	// Register Prometheus metrics
-	prometheus.MustRegister(httpRequestsTotal)
-	prometheus.MustRegister(httpRequestDuration)
 }
