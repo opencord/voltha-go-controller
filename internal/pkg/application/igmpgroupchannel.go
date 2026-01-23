@@ -581,7 +581,7 @@ func (igc *IgmpGroupChannel) AddMcFlow(cntx context.Context) {
 		return
 	}
 	port, _ := GetApplication().GetNniPort(igc.Device)
-	_ = cntlr.GetController().AddFlows(cntx, port, igc.Device, flow)
+	_ = cntlr.GetController().AddFlows(cntx, port, igc.Device, flow, false)
 }
 
 // DelMcFlow deletes flow from the device when the last receiver leaves
@@ -705,6 +705,7 @@ func (igc *IgmpGroupChannel) SendQuery() {
 
 // buildQuery to build query packet
 func (igc *IgmpGroupChannel) buildQuery(groupAddr net.IP, cVlan of.VlanType, pbit uint8) ([]byte, error) {
+	_ = groupAddr // TODO: implement logic for removed channels if needed
 	if igc.Version == IgmpVersion2 {
 		return Igmpv2QueryPacket(igc.GroupAddr, cVlan, **igc.IgmpProxyIP, pbit, (*igc.proxyCfg).MaxResp)
 	}

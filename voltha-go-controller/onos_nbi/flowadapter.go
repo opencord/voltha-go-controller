@@ -114,8 +114,8 @@ func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *h
 	flowIDStr := vars["flowId"]
 	var flowID uint64
 	var parseErr error
-
 	logger.Debugw(ctx, "Received Get Flows specific to flowID and deviceID", log.Fields{"flowId": flowIDStr, "DeviceID": deviceID})
+
 	if len(flowIDStr) > 0 {
 		flowID, parseErr = strconv.ParseUint(flowIDStr, 10, 64)
 		if parseErr != nil {
@@ -124,7 +124,6 @@ func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *h
 			return
 		}
 	}
-
 	var flowResp FlowEntry
 	if len(deviceID) > 0 && len(flowIDStr) > 0 {
 		flow, err := fh.getFlow(deviceID, flowID)

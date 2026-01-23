@@ -1,22 +1,22 @@
 /* -----------------------------------------------------------------------
  * Copyright 2022-2024 Open Networking Foundation Contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
  * -----------------------------------------------------------------------
  * SPDX-FileCopyrightText: 2022-2024 Open Networking Foundation Contributors
  * SPDX-License-Identifier: Apache-2.0
  * -----------------------------------------------------------------------
- */
+*/
 
 package application
 
@@ -36,7 +36,7 @@ import (
 	"github.com/google/gopacket/layers"
 
 	"voltha-go-controller/database"
-	"voltha-go-controller/internal/pkg/controller"
+	cntlr "voltha-go-controller/internal/pkg/controller"
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/intf"
 	"voltha-go-controller/internal/pkg/of"
@@ -159,7 +159,6 @@ type VoltPort struct {
 	Type                     VoltPortType
 	State                    PortState
 	ChannelPerSubAlarmRaised bool
-	NniDhcpTrapFlowAdded     bool
 }
 
 // NewVoltPort : Constructor for the port.
@@ -209,12 +208,12 @@ type VoltDevice struct {
 	MigratingServices            *util.ConcurrentMap //<vnetID,<RequestID, MigrateServicesRequest>>
 	VpvsBySvlan                  *util.ConcurrentMap // map[svlan]map[vnet_port]*VoltPortVnet
 	ConfiguredVlanForDeviceFlows *util.ConcurrentMap //map[string]map[string]bool
-	IgmpDsFlowAppliedForMvlan    map[uint16]bool
+	IgmpDsFlowAppliedForMvlan    *util.ConcurrentMap //map[uint16]bool
 	Ports                        sync.Map
 	VlanPortStatus               sync.Map
 	ActiveChannelsPerPon         sync.Map // [PonPortID]*PonPortCfg
 	PonPortList                  sync.Map // [PonPortID]map[string]string
-	State                        controller.DeviceState
+	State                        cntlr.DeviceState
 	SouthBoundID                 string
 	Name                         string
 	SerialNum                    string
@@ -234,12 +233,12 @@ func NewVoltDevice(name string, slno, southBoundID string) *VoltDevice {
 	var d VoltDevice
 	d.Name = name
 	d.SouthBoundID = southBoundID
-	d.State = controller.DeviceStateDOWN
+	d.State = cntlr.DeviceStateDOWN
 	d.NniPort = make([]string, 0)
 	d.SouthBoundID = southBoundID
 	d.SerialNum = slno
 	d.icmpv6GroupAdded = false
-	d.IgmpDsFlowAppliedForMvlan = make(map[uint16]bool)
+	d.IgmpDsFlowAppliedForMvlan = util.NewConcurrentMap()
 	d.ConfiguredVlanForDeviceFlows = util.NewConcurrentMap()
 	d.MigratingServices = util.NewConcurrentMap()
 	d.VpvsBySvlan = util.NewConcurrentMap()
@@ -416,7 +415,7 @@ func (d *VoltDevice) pushFlowsForUnis(cntx context.Context) {
 
 		for _, vpv := range vnets.([]*VoltPortVnet) {
 			vpv.VpvLock.Lock()
-			vpv.PortUpInd(cntx, d, port, "")
+			vpv.PortUpInd(cntx, d, port, false)
 			vpv.VpvLock.Unlock()
 		}
 		return true
@@ -436,7 +435,7 @@ var vapplication *VoltApplication
 type VoltAppInterface interface {
 	AddVnet(cntx context.Context, cfg VnetConfig, oper *VnetOper) error
 	AddService(cntx context.Context, cfg VoltServiceCfg, oper *VoltServiceOper) error
-	AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID uint16, nniPorts []string) error
+	AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID uint16) error
 	GetFlowProvisionStatus(portNo string) FlowProvisionStatus
 	DelServiceWithPrefix(cntx context.Context, prefix string) error
 	GetDevice(device string) *VoltDevice
@@ -516,13 +515,12 @@ type VoltApplication struct {
 }
 
 type DeviceConfig struct {
-	SerialNumber       string   `json:"id"`
-	HardwareIdentifier string   `json:"hardwareIdentifier"`
-	IPAddress          string   `json:"ipAddress"`
-	UplinkPort         string   `json:"uplinkPort"`
-	NasID              string   `json:"nasId"`
-	NniPorts           []string `json:"nniPorts"`
-	NniDhcpTrapVid     uint16   `json:"nniDhcpTrapVid"`
+	SerialNumber       string `json:"id"`
+	HardwareIdentifier string `json:"hardwareIdentifier"`
+	IPAddress          string `json:"ipAddress"`
+	UplinkPort         string `json:"uplinkPort"`
+	NasID              string `json:"nasId"`
+	NniDhcpTrapVid     uint16 `json:"nniDhcpTrapVid"`
 }
 
 // PonPortCfg contains NB port config and activeIGMPChannels count
@@ -620,7 +618,7 @@ func (va *VoltApplication) RestoreDeviceConfigFromDb(cntx context.Context) {
 			continue
 		}
 		logger.Debugw(ctx, "Retrieved device config", log.Fields{"Device Config": devConfig})
-		if err := va.AddDeviceConfig(cntx, devConfig.SerialNumber, devConfig.HardwareIdentifier, devConfig.NasID, devConfig.IPAddress, devConfig.UplinkPort, devConfig.NniDhcpTrapVid, devConfig.NniPorts); err != nil {
+		if err := va.AddDeviceConfig(cntx, devConfig.SerialNumber, devConfig.HardwareIdentifier, devConfig.NasID, devConfig.IPAddress, devConfig.UplinkPort, devConfig.NniDhcpTrapVid); err != nil {
 			logger.Warnw(ctx, "Add device config failed", log.Fields{"DeviceConfig": devConfig, "Error": err})
 		}
 	}
@@ -639,7 +637,7 @@ func (dc *DeviceConfig) WriteDeviceConfigToDb(cntx context.Context, serialNum st
 	return nil
 }
 
-func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID uint16, nniPorts []string) error {
+func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hardwareIdentifier, nasID, ipAddress, uplinkPort string, nniDhcpTrapID uint16) error {
 	logger.Debugw(ctx, "Received Add device config", log.Fields{"SerialNumber": serialNum, "HardwareIdentifier": hardwareIdentifier, "NasID": nasID, "IPAddress": ipAddress, "UplinkPort": uplinkPort, "NniDhcpTrapID": nniDhcpTrapID})
 	var dc *DeviceConfig
 
@@ -650,7 +648,6 @@ func (va *VoltApplication) AddDeviceConfig(cntx context.Context, serialNum, hard
 		UplinkPort:         uplinkPort,
 		IPAddress:          ipAddress,
 		NniDhcpTrapVid:     nniDhcpTrapID,
-		NniPorts:           nniPorts,
 	}
 	va.DevicesConfig.Store(serialNum, deviceConfig)
 	err := dc.WriteDeviceConfigToDb(cntx, serialNum, deviceConfig)
@@ -1202,7 +1199,7 @@ func (va *VoltApplication) NniDownInd(cntx context.Context, deviceID string, dev
 func (va *VoltApplication) DeviceUpInd(device string) {
 	logger.Infow(ctx, "Received Device Ind: UP", log.Fields{"Device": device})
 	if d := va.GetDevice(device); d != nil {
-		d.State = controller.DeviceStateUP
+		d.State = cntlr.DeviceStateUP
 	} else {
 		logger.Warnw(ctx, "Ignoring Device indication: UP. Device Missing", log.Fields{"Device": device})
 	}
@@ -1212,7 +1209,7 @@ func (va *VoltApplication) DeviceUpInd(device string) {
 func (va *VoltApplication) DeviceDownInd(device string) {
 	logger.Infow(ctx, "Received Device Ind: DOWN", log.Fields{"Device": device})
 	if d := va.GetDevice(device); d != nil {
-		d.State = controller.DeviceStateDOWN
+		d.State = cntlr.DeviceStateDOWN
 	} else {
 		logger.Warnw(ctx, "Ignoring Device indication: DOWN. Device Missing", log.Fields{"Device": device})
 	}
@@ -1223,11 +1220,11 @@ func (va *VoltApplication) DeviceRebootInd(cntx context.Context, device string, 
 	logger.Infow(ctx, "Received Device Ind: Reboot", log.Fields{"Device": device, "SerialNumber": serialNum, "SouthBoundID": southBoundID})
 
 	if d := va.GetDevice(device); d != nil {
-		if d.State == controller.DeviceStateREBOOTED {
+		if d.State == cntlr.DeviceStateREBOOTED {
 			logger.Warnw(ctx, "Ignoring Device Ind: Reboot, Device already in Reboot state", log.Fields{"Device": device, "SerialNumber": serialNum, "State": d.State})
 			return
 		}
-		d.State = controller.DeviceStateREBOOTED
+		d.State = cntlr.DeviceStateREBOOTED
 	}
 	va.HandleFlowClearFlag(cntx, device, serialNum, southBoundID)
 }
@@ -1242,7 +1239,7 @@ func (va *VoltApplication) DeviceDisableInd(cntx context.Context, device string)
 		return
 	}
 
-	d.State = controller.DeviceStateDISABLED
+	d.State = cntlr.DeviceStateDISABLED
 	va.HandleFlowClearFlag(cntx, device, d.SerialNum, d.SouthBoundID)
 }
 
@@ -1422,8 +1419,10 @@ func (va *VoltApplication) NniVlanIndToIgmp(device *VoltDevice, mvp *MvlanProfil
 	logger.Infow(ctx, "Received Nni Vlan Ind To Igmp", log.Fields{"Vlan": mvp.Mvlan})
 
 	// Trigger nni indication for receiver only for first time
-	if device.IgmpDsFlowAppliedForMvlan[uint16(mvp.Mvlan)] {
-		return
+	if device.IgmpDsFlowAppliedForMvlan != nil {
+		if applied, exists := device.IgmpDsFlowAppliedForMvlan.Get(uint16(mvp.Mvlan)); exists && applied.(bool) {
+			return
+		}
 	}
 	device.Ports.Range(func(key, value interface{}) bool {
 		port := key.(string)
@@ -1451,7 +1450,8 @@ func (va *VoltApplication) NniVlanIndToIgmp(device *VoltDevice, mvp *MvlanProfil
 // Port UP indication is passed to all services associated with the port
 // so that the services can configure flows applicable when the port goes
 // up from down state
-func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port string) {
+// skipFlowPushToVoltha is used when VGC restarts, the flows are built and stored only in cache and not pushed to voltha.
+func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port string, skipFlowPushToVoltha bool) {
 	logger.Infow(ctx, "Received Southbound Port Ind: UP", log.Fields{"Device": device, "Port": port})
 	d := va.GetDevice(device)
 
@@ -1477,12 +1477,9 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 
 	if p.Type == VoltPortTypeNni {
 		logger.Debugw(ctx, "Received NNI Port Ind: UP", log.Fields{"Device": device, "PortName": port, "PortId": p.ID})
-		if d.NniDhcpTrapVid == 1 {
-			err := va.AddDefaultDhcpTrapFlow(cntx, d, p)
-			if err != nil {
-				logger.Errorw(ctx, "Failed adding DHCP trap flow", log.Fields{"Device": device, "PortName": port, "PortId": p.ID, "error": err})
-			}
-		}
+		//va.PushDevFlowForDevice(d)
+		//Build Igmp TrapFlowRule
+		//va.ProcessIgmpDSFlowForDevice(d, true)
 	}
 	vpvs, ok := va.VnetsByPort.Load(port)
 	if !ok || nil == vpvs || len(vpvs.([]*VoltPortVnet)) == 0 {
@@ -1500,12 +1497,12 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 	for _, vpv := range vpvs.([]*VoltPortVnet) {
 		vpv.VpvLock.Lock()
 		// If no service is activated drop the portUpInd
-		if ok, nniPort := vpv.IsServiceActivated(cntx); ok {
+		if vpv.IsServiceActivated(cntx) {
 			// Do not trigger indication for the vpv which is already removed from vpv list as
 			// part of service delete (during the lock wait duration)
 			// In that case, the services associated wil be zero
 			if vpv.servicesCount.Load() != 0 {
-				vpv.PortUpInd(cntx, d, port, nniPort)
+				vpv.PortUpInd(cntx, d, port, skipFlowPushToVoltha)
 			}
 		} else {
 			// Service not activated, still attach device to service
@@ -1586,7 +1583,7 @@ func (va *VoltApplication) PortDownInd(cntx context.Context, device string, port
 	p.State = PortStateDown
 	va.portLock.Unlock()
 
-	if d.State == controller.DeviceStateREBOOTED {
+	if d.State == cntlr.DeviceStateREBOOTED {
 		logger.Warnw(ctx, "Ignoring Port Ind: Down, Device has been Rebooted", log.Fields{"Device": device, "PortName": port, "PortId": p})
 		return
 	}
@@ -1755,8 +1752,11 @@ func (va *VoltApplication) HandleFlowClearFlag(cntx context.Context, deviceID st
 		dev.(*VoltDevice).ConfiguredVlanForDeviceFlows = util.NewConcurrentMap()
 		logger.Debugw(ctx, "Clearing DS IGMP Map",
 			log.Fields{"voltDevice": dev.(*VoltDevice).Name})
-		for k := range dev.(*VoltDevice).IgmpDsFlowAppliedForMvlan {
-			delete(dev.(*VoltDevice).IgmpDsFlowAppliedForMvlan, k)
+		if dev.(*VoltDevice).IgmpDsFlowAppliedForMvlan != nil {
+			dev.(*VoltDevice).IgmpDsFlowAppliedForMvlan.Range(func(key, value interface{}) bool {
+				dev.(*VoltDevice).IgmpDsFlowAppliedForMvlan.Remove(key)
+				return true
+			})
 		}
 		// Delete group 1 - ICMPv6/ARP group
 		if err := ProcessIcmpv6McGroup(deviceID, true); err != nil {
@@ -1838,13 +1838,40 @@ func (va *VoltApplication) ProcessFlowModResultIndication(cntx context.Context, 
 	}
 }
 
+func (va *VoltApplication) GetAllFlowsForSvc(cntx context.Context, flow *of.VoltSubFlow, devID string, devSerialNum string) []uint64 {
+	devConfig := va.GetDeviceConfig(devSerialNum)
+	portNo := util.GetUniPortFromFlow(devConfig.UplinkPort, flow)
+	portName, err := va.GetPortName(portNo)
+
+	if err != nil {
+		logger.Warnw(ctx, "Error getting port name", log.Fields{"Reason": err.Error(), "PortID": flow.Match.InPort})
+		return nil
+	} else if portName == "" {
+		logger.Warnw(ctx, "Port does not exist", log.Fields{"PortID": flow.Match.InPort})
+		return nil
+	}
+	svc := va.GetServiceNameFromCookie(flow.Cookie, portName, uint8(of.PbitMatchNone), devID, flow.Match.TableMetadata)
+	if svc != nil {
+		dsFlows := make([]uint64, 0)
+		for cookie, ok := range svc.AssociatedFlows {
+			if ok {
+				if val, err := strconv.ParseUint(cookie, 10, 64); err == nil {
+					dsFlows = append(dsFlows, val)
+				}
+			}
+		}
+		return dsFlows
+	}
+	return nil
+}
+
 // CheckAndDeactivateService - check if the attempts for flow delete has reached threshold or not
 func (va *VoltApplication) CheckAndDeactivateService(ctx context.Context, flow *of.VoltSubFlow, devSerialNum string, devID string) {
 	logger.Debugw(ctx, "Check and Deactivate service", log.Fields{"Cookie": flow.Cookie, "FlowCount": flow.FlowCount, "DeviceSerial": devSerialNum})
-	if flow.FlowCount >= uint32(controller.GetController().GetMaxFlowRetryAttempt()) {
+	if flow.FlowCount >= uint32(cntlr.GetController().GetMaxFlowRetryAttempt()) {
 		devConfig := va.GetDeviceConfig(devSerialNum)
 		if devConfig != nil {
-			portNo := util.GetUniPortFromFlow(devConfig.UplinkPort, devConfig.NniPorts, flow)
+			portNo := util.GetUniPortFromFlow(devConfig.UplinkPort, flow)
 			portName, err := va.GetPortName(portNo)
 			if err != nil {
 				logger.Warnw(ctx, "Error getting port name", log.Fields{"Reason": err.Error(), "PortID": portNo})
@@ -1924,7 +1951,7 @@ type TaskInfo struct {
 // GetTaskList to get task list information.
 func (va *VoltApplication) GetTaskList(device string) map[int]*TaskInfo {
 	logger.Debugw(ctx, "Received Get Task List", log.Fields{"device": device})
-	taskList := controller.GetController().GetTaskList(device)
+	taskList := cntlr.GetController().GetTaskList(device)
 	taskMap := make(map[int]*TaskInfo)
 	for i, task := range taskList {
 		taskID := strconv.Itoa(int(task.TaskID()))
@@ -1947,8 +1974,8 @@ func (va *VoltApplication) UpdateDeviceSerialNumberList(oldOltSlNo string, newOl
 	} else {
 		logger.Infow(ctx, "No device present with old serial number", log.Fields{"Serial Number": oldOltSlNo})
 		// Add Serial Number to Blocked Devices List.
-		controller.GetController().AddBlockedDevices(oldOltSlNo)
-		controller.GetController().AddBlockedDevices(newOltSlNo)
+		cntlr.GetController().AddBlockedDevices(oldOltSlNo)
+		cntlr.GetController().AddBlockedDevices(newOltSlNo)
 
 		updateSlNoForVnet := func(key, value interface{}) bool {
 			vnet := value.(*VoltVnet)
@@ -1979,8 +2006,8 @@ func (va *VoltApplication) UpdateDeviceSerialNumberList(oldOltSlNo string, newOl
 		va.MvlanProfilesByName.Range(updateSlNoforMvlan)
 
 		// Clear the serial number from Blocked Devices List
-		controller.GetController().DelBlockedDevices(oldOltSlNo)
-		controller.GetController().DelBlockedDevices(newOltSlNo)
+		cntlr.GetController().DelBlockedDevices(oldOltSlNo)
+		cntlr.GetController().DelBlockedDevices(newOltSlNo)
 	}
 }
 

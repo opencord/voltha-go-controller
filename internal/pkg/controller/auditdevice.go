@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"voltha-go-controller/internal/pkg/tasks"
+	"voltha-go-controller/internal/pkg/util"
 	"voltha-go-controller/log"
 
 	"github.com/opencord/voltha-protos/v5/go/common"
@@ -43,12 +44,13 @@ const (
 
 // AuditDevice structure
 type AuditDevice struct {
-	ctx       context.Context
-	device    *Device
-	timestamp string
-	event     AuditEventType
-	taskID    uint8
-	stop      bool
+	ctx               context.Context
+	device            *Device
+	timestamp         string
+	event             AuditEventType
+	taskID            uint8
+	stop              bool
+	skipFlowOnRestart bool
 }
 
 // NewAuditDevice is constructor for AuditDevice
@@ -107,11 +109,11 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 	missingPorts := make(map[uint32]*ofp.OfpPort)
 	for _, ofpp := range ofpps.Items {
 		missingPorts[ofpp.OfpPort.PortNo] = ofpp.OfpPort
-		logger.Infow(ctx, "Missing Ports", log.Fields{"Ports": ofpp.OfpPort, "missingPorts": missingPorts})
 	}
 
 	excessPorts := make(map[uint32]*DevicePort)
 	GetController().SetAuditFlags(ad.device)
+	defer GetController().ResetAuditFlags(ad.device)
 
 	processPortState := func(id uint32, vgcPort *DevicePort) {
 		logger.Debugw(ctx, "Process Port State Ind", log.Fields{"Port No": vgcPort.ID, "Port Name": vgcPort.Name})
@@ -121,7 +123,7 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 				// This port exists in the received list and the map at
 				// VGC. This is common so delete it
 				logger.Infow(ctx, "Port State Mismatch", log.Fields{"Port": vgcPort.ID, "OfpPort": ofpPort.PortNo, "ReceivedState": ofpPort.State, "CurrentState": vgcPort.State})
-				ad.device.ProcessPortState(ctx, ofpPort.PortNo, ofpPort.State, ofpPort.Name)
+				ad.device.ProcessPortState(ctx, ofpPort.PortNo, ofpPort.State, ofpPort.Name, ad.skipFlowOnRestart)
 			} else {
 				//To ensure the flows are in sync with port status and no mismatch due to reboot,
 				// repush/delete flows based on current port status
@@ -138,13 +140,15 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 	}
 
 	// 1st process the NNI port before all other ports so that the device state can be updated.
-	if vgcPort, ok := ad.device.PortsByID[NNIPortID]; ok {
-		logger.Debugw(ctx, "Processing NNI port state", log.Fields{"PortNo": vgcPort.ID, "PortName": vgcPort.Name, "PortState": vgcPort.State})
-		processPortState(NNIPortID, vgcPort)
+	for id, vgcPort := range ad.device.PortsByID {
+		if util.IsNniPort(id) {
+			logger.Debugw(ctx, "Processing NNI port state", log.Fields{"PortNo": vgcPort.ID, "PortName": vgcPort.Name, "PortState": vgcPort.State})
+			processPortState(id, vgcPort)
+		}
 	}
 
 	for id, vgcPort := range ad.device.PortsByID {
-		if id == NNIPortID {
+		if util.IsNniPort(id) {
 			//NNI port already processed
 			continue
 		}
@@ -153,7 +157,6 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 		}
 		processPortState(id, vgcPort)
 	}
-	GetController().ResetAuditFlags(ad.device)
 
 	if ad.stop {
 		logger.Errorw(ctx, "Audit Device Task Canceled", log.Fields{"Context": ad.ctx, "Task": ad.taskID})
@@ -168,30 +171,30 @@ func (ad *AuditDevice) Start(ctx context.Context, taskID uint8) error {
 
 // AddMissingPorts to add the missing ports
 func (ad *AuditDevice) AddMissingPorts(cntx context.Context, mps map[uint32]*ofp.OfpPort) {
-	logger.Infow(ctx, "Device Audit - Add Missing Ports", log.Fields{"NumPorts": len(mps), "Ports": mps})
+	logger.Debugw(ctx, "Device Audit - Add Missing Ports", log.Fields{"NumPorts": len(mps), "Ports": mps})
 
 	addMissingPort := func(mp *ofp.OfpPort) {
 		logger.Debugw(ctx, "Process Port Add Ind", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name})
 
-		// Error is ignored as it only drops duplicate ports
-		logger.Debugw(ctx, "Calling AddPort", log.Fields{"No": mp.PortNo, "Name": mp.Name})
 		if err := ad.device.AddPort(cntx, mp); err != nil {
 			logger.Warnw(ctx, "AddPort Failed", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name, "Reason": err})
 		}
 		if mp.State == uint32(ofp.OfpPortState_OFPPS_LIVE) {
-			ad.device.ProcessPortState(cntx, mp.PortNo, mp.State, mp.Name)
+			ad.device.ProcessPortState(cntx, mp.PortNo, mp.State, mp.Name, ad.skipFlowOnRestart)
 		}
 		logger.Debugw(ctx, "Processed Port Add Ind", log.Fields{"Port No": mp.PortNo, "Port Name": mp.Name})
 	}
 
 	// 1st process the NNI port before all other ports so that the flow provisioning for UNIs can be enabled
-	if mp, ok := mps[NNIPortID]; ok {
-		logger.Debugw(ctx, "Adding Missing NNI port", log.Fields{"PortNo": mp.PortNo, "Port Name": mp.Name, "Port Status": mp.State})
-		addMissingPort(mp)
+	for portNo, mp := range mps {
+		if util.IsNniPort(portNo) {
+			logger.Debugw(ctx, "Adding Missing NNI port", log.Fields{"PortNo": mp.PortNo, "Port Name": mp.Name, "Port Status": mp.State})
+			addMissingPort(mp)
+		}
 	}
 
 	for portNo, mp := range mps {
-		if portNo != NNIPortID {
+		if !util.IsNniPort(portNo) {
 			addMissingPort(mp)
 		}
 	}

@@ -173,7 +173,7 @@ func TestVoltController_AddFlows(t *testing.T) {
 				v.Devices.Store(key, value)
 				return true
 			})
-			if err := v.AddFlows(tt.args.cntx, tt.args.port, tt.args.device, tt.args.flow); (err != nil) != tt.wantErr {
+			if err := v.AddFlows(tt.args.cntx, tt.args.port, tt.args.device, tt.args.flow, false); (err != nil) != tt.wantErr {
 				t.Errorf("VoltController.AddFlows() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -937,7 +937,7 @@ func TestVoltController_VPAgent(t *testing.T) {
 					t.Errorf("VoltController.VPAgent() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
-				if !reflect.DeepEqual(got, tt.want) {
+				if got != tt.want {
 					t.Errorf("VoltController.VPAgent() = %v, want %v", got, tt.want)
 				}
 			case "VPAgent_Error":
@@ -946,7 +946,7 @@ func TestVoltController_VPAgent(t *testing.T) {
 					t.Errorf("VoltController.VPAgent() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
-				if !reflect.DeepEqual(got, tt.want) {
+				if got != tt.want {
 					t.Errorf("VoltController.VPAgent() = %v, want %v", got, tt.want)
 				}
 			}
@@ -970,6 +970,14 @@ func TestVoltController_DeviceRebootInd(t *testing.T) {
 	dbintf.EXPECT().DelAllGroup(gomock.Any(), gomock.Any()).AnyTimes()
 	dbintf.EXPECT().DelAllMeter(gomock.Any(), gomock.Any()).AnyTimes()
 	dbintf.EXPECT().DelAllPONCounters(gomock.Any(), gomock.Any()).AnyTimes()
+	dbintf.EXPECT().PutGroup(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	dbintf.EXPECT().PutFlow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	dbintf.EXPECT().DelFlow(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	dbintf.EXPECT().PutDeviceMeter(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	dbintf.EXPECT().DelDeviceMeter(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	dbintf.EXPECT().PutPort(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	dbintf.EXPECT().DelPort(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	dbintf.EXPECT().PutFlowHash(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 	tests := []struct {
 		name string
 		args args
@@ -1219,9 +1227,11 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 		State:   1,
 		SetVlan: of.VlanAny,
 	}
+
+	// Setup database mock for async operations
 	dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 	db = dbintf
-	dbintf.EXPECT().PutGroup(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+	dbintf.EXPECT().PutGroup(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 	tests := []struct {
 		name    string
 		args    args
@@ -1263,7 +1273,18 @@ func TestVoltController_GroupUpdate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
-			case "GroupUpdate", "DeviceNOtFound_Error", "PortNOtFound_Error":
+			case "GroupUpdate":
+				v := &VoltController{
+					Devices: sync.Map{},
+				}
+				dev.Range(func(key, value interface{}) bool {
+					v.Devices.Store(key, value)
+					return true
+				})
+				if err := v.GroupUpdate(tt.args.port, tt.args.device, tt.args.group); (err != nil) != tt.wantErr {
+					t.Errorf("VoltController.GroupUpdate() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			case "DeviceNOtFound_Error", "PortNOtFound_Error":
 				v := &VoltController{
 					Devices: sync.Map{},
 				}

@@ -957,6 +957,9 @@ func TestVoltApplication_ProcessUDP6Packet(t *testing.T) {
 	dhcpv6 := &layers.DHCPv6{
 		MsgType: layers.DHCPv6MsgTypeSolicit,
 	}
+	eth := &layers.Ethernet{
+		SrcMAC: net.HardwareAddr{0x00, 0x00, 0x00, 0x00, 0x00, 0x01},
+	}
 	ipv6 := &layers.IPv6{
 		Version: EtherType8100,
 	}
@@ -1018,7 +1021,7 @@ func TestVoltApplication_ProcessUDP6Packet(t *testing.T) {
 				}
 			case "ProcessUDP6Packet_DHCPv6MsgTypeAdvertise":
 				dhcpv6.MsgType = layers.DHCPv6MsgTypeAdvertise
-				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).AnyTimes()
+				pkt.EXPECT().Layer(layers.LayerTypeDHCPv6).Return(dhcpv6).Times(2)
 				if got := va.ProcessUDP6Packet(tt.args.cntx, tt.args.device, tt.args.port, tt.args.pkt); !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("VoltApplication.ProcessUDP6Packet() = %v, want %v", got, tt.want)
 				}
