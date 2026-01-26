@@ -77,7 +77,7 @@ func (cet *ChangeEventTask) Start(ctx context.Context, taskID uint8) error {
 		case ofp.OfpPortReason_OFPPR_ADD:
 			_ = cet.device.AddPort(ctx, status.PortStatus.Desc)
 			if state == uint32(ofp.OfpPortState_OFPPS_LIVE) {
-				cet.device.ProcessPortState(ctx, portNo, state, portName)
+				cet.device.ProcessPortState(ctx, portNo, state, portName, false)
 			}
 		case ofp.OfpPortReason_OFPPR_DELETE:
 			cet.device.CheckAndDeletePort(ctx, portNo, portName)

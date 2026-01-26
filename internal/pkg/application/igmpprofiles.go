@@ -497,7 +497,7 @@ func (mvp *MvlanProfile) ApplyIgmpDSFlowForMvp(cntx context.Context, device stri
 			if err1 != nil {
 				logger.Errorw(ctx, "Error getting NNI port", log.Fields{"Error": err1})
 			}
-			err = cntlr.GetController().AddFlows(cntx, nniPort, device, flows)
+			err = cntlr.GetController().AddFlows(cntx, nniPort, device, flows, false)
 			if err != nil {
 				logger.Warnw(ctx, "Configuring IGMP Flow for device failed ", log.Fields{"Device": device, "err": err})
 				return err

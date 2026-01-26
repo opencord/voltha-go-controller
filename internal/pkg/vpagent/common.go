@@ -30,17 +30,24 @@ func isConnCanceled(err error) bool {
 	if err == nil {
 		return false
 	}
-	// >= gRPC v1.23.x
+
 	s, ok := status.FromError(err)
 	if ok {
-		// connection is canceled or server has already closed the connection
-		return s.Code() == codes.Canceled || s.Message() == "transport is closing"
-	}
-
-	e, ok := status.FromError(err)
-	if ok {
-		// connection is canceled or server has already closed the connection
-		return e.Code() == codes.Canceled || e.Message() == "all SubConns are in TransientFailure"
+		switch {
+		case s.Code() == codes.Canceled || s.Message() == "transport is closing":
+			// >= gRPC v1.23.x
+			// connection is canceled or server has already closed the connection
+			return true
+		case s.Message() == "all SubConns are in TransientFailure":
+			return true
+		case s.Code() == codes.Unavailable || s.Message() == "error reading from server: EOF":
+			// >= gRPC v1.76.x
+			// connection is unavailable or server has already closed the connection
+			return true
+		case s.Code() == codes.Internal || s.Code() == codes.DeadlineExceeded:
+			// connection is interrupted
+			return true
+		}
 	}
 
 	// >= gRPC v1.10.x

@@ -416,7 +416,7 @@ func (d *VoltDevice) pushFlowsForUnis(cntx context.Context) {
 
 		for _, vpv := range vnets.([]*VoltPortVnet) {
 			vpv.VpvLock.Lock()
-			vpv.PortUpInd(cntx, d, port, "")
+			vpv.PortUpInd(cntx, d, port, "", false)
 			vpv.VpvLock.Unlock()
 		}
 		return true
@@ -1451,7 +1451,7 @@ func (va *VoltApplication) NniVlanIndToIgmp(device *VoltDevice, mvp *MvlanProfil
 // Port UP indication is passed to all services associated with the port
 // so that the services can configure flows applicable when the port goes
 // up from down state
-func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port string) {
+func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port string, skipFlowPushToVoltha bool) {
 	logger.Infow(ctx, "Received Southbound Port Ind: UP", log.Fields{"Device": device, "Port": port})
 	d := va.GetDevice(device)
 
@@ -1505,7 +1505,7 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 			// part of service delete (during the lock wait duration)
 			// In that case, the services associated wil be zero
 			if vpv.servicesCount.Load() != 0 {
-				vpv.PortUpInd(cntx, d, port, nniPort)
+				vpv.PortUpInd(cntx, d, port, nniPort, skipFlowPushToVoltha)
 			}
 		} else {
 			// Service not activated, still attach device to service
@@ -1836,6 +1836,33 @@ func (va *VoltApplication) ProcessFlowModResultIndication(cntx context.Context, 
 			pushFlowFailureNotif(flowStatus)
 		}
 	}
+}
+
+func (va *VoltApplication) GetAllFlowsForSvc(cntx context.Context, flow *of.VoltSubFlow, devID string, devSerialNum string) []uint64 {
+	devConfig := va.GetDeviceConfig(devSerialNum)
+	portNo := util.GetUniPortFromFlow(devConfig.UplinkPort, devConfig.NniPorts, flow)
+	portName, err := va.GetPortName(portNo)
+
+	if err != nil {
+		logger.Warnw(ctx, "Error getting port name", log.Fields{"Reason": err.Error(), "PortID": flow.Match.InPort})
+		return nil
+	} else if portName == "" {
+		logger.Warnw(ctx, "Port does not exist", log.Fields{"PortID": flow.Match.InPort})
+		return nil
+	}
+	svc := va.GetServiceNameFromCookie(flow.Cookie, portName, uint8(of.PbitMatchNone), devID, flow.Match.TableMetadata)
+	if svc != nil {
+		dsFlows := make([]uint64, 0)
+		for cookie, ok := range svc.AssociatedFlows {
+			if ok {
+				if val, err := strconv.ParseUint(cookie, 10, 64); err == nil {
+					dsFlows = append(dsFlows, val)
+				}
+			}
+		}
+		return dsFlows
+	}
+	return nil
 }
 
 // CheckAndDeactivateService - check if the attempts for flow delete has reached threshold or not

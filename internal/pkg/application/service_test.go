@@ -686,7 +686,7 @@ func TestVoltService_AddUsHsiaFlows(t *testing.T) {
 						DeleteInProgress: true,
 					},
 				}
-				err := vs.AddUsHsiaFlows(tt.args.cntx)
+				err := vs.AddUsHsiaFlows(tt.args.cntx, false)
 				assert.Nil(t, err)
 			case "GetDeviceFromPort_error":
 				vs := &VoltService{
@@ -694,7 +694,7 @@ func TestVoltService_AddUsHsiaFlows(t *testing.T) {
 						DeleteInProgress: false,
 					},
 				}
-				err := vs.AddUsHsiaFlows(tt.args.cntx)
+				err := vs.AddUsHsiaFlows(tt.args.cntx, false)
 				assert.NotNil(t, err)
 			case "DeviceState_down":
 				vs := &VoltService{
@@ -708,7 +708,7 @@ func TestVoltService_AddUsHsiaFlows(t *testing.T) {
 				ga := GetApplication()
 				ga.PortsDisc.Store("test_port", voltPort)
 				ga.DevicesDisc.Store(test_device, voltDevice1)
-				err := vs.AddUsHsiaFlows(tt.args.cntx)
+				err := vs.AddUsHsiaFlows(tt.args.cntx, false)
 				assert.Nil(t, err)
 			}
 		})
