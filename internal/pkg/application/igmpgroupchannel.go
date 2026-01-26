@@ -581,7 +581,7 @@ func (igc *IgmpGroupChannel) AddMcFlow(cntx context.Context) {
 		return
 	}
 	port, _ := GetApplication().GetNniPort(igc.Device)
-	_ = cntlr.GetController().AddFlows(cntx, port, igc.Device, flow)
+	_ = cntlr.GetController().AddFlows(cntx, port, igc.Device, flow, false)
 }
 
 // DelMcFlow deletes flow from the device when the last receiver leaves

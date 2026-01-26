@@ -2611,7 +2611,7 @@ func TestVoltApplication_PortUpInd(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-			va.PortUpInd(tt.args.cntx, tt.args.device, tt.args.port)
+			va.PortUpInd(tt.args.cntx, tt.args.device, tt.args.port, false)
 		})
 	}
 }
