@@ -16,6 +16,23 @@
       "message": "\u003e Patch Set 6: Verified-1\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-go-controller_unit-test/395/ : FAILURE\n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-go-controller_licensed/395/ : SUCCESS\n\nrecheck\n",
       "revId": "e0fe7c0b1d208296530bed3690baafd78d220715",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "631a28f3_5758e410",
+        "filename": "voltha-go-controller/onos_nbi/deviceconfig.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2026-01-27T05:51:11Z",
+      "side": 1,
+      "message": "which struct are we using here as input",
+      "revId": "e0fe7c0b1d208296530bed3690baafd78d220715",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
