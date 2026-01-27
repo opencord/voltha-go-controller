@@ -18,6 +18,23 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e06cc003_9152cb1f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-01-27T19:26:33Z",
+      "side": 1,
+      "message": "Please check the latest status and abondon/update if necessary. Please also update the related Jira task.",
+      "revId": "e0fe7c0b1d208296530bed3690baafd78d220715",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "631a28f3_5758e410",
