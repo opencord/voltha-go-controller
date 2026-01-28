@@ -50,6 +50,24 @@
       "message": "which struct are we using here as input",
       "revId": "e0fe7c0b1d208296530bed3690baafd78d220715",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c07d7b33_395628b9",
+        "filename": "voltha-go-controller/onos_nbi/deviceconfig.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1001025
+      },
+      "writtenOn": "2026-01-28T07:00:21Z",
+      "side": 1,
+      "message": "same deviceconfig structure , but will be sending only serial number and nni ports in it",
+      "parentUuid": "631a28f3_5758e410",
+      "revId": "e0fe7c0b1d208296530bed3690baafd78d220715",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
