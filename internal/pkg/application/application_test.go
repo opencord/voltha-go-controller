@@ -1112,6 +1112,7 @@ func TestVoltDevice_DelPort(t *testing.T) {
 }
 
 func TestVoltDevice_pushFlowsForUnis(t *testing.T) {
+	NniPort := "nni-16777216"
 	type args struct {
 		cntx context.Context
 	}
@@ -1166,7 +1167,7 @@ func TestVoltDevice_pushFlowsForUnis(t *testing.T) {
 				voltPortVnets = append(voltPortVnets, voltPortVnet)
 				ga.VnetsByPort.Store("16777472", voltPortVnets)
 
-				d.pushFlowsForUnis(tt.args.cntx)
+				d.pushFlowsForUnis(tt.args.cntx, NniPort)
 			case "Negetive_Case_pushFlowsForUnis":
 				voltPort1 := &VoltPort{
 					Name:                     "16777472",
@@ -1177,7 +1178,7 @@ func TestVoltDevice_pushFlowsForUnis(t *testing.T) {
 					Type:                     VoltPortTypeNni,
 				}
 				d.Ports.Store("16777472", voltPort1)
-				d.pushFlowsForUnis(tt.args.cntx)
+				d.pushFlowsForUnis(tt.args.cntx, NniPort)
 			case "Negetive_Case1_pushFlowsForUnis":
 				voltPort2 := &VoltPort{
 					Name:                     "16777472",
@@ -1188,7 +1189,7 @@ func TestVoltDevice_pushFlowsForUnis(t *testing.T) {
 					Type:                     VoltPortTypeNni,
 				}
 				d.Ports.Store("1677747", voltPort2)
-				d.pushFlowsForUnis(tt.args.cntx)
+				d.pushFlowsForUnis(tt.args.cntx, NniPort)
 			}
 		})
 	}
