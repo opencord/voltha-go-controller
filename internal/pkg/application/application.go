@@ -396,7 +396,7 @@ func (d *VoltDevice) DelPort(port string) {
 }
 
 // pushFlowsForUnis to send port-up-indication for uni ports.
-func (d *VoltDevice) pushFlowsForUnis(cntx context.Context) {
+func (d *VoltDevice) pushFlowsForUnis(cntx context.Context, nniPort string) {
 	logger.Info(ctx, "NNI Discovered, Sending Port UP Ind for UNIs")
 	d.Ports.Range(func(key, value interface{}) bool {
 		port := key.(string)
@@ -416,7 +416,10 @@ func (d *VoltDevice) pushFlowsForUnis(cntx context.Context) {
 
 		for _, vpv := range vnets.([]*VoltPortVnet) {
 			vpv.VpvLock.Lock()
-			vpv.PortUpInd(cntx, d, port, "", false)
+			if ok, serviceNni := vpv.IsServiceActivated(cntx); ok && (nniPort == serviceNni) {
+				logger.Debugw(cntx, "sending PortUpInd for Unis after nni discovery", log.Fields{"activeNni": serviceNni, "uniport": port})
+				vpv.PortUpInd(cntx, d, port, serviceNni, false)
+			}
 			vpv.VpvLock.Unlock()
 		}
 		return true
@@ -993,9 +996,11 @@ func (va *VoltApplication) PortAddInd(cntx context.Context, device string, id ui
 		p := d.AddPort(portName, id)
 		va.PortsDisc.Store(portName, p)
 		va.portLock.Unlock()
-		nni, _ := va.GetNniPort(device)
-		if nni == portName {
-			d.pushFlowsForUnis(cntx)
+		for _, nniPort := range d.NniPort {
+			if nniPort == portName {
+				logger.Debugw(cntx, "NNI Port discovered. Triggering port up for UNIs", log.Fields{"Device": device, "PortName": portName, "NNIPort": nniPort})
+				d.pushFlowsForUnis(cntx, portName)
+			}
 		}
 	} else {
 		va.portLock.Unlock()
