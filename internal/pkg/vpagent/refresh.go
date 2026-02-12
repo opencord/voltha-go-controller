@@ -23,8 +23,8 @@ import (
 
 	"voltha-go-controller/log"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func (vpa *VPAgent) synchronizeDeviceList(ctx context.Context) {
@@ -57,7 +57,7 @@ func (vpa *VPAgent) refreshDeviceList(cntx context.Context) {
 		vpa.events <- vpaEventVolthaDisconnected
 		return
 	}
-	deviceList, err := vpa.volthaClient.Get().ListLogicalDevices(context.Background(), &empty.Empty{})
+	deviceList, err := vpa.volthaClient.Get().ListLogicalDevices(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		logger.Errorw(ctx, "vpagent failed to query device list from voltha",
 			log.Fields{"error": err})

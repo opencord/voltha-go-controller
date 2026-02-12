@@ -23,9 +23,9 @@ import (
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/test/mocks"
 
-	"github.com/golang/mock/gomock"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestNewDevicePort(t *testing.T) {
@@ -168,6 +168,9 @@ func TestDevice_triggerFlowResultNotification(t *testing.T) {
 			_ = NewController(context.Background(), appMock)
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
+			// Background goroutines can update groups; allow such calls
+			// to prevent gomock from failing after the test completes.
+			dbintf.EXPECT().PutGroup(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 			appMock.EXPECT().ProcessFlowModResultIndication(gomock.Any(), gomock.Any()).Times(1)
 			d.triggerFlowResultNotification(tt.args.cntx, tt.args.cookie, tt.args.flow, tt.args.oper, tt.args.bwDetails, tt.args.err)
 		})
@@ -273,7 +276,12 @@ func TestDevice_SetFlowHash(t *testing.T) {
 			d := &Device{}
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
+			// Expect flow-hash to be written once for this test.
 			dbintf.EXPECT().PutFlowHash(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			// Background goroutines from other tests may update groups;
+			// allow such calls to be no-ops to prevent gomock from failing
+			// after this test completes.
+			dbintf.EXPECT().PutGroup(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 			d.SetFlowHash(tt.args.cntx, tt.args.hash)
 		})
 	}
