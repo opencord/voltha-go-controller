@@ -21,7 +21,7 @@ import (
 
 	"voltha-go-controller/log"
 
-	"github.com/golang/protobuf/ptypes/empty"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/grpc"
 )
 
@@ -39,7 +39,7 @@ func (vpa *VPAgent) receivePacketsIn(ctx context.Context) {
 	opt := grpc.EmptyCallOption{}
 	streamCtx, streamDone := context.WithCancel(context.Background())
 	defer streamDone()
-	stream, err := vpa.volthaClient.Get().ReceivePacketsIn(streamCtx, &empty.Empty{}, opt)
+	stream, err := vpa.volthaClient.Get().ReceivePacketsIn(streamCtx, &emptypb.Empty{}, opt)
 	if err != nil {
 		logger.Errorw(ctx, "Unable to establish Receive PacketIn Stream",
 			log.Fields{"error": err})
@@ -56,7 +56,7 @@ top:
 		default:
 			pkt, err := stream.Recv()
 			if err == io.EOF {
-				stream, err = vpa.volthaClient.Get().ReceivePacketsIn(streamCtx, &empty.Empty{}, opt)
+				stream, err = vpa.volthaClient.Get().ReceivePacketsIn(streamCtx, &emptypb.Empty{}, opt)
 				if err != nil {
 					logger.Errorw(ctx, "Unable to establish Receive PacketIn Stream",
 						log.Fields{"error": err})

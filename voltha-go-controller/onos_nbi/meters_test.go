@@ -23,7 +23,7 @@ import (
 	app "voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/internal/test/mocks"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"github.com/gorilla/mux"
 )
 

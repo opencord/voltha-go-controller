@@ -26,7 +26,7 @@ import (
 	of "voltha-go-controller/internal/pkg/of"
 	tasks "voltha-go-controller/internal/pkg/tasks"
 
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockVoltControllerInterface is a mock of VoltControllerInterface interface.
