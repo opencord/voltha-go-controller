@@ -25,7 +25,7 @@ import (
 	reflect "reflect"
 	of "voltha-go-controller/internal/pkg/of"
 
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 	kvstore "github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 )
 
