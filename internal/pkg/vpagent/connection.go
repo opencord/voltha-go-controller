@@ -22,10 +22,10 @@ import (
 
 	"voltha-go-controller/log"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -57,7 +57,7 @@ func (vpa *VPAgent) establishConnectionToVoltha(ctx context.Context) error {
 		if err == nil {
 			svc := voltha.NewVolthaServiceClient(conn)
 			if svc != nil {
-				if _, err = svc.GetVoltha(context.Background(), &empty.Empty{}); err == nil {
+				if _, err = svc.GetVoltha(context.Background(), &emptypb.Empty{}); err == nil {
 					logger.Debugw(ctx, "Established connection to Voltha",
 						log.Fields{
 							"VolthaApiEndPoint": vpa.VolthaAPIEndPoint,

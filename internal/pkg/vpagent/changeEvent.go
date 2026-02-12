@@ -21,8 +21,8 @@ import (
 
 	"voltha-go-controller/log"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func (vpa *VPAgent) receiveChangeEvents(ctx context.Context) {
@@ -45,7 +45,7 @@ func (vpa *VPAgent) receiveChangeEvents(ctx context.Context) {
 		return
 	}
 
-	stream, err := vServiceClient.ReceiveChangeEvents(streamCtx, &empty.Empty{}, opt)
+	stream, err := vServiceClient.ReceiveChangeEvents(streamCtx, &emptypb.Empty{}, opt)
 	if err != nil {
 		logger.Errorw(ctx, "Unable to establish Receive Change Event Stream",
 			log.Fields{"error": err})
@@ -61,7 +61,7 @@ top:
 		default:
 			ce, err := stream.Recv()
 			if err == io.EOF {
-				stream, err = vServiceClient.ReceiveChangeEvents(streamCtx, &empty.Empty{}, opt)
+				stream, err = vServiceClient.ReceiveChangeEvents(streamCtx, &emptypb.Empty{}, opt)
 				if err != nil {
 					logger.Errorw(ctx, "Unable to establish Receive Change Event Stream",
 						log.Fields{"error": err})
