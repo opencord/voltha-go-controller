@@ -25,7 +25,7 @@ import (
 	intf "voltha-go-controller/internal/pkg/intf"
 	"voltha-go-controller/internal/pkg/of"
 
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockApp is a mock of App interface.

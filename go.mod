@@ -6,7 +6,6 @@ replace github.com/google/gopacket => github.com/tinojj/gopacket v1.1.20-0.20220
 
 require (
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.4
 	github.com/google/gopacket v0.0.0-00010101000000-000000000000
 	github.com/gorilla/mux v1.8.1
@@ -14,12 +13,14 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/guumaster/tablewriter v0.0.10
 	github.com/jessevdk/go-flags v1.6.1
-	github.com/opencord/voltha-lib-go/v7 v7.7.2
-	github.com/opencord/voltha-protos/v5 v5.6.6
+	github.com/opencord/voltha-lib-go/v7 v7.8.1
+	github.com/opencord/voltha-protos/v5 v5.7.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/atomic v1.7.0
-	google.golang.org/grpc v1.76.0
+	go.uber.org/mock v0.6.0
+	google.golang.org/grpc v1.77.0
+	google.golang.org/protobuf v1.36.11
 )
 
 require (
@@ -49,11 +50,10 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
-	golang.org/x/net v0.46.0 // indirect
+	golang.org/x/net v0.46.1-0.20251013234738-63d1a5100f82 // indirect
 	golang.org/x/sys v0.37.0 // indirect
 	golang.org/x/text v0.30.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250804133106-a7a43d27e69b // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
-	google.golang.org/protobuf v1.36.10 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20251213004720-97cd9d5aeac2 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251124214823-79d6a2a48846 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
