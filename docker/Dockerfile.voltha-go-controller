@@ -42,10 +42,10 @@ COPY go.sum ./
 WORKDIR /go/src/voltha-go-controller/voltha-go-controller
 #RUN go build
 #Set CGO_ENABLED flag to 0 to avoid DNS issue in alpine release
-RUN CGO_ENABLED=0 go build -a -v -o /app/voltha-go-controller
+RUN CGO_ENABLED=0 go build -mod=vendor -a -v -o /app/voltha-go-controller
 
 WORKDIR /go/src/voltha-go-controller/voltha-go-controller/cli
-RUN CGO_ENABLED=0 go build -a -v -o /app/vgcctl
+RUN CGO_ENABLED=0 go build -mod=vendor -a -v -o /app/vgcctl
 
 FROM golang:1.25.3-alpine3.22 AS prod
 

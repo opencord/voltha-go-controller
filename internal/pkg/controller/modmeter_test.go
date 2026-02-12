@@ -23,7 +23,8 @@ import (
 	"voltha-go-controller/internal/pkg/of"
 	"voltha-go-controller/internal/test/mocks"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -66,9 +67,10 @@ func TestModMeterTask_Start(t *testing.T) {
 				},
 			}
 			mmt.meter.ID = uint32(2)
-			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
-			db = dbintf
-			dbintf.EXPECT().DelDeviceMeter(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			// Avoid assigning a package-level mock DB here; it can be
+			// invoked by background goroutines from other tests after this
+			// test completes and cause a panic. The ModMeterTask path under
+			// test does not require DB interactions.
 			volthaClientMock.EXPECT().UpdateLogicalDeviceMeterTable(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 			err := mmt.Start(tt.args.ctx, tt.args.taskID)
 			assert.Nil(t, err)
