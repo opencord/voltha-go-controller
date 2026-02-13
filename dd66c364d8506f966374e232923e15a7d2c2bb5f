@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dccac76c_da0f1d61",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001019
+      },
+      "writtenOn": "2026-02-13T10:04:04Z",
+      "side": 1,
+      "message": "\u003e Patch Set 11: Verified+1\n\u003e \n\u003e Build Successful \n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-go-controller_unit-test/437/ : SUCCESS\n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-go-controller_licensed/437/ : SUCCESS\n\nrecheck",
+      "revId": "dd66c364d8506f966374e232923e15a7d2c2bb5f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
