@@ -13,7 +13,7 @@ require (
 	github.com/guumaster/tablewriter v0.0.10
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/opencord/voltha-lib-go/v7 v7.8.1
-	github.com/opencord/voltha-protos/v5 v5.7.1
+	github.com/opencord/voltha-protos/v5 v5.7.2
 	github.com/prometheus/client_golang v1.23.2
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/atomic v1.7.0
