@@ -1,6 +1,6 @@
 module voltha-go-controller
 
-go 1.25.3
+go 1.25.5
 
 replace github.com/google/gopacket => github.com/tinojj/gopacket v1.1.20-0.20220525133109-3e65a52a1a61
 
@@ -12,8 +12,8 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/guumaster/tablewriter v0.0.10
 	github.com/jessevdk/go-flags v1.6.1
-	github.com/opencord/voltha-lib-go/v7 v7.8.1
-	github.com/opencord/voltha-protos/v5 v5.7.2
+	github.com/opencord/voltha-lib-go/v7 v7.8.4
+	github.com/opencord/voltha-protos/v5 v5.7.3
 	github.com/prometheus/client_golang v1.23.2
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/atomic v1.7.0
