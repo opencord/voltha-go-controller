@@ -31,11 +31,13 @@ import (
 )
 
 const (
-	PORTNAME string = "portName"
-	DEVICE   string = "device"
-	STAG     string = "sTag"
-	CTAG     string = "cTag"
-	TPID     string = "tpId"
+	PORTNAME  string = "portName"
+	DEVICE    string = "device"
+	OLTSERIAL string = "oltSerial"
+	DPUSERIAL string = "dpuSerial"
+	STAG      string = "sTag"
+	CTAG      string = "cTag"
+	TPID      string = "tpId"
 )
 
 // FlowHandle struct to handle flow related REST calls
@@ -66,7 +68,29 @@ type UniTagInformation struct {
 	EnableMacLearning             bool   `json:"enableMacLearning"`
 }
 
+type ServiceConfigInfo struct {
+	OnuSerial     string `json:"onuSerial"`
+	OltSerial     string `json:"oltSerial"`
+	SubType       string `json:"subType"`
+	State         string `json:"state"`
+	SubSTag       string `json:"subSTag"`
+	SubCTag       string `json:"subCTag"`
+	IngressPBit   string `json:"ingressPBit"`
+	EgressPBit    string `json:"egressPBit"`
+	OltUplinkPort string `json:"oltUplinkPort"`
+}
+
 type ServiceAdapter struct {
+}
+
+func (sa *ServiceConfigInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	logger.Infow(ctx, "Received-northbound-request", log.Fields{"Method": r.Method, "URL": r.URL})
+	switch r.Method {
+	case cGet:
+		sa.GetServiceConfiguration(context.Background(), w, r)
+	default:
+		logger.Warnw(ctx, "Unsupported Method", log.Fields{"Method": r.Method})
+	}
 }
 
 func (sa *ServiceAdapter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -381,4 +405,40 @@ func (sa *ServiceAdapter) GetProgrammedSubscribers(cntx context.Context, w http.
 		return
 	}
 	logger.Debugw(ctx, "Programmed Subscribers request specific for portNo and deviceID", log.Fields{"Subsbr": subsbr, "portNo": portNo, "deviceID": deviceID})
+}
+
+func (sa *ServiceConfigInfo) GetServiceConfiguration(cntx context.Context, w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	oltSerial := vars[OLTSERIAL]
+	dpuSerial := vars[DPUSERIAL]
+	logger.Infow(ctx, "Received Get Service Configuration request specific for OLT", log.Fields{"olt-serial": oltSerial})
+
+	subsbr := ServiceConfigList{}
+	subsbr.Subscribers = []ServiceConfigInfo{}
+	var voltAppIntr app.VoltAppInterface
+	voltApp := app.GetApplication()
+	voltAppIntr = voltApp
+	svcs := voltAppIntr.GetAllSubscribersInfo(cntx, oltSerial, dpuSerial)
+	if len(svcs) == 0 {
+		logger.Errorw(ctx, "No subscribers found", log.Fields{"olt-serial": oltSerial})
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	subs := convertServiceToDeviceConfig(svcs, oltSerial)
+	subsbr.Subscribers = subs
+	subsJSON, err := json.Marshal(subsbr)
+	if err != nil {
+		logger.Errorw(ctx, "Error occurred while marshaling subscriber response", log.Fields{"Subsbr": subsbr, "olt-serial": oltSerial, "Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	_, err = w.Write(subsJSON)
+	if err != nil {
+		logger.Errorw(ctx, "error in sending subscriber response", log.Fields{"Subsbr": subsbr, "olt-serial": oltSerial, "Error": err})
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	logger.Debugw(ctx, "Get Service Configuration request specific for OLT", log.Fields{"Subsbr": subsbr, "olt-serial": oltSerial})
 }

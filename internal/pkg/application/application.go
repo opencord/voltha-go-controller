@@ -36,6 +36,7 @@ import (
 	"github.com/google/gopacket/layers"
 
 	"voltha-go-controller/database"
+	"voltha-go-controller/event"
 	"voltha-go-controller/internal/pkg/controller"
 	errorCodes "voltha-go-controller/internal/pkg/errorcodes"
 	"voltha-go-controller/internal/pkg/intf"
@@ -84,6 +85,7 @@ var (
 )
 
 var db database.DBIntf
+var ev event.EventIntf
 
 // PacketHandlers : packet handler for different protocols
 var PacketHandlers map[string]CallBack
@@ -416,9 +418,9 @@ func (d *VoltDevice) pushFlowsForUnis(cntx context.Context, nniPort string) {
 
 		for _, vpv := range vnets.([]*VoltPortVnet) {
 			vpv.VpvLock.Lock()
-			if ok, serviceNni := vpv.IsServiceActivated(cntx); ok && (nniPort == serviceNni) {
-				logger.Infow(cntx, "sending PortUpInd for Unis after nni discovery", log.Fields{"activeNni": serviceNni, "uniport": port})
-				vpv.PortUpInd(cntx, d, port, serviceNni, false)
+			if ok, svc := vpv.IsServiceActivated(cntx); ok && (nniPort == svc.NniPort) {
+				logger.Infow(cntx, "sending PortUpInd for Unis after nni discovery", log.Fields{"activeNni": svc.NniPort, "uniport": port})
+				vpv.PortUpInd(cntx, d, port, svc.NniPort, false)
 			}
 			vpv.VpvLock.Unlock()
 		}
@@ -459,6 +461,7 @@ type VoltAppInterface interface {
 	ActivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) error
 	DeactivateService(cntx context.Context, deviceID, portNo string, sVlan, cVlan of.VlanType, tpID uint16) error
 	GetProgrammedSubscribers(cntx context.Context, deviceID, portNo string) ([]*VoltService, error)
+	GetAllSubscribersInfo(cntx context.Context, oltSerial string, dpuSerial string) []*VoltService
 	UpdateOltFlowService(cntx context.Context, oltFlowService OltFlowService)
 	GetIgnoredPorts() (map[string][]string, error)
 }
@@ -736,6 +739,7 @@ func newVoltApplication() *VoltApplication {
 	go va.Start(context.Background(), TimerCfg{tick: time.Duration(GroupExpiryTime) * time.Minute}, pendingPoolTimer)
 	InitEventFuncMapper()
 	db = database.GetDatabase()
+	ev = event.GetEventHandler()
 
 	return &va
 }
@@ -1505,12 +1509,12 @@ func (va *VoltApplication) PortUpInd(cntx context.Context, device string, port s
 	for _, vpv := range vpvs.([]*VoltPortVnet) {
 		vpv.VpvLock.Lock()
 		// If no service is activated drop the portUpInd
-		if ok, nniPort := vpv.IsServiceActivated(cntx); ok {
+		if ok, svc := vpv.IsServiceActivated(cntx); ok {
 			// Do not trigger indication for the vpv which is already removed from vpv list as
 			// part of service delete (during the lock wait duration)
 			// In that case, the services associated wil be zero
 			if vpv.servicesCount.Load() != 0 {
-				vpv.PortUpInd(cntx, d, port, nniPort, skipFlowPushToVoltha)
+				vpv.PortUpInd(cntx, d, port, svc.NniPort, skipFlowPushToVoltha)
 			}
 		} else {
 			// Service not activated, still attach device to service
@@ -1922,8 +1926,16 @@ func (va *VoltApplication) DeactivateServiceForPort(cntx context.Context, vs *Vo
 		}
 		vs.DeactivateInProgress = false
 		va.ServiceByName.Store(vs.Name, vs)
+		va.UpdateDeviceStateToMsgBus(cntx, portName, device.SerialNum, common.SubscriberStatus_DOWN, vs)
 		vs.WriteToDb(cntx)
 	}
+}
+
+func (va *VoltApplication) UpdateDeviceStateToMsgBus(cntx context.Context, port string, oltSerial string, deviceState common.SubscriberStatus_Types, vs *VoltService) {
+	onuSerial := util.GetOnuSerialFromPort(port)
+	sTag := vs.SVlan.String()
+	raisedTs := time.Now().Unix()
+	ev.SendSubscriberStateEvent(cntx, onuSerial, deviceState, oltSerial, sTag, vs.ServiceType, raisedTs)
 }
 
 func pushFlowFailureNotif(flowStatus intf.FlowStatus) {

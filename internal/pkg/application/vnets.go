@@ -3467,19 +3467,20 @@ func (vpv *VoltPortVnet) JSONMarshal() ([]byte, error) {
 	})
 }
 
-func (vpv *VoltPortVnet) IsServiceActivated(cntx context.Context) (bool, string) {
+func (vpv *VoltPortVnet) IsServiceActivated(cntx context.Context) (bool, *VoltService) {
 	logger.Debugw(ctx, "Is Service Activated", log.Fields{"Name": vpv.Port})
 	isActivated := false
-	nniPort := ""
+	var svc *VoltService
 	vpv.services.Range(func(key, value interface{}) bool {
-		svc := value.(*VoltService)
+		svc = value.(*VoltService)
+		svc.ServiceLock.RLock()
+		defer svc.ServiceLock.RUnlock()
 		if svc.IsActivated {
 			logger.Infow(ctx, "Found activated service on the vpv", log.Fields{"Name": svc.Name})
 			isActivated = true
-			nniPort = svc.NniPort
 			return false //to exit loop
 		}
 		return true
 	})
-	return isActivated, nniPort
+	return isActivated, svc
 }

@@ -2144,6 +2144,29 @@ func (va *VoltApplication) GetProgrammedSubscribers(cntx context.Context, device
 	return svcList, nil
 }
 
+// GetAllSubscribers to get list of programmed subscribers
+func (va *VoltApplication) GetAllSubscribersInfo(cntx context.Context, oltSerial string, dpuSerial string) []*VoltService {
+	var svcList []*VoltService
+	logger.Infow(ctx, "GetAllSubscribers Request ", log.Fields{"Device": oltSerial})
+	_, deviceId := va.GetDeviceBySerialNo(oltSerial)
+	va.ServiceByName.Range(func(key, value interface{}) bool {
+		vs := value.(*VoltService)
+		if deviceId != "" {
+			if dpuSerial != "" {
+				if deviceId == vs.Device && vs.ServiceType == FttbSubscriberTraffic && strings.Contains(vs.Port, dpuSerial) {
+					svcList = append(svcList, vs)
+				}
+			} else {
+				if deviceId == vs.Device {
+					svcList = append(svcList, vs)
+				}
+			}
+		}
+		return true
+	})
+	return svcList
+}
+
 type FlowProvisionStatus struct {
 	FlowProvisionStatus string
 }

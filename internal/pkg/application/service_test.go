@@ -29,11 +29,11 @@ import (
 	"voltha-go-controller/internal/pkg/util"
 	"voltha-go-controller/internal/test/mocks"
 
-	"go.uber.org/mock/gomock"
 	"github.com/google/gopacket/layers"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/atomic"
+	"go.uber.org/mock/gomock"
 )
 
 var test_device = "test_device"
@@ -923,6 +923,9 @@ func TestVoltApplication_DeactivateService(t *testing.T) {
 				va.VnetsByPort.Store("test_port", voltPortVnet1)
 				voltPortVnet1[0].servicesCount.Store(uint64(1))
 				dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+				eventInterface := mocks.NewMockEventIntf(gomock.NewController(t))
+				ev = eventInterface
+				eventInterface.EXPECT().SendSubscriberStateEvent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 				if err := va.DeactivateService(tt.args.cntx, tt.args.deviceID, tt.args.portNo, tt.args.sVlan, tt.args.cVlan, tt.args.tpID); (err != nil) != tt.wantErr {
 					t.Errorf("VoltApplication.DeactivateService() error = %v, wantErr %v", err, tt.wantErr)
 				}

@@ -42,6 +42,8 @@ const (
 	AdapterTopic         = "ADAPTER_TOPIC"
 	CoreTopic            = "CORE_TOPIC"
 	EventTopic           = "EVENT_TOPIC"
+	EventTopicPartitions = "EVENT_TOPIC_PARTITIONS"
+	EventTopicReplicas   = "EVENT_TOPIC_REPLICAS"
 	LogLevel             = "LOG_LEVEL"
 	OnuNumber            = "ONU_NUMBER"
 	Banner               = "BANNER"
