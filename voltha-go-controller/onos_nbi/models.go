@@ -21,8 +21,10 @@ import (
 	"strconv"
 	app "voltha-go-controller/internal/pkg/application"
 	"voltha-go-controller/internal/pkg/controller"
+	"voltha-go-controller/internal/pkg/util"
 
 	"voltha-go-controller/internal/pkg/of"
+	common "voltha-go-controller/internal/pkg/types"
 )
 
 const (
@@ -488,6 +490,10 @@ type SubscribersList struct {
 	Subscribers []SubscriberInfo `json:"subscribers"`
 }
 
+type ServiceConfigList struct {
+	Subscribers []ServiceConfigInfo `json:"serviceConfig"`
+}
+
 type OltFlowServiceConfig struct {
 	OltFlowService app.OltFlowService `json:"oltFlowService"`
 }
@@ -686,6 +692,44 @@ func convertServiceToSubscriberInfo(svcs []*app.VoltService) []SubscriberInfo {
 				IsIgmpRequired:                vs.IgmpEnabled,
 				IsPppoeRequired:               false,
 			},
+		}
+		subs = append(subs, sub)
+	}
+	return subs
+}
+
+func convertServiceToDeviceConfig(svcs []*app.VoltService, oltSerial string) []ServiceConfigInfo {
+	subs := []ServiceConfigInfo{}
+	var defaultNNI string
+	devConfig := app.GetApplication().GetDeviceConfig(oltSerial)
+	if devConfig != nil {
+		defaultNNI = "nni-" + devConfig.UplinkPort
+	}
+	for _, vs := range svcs {
+		state := ""
+		if vs.IsActivated {
+			state = common.SubscriberStatus_UP.String()
+		} else {
+			state = common.SubscriberStatus_DOWN.String()
+		}
+		var uplinkPort string
+		switch vs.ServiceType {
+		case "FTTH_SUBSCRIBER_TRAFFIC":
+			uplinkPort = vs.NniPort
+		case "FTTB_SUBSCRIBER_TRAFFIC", "DPU_MGMT_TRAFFIC":
+			uplinkPort = defaultNNI
+		}
+
+		sub := ServiceConfigInfo{
+			OltSerial:     oltSerial,
+			OnuSerial:     util.GetOnuSerialFromPort(vs.Port),
+			SubType:       vs.ServiceType,
+			State:         state,
+			SubSTag:       vs.SVlan.String(),
+			SubCTag:       vs.CVlan.String(),
+			IngressPBit:   vs.UsPonCTagPriority.String(),
+			EgressPBit:    vs.UsPonSTagPriority.String(),
+			OltUplinkPort: uplinkPort,
 		}
 		subs = append(subs, sub)
 	}

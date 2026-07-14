@@ -30,6 +30,7 @@ ENV LD_LIBRARY_PATH=/usr/local/lib
 WORKDIR /go/src/voltha-go-controller
 # Copy required files
 COPY database ./database
+COPY event ./event
 COPY vendor ./vendor
 COPY voltha-go-controller ./voltha-go-controller
 COPY internal ./internal

@@ -55,6 +55,9 @@ const (
 	defaultKVStoreTimeout       = 5000000000
 	defaultKafkaAdapterHost     = "127.0.0.1"
 	defaultKafkaAdapterPort     = 9092
+	defaultEventTopic           = "vgc.events"
+	defaultEventTopicPartitions = 6
+	defaultEventTopicReplicas   = 3
 	defaultInstanceID           = "VGC-01"
 	defaultVendorID             = ""
 )
@@ -108,12 +111,17 @@ type VGCFlags struct {
 	MemProfile                string
 	OFControllerEndPoints     multiFlag
 	KafkaAdapterPort          int
+	ProducerRetryMax          int
+	MetadataRetryMax          int
 	KVStoreTimeout            int // in seconds
 	KVStorePort               int
 	VolthaPort                int
 	ProbePort                 int
 	LiveProbeInterval         time.Duration
 	NotLiveProbeInterval      time.Duration
+	EventTopic                string
+	EventTopicPartitions      int
+	EventTopicReplicas        int
 	DeviceListRefreshInterval int // in seconds
 	PrometheusPort            int
 	ConnectionRetryDelay      int // in seconds
@@ -140,6 +148,9 @@ func (cf *VGCFlags) parseEnvironmentVariables() {
 	cf.LiveProbeInterval = time.Duration(envutils.ParseIntEnvVariable(envutils.LiveProbeInterval, defaultLiveProbeInterval)) * time.Second
 	cf.NotLiveProbeInterval = time.Duration(envutils.ParseIntEnvVariable(envutils.NotLiveProbeInterval, defaultNotLiveProbeInterval)) * time.Second
 	cf.Banner = envutils.ParseBoolEnvVariable(envutils.Banner, defaultBanner)
+	cf.EventTopic = envutils.ParseStringEnvVariable(envutils.EventTopic, defaultEventTopic)
+	cf.EventTopicPartitions = int(envutils.ParseIntEnvVariable(envutils.EventTopicPartitions, defaultEventTopicPartitions))
+	cf.EventTopicReplicas = int(envutils.ParseIntEnvVariable(envutils.EventTopicReplicas, defaultEventTopicReplicas))
 	cf.DisplayVersion = envutils.ParseBoolEnvVariable(envutils.DisplayVersionOnly, defaultDisplayVersion)
 	cf.CPUProfile = envutils.ParseStringEnvVariable(envutils.CPUProfile, defaultCPUProfile)
 	cf.MemProfile = envutils.ParseStringEnvVariable(envutils.MemProfile, defaultMemProfile)
