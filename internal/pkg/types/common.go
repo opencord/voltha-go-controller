@@ -27,6 +27,26 @@ var (
 	ErrEntryNotFound = errors.New("Entry not found")
 )
 
+// Device Status
+type SubscriberStatus_Types int32
+
+const (
+	SubscriberStatus_UNDEFINED SubscriberStatus_Types = 0
+	SubscriberStatus_UP        SubscriberStatus_Types = 1
+	SubscriberStatus_DOWN      SubscriberStatus_Types = 2
+)
+
+func (d SubscriberStatus_Types) String() string {
+	switch d {
+	case SubscriberStatus_UP:
+		return "UP"
+	case SubscriberStatus_DOWN:
+		return "DOWN"
+	default:
+		return "UNDEFINED"
+	}
+}
+
 // DeviceState refers to the state of device
 type DeviceState string
 
