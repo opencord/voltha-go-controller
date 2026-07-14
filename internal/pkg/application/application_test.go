@@ -29,10 +29,10 @@ import (
 	"voltha-go-controller/internal/pkg/util"
 	"voltha-go-controller/internal/test/mocks"
 
-	"go.uber.org/mock/gomock"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/atomic"
+	"go.uber.org/mock/gomock"
 )
 
 var test_data = "1234"
@@ -2612,6 +2612,9 @@ func TestVoltApplication_PortUpInd(t *testing.T) {
 			dbintf := mocks.NewMockDBIntf(gomock.NewController(t))
 			db = dbintf
 			dbintf.EXPECT().PutVpv(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			eventInterface := mocks.NewMockEventIntf(gomock.NewController(t))
+			ev = eventInterface
+			eventInterface.EXPECT().SendSubscriberStateEvent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 			va.PortUpInd(tt.args.cntx, tt.args.device, tt.args.port, false)
 		})
 	}
