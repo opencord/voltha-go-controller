@@ -2,15 +2,20 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 The Linux Foundation
 
-name: voltha-go release
+name: voltha-go-controller release
 
 # yamllint disable-line rule:truthy
 on:
-  workflow_dispatch:
   push:
     # Only invoked on release tag pushes
     tags:
       - v*.*.*
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Enter the Git tag to build (e.g., v1.2.3)'
+        required: false
+        type: string
 
 permissions:
   contents: write
