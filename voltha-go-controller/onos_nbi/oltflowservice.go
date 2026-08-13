@@ -45,6 +45,16 @@ func (oh *OltFlowServiceHandle) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// configureOltFlowService godoc
+// @Summary      Configure OLT flow service
+// @Description  Configure the OLT flow service parameters.
+// @Tags         OLT Flow Service
+// @Accept       json
+// @Produce      json
+// @Param        body  body  application.OltFlowService  true  "OLT flow service configuration"
+// @Success      200  {string}  string  "OLT flow service configured"
+// @Failure      409  {string}  string  "Conflict"
+// @Router       /oltflowservice [post]
 func (oh *OltFlowServiceHandle) configureOltFlowService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
@@ -66,6 +76,13 @@ func (oh *OltFlowServiceHandle) configureOltFlowService(cntx context.Context, w 
 	voltAppIntr.UpdateOltFlowService(cntx, *req)
 }
 
+// fetchOltFlowService godoc
+// @Summary      Get OLT flow service configuration
+// @Description  Retrieve the current OLT flow service configuration.
+// @Tags         OLT Flow Service
+// @Produce      json
+// @Success      200  {object}  onosnbi.OltFlowServiceConfig
+// @Router       /oltflowservice [get]
 func (oh *OltFlowServiceHandle) fetchOltFlowService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	oltFlowSer := OltFlowServiceConfig{}
 	va := app.GetApplication()

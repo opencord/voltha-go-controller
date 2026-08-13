@@ -75,7 +75,17 @@ func (mh *ProfileHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// AddProfile to add meter
+// AddProfile godoc
+// @Summary      Add a bandwidth profile
+// @Description  Create a bandwidth (meter) profile.
+// @Tags         Profiles
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string          true  "Profile identifier"
+// @Param        body  body  nbi.BWProfile   true  "Bandwidth profile"
+// @Success      200  "Profile added"
+// @Failure      400  {string}  string  "Invalid request payload"
+// @Router       /profiles/{id} [post]
 func (mh *ProfileHandle) AddProfile(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	profileName := vars["id"]
@@ -114,7 +124,15 @@ func (mh *ProfileHandle) AddProfile(cntx context.Context, w http.ResponseWriter,
 	logger.Debugw(ctx, "northbound-add-meter-successful", log.Fields{"req": req})
 }
 
-// GetProfile to get meter
+// GetProfile godoc
+// @Summary      Get a bandwidth profile
+// @Description  Retrieve a bandwidth (meter) profile by identifier.
+// @Tags         Profiles
+// @Produce      json
+// @Param        id  path  string  true  "Profile identifier"
+// @Success      200  {object}  nbi.BWProfile
+// @Failure      404  {string}  string  "Profile not found"
+// @Router       /profiles/{id} [get]
 func (mh *ProfileHandle) GetProfile(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	profileName := vars["id"]
@@ -157,7 +175,16 @@ func (mh *ProfileHandle) GetProfile(cntx context.Context, w http.ResponseWriter,
 	logger.Debugw(ctx, "Fetching ProfileResp from Profilename", log.Fields{"profileResp": profileResp})
 }
 
-// DelProfile to delete meter
+// DelProfile godoc
+// @Summary      Delete a bandwidth profile
+// @Description  Remove a bandwidth (meter) profile.
+// @Tags         Profiles
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string             true  "Profile identifier"
+// @Param        body  body  nbi.ProfileDelReq  true  "Profile delete request"
+// @Success      200  "Profile deleted"
+// @Router       /profiles/{id} [delete]
 func (mh *ProfileHandle) DelProfile(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	profileName := vars["id"]

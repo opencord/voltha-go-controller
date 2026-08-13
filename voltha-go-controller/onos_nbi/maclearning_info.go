@@ -60,6 +60,13 @@ func (mlh *MacLearnerHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetAllMacLearnerInfo godoc
+// @Summary      Get all MAC learner info
+// @Description  Retrieve all MAC learning entries across all devices.
+// @Tags         MAC Learning
+// @Produce      json
+// @Success      200  {array}  application.MacLearnerInfo
+// @Router       /mapping/all [get]
 func (mlh *MacLearnerHandle) GetAllMacLearnerInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	var voltAppIntr app.VoltAppInterface
 	voltApp := app.GetApplication()
@@ -88,6 +95,17 @@ func (mlh *MacLearnerHandle) GetAllMacLearnerInfo(cntx context.Context, w http.R
 	logger.Debugw(ctx, "Getting All MacLearnerInfo from DHCP Networks", log.Fields{"MacLearnerInfo": MacLearnerInfo})
 }
 
+// GetMacLearnerInfo godoc
+// @Summary      Get MAC learner info by device, port, and VLAN
+// @Description  Retrieve MAC learning entries for a specific device and port, optionally filtered by VLAN.
+// @Tags         MAC Learning
+// @Produce      json
+// @Param        deviceId    path  string  true  "Device identifier"
+// @Param        portNumber  path  string  true  "Port number"
+// @Param        vlanId      path  string  true  "VLAN identifier"
+// @Success      200  {array}  application.MacLearnerInfo
+// @Router       /mapping/{deviceId}/{portNumber} [get]
+// @Router       /mapping/{deviceId}/{portNumber}/{vlanId} [get]
 func (mlh *MacLearnerHandle) GetMacLearnerInfo(cntx context.Context, deviceID, portNum, vlanID string, w http.ResponseWriter, r *http.Request) {
 	var voltAppIntr app.VoltAppInterface
 	voltApp := app.GetApplication()

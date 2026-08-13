@@ -93,7 +93,16 @@ func (iph *MulticastHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// AddMvlanInfo to add igmp proxy info
+// AddMvlanInfo godoc
+// @Summary      Add a multicast VLAN profile
+// @Description  Create a multicast VLAN (MVLAN) profile.
+// @Tags         Multicast
+// @Accept       json
+// @Produce      json
+// @Param        body  body  nbi.Mvlan  true  "Multicast VLAN profile"
+// @Success      200  "Multicast VLAN configuration accepted"
+// @Failure      409  {string}  string  "Conflict while adding multicast VLAN"
+// @Router       /multicast/ [post]
 func (iph *MulticastHandle) AddMvlanInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
@@ -115,7 +124,14 @@ func (iph *MulticastHandle) AddMvlanInfo(cntx context.Context, w http.ResponseWr
 	go iph.addMvlan(cntx, w, req)
 }
 
-// DelMvlanInfo to delete igmp proxy info
+// DelMvlanInfo godoc
+// @Summary      Delete a multicast VLAN profile
+// @Description  Remove a multicast VLAN (MVLAN) profile by egress VLAN.
+// @Tags         Multicast
+// @Produce      json
+// @Param        egressvlan  path  string  true  "Egress VLAN id"
+// @Success      202  "Multicast VLAN deletion accepted"
+// @Router       /multicast/{egressvlan} [delete]
 func (iph *MulticastHandle) DelMvlanInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	egressvlan := vars["egressvlan"]

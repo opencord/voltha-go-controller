@@ -49,6 +49,13 @@ func (pih *PortIgnoredHandle) PortsIgnoredServeHTTP(w http.ResponseWriter, r *ht
 	}
 }
 
+// GetIgnoredPortsInfo godoc
+// @Summary      Get ignored ports
+// @Description  Retrieve the list of ignored ports across all devices.
+// @Tags         Ports
+// @Produce      json
+// @Success      200  {object}  map[string][]string
+// @Router       /ports/ignored [get]
 func (pih *PortIgnoredHandle) GetIgnoredPortsInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	var voltAppIntr app.VoltAppInterface
 	voltApp := app.GetApplication()

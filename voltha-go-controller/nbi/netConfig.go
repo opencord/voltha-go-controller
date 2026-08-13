@@ -75,7 +75,15 @@ func (nch *NetConfigHandle) NetConfigServeHTTP(w http.ResponseWriter, r *http.Re
 	}
 }
 
-// Populate the network configuration information
+// AddNetConfigInfo godoc
+// @Summary      Add network configuration
+// @Description  Populate the VGC network configuration information.
+// @Tags         Network Configuration
+// @Accept       json
+// @Produce      json
+// @Param        body  body  nbi.NetConfig  true  "Network configuration"
+// @Success      200  "Network configuration added"
+// @Router       /network-configurations [post]
 func (nch *NetConfigHandle) AddNetConfigInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	// Get the payload to process the request
 	d := new(bytes.Buffer)

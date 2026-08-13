@@ -208,6 +208,19 @@ func initializeKVStore(ctx context.Context, config *VGCFlags, logLevel log.Level
 	go MonitorKVStoreReadiness(ctx, config)
 }
 
+// @title VOLTHA Go Controller NBI REST API
+// @version 1.0
+// @description North Bound Interface (NBI) REST API exposed by voltha-go-controller (VGC).
+// @description It provides configuration and operational endpoints for subscribers, bandwidth
+// @description profiles, IGMP proxy, multicast, flows, devices, ports, meters, groups, DHCP
+// @description allocations, MAC learning and the OLT flow service.
+// @contact.name Open Networking Foundation
+// @contact.url https://opennetworking.org
+// @license.name Apache 2.0
+// @license.url https://www.apache.org/licenses/LICENSE-2.0.html
+// @host localhost:8181
+// @BasePath /vgc/v1
+// @schemes http
 func main() {
 	// Environment variables processing
 	config := newVGCFlags()

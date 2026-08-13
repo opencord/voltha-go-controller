@@ -1,0 +1,1502 @@
+basePath: /vgc/v1
+definitions:
+  application.DeviceConfig:
+    properties:
+      hardwareIdentifier:
+        type: string
+      id:
+        type: string
+      ipAddress:
+        type: string
+      nasId:
+        type: string
+      nniDhcpTrapVid:
+        type: integer
+      nniPorts:
+        items:
+          type: string
+        type: array
+      uplinkPort:
+        type: string
+    type: object
+  application.DhcpAllocation:
+    properties:
+      allocationTimestamp:
+        type: string
+      circuitId:
+        items:
+          type: integer
+        type: array
+      connectPoint:
+        type: string
+      ipAllocated:
+        items:
+          type: integer
+        type: array
+      macAddress:
+        items:
+          type: integer
+        type: array
+      state:
+        type: integer
+      subscriberId:
+        type: string
+      vlanId:
+        type: integer
+    type: object
+  application.FlowProvisionStatus:
+    properties:
+      flowProvisionStatus:
+        type: string
+    type: object
+  application.MacLearnerInfo:
+    properties:
+      deviceId:
+        type: string
+      macAddress:
+        type: string
+      portNumber:
+        type: string
+      vlanId:
+        type: string
+    type: object
+  application.OltFlowService:
+    properties:
+      defaultTechProfileId:
+        type: integer
+      enableDhcpOnNni:
+        type: boolean
+      enableDhcpV4:
+        type: boolean
+      enableDhcpV6:
+        type: boolean
+      enableEapol:
+        type: boolean
+      enableIgmpOnNni:
+        type: boolean
+      removeFlowsOnDisable:
+        type: boolean
+    type: object
+  nbi.Apps:
+    properties:
+      org.onosproject.core:
+        $ref: '#/definitions/nbi.McastInfo'
+      org.opencord.igmpproxy:
+        $ref: '#/definitions/nbi.IgmpProxy'
+      org.opencord.sadis:
+        $ref: '#/definitions/nbi.SubscriberBW'
+    type: object
+  nbi.BWEnteries:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/nbi.BWProfile'
+        type: array
+    type: object
+  nbi.BWProfile:
+    properties:
+      air:
+        type: integer
+      cbs:
+        type: integer
+      cir:
+        type: integer
+      ebs:
+        type: integer
+      eir:
+        type: integer
+      gir:
+        type: integer
+      id:
+        type: string
+      pbs:
+        type: integer
+      pir:
+        type: integer
+    type: object
+  nbi.IgmpProxy:
+    properties:
+      enableigmpprovisioning:
+        type: string
+      fastleave:
+        type: string
+      globalconnectpoint:
+        type: string
+      globalconnectpointmode:
+        type: string
+      igmpcos:
+        type: integer
+      igmpunicos:
+        type: integer
+      keepalivecount:
+        type: integer
+      keepaliveinterval:
+        type: integer
+      lastqueryinterval:
+        type: integer
+      maxresp:
+        type: integer
+      outgoingigmpinnervlanid:
+        type: integer
+      outgoingigmpvlanid:
+        type: integer
+      outgoingigmpwithv3:
+        type: string
+      periodicquery:
+        type: string
+      requestdsigmppackets:
+        type: boolean
+      sourcedeviceandport:
+        type: string
+    type: object
+  nbi.McastInfo:
+    properties:
+      multicast:
+        $ref: '#/definitions/nbi.Mvlan'
+    type: object
+  nbi.Mvlan:
+    properties:
+      egressinnervlan:
+        type: integer
+      egressvlan:
+        type: integer
+      ingressvlan:
+        type: integer
+    type: object
+  nbi.NetConfig:
+    properties:
+      apps:
+        $ref: '#/definitions/nbi.Apps'
+    type: object
+  nbi.ProfileDelReq:
+    properties:
+      id:
+        type: string
+    type: object
+  nbi.Subscriber:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/nbi.SubscriberDeviceInfo'
+        type: array
+    type: object
+  nbi.SubscriberBW:
+    properties:
+      bandwidthprofile:
+        $ref: '#/definitions/nbi.BWEnteries'
+      sadis:
+        $ref: '#/definitions/nbi.Subscriber'
+    type: object
+  nbi.SubscriberDeviceInfo:
+    properties:
+      circuitId:
+        type: string
+      hardwareIdentifier:
+        type: string
+      id:
+        type: string
+      ipAddress:
+        type: string
+      nasId:
+        type: string
+      nasPortId:
+        type: string
+      nniDhcpTrapVid:
+        type: integer
+      remoteId:
+        type: string
+      slot:
+        type: integer
+      uniTagList:
+        items:
+          $ref: '#/definitions/nbi.UniTagInformation'
+        type: array
+      uplinkPort:
+        type: string
+    type: object
+  nbi.UniTagInformation:
+    properties:
+      configuredMacAddress:
+        type: string
+      downstreamBandwidthProfile:
+        type: string
+      downstreamOltBandwidthProfile:
+        type: string
+      dsPonCTagPriority:
+        type: integer
+      dsPonSTagPriority:
+        type: integer
+      enableMacLearning:
+        type: boolean
+      isDhcpRequired:
+        type: boolean
+      isIgmpRequired:
+        type: boolean
+      isPppoeRequired:
+        type: boolean
+      ponCTag:
+        type: integer
+      ponSTag:
+        type: integer
+      serviceName:
+        type: string
+      technologyProfileId:
+        type: integer
+      uniTagMatch:
+        type: integer
+      upstreamBandwidthProfile:
+        type: string
+      upstreamOltBandwidthProfile:
+        type: string
+      usPonCTagPriority:
+        type: integer
+      usPonSTagPriority:
+        type: integer
+    type: object
+  onosnbi.Bands:
+    properties:
+      burstSize:
+        type: integer
+      bytes:
+        type: integer
+      packets:
+        type: integer
+      prec:
+        type: integer
+      rate:
+        type: integer
+      type:
+        type: string
+    type: object
+  onosnbi.Bucket:
+    properties:
+      bucketId:
+        type: integer
+      bytes:
+        type: integer
+      packets:
+        type: integer
+      treatment:
+        $ref: '#/definitions/onosnbi.Treatment'
+      type:
+        type: string
+      weight:
+        type: integer
+    type: object
+  onosnbi.Device:
+    properties:
+      annotations:
+        $ref: '#/definitions/onosnbi.DeviceAnnotations'
+      available:
+        type: boolean
+      chassisId:
+        type: string
+      driver:
+        type: string
+      humanReadableLastUpdate:
+        type: string
+      hw:
+        type: string
+      id:
+        type: string
+      lastUpdate:
+        type: string
+      mfr:
+        type: string
+      role:
+        type: string
+      serial:
+        type: string
+      sw:
+        type: string
+      type:
+        type: string
+    type: object
+  onosnbi.DeviceAnnotations:
+    properties:
+      channelId:
+        type: string
+      managementAddress:
+        type: string
+      protocol:
+        type: string
+    type: object
+  onosnbi.DeviceConfigPayload:
+    properties:
+      deviceConfig:
+        $ref: '#/definitions/application.DeviceConfig'
+    type: object
+  onosnbi.DeviceEntry:
+    properties:
+      devices:
+        items:
+          $ref: '#/definitions/onosnbi.Device'
+        type: array
+    type: object
+  onosnbi.DevicePortEntry:
+    properties:
+      device:
+        $ref: '#/definitions/onosnbi.Device'
+      ports:
+        items:
+          $ref: '#/definitions/onosnbi.Port'
+        type: array
+    type: object
+  onosnbi.Flow:
+    properties:
+      appId:
+        type: string
+      bytes:
+        type: integer
+      deviceId:
+        type: string
+      groupId:
+        type: integer
+      id:
+        type: string
+      isPermanent:
+        type: boolean
+      lastSeen:
+        type: integer
+      life:
+        type: integer
+      liveType:
+        type: string
+      packets:
+        type: integer
+      priority:
+        type: integer
+      selector:
+        $ref: '#/definitions/onosnbi.SelectorInfo'
+      state:
+        type: string
+      tableId:
+        type: integer
+      tableName:
+        type: string
+      timeout:
+        type: integer
+      treatment:
+        $ref: '#/definitions/onosnbi.TreatmentInfo'
+    type: object
+  onosnbi.FlowEntry:
+    properties:
+      flows:
+        items:
+          $ref: '#/definitions/onosnbi.Flow'
+        type: array
+    type: object
+  onosnbi.GroupList:
+    properties:
+      groups:
+        items:
+          $ref: '#/definitions/onosnbi.GroupsInfo'
+        type: array
+    type: object
+  onosnbi.GroupsInfo:
+    properties:
+      appCookie:
+        type: string
+      appId:
+        type: string
+      buckets:
+        items:
+          $ref: '#/definitions/onosnbi.Bucket'
+        type: array
+      bytes:
+        type: integer
+      deviceId:
+        type: string
+      id:
+        type: integer
+      life:
+        type: integer
+      packets:
+        type: integer
+      referenceCount:
+        type: integer
+      state:
+        type: string
+      type:
+        type: string
+    type: object
+  onosnbi.Instructions:
+    properties:
+      port:
+        type: string
+      type:
+        type: string
+    type: object
+  onosnbi.MeterList:
+    properties:
+      meters:
+        items:
+          $ref: '#/definitions/onosnbi.Meters'
+        type: array
+    type: object
+  onosnbi.Meters:
+    properties:
+      appId:
+        type: string
+      bands:
+        items:
+          $ref: '#/definitions/onosnbi.Bands'
+        type: array
+      burst:
+        type: boolean
+      bytes:
+        type: integer
+      deviceId:
+        type: string
+      id:
+        type: string
+      life:
+        type: integer
+      packets:
+        type: integer
+      referenceCount:
+        type: integer
+      state:
+        type: string
+      unit:
+        type: string
+    type: object
+  onosnbi.OltFlowServiceConfig:
+    properties:
+      oltFlowService:
+        $ref: '#/definitions/application.OltFlowService'
+    type: object
+  onosnbi.Port:
+    properties:
+      annotations:
+        $ref: '#/definitions/onosnbi.PortAnnotations'
+      element:
+        type: string
+      isEnabled:
+        type: boolean
+      port:
+        type: string
+      portSpeed:
+        type: integer
+      type:
+        type: string
+    type: object
+  onosnbi.PortAnnotations:
+    properties:
+      adminState:
+        type: string
+      portMac:
+        type: string
+      portName:
+        type: string
+    type: object
+  onosnbi.PortEntry:
+    properties:
+      ports:
+        items:
+          $ref: '#/definitions/onosnbi.Port'
+        type: array
+    type: object
+  onosnbi.SelectorInfo:
+    properties:
+      criteria:
+        items: {}
+        type: array
+    type: object
+  onosnbi.SubscriberInfo:
+    properties:
+      location:
+        type: string
+      tagInfo:
+        $ref: '#/definitions/onosnbi.UniTagInformation'
+    type: object
+  onosnbi.SubscribersList:
+    properties:
+      subscribers:
+        items:
+          $ref: '#/definitions/onosnbi.SubscriberInfo'
+        type: array
+    type: object
+  onosnbi.Treatment:
+    properties:
+      deferred:
+        items: {}
+        type: array
+      instructions:
+        items:
+          $ref: '#/definitions/onosnbi.Instructions'
+        type: array
+    type: object
+  onosnbi.TreatmentInfo:
+    properties:
+      deferred:
+        items: {}
+        type: array
+      instructions:
+        items: {}
+        type: array
+    type: object
+  onosnbi.UniTagInformation:
+    properties:
+      configuredMacAddress:
+        type: string
+      downstreamBandwidthProfile:
+        type: string
+      downstreamOltBandwidthProfile:
+        type: string
+      dsPonCTagPriority:
+        type: integer
+      dsPonSTagPriority:
+        type: integer
+      enableMacLearning:
+        type: boolean
+      isDhcpRequired:
+        type: boolean
+      isIgmpRequired:
+        type: boolean
+      isPppoeRequired:
+        type: boolean
+      ponCTag:
+        type: integer
+      ponSTag:
+        type: integer
+      serviceName:
+        type: string
+      technologyProfileId:
+        type: integer
+      uniTagMatch:
+        type: integer
+      upstreamBandwidthProfile:
+        type: string
+      upstreamOltBandwidthProfile:
+        type: string
+      usPonCTagPriority:
+        type: integer
+      usPonSTagPriority:
+        type: integer
+    type: object
+host: localhost:8181
+info:
+  contact:
+    name: Open Networking Foundation
+    url: https://opennetworking.org
+  description: |-
+    North Bound Interface (NBI) REST API exposed by voltha-go-controller (VGC).
+    It provides configuration and operational endpoints for subscribers, bandwidth
+    profiles, IGMP proxy, multicast, flows, devices, ports, meters, groups, DHCP
+    allocations, MAC learning and the OLT flow service.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  title: VOLTHA Go Controller NBI REST API
+  version: "1.0"
+paths:
+  /allocations:
+    get:
+      description: Retrieve DHCP allocations for all devices or for a specific device.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/application.DhcpAllocation'
+            type: array
+      summary: Get DHCP allocations
+      tags:
+      - DHCP
+  /allocations/{deviceId}:
+    get:
+      description: Retrieve DHCP allocations for all devices or for a specific device.
+      parameters:
+      - description: Device identifier
+        in: path
+        name: deviceId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/application.DhcpAllocation'
+            type: array
+      summary: Get DHCP allocations
+      tags:
+      - DHCP
+  /devices:
+    get:
+      description: Retrieve the list of devices known to VGC.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.DeviceEntry'
+      summary: Get device list
+      tags:
+      - Devices
+  /devices/{olt_of_id}/ports:
+    get:
+      description: Retrieve the list of ports for a specific device.
+      parameters:
+      - description: Device (OLT) OpenFlow identifier
+        in: path
+        name: olt_of_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.DevicePortEntry'
+      summary: Get ports for a device
+      tags:
+      - Devices
+  /devices/ports:
+    get:
+      description: Retrieve the list of ports across all devices.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.PortEntry'
+      summary: Get port list
+      tags:
+      - Devices
+  /flow-status/{portName}:
+    get:
+      description: Return the flow provisioning status for the subscriber on the given
+        access port.
+      parameters:
+      - description: Access port name
+        in: path
+        name: portName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/application.FlowProvisionStatus'
+      summary: Get subscriber flow provisioning status
+      tags:
+      - Subscribers
+  /flows:
+    get:
+      description: Retrieve all flows, flows for a specific device, or a single flow
+        by device and flow id.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.FlowEntry'
+      summary: Get flows
+      tags:
+      - Flows
+  /flows/{deviceId}:
+    get:
+      description: Retrieve all flows, flows for a specific device, or a single flow
+        by device and flow id.
+      parameters:
+      - description: Device identifier
+        in: path
+        name: deviceId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.FlowEntry'
+      summary: Get flows
+      tags:
+      - Flows
+  /flows/{deviceId}/{flowId}:
+    get:
+      description: Retrieve all flows, flows for a specific device, or a single flow
+        by device and flow id.
+      parameters:
+      - description: Device identifier
+        in: path
+        name: deviceId
+        type: string
+      - description: Flow identifier
+        in: path
+        name: flowId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.FlowEntry'
+      summary: Get flows
+      tags:
+      - Flows
+  /flows/pending:
+    get:
+      description: Retrieve all flows that are pending programming on the devices.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.FlowEntry'
+      summary: Get pending flows
+      tags:
+      - Flows
+  /groups:
+    get:
+      description: Retrieve all groups programmed on the devices.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.GroupList'
+      summary: Get all groups
+      tags:
+      - Groups
+  /groups/{id}:
+    get:
+      description: Retrieve a specific group by its identifier.
+      parameters:
+      - description: Group identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.GroupList'
+        "404":
+          description: Group not found
+          schema:
+            type: string
+      summary: Get group by ID
+      tags:
+      - Groups
+  /igmp-proxy:
+    post:
+      consumes:
+      - application/json
+      description: Configure IGMP proxy for a multicast VLAN.
+      parameters:
+      - description: IGMP proxy configuration
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nbi.IgmpProxy'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: IGMP proxy configuration accepted
+        "500":
+          description: Failed to read request
+          schema:
+            type: string
+      summary: Add IGMP proxy configuration
+      tags:
+      - IGMP Proxy
+  /igmp-proxy/{outgoingigmpvlanid}:
+    delete:
+      description: Remove IGMP proxy configuration for the given outgoing IGMP VLAN
+        id.
+      parameters:
+      - description: Outgoing IGMP VLAN id
+        in: path
+        name: outgoingigmpvlanid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: IGMP proxy configuration deleted
+      summary: Delete IGMP proxy configuration
+      tags:
+      - IGMP Proxy
+  /mapping/{deviceId}/{portNumber}:
+    get:
+      description: Retrieve MAC learning entries for a specific device and port, optionally
+        filtered by VLAN.
+      parameters:
+      - description: Device identifier
+        in: path
+        name: deviceId
+        required: true
+        type: string
+      - description: Port number
+        in: path
+        name: portNumber
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/application.MacLearnerInfo'
+            type: array
+      summary: Get MAC learner info by device, port, and VLAN
+      tags:
+      - MAC Learning
+  /mapping/{deviceId}/{portNumber}/{vlanId}:
+    get:
+      description: Retrieve MAC learning entries for a specific device and port, optionally
+        filtered by VLAN.
+      parameters:
+      - description: Device identifier
+        in: path
+        name: deviceId
+        required: true
+        type: string
+      - description: Port number
+        in: path
+        name: portNumber
+        required: true
+        type: string
+      - description: VLAN identifier
+        in: path
+        name: vlanId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/application.MacLearnerInfo'
+            type: array
+      summary: Get MAC learner info by device, port, and VLAN
+      tags:
+      - MAC Learning
+  /mapping/all:
+    get:
+      description: Retrieve all MAC learning entries across all devices.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/application.MacLearnerInfo'
+            type: array
+      summary: Get all MAC learner info
+      tags:
+      - MAC Learning
+  /meters:
+    get:
+      description: Retrieve all meters programmed on the devices.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.MeterList'
+      summary: Get all meters
+      tags:
+      - Meters
+  /meters/{id}:
+    get:
+      description: Retrieve a specific meter by its identifier.
+      parameters:
+      - description: Meter identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.MeterList'
+        "404":
+          description: Meter not found
+          schema:
+            type: string
+      summary: Get meter by ID
+      tags:
+      - Meters
+  /multicast/:
+    post:
+      consumes:
+      - application/json
+      description: Create a multicast VLAN (MVLAN) profile.
+      parameters:
+      - description: Multicast VLAN profile
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nbi.Mvlan'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Multicast VLAN configuration accepted
+        "409":
+          description: Conflict while adding multicast VLAN
+          schema:
+            type: string
+      summary: Add a multicast VLAN profile
+      tags:
+      - Multicast
+  /multicast/{egressvlan}:
+    delete:
+      description: Remove a multicast VLAN (MVLAN) profile by egress VLAN.
+      parameters:
+      - description: Egress VLAN id
+        in: path
+        name: egressvlan
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Multicast VLAN deletion accepted
+      summary: Delete a multicast VLAN profile
+      tags:
+      - Multicast
+  /network-configurations:
+    post:
+      consumes:
+      - application/json
+      description: Populate the VGC network configuration information.
+      parameters:
+      - description: Network configuration
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nbi.NetConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Network configuration added
+      summary: Add network configuration
+      tags:
+      - Network Configuration
+  /olt/{serialNumber}:
+    get:
+      description: Retrieve the device configuration for a specific OLT by serial
+        number.
+      parameters:
+      - description: OLT serial number
+        in: path
+        name: serialNumber
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.DeviceConfigPayload'
+        "400":
+          description: Device not found
+          schema:
+            type: string
+      summary: Get device configuration
+      tags:
+      - Device Configuration
+    post:
+      consumes:
+      - application/json
+      description: Add or update the device configuration for an OLT.
+      parameters:
+      - description: OLT serial number
+        in: path
+        name: serialNumber
+        required: true
+        type: string
+      - description: Device configuration
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/application.DeviceConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Device configuration added
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Add device configuration
+      tags:
+      - Device Configuration
+  /oltflowservice:
+    get:
+      description: Retrieve the current OLT flow service configuration.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.OltFlowServiceConfig'
+      summary: Get OLT flow service configuration
+      tags:
+      - OLT Flow Service
+    post:
+      consumes:
+      - application/json
+      description: Configure the OLT flow service parameters.
+      parameters:
+      - description: OLT flow service configuration
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/application.OltFlowService'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OLT flow service configured
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Configure OLT flow service
+      tags:
+      - OLT Flow Service
+  /ports/ignored:
+    get:
+      description: Retrieve the list of ignored ports across all devices.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                type: string
+              type: array
+            type: object
+      summary: Get ignored ports
+      tags:
+      - Ports
+  /profiles/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a bandwidth (meter) profile.
+      parameters:
+      - description: Profile identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Profile delete request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nbi.ProfileDelReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile deleted
+      summary: Delete a bandwidth profile
+      tags:
+      - Profiles
+    get:
+      description: Retrieve a bandwidth (meter) profile by identifier.
+      parameters:
+      - description: Profile identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/nbi.BWProfile'
+        "404":
+          description: Profile not found
+          schema:
+            type: string
+      summary: Get a bandwidth profile
+      tags:
+      - Profiles
+    post:
+      consumes:
+      - application/json
+      description: Create a bandwidth (meter) profile.
+      parameters:
+      - description: Profile identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Bandwidth profile
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nbi.BWProfile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile added
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+      summary: Add a bandwidth profile
+      tags:
+      - Profiles
+  /programmed-subscribers:
+    get:
+      description: Retrieve programmed subscribers, optionally filtered by device
+        and port.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.SubscribersList'
+        "404":
+          description: Subscribers not found
+          schema:
+            type: string
+      summary: Get programmed subscribers
+      tags:
+      - Subscribers
+  /programmed-subscribers/{device}/{port}:
+    get:
+      description: Retrieve programmed subscribers, optionally filtered by device
+        and port.
+      parameters:
+      - description: Device identifier
+        in: path
+        name: device
+        type: string
+      - description: Port identifier
+        in: path
+        name: port
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.SubscribersList'
+        "404":
+          description: Subscribers not found
+          schema:
+            type: string
+      summary: Get programmed subscribers
+      tags:
+      - Subscribers
+  /services/{device}/{port}:
+    delete:
+      description: Deactivate the service(s) on the given device and port.
+      parameters:
+      - description: Device identifier
+        in: path
+        name: device
+        required: true
+        type: string
+      - description: Port identifier
+        in: path
+        name: port
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service deactivated
+      summary: Deactivate a service
+      tags:
+      - Services
+    get:
+      description: Retrieve programmed subscribers, optionally filtered by device
+        and port.
+      parameters:
+      - description: Device identifier
+        in: path
+        name: device
+        type: string
+      - description: Port identifier
+        in: path
+        name: port
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/onosnbi.SubscribersList'
+        "404":
+          description: Subscribers not found
+          schema:
+            type: string
+      summary: Get programmed subscribers
+      tags:
+      - Subscribers
+    post:
+      description: Activate the service(s) on the given device and port.
+      parameters:
+      - description: Device identifier
+        in: path
+        name: device
+        required: true
+        type: string
+      - description: Port identifier
+        in: path
+        name: port
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service activated
+      summary: Activate a service
+      tags:
+      - Services
+  /services/{portName}:
+    delete:
+      description: Deactivate the service on the given access port, optionally scoped
+        by S-Tag, C-Tag and technology profile id.
+      parameters:
+      - description: Access port name
+        in: path
+        name: portName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service deactivated
+      summary: Deactivate a service by port name
+      tags:
+      - Services
+    post:
+      description: Activate the service on the given access port, optionally scoped
+        by S-Tag, C-Tag and technology profile id.
+      parameters:
+      - description: Access port name
+        in: path
+        name: portName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service activated
+      summary: Activate a service by port name
+      tags:
+      - Services
+  /services/{portName}/{sTag}/{cTag}/{tpId}:
+    delete:
+      description: Deactivate the service on the given access port, optionally scoped
+        by S-Tag, C-Tag and technology profile id.
+      parameters:
+      - description: Access port name
+        in: path
+        name: portName
+        required: true
+        type: string
+      - description: Service VLAN (S-Tag)
+        in: path
+        name: sTag
+        type: string
+      - description: Customer VLAN (C-Tag)
+        in: path
+        name: cTag
+        type: string
+      - description: Technology profile id
+        in: path
+        name: tpId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service deactivated
+      summary: Deactivate a service by port name
+      tags:
+      - Services
+    post:
+      description: Activate the service on the given access port, optionally scoped
+        by S-Tag, C-Tag and technology profile id.
+      parameters:
+      - description: Access port name
+        in: path
+        name: portName
+        required: true
+        type: string
+      - description: Service VLAN (S-Tag)
+        in: path
+        name: sTag
+        type: string
+      - description: Customer VLAN (C-Tag)
+        in: path
+        name: cTag
+        type: string
+      - description: Technology profile id
+        in: path
+        name: tpId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service activated
+      summary: Activate a service by port name
+      tags:
+      - Services
+  /subscribers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a subscriber and its associated services from VGC.
+      parameters:
+      - description: Subscriber identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Subscriber device information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nbi.SubscriberDeviceInfo'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Subscriber deletion accepted
+        "404":
+          description: Subscriber not found
+          schema:
+            type: string
+        "409":
+          description: Conflict while deleting subscriber
+          schema:
+            type: string
+      summary: Delete a subscriber
+      tags:
+      - Subscribers
+    post:
+      consumes:
+      - application/json
+      description: Provision a subscriber and its associated services on VGC.
+      parameters:
+      - description: Subscriber identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Subscriber device information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nbi.SubscriberDeviceInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Subscriber added
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "409":
+          description: Conflict while adding subscriber
+          schema:
+            type: string
+      summary: Add a subscriber
+      tags:
+      - Subscribers
+  /updateDevice/{deviceId}:
+    post:
+      consumes:
+      - application/json
+      description: Update the uplink configuration for a device.
+      parameters:
+      - description: Device identifier
+        in: path
+        name: deviceId
+        required: true
+        type: string
+      - description: Device configuration with updated NNI ports
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/application.DeviceConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Device configuration updated
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Update device uplink configuration
+      tags:
+      - Device Configuration
+schemes:
+- http
+swagger: "2.0"

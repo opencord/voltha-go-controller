@@ -57,6 +57,15 @@ func (dh *DhcpRelayHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetAllocations godoc
+// @Summary      Get DHCP allocations
+// @Description  Retrieve DHCP allocations for all devices or for a specific device.
+// @Tags         DHCP
+// @Produce      json
+// @Param        deviceId  path  string  true  "Device identifier"
+// @Success      200  {array}  application.DhcpAllocation
+// @Router       /allocations [get]
+// @Router       /allocations/{deviceId} [get]
 func (dh *DhcpRelayHandle) GetAllocations(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	deviceID := vars[DeviceID]

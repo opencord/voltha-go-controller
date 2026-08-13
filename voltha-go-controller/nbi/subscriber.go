@@ -107,7 +107,18 @@ func (sh *SubscriberHandle) StatusServeHTTP(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-// AddSubscriberInfo to add service
+// AddSubscriberInfo godoc
+// @Summary      Add a subscriber
+// @Description  Provision a subscriber and its associated services on VGC.
+// @Tags         Subscribers
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                 true  "Subscriber identifier"
+// @Param        body  body  nbi.SubscriberDeviceInfo  true  "Subscriber device information"
+// @Success      200  "Subscriber added"
+// @Failure      400  {string}  string  "Invalid request payload"
+// @Failure      409  {string}  string  "Conflict while adding subscriber"
+// @Router       /subscribers/{id} [post]
 func (sh *SubscriberHandle) AddSubscriberInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
@@ -251,7 +262,18 @@ func addAllService(cntx context.Context, srvInfo *SubscriberDeviceInfo) {
 	}
 }
 
-// DelSubscriberInfo to delete service
+// DelSubscriberInfo godoc
+// @Summary      Delete a subscriber
+// @Description  Remove a subscriber and its associated services from VGC.
+// @Tags         Subscribers
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                 true  "Subscriber identifier"
+// @Param        body  body  nbi.SubscriberDeviceInfo  true  "Subscriber device information"
+// @Success      202  "Subscriber deletion accepted"
+// @Failure      404  {string}  string  "Subscriber not found"
+// @Failure      409  {string}  string  "Conflict while deleting subscriber"
+// @Router       /subscribers/{id} [delete]
 func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -296,7 +318,14 @@ func (sh *SubscriberHandle) DelSubscriberInfo(cntx context.Context, w http.Respo
 	w.WriteHeader(http.StatusAccepted)
 }
 
-// DelSubscriberInfo to delete service
+// GetSubscriberAndFlowProvisionStatus godoc
+// @Summary      Get subscriber flow provisioning status
+// @Description  Return the flow provisioning status for the subscriber on the given access port.
+// @Tags         Subscribers
+// @Produce      json
+// @Param        portName  path  string  true  "Access port name"
+// @Success      200  {object}  application.FlowProvisionStatus
+// @Router       /flow-status/{portName} [get]
 func (sh *SubscriberHandle) GetSubscriberAndFlowProvisionStatus(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	portName := vars["portName"]
