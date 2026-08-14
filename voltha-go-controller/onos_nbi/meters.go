@@ -60,6 +60,15 @@ func (mh *MetersHandle) MeterServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetMeter godoc
+// @Summary      Get meter by ID
+// @Description  Retrieve a specific meter by its identifier.
+// @Tags         Meters
+// @Produce      json
+// @Param        id  path  string  true  "Meter identifier"
+// @Success      200  {object}  onosnbi.MeterList
+// @Failure      404  {string}  string  "Meter not found"
+// @Router       /meters/{id} [get]
 func (mh *MetersHandle) GetMeter(cntx context.Context, meterID string, w http.ResponseWriter, r *http.Request) {
 	meterListResp := MeterList{}
 	meterListResp.Meters = []Meters{}
@@ -101,6 +110,13 @@ func (mh *MetersHandle) GetMeter(cntx context.Context, meterID string, w http.Re
 	logger.Debugw(ctx, "Fetch Meter Info specific to received Meter Id", log.Fields{"metreId": id, "MeterListResp": meterListResp})
 }
 
+// GetAllMeters godoc
+// @Summary      Get all meters
+// @Description  Retrieve all meters programmed on the devices.
+// @Tags         Meters
+// @Produce      json
+// @Success      200  {object}  onosnbi.MeterList
+// @Router       /meters [get]
 func (mh *MetersHandle) GetAllMeters(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	metersList := MeterList{}
 	metersList.Meters = []Meters{}

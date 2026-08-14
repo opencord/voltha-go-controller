@@ -97,6 +97,15 @@ func (sa *ServiceAdapter) ServeHTTPWithPortName(w http.ResponseWriter, r *http.R
 	}
 }
 
+// ActivateService godoc
+// @Summary      Activate a service
+// @Description  Activate the service(s) on the given device and port.
+// @Tags         Services
+// @Produce      json
+// @Param        device  path  string  true  "Device identifier"
+// @Param        port    path  string  true  "Port identifier"
+// @Success      200  "Service activated"
+// @Router       /services/{device}/{port} [post]
 func (sa *ServiceAdapter) ActivateService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	deviceID := vars[DEVICE]
@@ -145,6 +154,15 @@ func (sa *ServiceAdapter) ActivateService(cntx context.Context, w http.ResponseW
 	}
 }
 
+// DeactivateService godoc
+// @Summary      Deactivate a service
+// @Description  Deactivate the service(s) on the given device and port.
+// @Tags         Services
+// @Produce      json
+// @Param        device  path  string  true  "Device identifier"
+// @Param        port    path  string  true  "Port identifier"
+// @Success      200  "Service deactivated"
+// @Router       /services/{device}/{port} [delete]
 func (sa *ServiceAdapter) DeactivateService(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	deviceID := vars[DEVICE]
@@ -191,6 +209,18 @@ func (sa *ServiceAdapter) DeactivateService(cntx context.Context, w http.Respons
 	}
 }
 
+// ActivateServiceWithPortName godoc
+// @Summary      Activate a service by port name
+// @Description  Activate the service on the given access port, optionally scoped by S-Tag, C-Tag and technology profile id.
+// @Tags         Services
+// @Produce      json
+// @Param        portName  path  string  true   "Access port name"
+// @Param        sTag      path  string  true  "Service VLAN (S-Tag)"
+// @Param        cTag      path  string  true  "Customer VLAN (C-Tag)"
+// @Param        tpId      path  string  true  "Technology profile id"
+// @Success      200  "Service activated"
+// @Router       /services/{portName} [post]
+// @Router       /services/{portName}/{sTag}/{cTag}/{tpId} [post]
 func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	portNo := vars[PORTNAME]
@@ -242,6 +272,18 @@ func (sa *ServiceAdapter) ActivateServiceWithPortName(cntx context.Context, w ht
 	logger.Debugw(ctx, "ActivateService request specific for portNo, sVlan, cVlan and techProfile", log.Fields{"Port": portNo, "SVlan": sVlan, "CVlan": cVlan, "techProfile": techProfile})
 }
 
+// DeactivateServiceWithPortName godoc
+// @Summary      Deactivate a service by port name
+// @Description  Deactivate the service on the given access port, optionally scoped by S-Tag, C-Tag and technology profile id.
+// @Tags         Services
+// @Produce      json
+// @Param        portName  path  string  true   "Access port name"
+// @Param        sTag      path  string  false  "Service VLAN (S-Tag)"
+// @Param        cTag      path  string  false  "Customer VLAN (C-Tag)"
+// @Param        tpId      path  string  false  "Technology profile id"
+// @Success      200  "Service deactivated"
+// @Router       /services/{portName} [delete]
+// @Router       /services/{portName}/{sTag}/{cTag}/{tpId} [delete]
 func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	portNo := vars[PORTNAME]
@@ -293,6 +335,18 @@ func (sa *ServiceAdapter) DeactivateServiceWithPortName(cntx context.Context, w 
 	logger.Debugw(ctx, "DeactivateService request specific for portNo, sVlan, cVlan and techProfile", log.Fields{"Port": portNo, "SVlan": sTag, "CVlan": cTag, "techProfile": tpID})
 }
 
+// GetProgrammedSubscribers godoc
+// @Summary      Get programmed subscribers
+// @Description  Retrieve programmed subscribers, optionally filtered by device and port.
+// @Tags         Subscribers
+// @Produce      json
+// @Param        device  path  string  true  "Device identifier"
+// @Param        port    path  string  true  "Port identifier"
+// @Success      200  {object}  onosnbi.SubscribersList
+// @Failure      404  {string}  string  "Subscribers not found"
+// @Router       /programmed-subscribers [get]
+// @Router       /programmed-subscribers/{device}/{port} [get]
+// @Router       /services/{device}/{port} [get]
 func (sa *ServiceAdapter) GetProgrammedSubscribers(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	deviceID := vars[DEVICE]

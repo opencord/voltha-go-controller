@@ -75,7 +75,16 @@ func (iph *IgmpProxyHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// AddIgmpProxyInfo to add igmp proxy info
+// AddIgmpProxyInfo godoc
+// @Summary      Add IGMP proxy configuration
+// @Description  Configure IGMP proxy for a multicast VLAN.
+// @Tags         IGMP Proxy
+// @Accept       json
+// @Produce      json
+// @Param        body  body  nbi.IgmpProxy  true  "IGMP proxy configuration"
+// @Success      200  "IGMP proxy configuration accepted"
+// @Failure      500  {string}  string  "Failed to read request"
+// @Router       /igmp-proxy [post]
 func (iph *IgmpProxyHandle) AddIgmpProxyInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	// Get the payload to process the request
 	d := new(bytes.Buffer)
@@ -97,7 +106,14 @@ func (iph *IgmpProxyHandle) AddIgmpProxyInfo(cntx context.Context, w http.Respon
 	go iph.addIgmpProxy(cntx, w, req)
 }
 
-// DelIgmpProxyInfo to delete igmp proxy info
+// DelIgmpProxyInfo godoc
+// @Summary      Delete IGMP proxy configuration
+// @Description  Remove IGMP proxy configuration for the given outgoing IGMP VLAN id.
+// @Tags         IGMP Proxy
+// @Produce      json
+// @Param        outgoingigmpvlanid  path  string  true  "Outgoing IGMP VLAN id"
+// @Success      200  "IGMP proxy configuration deleted"
+// @Router       /igmp-proxy/{outgoingigmpvlanid} [delete]
 func (iph *IgmpProxyHandle) DelIgmpProxyInfo(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 }
 

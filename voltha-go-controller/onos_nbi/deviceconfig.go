@@ -69,6 +69,17 @@ func (oh *UpdateUplinkDeviceConfigHandle) ServeHTTP(w http.ResponseWriter, r *ht
 	}
 }
 
+// AddDeviceConfig godoc
+// @Summary      Add device configuration
+// @Description  Add or update the device configuration for an OLT.
+// @Tags         Device Configuration
+// @Accept       json
+// @Produce      json
+// @Param        serialNumber  path  string  true  "OLT serial number"
+// @Param        body  body  application.DeviceConfig  true  "Device configuration"
+// @Success      200  {string}  string  "Device configuration added"
+// @Failure      409  {string}  string  "Conflict"
+// @Router       /olt/{serialNumber} [post]
 func (oh *DeviceConfigHandle) AddDeviceConfig(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	logger.Debug(cntx, "Inside AddDeviceConfig method")
 	// Get the payload to process the request
@@ -89,6 +100,15 @@ func (oh *DeviceConfigHandle) AddDeviceConfig(cntx context.Context, w http.Respo
 	logger.Debugw(ctx, "Added Device Config ", log.Fields{"Req": req})
 }
 
+// FetchDeviceConfig godoc
+// @Summary      Get device configuration
+// @Description  Retrieve the device configuration for a specific OLT by serial number.
+// @Tags         Device Configuration
+// @Produce      json
+// @Param        serialNumber  path  string  true  "OLT serial number"
+// @Success      200  {object}  onosnbi.DeviceConfigPayload
+// @Failure      400  {string}  string  "Device not found"
+// @Router       /olt/{serialNumber} [get]
 func (oh *DeviceConfigHandle) FetchDeviceConfig(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	serialNum := vars["serialNumber"]
@@ -121,6 +141,17 @@ func (oh *DeviceConfigHandle) FetchDeviceConfig(cntx context.Context, w http.Res
 	}
 }
 
+// UpdateDeviceConfig godoc
+// @Summary      Update device uplink configuration
+// @Description  Update the uplink configuration for a device.
+// @Tags         Device Configuration
+// @Accept       json
+// @Produce      json
+// @Param        deviceId  path  string  true  "Device identifier"
+// @Param        body  body  application.DeviceConfig  true  "Device configuration with updated NNI ports"
+// @Success      200  {string}  string  "Device configuration updated"
+// @Failure      409  {string}  string  "Conflict"
+// @Router       /updateDevice/{deviceId} [post]
 func (oh *UpdateUplinkDeviceConfigHandle) UpdateDeviceConfig(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	logger.Debug(cntx, "Inside UpdateDeviceConfig method")
 	// Get the payload to process the request

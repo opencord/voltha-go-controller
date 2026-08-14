@@ -57,6 +57,15 @@ func (gh *GroupsHandle) GroupServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetGroupInfo godoc
+// @Summary      Get group by ID
+// @Description  Retrieve a specific group by its identifier.
+// @Tags         Groups
+// @Produce      json
+// @Param        id  path  string  true  "Group identifier"
+// @Success      200  {object}  onosnbi.GroupList
+// @Failure      404  {string}  string  "Group not found"
+// @Router       /groups/{id} [get]
 func (gh *GroupsHandle) GetGroupInfo(cntx context.Context, groupID string, w http.ResponseWriter, r *http.Request) {
 	groupResp := GroupList{}
 	groupResp.Groups = []*GroupsInfo{}
@@ -98,6 +107,13 @@ func (gh *GroupsHandle) GetGroupInfo(cntx context.Context, groupID string, w htt
 	logger.Debugw(ctx, "Fetching GroupInfo specific to received groupID", log.Fields{"groupId": id, "GroupResp": groupResp})
 }
 
+// GetAllGroups godoc
+// @Summary      Get all groups
+// @Description  Retrieve all groups programmed on the devices.
+// @Tags         Groups
+// @Produce      json
+// @Success      200  {object}  onosnbi.GroupList
+// @Router       /groups [get]
 func (gh *GroupsHandle) GetAllGroups(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	groupListResp := GroupList{}
 	groupListResp.Groups = []*GroupsInfo{}

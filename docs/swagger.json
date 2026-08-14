@@ -1,0 +1,2261 @@
+{
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "North Bound Interface (NBI) REST API exposed by voltha-go-controller (VGC).\nIt provides configuration and operational endpoints for subscribers, bandwidth\nprofiles, IGMP proxy, multicast, flows, devices, ports, meters, groups, DHCP\nallocations, MAC learning and the OLT flow service.",
+        "title": "VOLTHA Go Controller NBI REST API",
+        "contact": {
+            "name": "Open Networking Foundation",
+            "url": "https://opennetworking.org"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8181",
+    "basePath": "/vgc/v1",
+    "paths": {
+        "/allocations": {
+            "get": {
+                "description": "Retrieve DHCP allocations for all devices or for a specific device.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DHCP"
+                ],
+                "summary": "Get DHCP allocations",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/application.DhcpAllocation"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/allocations/{deviceId}": {
+            "get": {
+                "description": "Retrieve DHCP allocations for all devices or for a specific device.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DHCP"
+                ],
+                "summary": "Get DHCP allocations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device identifier",
+                        "name": "deviceId",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/application.DhcpAllocation"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/devices": {
+            "get": {
+                "description": "Retrieve the list of devices known to VGC.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Devices"
+                ],
+                "summary": "Get device list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.DeviceEntry"
+                        }
+                    }
+                }
+            }
+        },
+        "/devices/ports": {
+            "get": {
+                "description": "Retrieve the list of ports across all devices.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Devices"
+                ],
+                "summary": "Get port list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.PortEntry"
+                        }
+                    }
+                }
+            }
+        },
+        "/devices/{olt_of_id}/ports": {
+            "get": {
+                "description": "Retrieve the list of ports for a specific device.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Devices"
+                ],
+                "summary": "Get ports for a device",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device (OLT) OpenFlow identifier",
+                        "name": "olt_of_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.DevicePortEntry"
+                        }
+                    }
+                }
+            }
+        },
+        "/flow-status/{portName}": {
+            "get": {
+                "description": "Return the flow provisioning status for the subscriber on the given access port.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Subscribers"
+                ],
+                "summary": "Get subscriber flow provisioning status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access port name",
+                        "name": "portName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/application.FlowProvisionStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/flows": {
+            "get": {
+                "description": "Retrieve all flows, flows for a specific device, or a single flow by device and flow id.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Flows"
+                ],
+                "summary": "Get flows",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.FlowEntry"
+                        }
+                    }
+                }
+            }
+        },
+        "/flows/pending": {
+            "get": {
+                "description": "Retrieve all flows that are pending programming on the devices.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Flows"
+                ],
+                "summary": "Get pending flows",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.FlowEntry"
+                        }
+                    }
+                }
+            }
+        },
+        "/flows/{deviceId}": {
+            "get": {
+                "description": "Retrieve all flows, flows for a specific device, or a single flow by device and flow id.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Flows"
+                ],
+                "summary": "Get flows",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device identifier",
+                        "name": "deviceId",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.FlowEntry"
+                        }
+                    }
+                }
+            }
+        },
+        "/flows/{deviceId}/{flowId}": {
+            "get": {
+                "description": "Retrieve all flows, flows for a specific device, or a single flow by device and flow id.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Flows"
+                ],
+                "summary": "Get flows",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device identifier",
+                        "name": "deviceId",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Flow identifier",
+                        "name": "flowId",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.FlowEntry"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups": {
+            "get": {
+                "description": "Retrieve all groups programmed on the devices.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "Get all groups",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.GroupList"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/{id}": {
+            "get": {
+                "description": "Retrieve a specific group by its identifier.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "Get group by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.GroupList"
+                        }
+                    },
+                    "404": {
+                        "description": "Group not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/igmp-proxy": {
+            "post": {
+                "description": "Configure IGMP proxy for a multicast VLAN.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "IGMP Proxy"
+                ],
+                "summary": "Add IGMP proxy configuration",
+                "parameters": [
+                    {
+                        "description": "IGMP proxy configuration",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/nbi.IgmpProxy"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "IGMP proxy configuration accepted"
+                    },
+                    "500": {
+                        "description": "Failed to read request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/igmp-proxy/{outgoingigmpvlanid}": {
+            "delete": {
+                "description": "Remove IGMP proxy configuration for the given outgoing IGMP VLAN id.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "IGMP Proxy"
+                ],
+                "summary": "Delete IGMP proxy configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Outgoing IGMP VLAN id",
+                        "name": "outgoingigmpvlanid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "IGMP proxy configuration deleted"
+                    }
+                }
+            }
+        },
+        "/mapping/all": {
+            "get": {
+                "description": "Retrieve all MAC learning entries across all devices.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MAC Learning"
+                ],
+                "summary": "Get all MAC learner info",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/application.MacLearnerInfo"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/mapping/{deviceId}/{portNumber}": {
+            "get": {
+                "description": "Retrieve MAC learning entries for a specific device and port, optionally filtered by VLAN.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MAC Learning"
+                ],
+                "summary": "Get MAC learner info by device, port, and VLAN",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device identifier",
+                        "name": "deviceId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Port number",
+                        "name": "portNumber",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/application.MacLearnerInfo"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/mapping/{deviceId}/{portNumber}/{vlanId}": {
+            "get": {
+                "description": "Retrieve MAC learning entries for a specific device and port, optionally filtered by VLAN.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MAC Learning"
+                ],
+                "summary": "Get MAC learner info by device, port, and VLAN",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device identifier",
+                        "name": "deviceId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Port number",
+                        "name": "portNumber",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "VLAN identifier",
+                        "name": "vlanId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/application.MacLearnerInfo"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/meters": {
+            "get": {
+                "description": "Retrieve all meters programmed on the devices.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Meters"
+                ],
+                "summary": "Get all meters",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.MeterList"
+                        }
+                    }
+                }
+            }
+        },
+        "/meters/{id}": {
+            "get": {
+                "description": "Retrieve a specific meter by its identifier.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Meters"
+                ],
+                "summary": "Get meter by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Meter identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.MeterList"
+                        }
+                    },
+                    "404": {
+                        "description": "Meter not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/multicast/": {
+            "post": {
+                "description": "Create a multicast VLAN (MVLAN) profile.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Multicast"
+                ],
+                "summary": "Add a multicast VLAN profile",
+                "parameters": [
+                    {
+                        "description": "Multicast VLAN profile",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/nbi.Mvlan"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Multicast VLAN configuration accepted"
+                    },
+                    "409": {
+                        "description": "Conflict while adding multicast VLAN",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/multicast/{egressvlan}": {
+            "delete": {
+                "description": "Remove a multicast VLAN (MVLAN) profile by egress VLAN.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Multicast"
+                ],
+                "summary": "Delete a multicast VLAN profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Egress VLAN id",
+                        "name": "egressvlan",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Multicast VLAN deletion accepted"
+                    }
+                }
+            }
+        },
+        "/network-configurations": {
+            "post": {
+                "description": "Populate the VGC network configuration information.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Network Configuration"
+                ],
+                "summary": "Add network configuration",
+                "parameters": [
+                    {
+                        "description": "Network configuration",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/nbi.NetConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Network configuration added"
+                    }
+                }
+            }
+        },
+        "/olt/{serialNumber}": {
+            "get": {
+                "description": "Retrieve the device configuration for a specific OLT by serial number.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Configuration"
+                ],
+                "summary": "Get device configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "OLT serial number",
+                        "name": "serialNumber",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.DeviceConfigPayload"
+                        }
+                    },
+                    "400": {
+                        "description": "Device not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Add or update the device configuration for an OLT.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Configuration"
+                ],
+                "summary": "Add device configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "OLT serial number",
+                        "name": "serialNumber",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Device configuration",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/application.DeviceConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Device configuration added",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/oltflowservice": {
+            "get": {
+                "description": "Retrieve the current OLT flow service configuration.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OLT Flow Service"
+                ],
+                "summary": "Get OLT flow service configuration",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.OltFlowServiceConfig"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Configure the OLT flow service parameters.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OLT Flow Service"
+                ],
+                "summary": "Configure OLT flow service",
+                "parameters": [
+                    {
+                        "description": "OLT flow service configuration",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/application.OltFlowService"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OLT flow service configured",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/ports/ignored": {
+            "get": {
+                "description": "Retrieve the list of ignored ports across all devices.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ports"
+                ],
+                "summary": "Get ignored ports",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiles/{id}": {
+            "get": {
+                "description": "Retrieve a bandwidth (meter) profile by identifier.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Get a bandwidth profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Profile identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/nbi.BWProfile"
+                        }
+                    },
+                    "404": {
+                        "description": "Profile not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a bandwidth (meter) profile.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Add a bandwidth profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Profile identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Bandwidth profile",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/nbi.BWProfile"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile added"
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Remove a bandwidth (meter) profile.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Delete a bandwidth profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Profile identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Profile delete request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/nbi.ProfileDelReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile deleted"
+                    }
+                }
+            }
+        },
+        "/programmed-subscribers": {
+            "get": {
+                "description": "Retrieve programmed subscribers, optionally filtered by device and port.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Subscribers"
+                ],
+                "summary": "Get programmed subscribers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.SubscribersList"
+                        }
+                    },
+                    "404": {
+                        "description": "Subscribers not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/programmed-subscribers/{device}/{port}": {
+            "get": {
+                "description": "Retrieve programmed subscribers, optionally filtered by device and port.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Subscribers"
+                ],
+                "summary": "Get programmed subscribers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device identifier",
+                        "name": "device",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Port identifier",
+                        "name": "port",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.SubscribersList"
+                        }
+                    },
+                    "404": {
+                        "description": "Subscribers not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/services/{device}/{port}": {
+            "get": {
+                "description": "Retrieve programmed subscribers, optionally filtered by device and port.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Subscribers"
+                ],
+                "summary": "Get programmed subscribers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device identifier",
+                        "name": "device",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Port identifier",
+                        "name": "port",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/onosnbi.SubscribersList"
+                        }
+                    },
+                    "404": {
+                        "description": "Subscribers not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Activate the service(s) on the given device and port.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Activate a service",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device identifier",
+                        "name": "device",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Port identifier",
+                        "name": "port",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service activated"
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deactivate the service(s) on the given device and port.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Deactivate a service",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device identifier",
+                        "name": "device",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Port identifier",
+                        "name": "port",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service deactivated"
+                    }
+                }
+            }
+        },
+        "/services/{portName}": {
+            "post": {
+                "description": "Activate the service on the given access port, optionally scoped by S-Tag, C-Tag and technology profile id.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Activate a service by port name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access port name",
+                        "name": "portName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service activated"
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deactivate the service on the given access port, optionally scoped by S-Tag, C-Tag and technology profile id.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Deactivate a service by port name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access port name",
+                        "name": "portName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service deactivated"
+                    }
+                }
+            }
+        },
+        "/services/{portName}/{sTag}/{cTag}/{tpId}": {
+            "post": {
+                "description": "Activate the service on the given access port, optionally scoped by S-Tag, C-Tag and technology profile id.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Activate a service by port name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access port name",
+                        "name": "portName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Service VLAN (S-Tag)",
+                        "name": "sTag",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Customer VLAN (C-Tag)",
+                        "name": "cTag",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Technology profile id",
+                        "name": "tpId",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service activated"
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deactivate the service on the given access port, optionally scoped by S-Tag, C-Tag and technology profile id.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Deactivate a service by port name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access port name",
+                        "name": "portName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Service VLAN (S-Tag)",
+                        "name": "sTag",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Customer VLAN (C-Tag)",
+                        "name": "cTag",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Technology profile id",
+                        "name": "tpId",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service deactivated"
+                    }
+                }
+            }
+        },
+        "/subscribers/{id}": {
+            "post": {
+                "description": "Provision a subscriber and its associated services on VGC.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Subscribers"
+                ],
+                "summary": "Add a subscriber",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Subscriber identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Subscriber device information",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/nbi.SubscriberDeviceInfo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscriber added"
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict while adding subscriber",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Remove a subscriber and its associated services from VGC.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Subscribers"
+                ],
+                "summary": "Delete a subscriber",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Subscriber identifier",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Subscriber device information",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/nbi.SubscriberDeviceInfo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Subscriber deletion accepted"
+                    },
+                    "404": {
+                        "description": "Subscriber not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict while deleting subscriber",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/updateDevice/{deviceId}": {
+            "post": {
+                "description": "Update the uplink configuration for a device.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Configuration"
+                ],
+                "summary": "Update device uplink configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device identifier",
+                        "name": "deviceId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Device configuration with updated NNI ports",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/application.DeviceConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Device configuration updated",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "application.DeviceConfig": {
+            "type": "object",
+            "properties": {
+                "hardwareIdentifier": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ipAddress": {
+                    "type": "string"
+                },
+                "nasId": {
+                    "type": "string"
+                },
+                "nniDhcpTrapVid": {
+                    "type": "integer"
+                },
+                "nniPorts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "uplinkPort": {
+                    "type": "string"
+                }
+            }
+        },
+        "application.DhcpAllocation": {
+            "type": "object",
+            "properties": {
+                "allocationTimestamp": {
+                    "type": "string"
+                },
+                "circuitId": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "connectPoint": {
+                    "type": "string"
+                },
+                "ipAllocated": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "macAddress": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "state": {
+                    "type": "integer"
+                },
+                "subscriberId": {
+                    "type": "string"
+                },
+                "vlanId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "application.FlowProvisionStatus": {
+            "type": "object",
+            "properties": {
+                "flowProvisionStatus": {
+                    "type": "string"
+                }
+            }
+        },
+        "application.MacLearnerInfo": {
+            "type": "object",
+            "properties": {
+                "deviceId": {
+                    "type": "string"
+                },
+                "macAddress": {
+                    "type": "string"
+                },
+                "portNumber": {
+                    "type": "string"
+                },
+                "vlanId": {
+                    "type": "string"
+                }
+            }
+        },
+        "application.OltFlowService": {
+            "type": "object",
+            "properties": {
+                "defaultTechProfileId": {
+                    "type": "integer"
+                },
+                "enableDhcpOnNni": {
+                    "type": "boolean"
+                },
+                "enableDhcpV4": {
+                    "type": "boolean"
+                },
+                "enableDhcpV6": {
+                    "type": "boolean"
+                },
+                "enableEapol": {
+                    "type": "boolean"
+                },
+                "enableIgmpOnNni": {
+                    "type": "boolean"
+                },
+                "removeFlowsOnDisable": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "nbi.Apps": {
+            "type": "object",
+            "properties": {
+                "org.onosproject.core": {
+                    "$ref": "#/definitions/nbi.McastInfo"
+                },
+                "org.opencord.igmpproxy": {
+                    "$ref": "#/definitions/nbi.IgmpProxy"
+                },
+                "org.opencord.sadis": {
+                    "$ref": "#/definitions/nbi.SubscriberBW"
+                }
+            }
+        },
+        "nbi.BWEnteries": {
+            "type": "object",
+            "properties": {
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/nbi.BWProfile"
+                    }
+                }
+            }
+        },
+        "nbi.BWProfile": {
+            "type": "object",
+            "properties": {
+                "air": {
+                    "type": "integer"
+                },
+                "cbs": {
+                    "type": "integer"
+                },
+                "cir": {
+                    "type": "integer"
+                },
+                "ebs": {
+                    "type": "integer"
+                },
+                "eir": {
+                    "type": "integer"
+                },
+                "gir": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "pbs": {
+                    "type": "integer"
+                },
+                "pir": {
+                    "type": "integer"
+                }
+            }
+        },
+        "nbi.IgmpProxy": {
+            "type": "object",
+            "properties": {
+                "enableigmpprovisioning": {
+                    "type": "string"
+                },
+                "fastleave": {
+                    "type": "string"
+                },
+                "globalconnectpoint": {
+                    "type": "string"
+                },
+                "globalconnectpointmode": {
+                    "type": "string"
+                },
+                "igmpcos": {
+                    "type": "integer"
+                },
+                "igmpunicos": {
+                    "type": "integer"
+                },
+                "keepalivecount": {
+                    "type": "integer"
+                },
+                "keepaliveinterval": {
+                    "type": "integer"
+                },
+                "lastqueryinterval": {
+                    "type": "integer"
+                },
+                "maxresp": {
+                    "type": "integer"
+                },
+                "outgoingigmpinnervlanid": {
+                    "type": "integer"
+                },
+                "outgoingigmpvlanid": {
+                    "type": "integer"
+                },
+                "outgoingigmpwithv3": {
+                    "type": "string"
+                },
+                "periodicquery": {
+                    "type": "string"
+                },
+                "requestdsigmppackets": {
+                    "type": "boolean"
+                },
+                "sourcedeviceandport": {
+                    "type": "string"
+                }
+            }
+        },
+        "nbi.McastInfo": {
+            "type": "object",
+            "properties": {
+                "multicast": {
+                    "$ref": "#/definitions/nbi.Mvlan"
+                }
+            }
+        },
+        "nbi.Mvlan": {
+            "type": "object",
+            "properties": {
+                "egressinnervlan": {
+                    "type": "integer"
+                },
+                "egressvlan": {
+                    "type": "integer"
+                },
+                "ingressvlan": {
+                    "type": "integer"
+                }
+            }
+        },
+        "nbi.NetConfig": {
+            "type": "object",
+            "properties": {
+                "apps": {
+                    "$ref": "#/definitions/nbi.Apps"
+                }
+            }
+        },
+        "nbi.ProfileDelReq": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "nbi.Subscriber": {
+            "type": "object",
+            "properties": {
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/nbi.SubscriberDeviceInfo"
+                    }
+                }
+            }
+        },
+        "nbi.SubscriberBW": {
+            "type": "object",
+            "properties": {
+                "bandwidthprofile": {
+                    "$ref": "#/definitions/nbi.BWEnteries"
+                },
+                "sadis": {
+                    "$ref": "#/definitions/nbi.Subscriber"
+                }
+            }
+        },
+        "nbi.SubscriberDeviceInfo": {
+            "type": "object",
+            "properties": {
+                "circuitId": {
+                    "type": "string"
+                },
+                "hardwareIdentifier": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ipAddress": {
+                    "type": "string"
+                },
+                "nasId": {
+                    "type": "string"
+                },
+                "nasPortId": {
+                    "type": "string"
+                },
+                "nniDhcpTrapVid": {
+                    "type": "integer"
+                },
+                "remoteId": {
+                    "type": "string"
+                },
+                "slot": {
+                    "type": "integer"
+                },
+                "uniTagList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/nbi.UniTagInformation"
+                    }
+                },
+                "uplinkPort": {
+                    "type": "string"
+                }
+            }
+        },
+        "nbi.UniTagInformation": {
+            "type": "object",
+            "properties": {
+                "configuredMacAddress": {
+                    "type": "string"
+                },
+                "downstreamBandwidthProfile": {
+                    "type": "string"
+                },
+                "downstreamOltBandwidthProfile": {
+                    "type": "string"
+                },
+                "dsPonCTagPriority": {
+                    "type": "integer"
+                },
+                "dsPonSTagPriority": {
+                    "type": "integer"
+                },
+                "enableMacLearning": {
+                    "type": "boolean"
+                },
+                "isDhcpRequired": {
+                    "type": "boolean"
+                },
+                "isIgmpRequired": {
+                    "type": "boolean"
+                },
+                "isPppoeRequired": {
+                    "type": "boolean"
+                },
+                "ponCTag": {
+                    "type": "integer"
+                },
+                "ponSTag": {
+                    "type": "integer"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "technologyProfileId": {
+                    "type": "integer"
+                },
+                "uniTagMatch": {
+                    "type": "integer"
+                },
+                "upstreamBandwidthProfile": {
+                    "type": "string"
+                },
+                "upstreamOltBandwidthProfile": {
+                    "type": "string"
+                },
+                "usPonCTagPriority": {
+                    "type": "integer"
+                },
+                "usPonSTagPriority": {
+                    "type": "integer"
+                }
+            }
+        },
+        "onosnbi.Bands": {
+            "type": "object",
+            "properties": {
+                "burstSize": {
+                    "type": "integer"
+                },
+                "bytes": {
+                    "type": "integer"
+                },
+                "packets": {
+                    "type": "integer"
+                },
+                "prec": {
+                    "type": "integer"
+                },
+                "rate": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "onosnbi.Bucket": {
+            "type": "object",
+            "properties": {
+                "bucketId": {
+                    "type": "integer"
+                },
+                "bytes": {
+                    "type": "integer"
+                },
+                "packets": {
+                    "type": "integer"
+                },
+                "treatment": {
+                    "$ref": "#/definitions/onosnbi.Treatment"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "weight": {
+                    "type": "integer"
+                }
+            }
+        },
+        "onosnbi.Device": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "$ref": "#/definitions/onosnbi.DeviceAnnotations"
+                },
+                "available": {
+                    "type": "boolean"
+                },
+                "chassisId": {
+                    "type": "string"
+                },
+                "driver": {
+                    "type": "string"
+                },
+                "humanReadableLastUpdate": {
+                    "type": "string"
+                },
+                "hw": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastUpdate": {
+                    "type": "string"
+                },
+                "mfr": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "serial": {
+                    "type": "string"
+                },
+                "sw": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "onosnbi.DeviceAnnotations": {
+            "type": "object",
+            "properties": {
+                "channelId": {
+                    "type": "string"
+                },
+                "managementAddress": {
+                    "type": "string"
+                },
+                "protocol": {
+                    "type": "string"
+                }
+            }
+        },
+        "onosnbi.DeviceConfigPayload": {
+            "type": "object",
+            "properties": {
+                "deviceConfig": {
+                    "$ref": "#/definitions/application.DeviceConfig"
+                }
+            }
+        },
+        "onosnbi.DeviceEntry": {
+            "type": "object",
+            "properties": {
+                "devices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/onosnbi.Device"
+                    }
+                }
+            }
+        },
+        "onosnbi.DevicePortEntry": {
+            "type": "object",
+            "properties": {
+                "device": {
+                    "$ref": "#/definitions/onosnbi.Device"
+                },
+                "ports": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/onosnbi.Port"
+                    }
+                }
+            }
+        },
+        "onosnbi.Flow": {
+            "type": "object",
+            "properties": {
+                "appId": {
+                    "type": "string"
+                },
+                "bytes": {
+                    "type": "integer"
+                },
+                "deviceId": {
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isPermanent": {
+                    "type": "boolean"
+                },
+                "lastSeen": {
+                    "type": "integer"
+                },
+                "life": {
+                    "type": "integer"
+                },
+                "liveType": {
+                    "type": "string"
+                },
+                "packets": {
+                    "type": "integer"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "selector": {
+                    "$ref": "#/definitions/onosnbi.SelectorInfo"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "tableId": {
+                    "type": "integer"
+                },
+                "tableName": {
+                    "type": "string"
+                },
+                "timeout": {
+                    "type": "integer"
+                },
+                "treatment": {
+                    "$ref": "#/definitions/onosnbi.TreatmentInfo"
+                }
+            }
+        },
+        "onosnbi.FlowEntry": {
+            "type": "object",
+            "properties": {
+                "flows": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/onosnbi.Flow"
+                    }
+                }
+            }
+        },
+        "onosnbi.GroupList": {
+            "type": "object",
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/onosnbi.GroupsInfo"
+                    }
+                }
+            }
+        },
+        "onosnbi.GroupsInfo": {
+            "type": "object",
+            "properties": {
+                "appCookie": {
+                    "type": "string"
+                },
+                "appId": {
+                    "type": "string"
+                },
+                "buckets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/onosnbi.Bucket"
+                    }
+                },
+                "bytes": {
+                    "type": "integer"
+                },
+                "deviceId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "life": {
+                    "type": "integer"
+                },
+                "packets": {
+                    "type": "integer"
+                },
+                "referenceCount": {
+                    "type": "integer"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "onosnbi.Instructions": {
+            "type": "object",
+            "properties": {
+                "port": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "onosnbi.MeterList": {
+            "type": "object",
+            "properties": {
+                "meters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/onosnbi.Meters"
+                    }
+                }
+            }
+        },
+        "onosnbi.Meters": {
+            "type": "object",
+            "properties": {
+                "appId": {
+                    "type": "string"
+                },
+                "bands": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/onosnbi.Bands"
+                    }
+                },
+                "burst": {
+                    "type": "boolean"
+                },
+                "bytes": {
+                    "type": "integer"
+                },
+                "deviceId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "life": {
+                    "type": "integer"
+                },
+                "packets": {
+                    "type": "integer"
+                },
+                "referenceCount": {
+                    "type": "integer"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "onosnbi.OltFlowServiceConfig": {
+            "type": "object",
+            "properties": {
+                "oltFlowService": {
+                    "$ref": "#/definitions/application.OltFlowService"
+                }
+            }
+        },
+        "onosnbi.Port": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "$ref": "#/definitions/onosnbi.PortAnnotations"
+                },
+                "element": {
+                    "type": "string"
+                },
+                "isEnabled": {
+                    "type": "boolean"
+                },
+                "port": {
+                    "type": "string"
+                },
+                "portSpeed": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "onosnbi.PortAnnotations": {
+            "type": "object",
+            "properties": {
+                "adminState": {
+                    "type": "string"
+                },
+                "portMac": {
+                    "type": "string"
+                },
+                "portName": {
+                    "type": "string"
+                }
+            }
+        },
+        "onosnbi.PortEntry": {
+            "type": "object",
+            "properties": {
+                "ports": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/onosnbi.Port"
+                    }
+                }
+            }
+        },
+        "onosnbi.SelectorInfo": {
+            "type": "object",
+            "properties": {
+                "criteria": {
+                    "type": "array",
+                    "items": {}
+                }
+            }
+        },
+        "onosnbi.SubscriberInfo": {
+            "type": "object",
+            "properties": {
+                "location": {
+                    "type": "string"
+                },
+                "tagInfo": {
+                    "$ref": "#/definitions/onosnbi.UniTagInformation"
+                }
+            }
+        },
+        "onosnbi.SubscribersList": {
+            "type": "object",
+            "properties": {
+                "subscribers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/onosnbi.SubscriberInfo"
+                    }
+                }
+            }
+        },
+        "onosnbi.Treatment": {
+            "type": "object",
+            "properties": {
+                "deferred": {
+                    "type": "array",
+                    "items": {}
+                },
+                "instructions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/onosnbi.Instructions"
+                    }
+                }
+            }
+        },
+        "onosnbi.TreatmentInfo": {
+            "type": "object",
+            "properties": {
+                "deferred": {
+                    "type": "array",
+                    "items": {}
+                },
+                "instructions": {
+                    "type": "array",
+                    "items": {}
+                }
+            }
+        },
+        "onosnbi.UniTagInformation": {
+            "type": "object",
+            "properties": {
+                "configuredMacAddress": {
+                    "type": "string"
+                },
+                "downstreamBandwidthProfile": {
+                    "type": "string"
+                },
+                "downstreamOltBandwidthProfile": {
+                    "type": "string"
+                },
+                "dsPonCTagPriority": {
+                    "type": "integer"
+                },
+                "dsPonSTagPriority": {
+                    "type": "integer"
+                },
+                "enableMacLearning": {
+                    "type": "boolean"
+                },
+                "isDhcpRequired": {
+                    "type": "boolean"
+                },
+                "isIgmpRequired": {
+                    "type": "boolean"
+                },
+                "isPppoeRequired": {
+                    "type": "boolean"
+                },
+                "ponCTag": {
+                    "type": "integer"
+                },
+                "ponSTag": {
+                    "type": "integer"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "technologyProfileId": {
+                    "type": "integer"
+                },
+                "uniTagMatch": {
+                    "type": "integer"
+                },
+                "upstreamBandwidthProfile": {
+                    "type": "string"
+                },
+                "upstreamOltBandwidthProfile": {
+                    "type": "string"
+                },
+                "usPonCTagPriority": {
+                    "type": "integer"
+                },
+                "usPonSTagPriority": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

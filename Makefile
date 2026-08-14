@@ -212,6 +212,14 @@ help ::
 	@printf '  %-33.33s %s\n' 'pre-commit' \
 	  'Invoke the pre-commit hook linting tool'
 
+docs:
+	# This uses swaggo/swag to parse the Go source annotations (godoc comments with @Summary, @description, etc.) and regenerates docs.go, swagger.json, and swagger.yaml.
+	# You'll need swag installed (go install github.com/swaggo/swag/cmd/swag@latest).
+	swag init -d voltha-go-controller --parseDependency --parseInternal
+	# To visualize the docs, run the following command
+	# Command: 'docker run --rm -p 8080:8080 -v $(pwd)/docs:/usr/share/nginx/html/docs -e SWAGGER_JSON=/usr/share/nginx/html/docs/swagger.json swaggerapi/swagger-ui'
+	# Open http://localhost:8080/docs/index.html in your browser
+
 clean ::
 	$(RM) -r .venv
 

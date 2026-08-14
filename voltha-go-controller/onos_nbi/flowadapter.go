@@ -80,6 +80,13 @@ func (pfh *PendingFlowHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// GetPendingFlows godoc
+// @Summary      Get pending flows
+// @Description  Retrieve all flows that are pending programming on the devices.
+// @Tags         Flows
+// @Produce      json
+// @Success      200  {object}  onosnbi.FlowEntry
+// @Router       /flows/pending [get]
 func (pfh *PendingFlowHandle) GetPendingFlows(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	logger.Debug(ctx, "Received Get Pending Flows request")
 
@@ -108,6 +115,17 @@ func (pfh *PendingFlowHandle) GetPendingFlows(cntx context.Context, w http.Respo
 	}
 }
 
+// GetFlows godoc
+// @Summary      Get flows
+// @Description  Retrieve all flows, flows for a specific device, or a single flow by device and flow id.
+// @Tags         Flows
+// @Produce      json
+// @Param        deviceId  path  string  true  "Device identifier"
+// @Param        flowId    path  string  true  "Flow identifier"
+// @Success      200  {object}  onosnbi.FlowEntry
+// @Router       /flows [get]
+// @Router       /flows/{deviceId} [get]
+// @Router       /flows/{deviceId}/{flowId} [get]
 func (fh *FlowHandle) GetFlows(cntx context.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	deviceID := vars["deviceId"]

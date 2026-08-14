@@ -47,7 +47,13 @@ func (dh *DeviceHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetDeviceList to get device id list
+// GetDeviceList godoc
+// @Summary      Get device list
+// @Description  Retrieve the list of devices known to VGC.
+// @Tags         Devices
+// @Produce      json
+// @Success      200  {object}  onosnbi.DeviceEntry
+// @Router       /devices [get]
 func (dh *DeviceHandle) GetDeviceList(w http.ResponseWriter, r *http.Request) {
 	va := app.GetApplication()
 	var deviceListResp DeviceEntry
@@ -104,7 +110,14 @@ func (dh *DevicePortHandle) ServeHTTPWithDeviceID(w http.ResponseWriter, r *http
 	}
 }
 
-// GetPortListPerDevice to get port list for a given device
+// GetPortListPerDevice godoc
+// @Summary      Get ports for a device
+// @Description  Retrieve the list of ports for a specific device.
+// @Tags         Devices
+// @Produce      json
+// @Param        olt_of_id  path  string  true  "Device (OLT) OpenFlow identifier"
+// @Success      200  {object}  onosnbi.DevicePortEntry
+// @Router       /devices/{olt_of_id}/ports [get]
 func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	deviceID := vars["olt_of_id"]
@@ -148,7 +161,13 @@ func (dh *DevicePortHandle) GetPortListPerDevice(w http.ResponseWriter, r *http.
 	logger.Debugw(ctx, "Fetching Port List for device", log.Fields{"devicePortListResp": devicePortListResp, "deviceID": deviceID})
 }
 
-// GetPortList to get device id list
+// GetPortList godoc
+// @Summary      Get port list
+// @Description  Retrieve the list of ports across all devices.
+// @Tags         Devices
+// @Produce      json
+// @Success      200  {object}  onosnbi.PortEntry
+// @Router       /devices/ports [get]
 func (dh *DevicePortHandle) GetPortList(w http.ResponseWriter, r *http.Request) {
 	va := app.GetApplication()
 	var portListResp PortEntry
