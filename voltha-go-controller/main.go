@@ -25,6 +25,7 @@ import (
 	"syscall"
 	"time"
 
+	ev "voltha-go-controller/event"
 	pc "voltha-go-controller/infra/pprofcontroller"
 
 	db "voltha-go-controller/database"
@@ -32,6 +33,9 @@ import (
 	"voltha-go-controller/internal/pkg/controller"
 	"voltha-go-controller/internal/pkg/vpagent"
 	"voltha-go-controller/voltha-go-controller/nbi"
+
+	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
+	"github.com/opencord/voltha-lib-go/v7/pkg/kafka"
 
 	"voltha-go-controller/log"
 
@@ -41,18 +45,22 @@ import (
 )
 
 const (
-	KVService = "kv-service"
+	KVService               = "kv-service"
+	clusterMessagingService = "cluster-messaging-service"
 )
 
 // VgcInfo structure
 type VgcInfo struct {
-	kvClient kvstore.Client
-	Name     string
-	Version  string
+	kvClient    kvstore.Client
+	kafkaClient kafka.Client
+	eventProxy  eventif.EventProxy
+	Name        string
+	Version     string
 }
 
 var vgcInfo = VgcInfo{Name: "VGC"}
 var dbHandler *db.Database
+var eventHandler *ev.Event
 
 func printBanner() {
 	fmt.Println("##     ##  ######    ######  ")
@@ -64,7 +72,7 @@ func printBanner() {
 	fmt.Println("   ###     ######    ######  ")
 }
 
-func stop(ctx context.Context, kvClient kvstore.Client, vpa *vpagent.VPAgent) {
+func stop(ctx context.Context, kvClient kvstore.Client, kafkaClient kafka.Client, vpa *vpagent.VPAgent) {
 	// Cleanup - applies only if we had a kvClient
 	if kvClient != nil {
 		// Release all reservations
@@ -74,6 +82,11 @@ func stop(ctx context.Context, kvClient kvstore.Client, vpa *vpagent.VPAgent) {
 		// Close the DB connection
 		kvClient.Close(ctx)
 	}
+	// Close Kafka connection
+	if kafkaClient != nil {
+		kafkaClient.Stop(ctx)
+	}
+
 	//Closet voltha connection
 	vpa.CloseConnectionToVoltha()
 }
@@ -208,6 +221,38 @@ func initializeKVStore(ctx context.Context, config *VGCFlags, logLevel log.Level
 	go MonitorKVStoreReadiness(ctx, config)
 }
 
+func initializeMsgBus(ctx context.Context, config *VGCFlags) {
+	// Setup Kafka Client
+	var err error
+	if eventHandler, err = ev.InitializeKafkaClient(ctx, "sarama", config.MsgBusEndPoint, config.ProducerRetryMax, config.MetadataRetryMax); err != nil {
+		logger.Fatalw(ctx, "unsupported-common-client", log.Fields{"error": err})
+	}
+	vgcInfo.kafkaClient = ev.GetKafkaClient(eventHandler)
+
+	// Start kafka communication with the broker
+	if err = kafka.StartAndWaitUntilKafkaConnectionIsUp(ctx, vgcInfo.kafkaClient, time.Duration(config.ConnectionRetryDelay), clusterMessagingService); err != nil {
+		logger.Fatal(ctx, "unable-to-connect-to-kafka")
+	}
+
+	// Create the vgc.events topic
+	topic := &kafka.Topic{Name: config.EventTopic}
+	if err = vgcInfo.kafkaClient.CreateTopic(ctx, topic, config.EventTopicPartitions, config.EventTopicReplicas); err != nil {
+		if err != nil {
+			logger.Fatalw(ctx, "unable-to create topic", log.Fields{"topic": config.EventTopic, "error": err})
+		}
+	}
+
+	// Create the event proxy to post events to KAFKA
+	if vgcInfo.eventProxy, err = ev.InitializeEventProxy(ctx, eventHandler, config.EventTopic); err != nil {
+		logger.Fatalw(ctx, "unable-to-create-event-proxy", log.Fields{"error": err})
+	}
+
+	logger.Infow(ctx, "kafka-client-initialized", log.Fields{"address": config.MsgBusEndPoint, "topic": config.EventTopic})
+	ev.SetEventhandler(eventHandler)
+
+	go kafka.MonitorKafkaReadiness(ctx, vgcInfo.kafkaClient, config.LiveProbeInterval, config.NotLiveProbeInterval, clusterMessagingService)
+}
+
 // @title VOLTHA Go Controller NBI REST API
 // @version 1.0
 // @description North Bound Interface (NBI) REST API exposed by voltha-go-controller (VGC).
@@ -264,7 +309,6 @@ func main() {
 	// Setup default logger - applies for packages that do not have specific logger set
 	var logLevel log.LevelLog
 	var err error
-	var dblogLevel string
 	if logLevel, err = log.StringToLogLevel(config.LogLevel); err != nil {
 		logLevel = log.DebugLevel
 	}
@@ -280,40 +324,8 @@ func main() {
 
 	// Done: TODO: Wrap it up properly and monitor the KV store to check for faults
 	initializeKVStore(ctx, config, logLevel)
-	if vgcInfo.kvClient, err = newKVClient(ctx, config.KVStoreType, config.KVStoreEndPoint, config.KVStoreTimeout); err != nil {
-		logger.Errorw(ctx, "KVClient Establishment Failure", log.Fields{"Reason": err})
-	}
 
-	if dbHandler, err = db.Initialize(ctx, config.KVStoreType, config.KVStoreEndPoint, config.KVStoreTimeout); err != nil {
-		logger.Errorw(ctx, "unable-to-connect-to-db", log.Fields{"error": err})
-		return
-	}
-
-	db.SetDatabase(dbHandler)
-	logger.Infow(ctx, "verifying-KV-store-connectivity", log.Fields{"host": config.KVStoreHost,
-		"port": config.KVStorePort, "retries": config.ConnectionMaxRetries,
-		"retryInterval": config.ConnectionRetryDelay})
-
-	err = waitUntilKVStoreReachableOrMaxTries(ctx, config)
-	if err != nil {
-		logger.Fatalw(ctx, "Unable-to-connect-to-KV-store", log.Fields{"KVStoreType": config.KVStoreType, "Address": config.KVStoreEndPoint})
-	}
-
-	logger.Info(ctx, "KV-store-reachable")
-	//Read if log-level is stored in DB
-	if dblogLevel, err = dbHandler.Get(ctx, db.GetKeyPath(db.LogLevelPath)); err == nil {
-		logger.Infow(ctx, "Read log-level from db", log.Fields{"logLevel": logLevel})
-		storedLogLevel, _ := log.StringToLogLevel(dblogLevel)
-		log.SetAllLogLevel(int8(storedLogLevel))
-		log.SetDefaultLogLevel(int8(storedLogLevel))
-	}
-
-	// Check if Data Migration is required
-	// Migration has to be done before Initialzing the Kafka
-	if app.CheckIfMigrationRequired(ctx) {
-		logger.Debug(ctx, "Migration Initiated")
-		app.InitiateDataMigration(ctx)
-	}
+	initializeMsgBus(ctx, config)
 
 	defer func() {
 		err = log.CleanUp()
@@ -357,9 +369,10 @@ func main() {
 	//go ProcessCli()
 	//go handler.MsgHandler()
 	//go app.StartCollector()
+
 	waitForExit()
 	app.StopTimer()
-	stop(ctx, vgcInfo.kvClient, vpa)
+	stop(ctx, vgcInfo.kvClient, vgcInfo.kafkaClient, vpa)
 }
 
 func waitForExit() int {

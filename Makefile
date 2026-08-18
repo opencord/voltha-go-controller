@@ -162,7 +162,7 @@ mock-gen:
 ## lint and unit tests
 lint-dockerfile: ## Perform static analysis on Dockerfile
 	@echo "Running Dockerfile lint check ..."
-	@${HADOLINT} $$(find . -name "Dockerfile.*")
+	@${HADOLINT} $$(find . -path ./vendor -prune -o -name "Dockerfile.*" -print)
 	@echo "Dockerfile lint check OK"
 
 lint-mod: ## Verify the Go dependencies

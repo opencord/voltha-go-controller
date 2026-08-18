@@ -88,6 +88,8 @@ const (
 	DeviceConfigPath                  string = "/olt/{serialNumber}"
 	FlowProvisionStatus               string = "/flow-status/{portName}"
 	UpdateDevicePath                  string = "/updateDevice/{deviceId}"
+	GetSubscriberConfigPath           string = "/subscriber-config/{oltSerial}"
+	GetFttbSubscriberConfigPath       string = "/subscriber-config/{oltSerial}/{dpuSerial}"
 )
 
 // RestStart to execute for API
@@ -135,6 +137,8 @@ func RestStart() {
 	mu.HandleFunc(BasePath+DeviceConfigPath, prometheusMiddleware((&onosnbi.DeviceConfigHandle{}).ServeHTTP))
 	mu.HandleFunc(BasePath+FlowProvisionStatus, prometheusMiddleware((&SubscriberHandle{}).StatusServeHTTP))
 	mu.HandleFunc(BasePath+UpdateDevicePath, (&onosnbi.UpdateUplinkDeviceConfigHandle{}).ServeHTTP)
+	mu.HandleFunc(BasePath+GetSubscriberConfigPath, prometheusMiddleware((&onosnbi.ServiceConfigInfo{}).ServeHTTP))
+	mu.HandleFunc(BasePath+GetFttbSubscriberConfigPath, prometheusMiddleware((&onosnbi.ServiceConfigInfo{}).ServeHTTP))
 
 	err := http.ListenAndServe(":8181", mu)
 	if p != nil {
