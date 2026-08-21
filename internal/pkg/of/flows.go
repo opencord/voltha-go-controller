@@ -40,6 +40,10 @@ const (
 	PbitMatchAll   PbitType = 0xFF
 )
 
+func (pbit *PbitType) String() string {
+	return strconv.Itoa(int(*pbit))
+}
+
 var logger log.CLogger
 var ctx = context.TODO()
 

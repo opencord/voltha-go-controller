@@ -145,6 +145,14 @@ func GetUniFromDSDhcpFlow(cookie uint64) uint32 {
 	return uniport
 }
 
+// GetOnuSerialFromPort returns onu serial number from the port number
+func GetOnuSerialFromPort(port string) string {
+	if strings.Contains(port, "-") {
+		return port[0:strings.LastIndex(port, "-")]
+	}
+	return port
+}
+
 // GetUniPortFromFlow returns uni port from the flow data
 func GetUniPortFromFlow(uplinkPort string, nniPorts []string, flow *of.VoltSubFlow) uint32 {
 	var portNo uint32
