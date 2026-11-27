@@ -1,0 +1,69 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 The Linux Foundation
+name: Sanity Test
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: >-
+          PR number to test. Works for PRs from forks. Takes precedence over
+          test_ref. Leave blank to test a branch/tag/SHA instead.
+        required: false
+        type: string
+        default: ""
+
+      test_ref:
+        description: >-
+          Branch, tag, or full commit SHA of voltha-go-controller to test.
+        required: false
+        type: string
+        default: ""
+
+      voltha_branch:
+        description: >-
+          VOLTHA release train used to check out voltha-system-tests and
+          voltha-helm-charts (master, voltha-2.15, ...).
+        required: false
+        type: string
+        default: "sanity"
+
+jobs:
+  sanity-test:
+    uses: opencord/shared-workflows/.github/workflows/sanity-test.yaml@sanity
+    secrets: inherit
+    with:
+      BRANCH: ${{ inputs.voltha_branch || 'sanity' }}
+
+      REFSPEC: >-
+        ${{ github.event_name == 'pull_request'
+            && format('refs/pull/{0}/head', github.event.pull_request.number)
+            || (inputs.pr_number != ''
+                && format('refs/pull/{0}/head', inputs.pr_number)
+                || (inputs.test_ref != '' && inputs.test_ref || github.sha)) }}
+
+      TEST_TARGETS: |
+        - target: functional-single-kind-dt-vgc
+          workflow: dt
+          flags: ""
+          teardown: true
+          logging: true
+          vgcEnabled: true
+
+      EXTRA_HELM_FLAGS: >-
+        --set global.image_tag=master
+        --set onos-classic.image.tag=master
+        --set voltha-go-controller.enabled=true
+        --set voltha.replicas.ofagent=0
+
